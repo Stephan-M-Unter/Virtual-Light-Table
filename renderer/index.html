@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Virtual Light Table v0.1 | Crossing Boundaries</title>
+        <link rel="stylesheet" type="text/css" href="./index.css"/>
+        <script src="../js/jquery-3.4.1.min.js"></script>
+        <script>window.$ = window.jQuery = require('../js/jquery-3.4.1.min.js');</script>
+    </head>
+    <body>
+        <!-- Canvas -->
+        <canvas id="table"></canvas>
+        <!-- FragmentSelector / Left Sidebar -->
+        <div id="fragment_selector">
+            <div class="sidebar sidebar_vertical">
+                <div class="sidebar_handle no-select" id="selector_handle">SELECTOR</div>
+            </div>
+        </div>
+        
+        <!-- FragmentTray / Bottom Sidebar -->
+        <div id="fragment_tray">
+            <div class="sidebar_handle no-select" id="tray_handle">TRAY</div>
+            <div class="sidebar sidebar_horizontal">
+                <div class="wrapper_fragment_in_tray">
+                    <img src="../imgs/pap_dummy.jpg" class="thumb_fragment_in_tray"></img>
+                    <div class="name_fragment_in_tray">Cat.xyz1234</div>
+                </div>
+                <div class="wrapper_fragment_in_tray">
+                    <img src="../imgs/pap_dummy.jpg" class="thumb_fragment_in_tray"></img>
+                    <div class="name_fragment_in_tray">Cat.xyz1234</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Control Elements -->
+        <div id="tableButtons">
+            <div class="circleButton tableButton no-select" id="clear_table">
+                <img src="../imgs/symbol_new_table.png" class="tableButtonImg"></img>
+            </div>
+            <div class="circleButton tableButton no-select" id="save_table">
+                <img src="../imgs/symbol_save.png" class="tableButtonImg"></img>
+            </div>
+            <div class="circleButton tableButton no-select" id="load_table">
+                <img src="../imgs/symbol_load.png" class="tableButtonImg"></img>
+            </div>
+            <div class="circleButton tableButton no-select" id="duplicate_table">
+                <img src="../imgs/symbol_duplicate.png" class="tableButtonImg"></img>
+            </div>
+            <div class="circleButton tableButton no-select" id="hor_flip_table">
+                <img src="../imgs/symbol_horizontal_flip.svg" class="tableButtonImg"></img>
+            </div>
+            <div class="circleButton tableButton no-select" id="vert_flip_table">
+                <img src="../imgs/symbol_vertical_flip.svg" class="tableButtonImg"></img>
+            </div>
+        </div>
+
+        <!-- Project Logo -->
+        <!--
+        <img src="../imgs/cb_logo.png" id="cb_logo" class="no-select"></img>
+        -->
+
+        <!-- Start Header -->
+        <div id="start_header">
+            <div id="header1">Virtual Light Table</div>
+            <div id="header2">developed by and for</div>
+            <div id="header3">Crossing Boundaries</div>
+        </div>
+        
+        <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+        <script src="./index.js"></script>
+    </body>
+</html>
