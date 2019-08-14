@@ -30,6 +30,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Zoom Elements -->
+        <div id="zoom_wrapper">
+            <div class="circleButton tableButton no-select" id="minus_zoom">
+                <img src="../imgs/symbol_minus_zoom.png" class="tableButtonImg"></img>
+            </div>
+            <input class="" id="zoom_slider" type="range" min="10" max="100" value="50">
+            <div class="circleButton tableButton no-select" id="plus_zoom">
+                <img src="../imgs/symbol_plus_zoom.png" class="tableButtonImg"></img>
+            </div>
+            <!--<div class="" id="zoom_factor"></div>-->
+        </div>
         
         <!-- Control Elements -->
         <div id="tableButtons">
@@ -51,6 +63,9 @@
             <div class="circleButton tableButton no-select" id="vert_flip_table">
                 <img src="../imgs/symbol_vertical_flip.svg" class="tableButtonImg"></img>
             </div>
+            <div class="circleButton tableButton no-select" id="light_switch">
+                <img src="../imgs/symbol_light.png" class="tableButtonImg"></img>
+            </div>
         </div>
 
         <!-- Project Logo -->
@@ -66,6 +81,7 @@
         </div>
         
         <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+        <script src="https://code.createjs.com/1.0.0/preloadjs.min.js"></script>
         <script src="./index.js"></script>
     </body>
 </html>

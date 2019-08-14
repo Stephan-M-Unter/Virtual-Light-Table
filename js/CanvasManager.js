@@ -65,6 +65,7 @@ class CanvasManager {
             "stage": {},
             "items": {}
         };
+
     }
 
     addItem(itemID, itemProps) {
@@ -102,6 +103,7 @@ class CanvasManager {
             this.canvasItems["items"][itemID]['xPos'] = xPos;
             this.canvasItems["items"][itemID]['yPos'] = yPos;
             this.canvasItems["items"][itemID]["rotation"] = rotation;
+            console.log("**CanvasManager** - updated item " + itemID + ".");
             return true;
         } else {
             console.log("**CanvasManager** - itemID " + itemID + " has not been found!");
@@ -151,8 +153,8 @@ class CanvasManager {
     }
 
     clearItems(){
-        console.log("**CanvasManager** - Canvas content has been cleared.");
         this.canvasItems = {};
+        console.log("**CanvasManager** - Canvas content has been cleared.");
     }
 
     setCanvasContent(newContent){
@@ -164,6 +166,11 @@ class CanvasManager {
     printCanvasItems(){
         console.log("**CanvasManager** - Current Canvas Content ("+Object.keys(this.canvasItems).length+" items):")
         console.log(JSON.stringify(this.canvasItems));
+    }
+
+    updateStageInformation(stage_update){
+        this.canvasItems.stage = stage_update;
+        this.printCanvasItems();
     }
 }
 

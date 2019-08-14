@@ -1,377 +1,580 @@
-/*
-    Name:           Virtual Light Table - Event Handlers
-    Version:        0.1
-    Author:         Stephan M. Unter (University of Basel, Crossing Boundaries project)
-    Start-Date:     12/06/19
-    Last Change:    24/07/19
-    
-    Description:    TODO
-*/
-
 'use strict'
 
+// Loading Requirements...
 const { ipcRenderer } = require('electron');
 
-var development = false;
+const development = true;
 
-function clearTable(){
-    console.log("User Click: Clearing Table.");
-    ipcRenderer.send('clear-table')
-}
 
-function horFlipTable(){
-    console.log("User Click: Horizonally Flipping Table.");
-    // TODO
-}
+// Settings
 
-function vertFlipTable(){
-    console.log("User Click: Vertically Flipping Table.");
-}
+const transitionSpeed = 200;
+const scalingFactor = 0.4;
 
-function saveTable(){
-    console.log("User Click: Saving Table.");
-    ipcRenderer.send('save-table');
-}
+var light_mode = 'dark';
 
-function loadTable(){
-    console.log("User Click: Loading Table");
-    ipcRenderer.send('load-table');
-    // TODO
-}
 
-function duplicateTable(){
-    console.log("User Click: Duplicating Table.");
-    ipcRenderer.send('new-pic', 'https://images-na.ssl-images-amazon.com/images/I/71vntClRfjL._SX425_.jpg'); // TODO Just a test case
-    // TODO
-}
-
-function toggleFragmentTray(){
-    var bottom = $("#fragment_tray").css("bottom");
-    var transitionSpeed = 180;
-    if (bottom == "-200px") {
-        $("#fragment_tray, #tableButtons").stop().animate({
-            bottom: "+=200"
-        }, transitionSpeed);
-    } else {
-        $("#fragment_tray, #tableButtons").stop().animate({
-            bottom: "-=200"
-        }, transitionSpeed);
-    }
-}
-
-function toggleFragmentSelector(){
-    var left = $("#fragment_selector").css("left");
-    var transitionSpeed = 180;
-    if (left == "0px") {
-        $("#fragment_selector").stop().animate({
-            left: "-=400"
-        }, transitionSpeed);
-    } else {
-        $("#fragment_selector").stop().animate({
-            left: "+=400"
-        }, transitionSpeed);
-    }
-}
-
-function startScreen(){
-    $("#start_header").css({'display': 'block'});
-    var delay = 600
-    var delay = 2 // TODO remove - only for testing to speed things up
-    $("#header1").stop().delay(delay).animate({
-        opacity: "1"
-    }, delay*2, function(){
-        $("#start_header").delay(delay*9).animate({
-            opacity: "0"
-        }, delay*2, function(){
-            $("#start_header").css({"display": "none"});
-        });
-    });
-    
-    $("#header2").stop().delay(delay*4).animate({
-        opacity: "1"
-    }, delay*2, function(){
-        $("#header2").delay(delay*4).animate({
-            opacity: "0"
-        }, delay*2);
-    });
-    $("#header3").stop().delay(delay*5).animate({
-        opacity: "1"
-    }, delay*2, function(){
-        $("#header3").delay(delay*2).animate({
-            opacity: "0"
-        }, delay*2);
-    });
-}
+// Initialisation
 
 var stage;
-$(document).ready(function() {   
-
-    stage = new createjs.Stage("table");
-
-    stage.canvas.width = window.innerWidth;
-    stage.canvas.height = window.innerHeight;
-    stage.name = "stage";
-
-    let bg = new createjs.Shape();
-    bg.graphics.beginFill("#333333").drawRect(0,0,stage.canvas.width,stage.canvas.height);
-    bg.name = "background";
-    stage.addChild(bg);
-
-    stage.enableMouseOver();
-
-    var selected_container;
-
-    function load_pics(items) {
-        for (var x in stage.children) {
-            let stageChild = stage.children[x];
-            console.log("StageItem: " + stageChild.canvasID);
-            /*
-            For every child node of the stage check if it is registered in the canvas manager;
-            if so, update the position and remove it from the dictionary; thus, only
-            new images remain in the set.
-            */
-            if (stageChild.canvasID && stageChild.canvasID in items) {
-                console.log("StageItem " + stageChild.canvasID + " in items!");
-                // TODO image already registered, only update position
-                delete items[stageChild.canvasID];
-            }
-        }
-
-        // now only new images are left which need to be freshly created
-
-        for (var newItem in items) {
-            let newImage = items[newItem];
-            let image = new Image();
-            image.src = newImage.rectoURLlocal;
-            image.name = newImage.name;
-            image.onload = load_pic(newItem, image, newImage);
-        }
-        stage.update();
+var dark_background;
+var zoom_slider;
+var selected_image;
 
 
-        /*let image = new Image();
-        image.src = "../imgs/cb_logo.png";
-        image.name = "Image1";
-        image.onload = load_pic;
+/*
+    SENDING MESSAGES
 
-        let image2 = new Image();
-        image2.src = "../imgs/pap_dummy.jpg";
-        image2.name = "Image2";
-        image2.onload = load_pic;*/
+    When the following functions are called, they send an ipcRenderer message to the main
+    thread which serves as a controller.
+*/
+
+/*
+    The following function is a generic function which allows for multiple messages to be sent.
+    In general, these messages are just quick notifications for the controller (the main procress)
+    to do something, e.g. to save the current table, to provide an update for the canvas, to
+    flip all items or to clear the whole table. Instead of creating individual functions for every
+    such action, simply pass the necessary message to this function and it will be
+    transported.
+
+    So far, the following codes have been implemented:
+    -> 'clear-table'
+    -> 'save-table'
+    -> 'load-table'
+    -> 'hor-flip'
+    -> 'vert-flip'
+    -> 'duplicate'
+    -> 'update-canvas'
+*/
+function send_message(code){
+    let acceptedMessages = [
+        'clear-table',
+        'save-table',
+        'load-table',
+        'hor-flip',
+        'vert-flip',
+        'duplicate',
+        'update-canvas'
+    ]
+    if (development) {console.log("Sending message with code \'" + code + "\' to main process.");}
+    if (acceptedMessages.indexOf(code) >= 0) {
+        ipcRenderer.send(code);
+    } else {
+        console.log("Error: the code \'" + code + "\' has not been recognised.");
     }
+};
 
-    function load_pic(canvasID, img, imgProps) {
-        let xPos = imgProps.xPos;
-        let yPos = imgProps.yPos;
-        let rotation = imgProps.rotation;
-
-        let container = new createjs.Container();
-        container.name = imgProps.name;
-        container.canvasID = canvasID;
-        let image = new createjs.Bitmap(img);
-        image.name = imgProps.name;
-        image.canvasID = canvasID;
-        image.selected = false;
-        image.cursor = "pointer";
-        image.scale = 0.5;
-        image.x = 0;
-        image.y = 0;
-        container.x = xPos;
-        container.y = yPos;
-        image.regX = image.image.width / 2;
-        image.regY = image.image.height / 2;
-        container.rotation = rotation;
+function send_message_with_data(code, data){
+    if (development) {console.log("Sending message with code \'" + code + "\' including additional data to main process.")}
+    ipcRenderer.send(code, data);
+}
 
 
 
-        container.addChild(image);
-        stage.addChild(container);
-        stage.update();
+/*
+    RECEIVING MESSAGES
 
-        function deselect(){
-            if (selected_container) {
-                selected_container.removeChildAt(1);
-                let selected_image = selected_container.getChildAt(0);
-                selected_image.selected = false;
-                selected_image.cursor = "pointer";
-                stage.update();
-            }
+    The following listeners fire whenever a corresponding message has been received by the main
+    task, the controller. Some messages simply notify the UI to do something, others
+    include data which should be handled accordingly.
+
+    So far, the following messages will be accepted:
+
+    <- update-canvas
+            This message notifies the UI to update itself because of otherwise invisible changes
+            which have been made under the hood. The message includes a JS object with all
+            items to draw and their respective location information, i.e. x and y position
+            as well as rotation.
+
+            Please note that there are three potential cases:
+                1. the image is not yet on the canvas - then draw it
+                2. the image is already on the canvas - then update its location
+                3. the image is on the canvas, but not in the dataset anymore - then
+                    remove it from the canvas, as the canvasManager is the only
+                    reliable source
+*/
+ipcRenderer.on('update-canvas', function(event, data){
+    console.log("Received \'update-canvas\' message from main controller.");
+    update_canvas(data);
+});
+
+/*
+    <- redraw-canvas
+            This message is sent when more than just some item locations might have changed.
+            For example, after loading a whole new configuration, there would be an overload
+            of image IDs in the canvas manager: while a completely new image with ID 1 would be
+            registered in the canvas manager, the stage in this file still has information
+            about the old image (given that there had already been another setup on screen). To
+            avoid any complications and to avoid double-checking every single information between
+            canvas manager and UI, the redraw function simply removes all existent images
+            from the stage and redraws a new set.
+
+            Please note: stage.children.getChildAt(0) has to be kept, this is the background
+            shape which is necessary for capturing user clicks on the screen.
+*/
+ipcRenderer.on('redraw-canvas', function(event, data){
+    console.log("Received \'redraw-canvas\' message from main controller.");
+
+    let amount_stage_items = stage.children.length
+
+    // TODO das kann man sicher noch schöner machen
+    for (let x = 0; x < amount_stage_items; x++){
+        if (x == 0) {
+            // index 0 is reserved for the background, which should NOT be removed!
+            continue;
+        } else {
+            // remove all other children, i.e. canvas items
+            stage.removeChildAt(1);
         }
-
-        bg.on("mousedown", function(event){
-            deselect();
-        });
-
-        image.on("mousedown", function(event){
-            var posX = event.stageX;
-            var posY = event.stageY;
-            this.parent.offset = {x: this.parent.x - posX, y: this.parent.y - posY};
-            
-            if (!event.target.selected) {
-                deselect();
-                stage.setChildIndex(this.parent, stage.children.length - 1);
-                
-                
-                let anchorContainer = new createjs.Container();
-                anchorContainer.name = "anchorContainer";
-                let anchorsize = 20;
-                
-                let bounds = event.target.getBounds();
-                let imageWidth = event.target.image.width * event.target.scaleX;
-                let imageHeight = event.target.image.height * event.target.scaleY;
-                
-                let rotateArrows = new createjs.Bitmap("../imgs/symbol_rotate.png");
-                let rotateArrowMatrix = new createjs.Matrix2D();
-                rotateArrowMatrix.translate(0,0);
-                rotateArrowMatrix.scale(0.1, 0.1);
-                let circle = new createjs.Graphics()
-                    .setStrokeStyle(2)
-                    .beginStroke("#00aa00")
-                    .beginFill("#00ff00")
-                    .drawCircle(0,0,anchorsize);
-
-                /*let anchor1 = new createjs.Shape(rect);
-                anchor1.x = event.target.x - anchorsize/2 - imageWidth/2;
-                anchor1.y = event.target.y - anchorsize/2 - imageHeight/2;
-                anchor1.cursor = "grab";
-                anchor1.on("pressmove", rotateImage);
-
-                let anchor2 = new createjs.Shape(rect);
-                anchor2.x = event.target.x - (anchorsize/2) + imageWidth - imageWidth/2;
-                anchor2.y = event.target.y - anchorsize/2 - imageHeight/2;
-                anchor2.cursor = "grab";
-                anchor2.on("pressmove", rotateImage);
-                
-                let anchor3 = new createjs.Shape(rect);
-                anchor3.x = event.target.x - anchorsize/2 - imageWidth/2;
-                anchor3.y = event.target.y - (anchorsize/2) + imageHeight - imageHeight/2;
-                anchor3.cursor = "grab";
-                anchor3.on("pressmove", rotateImage);
-                
-                let anchor4 = new createjs.Shape(rect);
-                anchor4.x = event.target.x - (anchorsize/2) + imageWidth - imageWidth/2;
-                anchor4.y = event.target.y - (anchorsize/2) + imageHeight - imageHeight/2;
-                anchor4.cursor = "grab";
-                anchor4.on("pressmove", rotateImage);*/
-
-                let rotateAnchor = new createjs.Shape(circle);
-                rotateAnchor.x = imageWidth/2 + 40;
-                rotateAnchor.y = -anchorsize/2;
-                rotateAnchor.cursor = "grab";
-                rotateAnchor.on("pressmove", rotateImage);
-                rotateAnchor.on("pressup", function(event){
-                    this.cursor = "grab";
-                });
-
-                function rotateImage(event){
-                    this.cursor = "grabbing";
-                    container = event.target.parent.parent;
-                    var rads = Math.atan2(stage.mouseY - container.y, stage.mouseX - container.x);
-                    var angle = rads * (180 / Math.PI);
-                    var difference = container.rotation - angle;
-                    container.rotation -= difference;
-                    stage.update();
-                }
-
-                let border = new createjs.Shape();
-                border.graphics.beginStroke("#f5842c");
-                border.graphics.setStrokeDash([15,5]);
-                border.graphics.setStrokeStyle(2);
-                border.snapToPixel = true;
-                border.graphics.drawRect(0,0,imageWidth,imageHeight);
-                border.x = event.target.x - imageWidth/2;
-                border.y = event.target.y - imageHeight/2;
-
-                anchorContainer.addChild(border);
-                anchorContainer.addChild(rotateAnchor);
-                /*anchorContainer.addChild(anchor1);
-                anchorContainer.addChild(anchor2);
-                anchorContainer.addChild(anchor3);
-                anchorContainer.addChild(anchor4);*/
-                event.target.parent.addChild(anchorContainer);
-                selected_container = event.target.parent;
-
-                event.target.selected = true;
-                event.target.cursor = "move";
-            }
-            stage.update();
-        });
-
-        image.on("pressmove", function(event){
-            var posX = event.stageX;
-            var posY = event.stageY;
-            this.parent.x = posX + this.parent.offset.x;
-            this.parent.y = posY + this.parent.offset.y;
-            stage.update();
-        });
-        
-        image.on("pressup", function(event){
-            let imageName = event.target.name;
-            let newX = event.target.parent.x;
-            let newY = event.target.parent.y;
-            let rotation = event.target.parent.rotation;
-            let update = {
-                imageName: imageName,
-                newX: newX,
-                newY: newY,
-                rotation: rotation
-            }
-            ipcRenderer.send('update-position', update);
-            stage.update();
-        });
     }
     stage.update();
 
-    
+    update_canvas(data);
+});
 
 
 
-    $("#clear_table").click(function(){
-        clearTable();
-    });
-    $("#save_table").click(function(){
-        saveTable();
-    });
-    $("#load_table").click(function(){
-        loadTable();
-    });
-    $("#duplicate_table").click(function(){
-        duplicateTable();
-    });
-    $("#hor_flip_table").click(function(){
-        horFlipTable();
-    });
-    $("#vert_flip_table").click(function(){
-        vertFlipTable();
-    });
-    $("#tray_handle").click(function(){
-        toggleFragmentTray();
-    });
-    $("#selector_handle").click(function(){
-        toggleFragmentSelector();
-    });
-    
-    if (development) {
-        toggleFragmentTray();
+
+/*
+    HANDLING BUTTON CLICKS
+
+    The following functions handle clicks and interactions with user interface elements.
+*/
+// Clear Table Button
+$('#clear_table').click(function(){
+    send_message('clear-table');
+});
+
+// Save Table Button
+$('#save_table').click(function(){
+    send_message('save-table');
+});
+
+// Load Table Button
+$('#load_table').click(function(){
+    send_message('load-table');
+});
+
+// Duplicate Button
+$('#duplicate_table').click(function(){
+    send_message('duplicate');
+});
+
+// Horizontal Flip Button
+$('#hor_flip_table').click(function(){
+    send_message('hor-flip');
+});
+
+// Vertical Flip Button
+$('#vert_flip_table').click(function(){
+    send_message('vert-flip');
+});
+
+// Light Switch Button
+$('#light_switch').click(function(){
+    if (light_mode == "dark") {
+        // the current light_mode is dark, thus change to bright
+        dark_background = $('body').css('background');
+        $('body').css({background: "linear-gradient(356deg, rgba(200,200,200,1) 0%, rgba(180,180,180,1) 100%)"});
+        light_mode = "bright";
     } else {
-        startScreen();
+        // the current light_mode is bright, thus change to dark
+        $('body').css({background: dark_background});
+        light_mode = "dark";
+    }
+});
+
+// Fragment Tray Button
+$('#tray_handle').click(function(){    
+    let bottom = $('#fragment_tray').css('bottom');
+
+    // toggle mechanism - depending on its current state, show or hide the fragment tray
+    if (bottom == "-200px") {
+        // this fires when the tray with height 200px is hidden under the window, thus move it up
+        $('#fragment_tray, #tableButtons').stop().animate({bottom: "+=200"}, transitionSpeed);
+    } else {
+        // this fires when the tray is visible, thus move it 200px down to hide it under the screen
+        $('#fragment_tray, #tableButtons').stop().animate({bottom: "-=200"}, transitionSpeed);
+    }
+});
+
+// Fragment Selector Button
+$('#selector_handle').click(function(){
+    let left = $('#fragment_selector').css('left');
+
+    // toggle mechanism - depending on its current state, show or hide the fragment selector
+    if (left == "0px") {
+        // this fires if the fragment selector is visible, thus move it to left until it's hidden
+        $('#fragment_selector').stop().animate({left: "-=400"}, transitionSpeed);
+    } else {
+        // this fires if the fragment selector is hidden left of the screen, thus move it right to make it visible
+        $('#fragment_selector').stop().animate({left: "+=400"}, transitionSpeed);
+    }
+});
+
+$('#minus_zoom').click(function(){
+    zoom_slider.value -= 10;
+    update_zoom();
+});
+
+$('#plus_zoom').click(function(){
+    zoom_slider.value = parseInt(zoom_slider.value) + 10;
+    update_zoom();
+});
+
+function handleKey(event){
+    console.log(event);
+    let deltaValue = 1;
+    if (event.shiftKey){
+        deltaValue = 100;
+    }
+    else if (event.ctrlKey){
+        deltaValue = 10;
+    }
+    switch(event.key) {
+        case "ArrowRight":
+            if (event.altKey) {
+                rotate_image_by_value(deltaValue);
+            } else {
+                move_image_by_value(deltaValue, 0);
+            }
+            break;
+        case "ArrowLeft":
+            if (event.altKey){
+                rotate_image_by_value(-deltaValue);
+            } else {
+                move_image_by_value(-deltaValue, 0);
+            }
+            break;
+        case "ArrowUp":
+            move_image_by_value(0, -deltaValue);
+            break;
+        case "ArrowDown":
+            move_image_by_value(0, deltaValue);
+            break;
+    }
+}
+
+
+
+$(document).ready(function(){
+    // Setting up the stage and defining its width and height
+    stage = new createjs.Stage('table');
+    stage.canvas.width = window.innerWidth;
+    stage.canvas.height = window.innerHeight;
+    stage.name = "Lighttable";
+    stage.enableMouseOver();
+
+    // TODO: What if the window is resized? Only allow fullscreen or handling it?
+
+    // Creating a background shape for the canvas. This shape is necessary in order to capture clicks
+    // on the canvas itself, as clicks are only registered as long as they hit non-transparent pixels.
+    var background = new createjs.Shape();
+    background.graphics.beginFill('#333333').drawRect(0, 0, window.innerWidth, window.innerHeight);
+    background.name= "Background";
+    background.alpha = 0.01;
+
+    // function call for clicks on background - deselect all items
+    background.on("mousedown", deselect_all);
+
+    stage.addChild(background);
+    stage.update();
+
+    // setting up zoom elements
+    zoom_slider = document.getElementById('zoom_slider');
+    console.log(zoom_slider);
+    $('#zoom_factor').text(zoom_slider.value/100);
+    zoom_slider.oninput = update_zoom;
+
+    // setting up key handling
+    document.onkeydown = handleKey;
+
+    save_stage_properties();
+});
+
+
+
+/*
+    GENERAL FUNCTIONS
+
+    This contains several functions which are not directly useful for sending or receiving messages,
+    don't handle user interface functions and are not necessarily called directly after page load.
+*/
+
+/*
+    This function will be called every time the canvas needs to be updated. To do so, the main process
+    sends a file with all registered images and their location positioning, i.e. x and y position, rotation
+    and whatever comes to your mind (cf. receiver function for 'update-canvas').
+
+    There are three potential scenarios:
+        1. the image is not yet on the canvas - then draw it
+        2. the image is already on the canvas - then update its location
+        3. the image is on the canvas, but not in the dataset anymore - then
+            remove it from the canvas, as the canvasManager is the only
+            reliable source
+
+    First, there will be a check for every element in the image_set given by the main task, if the
+    image is already on the canvas. If not, it is drawn at the position given by its meta information.
+    If so, the already existing image is redrawn at the position given by its meta information.
+
+    In a second step, all elements on the stage are checked if they are in the image_set. If not,
+    they will be removed.
+*/
+function update_canvas(image_set){
+    var loadQueue = new createjs.LoadQueue();
+    loadQueue.addEventListener('complete', draw_images);
+
+    // first, handle those images which need updates or have to be removed from canvas
+    for (let x in stage.children) {
+        let stage_element = stage.children[x];
+        if (stage_element.canvasID && stage_element.canvasID in image_set) {
+            // if the element has a canvasID AND this ID is in the image_set,
+            // then it's case 2 and the location must be updated
+            let image_props = image_set[stage_element.canvasID];
+
+            console.log("Image Props:");
+            console.log(image_props);
+            console.log("Stage Element:");
+            console.log(stage_element);
+
+            stage_element.x = image_props.xPos;
+            stage_element.y = image_props.yPos;
+            stage_element.rotation = image_props.rotation;
+            // TODO: Update Image Location
+            // now set image.updated to true
+            stage.update();
+            image_set[stage_element.canvasID]['updated'] = true;
+            console.log("Image (ID: " + stage_element.canvasID + ") has been updated.");
+        } else if (stage_element.canvasID && !(stage_element.canvasID in image_set)) {
+            // this means there is an element on the canvas which has no equivalent in the image_set
+            // simply remove it from the canvas, it's not legitimate anymore
+            // TODO: Remove Image
+        }
     }
     
-    // <- DRAW-PICTURE
-    ipcRenderer.on('draw-picture', function(event, data) {
-        
-        let canvas = document.getElementById('table');
-        let context = canvas.getContext('2d');
-    
-        let image = new Image();
-        image.src = data;
-        context.drawImage(image, 0, 0);
-    });
+    // now all stage items to be removed are removed and all items which have been on the canvas
+    // and still should be on the canvas are updated; last step: add new items:
+    var new_image_ids = [];
+    for (let id in image_set) {
+        if (image_set[id].updated) {
+            // images which have been updated in the step before have this attribute
+            continue;
+        } else {
+            // all other images have not been processed and thus need to be added to the canvas
+            let image = image_set[id];
+            let image_url;
+            if (image.recto = true) {
+                image_url = image.rectoURLlocal;
+            } else {
+                image_url = image.versoURLlocal;
+            }
+            // add the new image to the loadqueue, register its id in a special set and set the
+            // updated property just to make sure it won't get processed again
+            loadQueue.loadManifest([{id: id, src: image_url}], false);
+            new_image_ids.push(id);
+            image.updated = true;
+        }
+    }
 
-    // <- UPDATE-CANVAS
-    ipcRenderer.on('update-canvas', function(event, data) {
-        load_pics(data);
-    });
+    // after adding all new files, load the queue
+    loadQueue.load();
 
-    ipcRenderer.send('update-position');
-});
+    function draw_images(event){
+        // load metadata for and create every image whose id is in the new_image_ids set
+        for (let x in new_image_ids){
+            let id = new_image_ids[x];
+            let image_props = image_set[id];
+
+            // create the new image itself as a createjs bitmap
+            // also, add all the information given by the image_props to the image
+            let image = new createjs.Bitmap(loadQueue.getResult(id));
+            image.name = "image_"+image_props.name;
+            image.canvasID = id;
+            image.selected = false;
+            image.cursor = "pointer";
+            image.scale = scalingFactor;
+            image.recto = image_props.recto;
+            image.x = 0;
+            image.y = 0;
+
+            // now, create a container which will contain the image and the elements
+            // necessary for the selection environment
+            let container = new createjs.Container();
+            container.name = "container_"+image_props.name;
+            container.canvasID = id;
+            container.x = image_props.xPos;
+            container.y = image_props.yPos;
+            container.rotation = image_props.rotation;
+            container.recto = image_props.recto;
+            // setting the registration points of the container to the center
+            // necessary such that pivot point for rotation is the center of an image
+            container.regX = image.image.width / 2 * scalingFactor;
+            container.regY = image.image.height / 2 * scalingFactor;
+
+            container.addChild(image);
+            stage.addChild(container);
+            stage.update();
+
+            // function call when image is clicked upon - then, image should be selected
+            image.on("mousedown", select_element);
+            // function call when image is dragged - move the image according to the cursor
+            image.on("pressmove", move_image);
+            // function call when drag procedure is ended - send new location information to main process
+            image.on("pressup", save_image_location);
+        }
+    }
+};
+
+// This function handles the rotation of images - of course not the image itself, but the whole
+// container will be rotated, such that the selection environment agrees
+function rotate_image(event){
+    let rotation_anchor = event.target;
+    let rotated_container = rotation_anchor.parent.parent;
+
+    rotation_anchor.cursor = "grabbing";
+    var rads = Math.atan2(stage.mouseY - rotated_container.y, stage.mouseX - rotated_container.x);
+    var angle = rads * (180 / Math.PI);
+    var difference = rotated_container.rotation - angle;
+    rotated_container.rotation -= difference;
+    stage.update();
+}
+
+function rotate_image_by_value(deltaRot){
+    if (selected_image){
+        selected_image.parent.rotation += deltaRot;
+    }
+    save_image_location();
+    stage.update();
+}
+
+// When this function is called, all elements on the stage will be deselected, i.e. their "selected" entry
+// will be set to false and bounding boxes/rotation anchors will be removed
+function deselect_all(){
+    for (let x in stage.children){
+        let element = stage.children[x];
+        if (element.selected){
+            element.removeChildAt(1); // removes the anchor_container, which is at position 1 (0 is the image)
+            element.selected = false;
+            element.getChildAt(0).cursor = "pointer"; // change cursor behaviour for the image
+        }
+    }
+    selected_image = null;
+    stage.update();
+}
+
+// When this function is called, one particular element (the one which the user has clicked on) should
+// be selected, i.e. there should be a highlighting bounding box to indicate its measurements, a rotation
+// anchor, maybe some other buttons and the option to move it around.
+function select_element(event){
+    // additionally to selecting the image, also register the cursor offset
+    let posX = event.stageX;
+    let posY = event.stageY;
+    event.target.parent.offset = {x: event.target.parent.x - posX, y: event.target.parent.y - posY};
+
+    let clicked_element = event.target;
+    // first when selecting a new object, deselect all other objects (which, in normal case, should
+    // only be one, but you never know); this is only necessary if the clicked element is
+    // not the selected one per se, otherwise there is no need to deselect things and reselect the element
+    if (!clicked_element.parent.selected){
+        deselect_all();
+        selected_image = event.target;
+
+        clicked_element.parent.selected = true; // registering the current element as the selected one
+        clicked_element.cursor = "move"; // now that the element is selected, indicate it can be moved
+
+        // make sure the selected element is now last element in the stage children array
+        // thus, the element will show up on top
+        stage.setChildIndex(clicked_element.parent, stage.children.length-1);
+
+        // create a new container which will hold the bounding rectangle and the rotation anchor
+        let anchor_container = new createjs.Container();
+        anchor_container.name = "container_anchor";
+
+        // get the boundings of the image itself
+        let bounds = clicked_element.getBounds();
+        let image_width = clicked_element.image.width * scalingFactor;
+        let image_height = clicked_element.image.height * scalingFactor;
+
+        // create the rotation anchor, needed to rotate an image
+        let rotation_anchor = new createjs.Shape();
+        rotation_anchor.graphics.setStrokeStyle(1).beginStroke('#00aa00').beginFill('#00ff00').drawCircle(0, 0, 20);
+        rotation_anchor.x = image_width + 2 * 20;
+        rotation_anchor.y = image_height / 2 + 20 / 2;
+        rotation_anchor.cursor = "grab";
+        rotation_anchor.name = "rotation_anchor";
+        rotation_anchor.on("pressmove", rotate_image);
+        rotation_anchor.on("pressup", function(event){
+            this.cursor = "grab"
+            save_image_location(event);
+        });
+
+        // create the bounding box
+        let bounding_box = new createjs.Shape();
+        bounding_box.graphics.beginStroke('#f5842c').setStrokeDash([15,5]).setStrokeStyle(2).drawRect(0, 0, image_width, image_height);
+
+        // add new elements to the hierarchy
+        anchor_container.addChild(bounding_box);
+        anchor_container.addChild(rotation_anchor);
+        clicked_element.parent.addChild(anchor_container);
+
+        stage.update();
+    }
+}
+
+// This function controls the movement of selected and dragged objects
+function move_image(event){
+    let element = event.target;
+    let posX = event.stageX;
+    let posY = event.stageY;
+    element.parent.x = posX + element.parent.offset.x;
+    element.parent.y = posY + element.parent.offset.y;
+    stage.update();
+}
+
+// This function allows exact movement of the selected image by values
+function move_image_by_value(deltaX, deltaY){
+    if (selected_image){
+        let container = selected_image.parent;
+
+        container.x += deltaX;
+        container.y += deltaY;
+
+        save_image_location();
+
+        stage.update();
+    }
+}
+
+// When this function is called, the new location information of the selected element will be
+// transmitted to the main process and then registered at the canvasManager
+function save_image_location(event){
+    let moved_element = selected_image;
+    let moved_container = selected_image.parent;
+
+    // create an JS object containing all the relevant information about the current location
+    let location_update = {
+        "id":moved_element.canvasID,
+        "xPos":moved_container.x,
+        "yPos":moved_container.y,
+        "rotation":moved_container.rotation,
+        "scale":moved_element.scaleX,
+        "recto":moved_element.recto
+    }
+
+    send_message_with_data('update-location', location_update);
+}
+
+function save_stage_properties(){
+    // TODO: auch zoomfaktor/scaling integrieren!
+    let stage_properties = {
+        "stage_width": stage.canvas.width,
+        "stage_height": stage.canvas.height,
+        "stage_children": stage.children.length
+    }
+
+    send_message_with_data('update-stage', stage_properties);
+}
+
+function update_zoom(){
+    $('#zoom_slider').text(zoom_slider.value/100);
+}

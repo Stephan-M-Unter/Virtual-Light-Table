@@ -30,7 +30,7 @@ body {
 
 .tableButton {
     background-color: #f5842c;
-    transition: background-color 0.5s;
+    transition: background-color 0.2s;
     text-align: center;
 }
 
@@ -211,4 +211,44 @@ canvas {
     top: 35%;
     left: 37%;
     opacity: 0;
+}
+
+#zoom_wrapper {
+    position: absolute;
+    right: 10px;
+    display: inline-block;
+    text-align: middle;
+    opacity: 0.3;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+#zoom_wrapper:hover{
+    opacity: 1;
+}
+
+#zoom_slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 25px;
+    background: #f5842c;
+}
+
+#zoom_slider {
+    -webkit-appearance: none;
+    outline: none;
+    height: 15px;
+}
+
+#zoom_wrapper > .circleButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+}
+
+#zoom_wrapper > .circleButton > .tableButtonImg {
+    top: 5;
+    max-width: 18px;
+    max-height: 18px;
 }
