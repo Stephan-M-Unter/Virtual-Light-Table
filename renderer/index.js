@@ -268,9 +268,9 @@ function handleKey(event){
 // Function that handles mousewheel events when fire while hovering over canvas.
 function handle_canvas_mousewheel(event){
     if (event.deltaY >= 0){
-        zoom_slider.value = parseInt(zoom_slider.value) - 10;
+        zoom_slider.value = parseInt(zoom_slider.value) - 1;
     } else {
-        zoom_slider.value = parseInt(zoom_slider.value) + 10;
+        zoom_slider.value = parseInt(zoom_slider.value) + 1;
     }
     update_zoom();
 }
@@ -287,28 +287,20 @@ $(document).ready(function(){
 
     // TODO: What if the window is resized? Only allow fullscreen or handling it?
 
-    // Creating a background shape for the canvas. This shape is necessary in order to capture clicks
-    // on the canvas itself, as clicks are only registered as long as they hit non-transparent pixels.
-    var background = new createjs.Shape();
-    background.graphics.beginFill('#333333').drawRect(0, 0, window.innerWidth, window.innerHeight);
-    background.name= "Background";
-    background.alpha = 0.01;
-
-    // function call for clicks on background - deselect all items
-    background.on("mousedown", deselect_all);
-
-    stage.addChild(background);
-    stage.update();
+    draw_background();
 
     // setting up zoom elements
     zoom_slider = document.getElementById('zoom_slider');
     console.log(zoom_slider);
-    $('#zoom_factor').text(zoom_slider.value/100);
+    $('#zoom_factor').html("Table Zoom<br/>x"+zoom_slider.value/100);
     zoom_slider.oninput = update_zoom;
 
     // setting up key handling
     document.onkeydown = handleKey;
     document.getElementById('table').addEventListener('mousewheel', handle_canvas_mousewheel);
+
+    // add listener for resize of window
+    window.addEventListener('resize', resize_canvas);
 
     save_stage_properties();
 });
@@ -518,7 +510,7 @@ function select_element(event){
 
         // create the rotation anchor, needed to rotate an image
         let rotation_anchor = new createjs.Shape();
-        rotation_anchor.graphics.setStrokeStyle(1).beginStroke('#00aa00').beginFill('#00ff00').drawCircle(0, 0, 20);
+        rotation_anchor.graphics.setStrokeStyle(1).beginStroke('#e75036').beginFill('#f5842c').drawCircle(0, 0, 20);
         rotation_anchor.x = image_width + 2 * 20;
         rotation_anchor.y = image_height / 2 + 20 / 2;
         rotation_anchor.cursor = "grab";
@@ -597,5 +589,41 @@ function save_stage_properties(){
 }
 
 function update_zoom(){
-    $('#zoom_slider').text(zoom_slider.value/100);
+    let zoom_value = zoom_slider.value / 100;
+    $('#zoom_factor').html("Table Zoom<br/>x"+zoom_value);
+
+    
+    resize_canvas();
+    
+    stage.update();
+}
+
+function resize_canvas(event){
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+    stage.canvas.width = w;
+    stage.canvas.height = h;
+
+    save_stage_properties();
+
+    draw_background();
+    stage.update();
+}
+
+function draw_background(){
+    // Creating a background shape for the canvas. This shape is necessary in order to capture clicks
+    // on the canvas itself, as clicks are only registered as long as they hit non-transparent pixels.
+    var background = new createjs.Shape();
+    background.graphics.beginFill('#333333').drawRect(0, 0, window.innerWidth, window.innerHeight);
+    background.name= "Background";
+    background.alpha = 0.01;
+
+    // function call for clicks on background - deselect all items
+    background.on("mousedown", deselect_all);
+
+    if (stage.getChildAt(0)){
+        stage.removeChildAt(0);
+    }
+    stage.addChildAt(background, 0);
+    stage.update();
 }

@@ -32,20 +32,19 @@
         </div>
 
         <!-- Zoom Elements -->
-        <div id="zoom_wrapper">
+        <div id="zoom_wrapper" class="no-select">
             <div class="circleButton tableButton no-select" id="minus_zoom">
                 <img src="../imgs/symbol_minus_zoom.png" class="tableButtonImg"></img>
             </div>
-            <input class="" id="zoom_slider" type="range" min="10" max="100" value="50">
+            <input class="" id="zoom_slider" type="range" min="10" max="100" value="50" onkeydown="return false"/>
             <div class="circleButton tableButton no-select" id="plus_zoom">
                 <img src="../imgs/symbol_plus_zoom.png" class="tableButtonImg"></img>
             </div>
-            <span class="tooltip">Table Zoom</span>
-            <!--<div class="" id="zoom_factor"></div>-->
+            <span class="tooltip" id="zoom_factor">Table Zoom<br/>x0.5</span>
         </div>
         
         <!-- Control Elements -->
-        <div id="tableButtons">
+        <div id="tableButtons" class="no-select">
             <div class="circleButton tableButton no-select" id="clear_table">
                 <img src="../imgs/symbol_new_table.png" class="tableButtonImg">
                 <span class="tooltip">Clear Table</span>
