@@ -30,12 +30,20 @@ body {
 
 .tableButton {
     background-color: #f5842c;
-    transition: background-color 0.2s;
+    -webkit-transition: .2s;
+    transition: all .2s;
     text-align: center;
+    position: relative;
+    box-shadow: 3px 3px 8px 1px rgba(0,0,0,0.5);
 }
 
 .tableButton:hover {
     background-color: rgb(231,80,54);
+}
+
+.tableButton:active {
+    background-color: rgb(255,230,7);
+    box-shadow: none;
 }
 
 .tableButton + .tableButton {
@@ -215,12 +223,25 @@ canvas {
 
 #zoom_wrapper {
     position: absolute;
+    height: 50px;
     right: 10px;
     display: inline-block;
     text-align: middle;
-    opacity: 0.3;
+    vertical-align: middle;
+    opacity: 0.2;
     -webkit-transition: .2s;
     transition: opacity .2s;
+}
+
+#zoom_wrapper * {
+    vertical-align: middle;
+}
+
+#zoom_wrapper:before{
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
 }
 
 #zoom_wrapper:hover{
@@ -230,25 +251,69 @@ canvas {
 #zoom_slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 40px;
+    transition: all .2s;
+    width: 30px;
     height: 25px;
     background: #f5842c;
+}
+
+#zoom_slider::-webkit-slider-thumb:hover {
+    background: rgb(231,80,54);
+}
+
+#zoom_slider::-webkit-slider-thumb:active {
+    background: rgb(255,230,7);
 }
 
 #zoom_slider {
     -webkit-appearance: none;
     outline: none;
-    height: 15px;
+    height: 10px;
 }
 
 #zoom_wrapper > .circleButton {
     width: 36px;
     height: 36px;
     border-radius: 18px;
+    position: relative;
 }
 
 #zoom_wrapper > .circleButton > .tableButtonImg {
-    top: 5;
-    max-width: 18px;
-    max-height: 18px;
+    vertical-align: middle;
+    position: absolute;
+    max-width: 15px;
+    max-height: 15px;
+    line-height: 36px;
+    left: 10px;
+}
+
+.tooltip {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tableButton .tooltip {
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+#zoom_wrapper .tooltip {
+    top: 125%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+.tableButton:hover .tooltip, #zoom_wrapper:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
 }

@@ -212,18 +212,28 @@ $('#selector_handle').click(function(){
     }
 });
 
+// Negative Zoom Button
 $('#minus_zoom').click(function(){
     zoom_slider.value -= 10;
     update_zoom();
 });
 
+// Positive Zoom Button
 $('#plus_zoom').click(function(){
     zoom_slider.value = parseInt(zoom_slider.value) + 10;
     update_zoom();
 });
 
+/* 
+    Function to handle key strokes. The following keyboard interactions or shortcuts have
+    been defined so far:
+
+    - Arrow Keys: If an image is selected, its position can also be manipulated by using the
+        keyboard's arrow keys. The arrow indicates the direction into which the image is moved.
+        Pressing Ctrl (10) or Shift (100) increases the movement steps. Pressing Alt changes from
+        translating the image to rotating the image.
+*/
 function handleKey(event){
-    console.log(event);
     let deltaValue = 1;
     if (event.shiftKey){
         deltaValue = 100;
@@ -253,6 +263,16 @@ function handleKey(event){
             move_image_by_value(0, deltaValue);
             break;
     }
+}
+
+// Function that handles mousewheel events when fire while hovering over canvas.
+function handle_canvas_mousewheel(event){
+    if (event.deltaY >= 0){
+        zoom_slider.value = parseInt(zoom_slider.value) - 10;
+    } else {
+        zoom_slider.value = parseInt(zoom_slider.value) + 10;
+    }
+    update_zoom();
 }
 
 
@@ -288,6 +308,7 @@ $(document).ready(function(){
 
     // setting up key handling
     document.onkeydown = handleKey;
+    document.getElementById('table').addEventListener('mousewheel', handle_canvas_mousewheel);
 
     save_stage_properties();
 });
