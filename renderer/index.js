@@ -93,9 +93,9 @@ function send_message_with_data(code, data){
                     remove it from the canvas, as the canvasManager is the only
                     reliable source
 */
-ipcRenderer.on('update-canvas', function(event, data){
+ipcRenderer.on('update-canvas', function(event, stageData, imageData){
     console.log("Received \'update-canvas\' message from main controller.");
-    update_canvas(data);
+    update_canvas(stageData, imageData);
 });
 
 /*
@@ -112,7 +112,7 @@ ipcRenderer.on('update-canvas', function(event, data){
             Please note: stage.children.getChildAt(0) has to be kept, this is the background
             shape which is necessary for capturing user clicks on the screen.
 */
-ipcRenderer.on('redraw-canvas', function(event, data){
+ipcRenderer.on('redraw-canvas', function(event, stageData, imageData){
     console.log("Received \'redraw-canvas\' message from main controller.");
 
     let amount_stage_items = stage.children.length
@@ -129,7 +129,7 @@ ipcRenderer.on('redraw-canvas', function(event, data){
     }
     stage.update();
 
-    update_canvas(data);
+    update_canvas(stageData, imageData);
 });
 
 
@@ -282,6 +282,7 @@ $(document).ready(function(){
     stage = new createjs.Stage('table');
     stage.canvas.width = window.innerWidth;
     stage.canvas.height = window.innerHeight;
+    stage.offset = {x: 0, y:0};
     stage.name = "Lighttable";
     stage.enableMouseOver();
 
@@ -291,7 +292,6 @@ $(document).ready(function(){
 
     // setting up zoom elements
     zoom_slider = document.getElementById('zoom_slider');
-    console.log(zoom_slider);
     $('#zoom_factor').html("Table Zoom<br/>x"+zoom_slider.value/100);
     zoom_slider.oninput = update_zoom;
 
@@ -333,9 +333,16 @@ $(document).ready(function(){
     In a second step, all elements on the stage are checked if they are in the image_set. If not,
     they will be removed.
 */
-function update_canvas(image_set){
+function update_canvas(stageData, image_set){
     var loadQueue = new createjs.LoadQueue();
     loadQueue.addEventListener('complete', draw_images);
+
+    // if the current model contains offset information, accept them; otherwise, set offset to 0
+    if (stage.offset && stageData.stage_offset){
+        stage.offset = stageData.stage_offset;
+    } else {
+        stage.offset = {x: 0, y:0};
+    }
 
     // first, handle those images which need updates or have to be removed from canvas
     for (let x in stage.children) {
@@ -344,11 +351,6 @@ function update_canvas(image_set){
             // if the element has a canvasID AND this ID is in the image_set,
             // then it's case 2 and the location must be updated
             let image_props = image_set[stage_element.canvasID];
-
-            console.log("Image Props:");
-            console.log(image_props);
-            console.log("Stage Element:");
-            console.log(stage_element);
 
             stage_element.x = image_props.xPos;
             stage_element.y = image_props.yPos;
@@ -415,8 +417,8 @@ function update_canvas(image_set){
             let container = new createjs.Container();
             container.name = "container_"+image_props.name;
             container.canvasID = id;
-            container.x = image_props.xPos;
-            container.y = image_props.yPos;
+            container.x = image_props.xPos + stage.offset.x;
+            container.y = image_props.yPos + stage.offset.y;
             container.rotation = image_props.rotation;
             container.recto = image_props.recto;
             // setting the registration points of the container to the center
@@ -567,8 +569,8 @@ function save_image_location(event){
     // create an JS object containing all the relevant information about the current location
     let location_update = {
         "id":moved_element.canvasID,
-        "xPos":moved_container.x,
-        "yPos":moved_container.y,
+        "xPos":moved_container.x - stage.offset.x,
+        "yPos":moved_container.y -stage.offset.y,
         "rotation":moved_container.rotation,
         "scale":moved_element.scaleX,
         "recto":moved_element.recto
@@ -582,7 +584,9 @@ function save_stage_properties(){
     let stage_properties = {
         "stage_width": stage.canvas.width,
         "stage_height": stage.canvas.height,
-        "stage_children": stage.children.length
+        "stage_children": stage.children.length,
+        "stage_offset": stage.offset,
+        "stage_scale": zoom_slider.value / 100
     }
 
     send_message_with_data('update-stage', stage_properties);
@@ -619,11 +623,38 @@ function draw_background(){
     background.alpha = 0.01;
 
     // function call for clicks on background - deselect all items
-    background.on("mousedown", deselect_all);
+    background.on("mousedown", handle_mousedown_on_background);
+    // function call for pressmove on background - move all objects
+    background.on('pressmove', move_all_images);
 
     if (stage.getChildAt(0)){
         stage.removeChildAt(0);
     }
     stage.addChildAt(background, 0);
     stage.update();
+}
+
+function move_all_images(event){
+    let new_offset_x = event.stageX - stage.lastClick.x;
+    let new_offset_y = event.stageY - stage.lastClick.y;
+
+    stage.lastClick = {x: stage.lastClick.x + new_offset_x, y: stage.lastClick.y + new_offset_y};
+    stage.offset = {x: stage.offset.x + new_offset_x, y: stage.offset.y + new_offset_y};
+
+    for (let x in stage.children){
+        if (x != 0){
+            let element = stage.getChildAt(x);
+            element.x += new_offset_x;
+            element.y += new_offset_y;
+        }
+    }
+
+    save_stage_properties();
+    stage.update();
+}
+
+function handle_mousedown_on_background(event){
+    deselect_all();
+
+    stage.lastClick = {x: event.stageX, y: event.stageY};
 }

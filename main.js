@@ -39,7 +39,7 @@ var main_window;
 */
 function send_update_canvas(main_window){
     console.log("Sent code 'update-canvas' to " + main_window);
-    main_window.webContents.send('update-canvas', canvas_manager.getItemLocations());
+    main_window.webContents.send('update-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
 }
 
 /*
@@ -52,7 +52,8 @@ function send_update_canvas(main_window){
 */
 function send_redraw_canvas(main_window){
     console.log("Sent code 'redraw-canvas' to " + main_window);
-    main_window.webContents.send('redraw-canvas', canvas_manager.getItemLocations());
+    console.log(canvas_manager.getStageInformation());
+    main_window.webContents.send('redraw-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
 }
 
 

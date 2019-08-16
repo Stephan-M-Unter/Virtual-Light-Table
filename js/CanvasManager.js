@@ -152,8 +152,17 @@ class CanvasManager {
         return items;
     }
 
+    getStageInformation(){
+        console.log(this.canvasItems);
+        return this.canvasItems.stage;
+    }
+
     clearItems(){
-        this.canvasItems = {};
+        this.canvasItems = {
+            "stage": {},
+            "items": {}
+        };
+        this.canvasItems.stage.stage_offset = {x: 0, y: 0};
         console.log("**CanvasManager** - Canvas content has been cleared.");
     }
 
