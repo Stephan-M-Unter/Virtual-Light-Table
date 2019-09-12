@@ -173,7 +173,7 @@ class CanvasManager {
     }
 
     printCanvasItems(){
-        console.log("**CanvasManager** - Current Canvas Content ("+Object.keys(this.canvasItems).length+" items):")
+        console.log("**CanvasManager** - Current Canvas Content ("+Object.keys(this.canvasItems["items"]).length+" items):")
         console.log(JSON.stringify(this.canvasItems));
     }
 

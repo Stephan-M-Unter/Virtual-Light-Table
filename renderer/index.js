@@ -9,7 +9,7 @@ const development = true;
 // Settings
 
 const transitionSpeed = 200;
-const scalingFactor = 0.4;
+var scalingFactor = 0.1;
 
 var light_mode = 'dark';
 
@@ -175,7 +175,7 @@ $('#light_switch').click(function(){
     if (light_mode == "dark") {
         // the current light_mode is dark, thus change to bright
         dark_background = $('body').css('background');
-        $('body').css({background: "linear-gradient(356deg, rgba(200,200,200,1) 0%, rgba(180,180,180,1) 100%)"});
+        $('body').css({background: "linear-gradient(356deg, rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%)"});
         light_mode = "bright";
     } else {
         // the current light_mode is bright, thus change to dark
@@ -267,10 +267,18 @@ function handleKey(event){
 
 // Function that handles mousewheel events when fire while hovering over canvas.
 function handle_canvas_mousewheel(event){
+    let deltaValue = 1;
+    if (event.ctrlKey){
+        deltaValue = 10;
+    }
+    else if (event.shiftKey){
+        deltaValue = 100;
+    }
+
     if (event.deltaY >= 0){
-        zoom_slider.value = parseInt(zoom_slider.value) - 1;
+        zoom_slider.value = parseInt(zoom_slider.value) - deltaValue;
     } else {
-        zoom_slider.value = parseInt(zoom_slider.value) + 1;
+        zoom_slider.value = parseInt(zoom_slider.value) + deltaValue;
     }
     update_zoom();
 }
@@ -302,7 +310,7 @@ $(document).ready(function(){
     // add listener for resize of window
     window.addEventListener('resize', resize_canvas);
 
-    save_stage_properties();
+    //save_stage_properties();
 });
 
 
@@ -525,7 +533,7 @@ function select_element(event){
 
         // create the bounding box
         let bounding_box = new createjs.Shape();
-        bounding_box.graphics.beginStroke('#f5842c').setStrokeDash([15,5]).setStrokeStyle(2).drawRect(0, 0, image_width, image_height);
+        bounding_box.graphics.beginStroke('#f5842c').setStrokeDash([15,5]).setStrokeStyle(1).drawRect(0, 0, image_width, image_height);
 
         // add new elements to the hierarchy
         anchor_container.addChild(bounding_box);
@@ -580,25 +588,24 @@ function save_image_location(event){
 }
 
 function save_stage_properties(){
-    // TODO: auch zoomfaktor/scaling integrieren!
     let stage_properties = {
         "stage_width": stage.canvas.width,
         "stage_height": stage.canvas.height,
         "stage_children": stage.children.length,
         "stage_offset": stage.offset,
-        "stage_scale": zoom_slider.value / 100
+        "stage_scale": scalingFactor
     }
 
     send_message_with_data('update-stage', stage_properties);
 }
 
 function update_zoom(){
-    let zoom_value = zoom_slider.value / 100;
-    $('#zoom_factor').html("Table Zoom<br/>x"+zoom_value);
+    scalingFactor = zoom_slider.value / 100;
+    $('#zoom_factor').html("Table Zoom<br/>x"+scalingFactor);
 
-    
     resize_canvas();
     
+    update_canvas();
     stage.update();
 }
 

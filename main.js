@@ -141,6 +141,7 @@ ipcMain.on('update-stage', (event, update) => {
 
 // This is the main process, the main function which creates the windows and controlls everything else.
 function main() {
+    console.clear();
     main_window = new Window({
         file: './renderer/index.html',
         type: 'main'
@@ -149,28 +150,9 @@ function main() {
     //win.removeMenu(); // increase work immersion by removing unnecessary menu
     main_window.once('ready-to-show', () => {
         main_window.show();
+        send_redraw_canvas(main_window);
     });
-
-    // TODO: Remove dummy items
-    canvas_manager.addItem("1", {
-        "name":"item1",
-        "xPos":0,
-        "yPos":0,
-        "rotation":0,
-        "recto": true,
-        "rectoURLlocal": "../imgs/cb_logo.png"
-    });
-    canvas_manager.addItem("2", {
-        "name":"item2",
-        "xPos":0,
-        "yPos":0,
-        "rotation":0,
-        "recto": true,
-        "rectoURLlocal": "../imgs/pap_dummy.jpg"
-    });
-    send_update_canvas(main_window);
 }
 
 app.on('ready', main)
 app.on("window-all-closed", () => {app.quit();});
-
