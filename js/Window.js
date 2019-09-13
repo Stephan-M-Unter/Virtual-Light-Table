@@ -24,17 +24,33 @@ let mainProps = {
     }
 }
 
+let saveloadProps = {
+    width: 600,
+    height: 800,
+    icon: './imgs/icons/png/logo.png',
+    show: false,
+    webPreferences: {
+        nodeIntegration: true
+    }
+}
+
 class Window extends BrowserWindow {
     // Constructor for creating a new Window
     constructor({ file, type, ...windowSettings }) {
-        let props = mainProps
+        let props = mainProps;
+        if (type == "saveload") {
+            props = saveloadProps;
+        }
         // TODO: If not main, then change props
 
         super({ ...props, ...windowSettings })
         
         // Load content and open dev tools
         this.loadFile(file)
-        this.webContents.openDevTools()
+
+        //if (type == "main"){
+            this.webContents.openDevTools()
+        //}
 
         // Show Window once rendering is finished
         this.once('ready-to-show', () => {

@@ -22,6 +22,9 @@ const imageManager = new ImageManager();
 const save_manager = new SaveManager();
 
 var main_window;
+var save_window;
+var load_window;
+var detail_window;
 
 
 /*
@@ -83,6 +86,17 @@ ipcMain.on('clear-table', (event) => {
 // <- duplicate
 ipcMain.on('duplicate', () => {
     if (development){console.log("Received code 'duplicate'.")};
+
+    // TODO TESTING AREA, HAS TO BE REMOVED AGAIN
+
+    save_window = new Window({
+        file: './renderer/save.html',
+        type: 'saveload'
+    });
+    save_window.removeMenu();
+    save_window.once('ready-to-show', () => {
+        save_window.show();
+    });
 })
 
 // <- save-table
@@ -134,6 +148,17 @@ ipcMain.on('update-location', (event, update) => {
 ipcMain.on('update-stage', (event, update) => {
     if (development){console.log("Received code 'update-stage'.")};
     canvas_manager.updateStageInformation(update);
+})
+
+// <- get-folder
+ipcMain.on('get-folder', (event) => {
+    if (development){console.log("Received code 'get-folder'.")};
+    let filepath = dialog.showOpenDialog({
+        title: "Select Folder to Save Configuration in",
+        defaultPath: path.join(__dirname+"/.."),
+        properties: ['openDirectory']
+    });
+    event.sender.send('send-folder', filepath);
 })
 
 

@@ -1,0 +1,45 @@
+body {
+    background-color: rgb(216,224,228);
+    font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
+    color: black;
+}
+
+.title {
+    font-size: 2em;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input[type=text] {
+    background-color: rgb(216,224,228);
+    border-bottom: 1px solid rgb(100,100,100);
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: calc(100% - 10px);
+    height: 40px;
+    line-height: 40px;
+    font-size: 20px;
+    margin: 0 auto 30px auto;
+}
+
+input[type=button] {
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    background-size: contain;
+}
+
+#filedialog {
+    background-image: url("../imgs/symbol_save.png");
+}
+
+#clearpath {
+    background-image: url("../imgs/symbol_minus_zoom.png");
+}
+
+#path {
+    width: calc(100% - 130px);
+    font-style: italic;
+    color: grey;
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Save Reconstruction</title>
+        <link rel="stylesheet" type="text/css" href="./save.css"/>
+        <script src="../js/jquery-3.4.1.min.js"></script>
+        <script>window.$ = window.jQuery = require('../js/jquery-3.4.1.min.js');</script>
+    </head>
+    <body>
+            <div class="title">Save Current Configuration</div>
+            
+            <div class="label">File Name:</div>
+            <input id="filename" type="text">
+            <div class="label">File Path:</div>
+            <input id="path" type="text" value="<Saved In Remote Location (Liège)>" disabled>
+            <input id="filedialog" type="button">
+            <input id="clearpath" type="button">
+            <div class="label">Author(s):</div>
+            <input id="author" type="text">
+            
+            
+            <div class="label">Date:</div>
+            <div class="date">
+                <div id="date"></div>
+                <div id="time"></div>
+            </div>
+            
+            <div class="label">Contained Fragments:</div>
+            <div class="list"></div>
+
+            <script src="./save.js"></script>
+    </body>
+</html>

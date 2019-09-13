@@ -54,7 +54,8 @@ function send_message(code){
         'hor-flip',
         'vert-flip',
         'duplicate',
-        'update-canvas'
+        'update-canvas',
+        'get-folder'
     ]
     if (development) {console.log("Sending message with code \'" + code + "\' to main process.");}
     if (acceptedMessages.indexOf(code) >= 0) {

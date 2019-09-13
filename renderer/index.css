@@ -1,6 +1,5 @@
 html {
     overflow: hidden;
-    font-family: Calibri, Helvetica, sans-serif;
 }
 
 .no-select {
@@ -11,7 +10,7 @@ html {
 }
 
 body {
-    font-family: "Segoe UI", "Advent Pro SemiBold";
+    font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
     background-color: rgb(29,29,27);
     background: linear-gradient(356deg, rgba(29,29,27,1) 0%, rgba(71,71,68,1) 100%);
 }
@@ -89,7 +88,7 @@ canvas {
 }
 
 #tray_handle {
-    position: relative;
+    position: absolute;
     top: -30px;
     left: 50%;
     transform: translateX(-50%);
