@@ -24,8 +24,18 @@ let mainProps = {
     }
 }
 
-let saveloadProps = {
+let saveProps = {
     width: 600,
+    height: 800,
+    icon: './imgs/icons/png/logo.png',
+    show: false,
+    webPreferences: {
+        nodeIntegration: true
+    }
+}
+
+let loadProps = {
+    width: 1200,
     height: 800,
     icon: './imgs/icons/png/logo.png',
     show: false,
@@ -38,8 +48,10 @@ class Window extends BrowserWindow {
     // Constructor for creating a new Window
     constructor({ file, type, ...windowSettings }) {
         let props = mainProps;
-        if (type == "saveload") {
-            props = saveloadProps;
+        if (type == "save") {
+            props = saveProps;
+        } else if (type == "load") {
+            props = loadProps
         }
         // TODO: If not main, then change props
 

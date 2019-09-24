@@ -1,9 +1,19 @@
+/*
+    Name:           Virtual Light Table - main.js
+    Author:         Stephan M. Unter
+    Start Date:     22/07/19
+
+    Description:    This file contains the "server side" of the virtual light table, created within
+                    the electron framework. It creates and controls the windows and holds managers
+                    for data storage and data processing. 
+*/
+
 'use strict'
 
-// Loading Requirements...
+// Loading Requirements
 const {app, ipcMain, dialog } = require('electron')
 const path = require('path')
-const fs = require('fs')
+// const fs = require('fs')
 const https = require('https')
 const Window = require('./js/Window')
 const CanvasManager = require('./js/CanvasManager')
@@ -12,15 +22,15 @@ const SaveManager = require('./js/SaveManager')
 
 
 // Settings
-
 const development = true;
 
 
 // Initialisation
+// Managers
 const canvas_manager = new CanvasManager();
 const imageManager = new ImageManager();
 const save_manager = new SaveManager();
-
+// Windows
 var main_window;
 var save_window;
 var load_window;
@@ -32,31 +42,17 @@ var detail_window;
 
     The following functions are designed to send messages to one or multiple controlled windows.
 */
-
-/*
-    -> update-canvas
-
-    This function sends an 'update-canvas' message to the main window, including the current location information
-    on the canvas items as registered in the CanvasManager. This location information is basically the content
-    of the CanvasManager, but without additional meta information.
-*/
-function send_update_canvas(main_window){
-    console.log("Sent code 'update-canvas' to " + main_window);
-    main_window.webContents.send('update-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
-}
-
 /*
     -> redraw-canvas
 
-    This function is closely related to the send_update_canvas function. However, this should be called whenever
-    not just some minor details on the canvas have changed or the UI requested some update about the items' locations,
-    but when the whole setup changes. Otherwise, information about locations between old and new images might be
-    mixed.
+    This function should be called whenever not just some minor details on the canvas have changed or the UI
+    requested some update about the items' locations, but when the whole setup changes. Otherwise, information
+    about locations between old and new images might be mixed.
 */
-function send_redraw_canvas(main_window){
-    console.log("Sent code 'redraw-canvas' to " + main_window);
+function send_redraw_canvas(window){
+    console.log("Sent code 'redraw-canvas' to " + window);
     console.log(canvas_manager.getStageInformation());
-    main_window.webContents.send('redraw-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
+    window.webContents.send('redraw-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
 }
 
 
@@ -73,25 +69,25 @@ function send_redraw_canvas(main_window){
     - 'new-pic'
     - 'update-location'
 */
-
 // <- clear-table
-// TODO: Repair function, as this currently just serves as playground
 ipcMain.on('clear-table', (event) => {
-    console.log(event);
     if (development){console.log("Received code 'clear-table'.")};
     canvas_manager.clearItems();
-    send_redraw_canvas(main_window);
+    send_redraw_canvas(event.sender);
 })
 
 // <- duplicate
 ipcMain.on('duplicate', () => {
     if (development){console.log("Received code 'duplicate'.")};
+    // TODO
+})
 
-    // TODO TESTING AREA, HAS TO BE REMOVED AGAIN
-
+// <- save-table
+ipcMain.on('save-table', () => {
+    if (development){console.log("Received code 'save-table'.")};
     save_window = new Window({
         file: './renderer/save.html',
-        type: 'saveload'
+        type: 'save'
     });
     save_window.removeMenu();
     save_window.once('ready-to-show', () => {
@@ -99,21 +95,26 @@ ipcMain.on('duplicate', () => {
     });
 })
 
-// <- save-table
-ipcMain.on('save-table', () => {
-    if (development){console.log("Received code 'save-table'.")};
-    save_manager.saveTable(canvas_manager.getCanvasContent());
-})
-
 // <- load-table
-ipcMain.on('load-table', () => {
+ipcMain.on('load-table', (event) => {
     if (development){console.log("Received code 'load-table'.")};
+
+    load_window = new Window({
+        file: './renderer/load.html',
+        type: 'load'
+    });
+    load_window.removeMenu();
+    load_window.once('read-to-show', () => {
+        load_window.show();
+    });
     
+    /*
     let loadedContent = save_manager.loadTable();
     if (loadedContent) {
         canvas_manager.setCanvasContent(loadedContent);
-        send_redraw_canvas(main_window);
+        send_redraw_canvas(event.sender);
     }
+    */
 })
 
 // <- 'new-pic'
@@ -161,7 +162,29 @@ ipcMain.on('get-folder', (event) => {
     event.sender.send('send-folder', filepath);
 })
 
+// <- get-save-files
+ipcMain.on('get-save-files', (event, folder) => {
+    if (development){console.log("Received code 'get-save-files' for folder "+folder+".")};
+    save_manager.getSaveFiles(folder, function(err, content) {
+        let save_files_names = content.filter(function(item){
+            return item.endsWith(".vlt");
+        });
+        
+        let save_files = {};
 
+        save_files_names.forEach(name => {
+            save_files[name] = save_manager.loadSaveFile(folder + "/" + name);
+        });
+
+        event.sender.webContents.send('save-files', save_files);
+    });
+})
+
+ipcMain.on('load-file', (event, file) => {
+    load_window.close();
+    canvas_manager.setCanvasContent(file);
+    send_redraw_canvas(main_window);
+});
 
 
 // This is the main process, the main function which creates the windows and controlls everything else.
@@ -179,5 +202,7 @@ function main() {
     });
 }
 
+app.commandLine.appendSwitch('touch-events', 'enabled');
 app.on('ready', main)
 app.on("window-all-closed", () => {app.quit();});
+

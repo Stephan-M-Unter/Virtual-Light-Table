@@ -59,11 +59,23 @@ class SaveManager {
         });
 
         if (filepath) {
-            let content
-            content = fs.readFileSync(filepath[0]).toString();
+            let content = fs.readFileSync(filepath[0]).toString();
             console.log("**SaveManager** - Loading " + filepath);
             return JSON.parse(content);
         }
+    }
+
+    getSaveFiles(folder, callback) {
+        console.log("Reading folder " + folder + ".");
+        fs.readdir(folder, (err, files) => {
+            callback(null, files);
+        });
+    }
+
+    loadSaveFile(filepath) {
+        let content = fs.readFileSync(filepath).toString();
+        console.log("**SaveManager** - Loading " + filepath);
+        return JSON.parse(content);
     }
 }
 

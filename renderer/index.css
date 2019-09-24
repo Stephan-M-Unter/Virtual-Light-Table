@@ -2,6 +2,20 @@ html {
     overflow: hidden;
 }
 
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.3);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 5px;
+}
+
 .no-select {
     -webkit-user-select: none;  
     -moz-user-select: none;    
@@ -90,7 +104,7 @@ canvas {
 #tray_handle {
     position: absolute;
     top: -30px;
-    left: 50%;
+    left: 620px;
     transform: translateX(-50%);
     border-bottom: 30px solid rgba(200,200,200,1);
     border-left: 50px solid transparent;
@@ -169,9 +183,8 @@ canvas {
 
 #selector_handle {
     position: absolute;
-    top: 50%;
+    top: 190px;
     right: -215px;
-    transform: translateY(-50%);
     transform: rotate(90deg);
     border-bottom: 30px solid rgba(200,200,200,1);
     border-left: 50px solid transparent;
@@ -188,8 +201,9 @@ canvas {
 }
 
 #fragment_list {
-    height: 70%;
+    height: 60%;
     text-align: center;
+    overflow: auto;
 }
 
 .selector_header {
@@ -210,22 +224,27 @@ hr {
     position: relative;
     width: calc(32% - 10px);
     height: 130px;
-    margin: 10px 4px;
+    margin: 5px 2px;
     text-align: center;
     background-color: black;
-    transition: background-color .2s;
+    transition: all .2s;
+    padding: 2px;
+    color: white;
     cursor: pointer;
-    border: 1px solid white;
     vertical-align: bottom;
 }
 
 .wrapper_fragment_in_selector:hover {
     background-color: rgb(216, 224, 228);
+    color: black;
 }
 
-.wrapper_fragment_in_selector > img {
+.thumb_fragment_in_selector {
+    position: absolute;
     max-width: 100%;
     max-height: calc(100% - 30px);
+    top: calc(50% - 15px);
+    transform: translate(-50%, -50%);
 }
 
 .name_fragment_in_selector {
@@ -236,8 +255,6 @@ hr {
     font-size: 0.8em;
     text-align: center;
     line-height: 30px;
-    background-color: rgb(200,200,200);
-    transition: background-color 0.3s;
 }
 
 .sidebar_vertical {
@@ -247,6 +264,7 @@ hr {
     width: 100%;
     height: 100%;
     background: rgb(29,29,27);
+    background: #f15b40;
     opacity: 0.5;
     box-shadow: 2px 2px 10px 1px rgba(0,0,0,1);
     transition: opacity .2s;

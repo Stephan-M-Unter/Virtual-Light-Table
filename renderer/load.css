@@ -1,0 +1,119 @@
+body {
+    font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
+    display: flex;
+    width: 100vw;
+    margin: 0;
+    -webkit-user-select: none;  
+    -moz-user-select: none;    
+    -ms-user-select: none;      
+    user-select: none;
+}
+
+* {
+    transition: all .2s;
+}
+
+#left_area {
+    position: relative;
+    flex: 30%;
+    min-width: 350px;
+    height: 100vh;
+    background-color: #a4042a;
+    box-shadow: 2px 2px 10px 1px rgba(0,0,0,1);
+    z-index: 1;
+    text-align: center;
+}
+
+#right_area {
+    flex: 70%;
+    height: 100vh;
+    background-color: #eeeeee;
+}
+
+.title {
+    width: 100%;
+    text-align: center;
+    font-size: 2em;
+    color: white;
+    margin: 20px auto;
+}
+
+button {
+    transition: background-color .2s;
+    border: 1px solid #1d1d1b;
+    background-color: #f15b40;
+    font-size: 1.2em;
+    color: #1d1d1b;
+    height: 50px;
+}
+
+button:hover {
+    background-color: #f5852c;
+}
+
+button:active {
+    background-color: #1c5a9c;
+}
+
+button:disabled {
+    background-color: #aaaaaa;
+}
+
+#folder_button_wrapper {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 20px 0;
+}
+
+#select_folder {
+    width: 60%;
+}
+
+#default_folder {
+    width: 30%;
+}
+
+#folder {
+    width: 90%;
+    background-color:#dddddd;
+    height: 20px;
+    line-height: 20px;
+    border: none;
+    font-style: italic;
+    color: #555555;
+    padding: 0 5px;
+}
+
+#save_list {
+    width: 90%;
+    margin: 10px auto;
+    height: 500px;
+    background-color: white;
+    left: 50%;
+}
+
+.save_list_item {
+    padding: 5px 0;
+}
+
+.save_list_item:nth-child(even) {
+    background-color: #eeeeee;
+}
+
+.save_list_item:hover {
+    background-color: #f5852c;
+}
+
+.save_list_item.selected {
+    background-color: #1c5a9c;
+    color: white;
+}
+
+#load {
+    width: 90%;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}

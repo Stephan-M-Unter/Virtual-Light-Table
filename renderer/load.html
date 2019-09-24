@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Load Reconstruction</title>
+        <link rel="stylesheet" type="text/css" href="./load.css"/>
+        <script src="../js/jquery-3.4.1.min.js"></script>
+        <script>window.$ = window.jQuery = require('../js/jquery-3.4.1.min.js');</script>
+    </head>
+    <body>
+            <div class="wrapper" id="left_area">
+                <div class="title">Load Reconstruction</div>
+                <div class="wrapper" id="folder_button_wrapper">
+                    <button id="select_folder" type="button">Select Folder</button>
+                    <button id="default_folder" type="button">Default</button>
+                </div>
+                <input id="folder" type="text"  value="<Default Folder>">
+                <div class="list" id="save_list"></div>
+                <button id="load" type="button" disabled>Load Reconstruction</button>
+            </div>
+
+            <div class="wrapper" id="right_area"></div>
+
+            <script src="./load.js"></script>
+    </body>
+</html>
