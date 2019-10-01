@@ -65,6 +65,22 @@ class SaveManager {
         }
     }
 
+    getSaveFolder(){
+        let filepath = dialog.showOpenDialog({
+            title: "Open VLT Configuration",
+            filters: [{
+                name: "Virtual Light Table Save",
+                extensions: ['vlt']
+            }],
+            defaultPath: __dirname+"/..",
+            properties: [
+                "openDirectory"
+            ]
+        });
+
+        return filepath;
+    }
+
     getSaveFiles(folder, callback) {
         console.log("Reading folder " + folder + ".");
         fs.readdir(folder, (err, files) => {
@@ -74,8 +90,13 @@ class SaveManager {
 
     loadSaveFile(filepath) {
         let content = fs.readFileSync(filepath).toString();
+        let stats = fs.statSync(filepath);
+        let mtime = stats.mtime.toLocaleString();
         console.log("**SaveManager** - Loading " + filepath);
-        return JSON.parse(content);
+        let json = JSON.parse(content);
+        json['mtime'] = mtime;
+        console.log(json);
+        return json
     }
 }
 

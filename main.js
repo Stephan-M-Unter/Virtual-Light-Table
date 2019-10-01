@@ -51,7 +51,6 @@ var detail_window;
 */
 function send_redraw_canvas(window){
     console.log("Sent code 'redraw-canvas' to " + window);
-    console.log(canvas_manager.getStageInformation());
     window.webContents.send('redraw-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
 }
 
@@ -162,8 +161,8 @@ ipcMain.on('get-folder', (event) => {
     event.sender.send('send-folder', filepath);
 })
 
-// <- get-save-files
-ipcMain.on('get-save-files', (event, folder) => {
+// <- request-save-files
+ipcMain.on('request-save-files', (event, folder) => {
     if (development){console.log("Received code 'get-save-files' for folder "+folder+".")};
     save_manager.getSaveFiles(folder, function(err, content) {
         let save_files_names = content.filter(function(item){
@@ -176,12 +175,22 @@ ipcMain.on('get-save-files', (event, folder) => {
             save_files[name] = save_manager.loadSaveFile(folder + "/" + name);
         });
 
-        event.sender.webContents.send('save-files', save_files);
+        event.sender.webContents.send('return-save-files', save_files);
     });
+})
+
+// <- request-saves-folder
+ipcMain.on('request-saves-folder', (event) => {
+    let path = save_manager.getSaveFolder();
+    if (path) {
+        event.sender.webContents.send('return-saves-folder', path[0]);
+    }
 })
 
 ipcMain.on('load-file', (event, file) => {
     load_window.close();
+    canvas_manager.clearItems();
+    send_redraw_canvas(main_window);
     canvas_manager.setCanvasContent(file);
     send_redraw_canvas(main_window);
 });

@@ -4,12 +4,13 @@
 const { ipcRenderer } = require('electron');
 
 const development = true;
+const print_communication = false;
 
 
 // Settings
 
 const transitionSpeed = 200;
-var scalingFactor = 0.1;
+var scalingFactor = 1;
 
 var light_mode = 'dark';
 
@@ -20,6 +21,47 @@ var stage;
 var dark_background;
 var zoom_slider;
 var selected_image;
+
+
+var zoom = {
+    screen : {
+      x : 0,
+      y : 0,
+    },
+    world : {
+      x : 0,
+      y : 0,
+    },
+  };
+  
+  var mouse = {
+    screen : {
+      x : 0,
+      y : 0,
+    },
+    world : {
+      x : 0,
+      y : 0,
+    },
+  };
+
+  var scale = {
+    length : function(number) {
+      return Math.floor(number * scalingFactor);
+    },
+    x : function(number) {
+      return Math.floor((number - zoom.world.x) * scalingFactor + zoom.screen.x);
+    },
+    y : function(number) {
+      return Math.floor((number - zoom.world.y) * scalingFactor + zoom.screen.y);
+    },
+    x_INV : function(number) {
+      return Math.floor((number - zoom.screen.x) * (1 / scalingFactor) + zoom.world.x);
+    },
+    y_INV : function(number) {
+      return Math.floor((number - zoom.screen.y) * (1 / scalingFactor) + zoom.world.y);
+    },
+  };
 
 
 /*
@@ -57,7 +99,7 @@ function send_message(code){
         'update-canvas',
         'get-folder'
     ]
-    if (development) {console.log("Sending message with code \'" + code + "\' to main process.");}
+    if (print_communication) {console.log("Sending message with code \'" + code + "\' to main process.");}
     if (acceptedMessages.indexOf(code) >= 0) {
         ipcRenderer.send(code);
     } else {
@@ -66,7 +108,7 @@ function send_message(code){
 };
 
 function send_message_with_data(code, data){
-    if (development) {console.log("Sending message with code \'" + code + "\' including additional data to main process.")}
+    if (print_communication) {console.log("Sending message with code \'" + code + "\' including additional data to main process.")}
     ipcRenderer.send(code, data);
 }
 
@@ -116,10 +158,8 @@ ipcRenderer.on('update-canvas', function(event, stageData, imageData){
 ipcRenderer.on('redraw-canvas', function(event, stageData, imageData){
     console.log("Received \'redraw-canvas\' message from main controller.");
 
-    let amount_stage_items = stage.children.length
-
     // TODO das kann man sicher noch schöner machen
-    for (let x = 0; x < amount_stage_items; x++){
+    for (let x = 0; x < stage.children.length; x++){
         if (x == 0) {
             // index 0 is reserved for the background, which should NOT be removed!
             continue;
@@ -159,6 +199,7 @@ $('#load_table').click(function(){
 // Duplicate Button
 $('#duplicate_table').click(function(){
     send_message('duplicate');
+    console.log(stage.children[1]);
 });
 
 // Horizontal Flip Button
@@ -183,6 +224,11 @@ $('#light_switch').click(function(){
         $('body').css({background: dark_background});
         light_mode = "dark";
     }
+});
+
+// Export Button
+$('#export').click(function(){
+    save_canvas_as_image();
 });
 
 // Fragment Tray Button
@@ -281,7 +327,7 @@ function handle_canvas_mousewheel(event){
     } else {
         zoom_slider.value = parseInt(zoom_slider.value) + deltaValue;
     }
-    update_zoom();
+    update_zoom(event);
 }
 
 
@@ -343,7 +389,7 @@ $(document).ready(function(){
     they will be removed.
 */
 function update_canvas(stageData, image_set){
-    var loadQueue = new createjs.LoadQueue();
+    var loadQueue = new createjs.LoadQueue(); // loading queue for new images
     loadQueue.addEventListener('complete', draw_images);
 
     // if the current model contains offset information, accept them; otherwise, set offset to 0
@@ -353,6 +399,14 @@ function update_canvas(stageData, image_set){
         stage.offset = {x: 0, y:0};
     }
 
+    // if the model contains a scaling factor, use it; otherwise, it is set to 1.0 (no scaling)
+    if (stage.scale) {
+        scalingFactor = stage.scale;
+    } else {
+        scalingFactor = 1.0;
+    }
+    zoom_slider.value = scalingFactor * 100;
+
     // first, handle those images which need updates or have to be removed from canvas
     for (let x in stage.children) {
         let stage_element = stage.children[x];
@@ -361,10 +415,8 @@ function update_canvas(stageData, image_set){
             // then it's case 2 and the location must be updated
             let image_props = image_set[stage_element.canvasID];
 
-            stage_element.x = image_props.xPos;
-            stage_element.y = image_props.yPos;
+            set_new_position(stage.element, image_props.xPos, image_props.yPos);
             stage_element.rotation = image_props.rotation;
-            // TODO: Update Image Location
             // now set image.updated to true
             stage.update();
             image_set[stage_element.canvasID]['updated'] = true;
@@ -426,8 +478,7 @@ function update_canvas(stageData, image_set){
             let container = new createjs.Container();
             container.name = "container_"+image_props.name;
             container.canvasID = id;
-            container.x = image_props.xPos + stage.offset.x;
-            container.y = image_props.yPos + stage.offset.y;
+            set_new_position(container, image_props.xPos, image_props.yPos);
             container.rotation = image_props.rotation;
             container.recto = image_props.recto;
             // setting the registration points of the container to the center
@@ -448,6 +499,14 @@ function update_canvas(stageData, image_set){
         }
     }
 };
+
+function set_new_position(container, baseXPos, baseYPos){
+    container.baseX = baseXPos;
+    container.baseY = baseYPos;
+
+    container.x = baseXPos * scalingFactor + stage.offset.x;
+    container.y = baseYPos * scalingFactor + stage.offset.y;
+}
 
 // This function handles the rotation of images - of course not the image itself, but the whole
 // container will be rotated, such that the selection environment agrees
@@ -502,47 +561,60 @@ function select_element(event){
     if (!clicked_element.parent.selected){
         deselect_all();
         selected_image = event.target;
-
-        clicked_element.parent.selected = true; // registering the current element as the selected one
-        clicked_element.cursor = "move"; // now that the element is selected, indicate it can be moved
-
-        // make sure the selected element is now last element in the stage children array
-        // thus, the element will show up on top
-        stage.setChildIndex(clicked_element.parent, stage.children.length-1);
-
-        // create a new container which will hold the bounding rectangle and the rotation anchor
-        let anchor_container = new createjs.Container();
-        anchor_container.name = "container_anchor";
-
-        // get the boundings of the image itself
-        let bounds = clicked_element.getBounds();
-        let image_width = clicked_element.image.width * scalingFactor;
-        let image_height = clicked_element.image.height * scalingFactor;
-
-        // create the rotation anchor, needed to rotate an image
-        let rotation_anchor = new createjs.Shape();
-        rotation_anchor.graphics.setStrokeStyle(1).beginStroke('#e75036').beginFill('#f5842c').drawCircle(0, 0, 20);
-        rotation_anchor.x = image_width + 2 * 20;
-        rotation_anchor.y = image_height / 2 + 20 / 2;
-        rotation_anchor.cursor = "grab";
-        rotation_anchor.name = "rotation_anchor";
-        rotation_anchor.on("pressmove", rotate_image);
-        rotation_anchor.on("pressup", function(event){
-            this.cursor = "grab"
-            save_image_location(event);
-        });
-
-        // create the bounding box
-        let bounding_box = new createjs.Shape();
-        bounding_box.graphics.beginStroke('#f5842c').setStrokeDash([15,5]).setStrokeStyle(1).drawRect(0, 0, image_width, image_height);
-
-        // add new elements to the hierarchy
-        anchor_container.addChild(bounding_box);
-        anchor_container.addChild(rotation_anchor);
-        clicked_element.parent.addChild(anchor_container);
-
-        stage.update();
+        create_selection(selected_image);
     }
+}
+
+function reselect(){
+    if (selected_image){
+        let element = selected_image;
+        element.parent.removeChildAt(1);
+        create_selection(element);
+    }
+}
+
+function create_selection(clicked_element) {
+    clicked_element.parent.selected = true; // registering the current element as the selected one
+    clicked_element.cursor = "move"; // now that the element is selected, indicate it can be moved
+
+    // make sure the selected element is now last element in the stage children array
+    // thus, the element will show up on top
+    stage.setChildIndex(clicked_element.parent, stage.children.length-1);
+
+    // create a new container which will hold the bounding rectangle and the rotation anchor
+    let anchor_container = new createjs.Container();
+    anchor_container.name = "container_anchor";
+
+    // get the boundings of the image itself
+    let bounds = clicked_element.getBounds();
+    let image_width = clicked_element.image.width;// * scalingFactor;
+    let image_height = clicked_element.image.height;// * scalingFactor;
+
+    // create the rotation anchor, needed to rotate an image
+    let rotation_anchor = new createjs.Shape();
+    let rotation_size = 20 / scalingFactor;
+    rotation_anchor.graphics.setStrokeStyle(1).beginStroke('#e75036').beginFill('#f5842c').drawCircle(0, 0, rotation_size);
+    rotation_anchor.x = image_width + 2 * rotation_size;
+    rotation_anchor.y = image_height / 2 + rotation_size / 2;
+    rotation_anchor.cursor = "grab";
+    rotation_anchor.name = "rotation_anchor";
+    rotation_anchor.on("pressmove", rotate_image);
+    rotation_anchor.on("pressup", function(event){
+        this.cursor = "grab"
+        save_image_location(event);
+    });
+
+    // create the bounding box
+    let bounding_box = new createjs.Shape();
+    let stroke_strength = 2 / scalingFactor;
+    bounding_box.graphics.beginStroke('#f5842c').setStrokeDash([15,5]).setStrokeStyle(stroke_strength).drawRect(0, 0, image_width, image_height);
+
+    // add new elements to the hierarchy
+    anchor_container.addChild(bounding_box);
+    anchor_container.addChild(rotation_anchor);
+    clicked_element.parent.addChild(anchor_container);
+
+    stage.update();
 }
 
 // This function controls the movement of selected and dragged objects
@@ -550,8 +622,19 @@ function move_image(event){
     let element = event.target;
     let posX = event.stageX;
     let posY = event.stageY;
+    // the element.parent.offset is defined by the mouseclick such that it will stick to the cursor
+    let old_scaled_position_x = element.parent.x;
+    let old_scaled_position_y = element.parent.y;
+  
     element.parent.x = posX + element.parent.offset.x;
     element.parent.y = posY + element.parent.offset.y;
+
+    let distance_x = ((element.parent.x - old_scaled_position_x) / scalingFactor);
+    let distance_y = ((element.parent.y - old_scaled_position_y) / scalingFactor);
+
+    element.parent.baseX += distance_x;
+    element.parent.baseY += distance_y;
+
     stage.update();
 }
 
@@ -562,6 +645,9 @@ function move_image_by_value(deltaX, deltaY){
 
         container.x += deltaX;
         container.y += deltaY;
+
+        container.baseX = container.x / scalingFactor;
+        container.baseY = container.y / scalingFactor;
 
         save_image_location();
 
@@ -578,10 +664,10 @@ function save_image_location(event){
     // create an JS object containing all the relevant information about the current location
     let location_update = {
         "id":moved_element.canvasID,
-        "xPos":moved_container.x - stage.offset.x,
-        "yPos":moved_container.y -stage.offset.y,
+        "xPos":moved_container.baseX,
+        "yPos":moved_container.baseY,
         "rotation":moved_container.rotation,
-        "scale":moved_element.scaleX,
+        "scale":moved_element.scale,
         "recto":moved_element.recto
     }
 
@@ -600,15 +686,86 @@ function save_stage_properties(){
     send_message_with_data('update-stage', stage_properties);
 }
 
-function update_zoom(){
+function save_canvas_as_image() {
+    // TODO Vorher muss der canva noch so skaliert werden, dass alle Inhalte angezeigt werden können
+    var element = document.createElement('a');
+    element.href = document.getElementById('table').toDataURL('image/png');
+    element.download = 'reconstruction.png';
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+
+function update_zoom(event){
+    let old_scale = scalingFactor;
     scalingFactor = zoom_slider.value / 100;
     $('#zoom_factor').html("Table Zoom<br/>x"+scalingFactor);
+    // TODO Inkonsistent, wieso wird teilweise im handler, teilweise hier was an den Daten geändert?
 
     resize_canvas();
+
+    stage.offset.x = (stage.offset.x / old_scale) * scalingFactor;
+    stage.offset.y = (stage.offset.y / old_scale) * scalingFactor;
+
+    if (event) {
+        zoom.screen.x	= mouse.screen.x;
+        zoom.screen.y	= mouse.screen.y;
+        zoom.world.x	= mouse.world.x;
+        zoom.world.y	= mouse.world.y;
+    } else {
+        zoom.screen.x = $(window).height() / 2;
+        zoom.screen.y = $(window).width() / 2;
+        zoom.world.x = scale.x_INV(mouse.screen.x);
+        zoom.world.y = scale.y_INV(mouse.screen.y);
+    }
+    trackMouse(event);
+    //mouse.world.x	= scale.x_INV(mouse.screen.x);
+    //mouse.world.y	= scale.y_INV(mouse.screen.y);
+
+    stage.update();
+
+    /*console.log(event);
+
+    let originX = 0;
+    let originY = 0;
+
+    if (event){
+        originX = event.screenX;
+        originY = event.screenY;
+    }
+
+    console.log(originX, originY);
     
-    update_canvas();
+    originX = originX * scalingFactor;
+    originY = originY * scalingFactor;
+    
+    console.log(originX, originY);
+    */
+    save_stage_properties();
+
+    for (let item in stage.children) {
+        if (item > 0) {
+            let stage_element = stage.children[item];
+
+            stage_element.x = scale.x(stage_element.baseX) + stage.offset.x;
+            stage_element.y = scale.y(stage_element.baseY) + stage.offset.y;
+            stage_element.scale = scalingFactor;
+        }
+    }
+
+    reselect();
+    
     stage.update();
 }
+
+function trackMouse(e) {
+    mouse.screen.x	= e.clientX;
+    mouse.screen.y	= e.clientY;
+    mouse.world.x	= scale.x_INV(mouse.screen.x);
+    mouse.world.y	= scale.y_INV(mouse.screen.y);
+    console.log(scalingFactor, mouse.screen, mouse.world, stage.offset);
+  }
 
 function resize_canvas(event){
     let w = window.innerWidth;

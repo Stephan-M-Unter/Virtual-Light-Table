@@ -1,3 +1,14 @@
+:root {
+    --cb_black: #1d1d1b;
+    --cb_red: #f15b40;
+    --cb_orange: #f5852c;
+    --cb_blue: #1c5a9c;
+    --cb_grey: #d8e0e4;
+    --cb_white: #ffffff;
+    --cb_darkred: #a4042a;
+}
+
+
 html {
     overflow: hidden;
 }
@@ -5,14 +16,12 @@ html {
 ::-webkit-scrollbar {
     width: 5px;
 }
-
 ::-webkit-scrollbar-track {
     background: rgba(0,0,0,0.3);
     border-radius: 5px;
 }
-
 ::-webkit-scrollbar-thumb {
-    background: #444444;
+    background: var(--cb_black);
     border-radius: 5px;
 }
 
@@ -25,8 +34,8 @@ html {
 
 body {
     font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
-    background-color: rgb(29,29,27);
-    background: linear-gradient(356deg, rgba(29,29,27,1) 0%, rgba(71,71,68,1) 100%);
+    background-color: var(--cb_black);
+    background: linear-gradient(356deg, var(--cb_black) 0%, rgba(71,71,68,1) 100%);
 }
 
 #tableButtons {
@@ -43,20 +52,21 @@ body {
 }
 
 .tableButton {
-    background-color: #F15B40;
+    background-color: var(--cb_orange);
     -webkit-transition: .2s;
     transition: all .2s;
+    opacity: 0.6;
     text-align: center;
     position: relative;
     box-shadow: 3px 3px 8px 1px rgba(0,0,0,0.5);
 }
 
 .tableButton:hover {
-    background-color: #F5852C;
+    opacity: 1.0;
 }
 
 .tableButton:active {
-    background-color: #1C5A9C;
+    background-color: var(--cb_blue);
     box-shadow: none;
 }
 
@@ -265,6 +275,7 @@ hr {
     height: 100%;
     background: rgb(29,29,27);
     background: #f15b40;
+    background: var(--cb_orange);
     opacity: 0.5;
     box-shadow: 2px 2px 10px 1px rgba(0,0,0,1);
     transition: opacity .2s;
