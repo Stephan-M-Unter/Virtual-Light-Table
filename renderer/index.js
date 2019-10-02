@@ -793,6 +793,11 @@ function draw_background(){
     // function call for pressmove on background - move all objects
     background.on('pressmove', move_all_images);
 
+    var mc = new Hammer(background);
+    mc.on('panmove', (event) => {
+        console.log(event);
+    })
+
     if (stage.getChildAt(0)){
         stage.removeChildAt(0);
     }

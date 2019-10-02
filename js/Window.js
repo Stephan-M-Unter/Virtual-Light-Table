@@ -12,7 +12,7 @@
 'use strict'
 
 const { BrowserWindow } = require('electron')
-const development = false;
+const development = true;
 
 let mainProps = {
     width: 1024,
