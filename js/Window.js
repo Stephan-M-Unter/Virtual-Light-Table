@@ -12,6 +12,7 @@
 'use strict'
 
 const { BrowserWindow } = require('electron')
+const development = false;
 
 let mainProps = {
     width: 1024,
@@ -28,6 +29,7 @@ let saveProps = {
     width: 600,
     height: 800,
     icon: './imgs/icons/png/logo.png',
+    //frame: false,
     show: false,
     webPreferences: {
         nodeIntegration: true
@@ -60,9 +62,11 @@ class Window extends BrowserWindow {
         // Load content and open dev tools
         this.loadFile(file)
 
-        //if (type == "main"){
+        if (development){
             this.webContents.openDevTools()
-        //}
+        } else {
+            this.removeMenu();
+        }
 
         // Show Window once rendering is finished
         this.once('ready-to-show', () => {

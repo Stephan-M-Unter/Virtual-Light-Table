@@ -228,7 +228,7 @@ $('#light_switch').click(function(){
 
 // Export Button
 $('#export').click(function(){
-    save_canvas_as_image();
+    export_canvas();
 });
 
 // Fragment Tray Button
@@ -686,8 +686,9 @@ function save_stage_properties(){
     send_message_with_data('update-stage', stage_properties);
 }
 
-function save_canvas_as_image() {
-    // TODO Vorher muss der canva noch so skaliert werden, dass alle Inhalte angezeigt werden können
+function export_canvas() {
+    // TODO Vorher muss der canvas noch so skaliert werden, dass alle Inhalte angezeigt werden können
+    deselect_all();
     var element = document.createElement('a');
     element.href = document.getElementById('table').toDataURL('image/png');
     element.download = 'reconstruction.png';

@@ -23,6 +23,11 @@ $('#clearpath').click(function(){
     $('#path').val("<Saved In Remote Location (Liège)>");
 });
 
+$('#close_window').click(function(){
+    var window = remote.getCurrentWindow()
+    window.close()
+});
+
 $('#filename').keyup(function(){
     let checkvalue = filename_pattern.test($('#filename').val());
     console.log(checkvalue);
