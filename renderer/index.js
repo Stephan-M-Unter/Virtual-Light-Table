@@ -798,6 +798,10 @@ function draw_background(){
         console.log(event);
     })
 
+    background.on('panmove', (event) => {
+        console.log(event);
+    })
+
     if (stage.getChildAt(0)){
         stage.removeChildAt(0);
     }
