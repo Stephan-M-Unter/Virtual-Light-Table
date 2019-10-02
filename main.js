@@ -36,6 +36,8 @@ var save_window;
 var load_window;
 var detail_window;
 
+app.commandLine.appendSwitch('touch-events', 'enabled');
+
 
 /*
     SENDING MESSAGES
@@ -211,7 +213,7 @@ function main() {
     });
 }
 
-app.commandLine.appendSwitch('touch-events', 'enabled');
+
 app.on('ready', main)
 app.on("window-all-closed", () => {app.quit();});
 
