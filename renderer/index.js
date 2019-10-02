@@ -340,6 +340,7 @@ $(document).ready(function(){
     stage.offset = {x: 0, y:0};
     stage.name = "Lighttable";
     stage.enableMouseOver();
+    createjs.Touch.enable(stage);
 
     // TODO: What if the window is resized? Only allow fullscreen or handling it?
 
@@ -792,15 +793,6 @@ function draw_background(){
     background.on("mousedown", handle_mousedown_on_background);
     // function call for pressmove on background - move all objects
     background.on('pressmove', move_all_images);
-
-    var mc = new Hammer(background);
-    mc.on('panmove', (event) => {
-        console.log(event);
-    })
-
-    background.on('touchmove', (event) => {
-        console.log(event);
-    })
 
     if (stage.getChildAt(0)){
         stage.removeChildAt(0);

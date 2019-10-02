@@ -11,7 +11,7 @@
 
 'use strict'
 
-const { BrowserWindow } = require('electron')
+const { BrowserWindow } = require('electron');
 const development = true;
 
 let mainProps = {
