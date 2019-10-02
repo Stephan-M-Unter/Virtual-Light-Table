@@ -798,7 +798,7 @@ function draw_background(){
         console.log(event);
     })
 
-    background.on('panmove', (event) => {
+    background.on('touchmove', (event) => {
         console.log(event);
     })
 
