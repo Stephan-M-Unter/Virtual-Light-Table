@@ -766,23 +766,26 @@ function update_zoom(event){
     stage.offset.y = (stage.offset.y / old_scale) * scalingFactor;
 
     if (event) {
-        zoom.screen.x	= mouse.screen.x;
-        zoom.screen.y	= mouse.screen.y;
-        zoom.world.x	= mouse.world.x;
-        zoom.world.y	= mouse.world.y;
         trackMouse(event);
     } else {
+        simulateMouse();
+    }
+    zoom.screen.x	= mouse.screen.x;
+    zoom.screen.y	= mouse.screen.y;
+    zoom.world.x	= mouse.world.x;
+    zoom.world.y	= mouse.world.y;
+    /* else {
         console.log("no mouse event");
-        zoom.screen.x = 0;
-        zoom.screen.y = 0;
+        zoom.screen.x = stage.canvas.width / 2 + stage.offset.x;
+        zoom.screen.y = stage.canvas.height / 2 + stage.offset.y;
         zoom.world.x = scale.x_INV(mouse.screen.x);
         zoom.world.y = scale.y_INV(mouse.screen.y);
-    }
+    }*/
     
     for (let item in stage.children) {
         if (item > 0) {
             let stage_element = stage.children[item];
-            
+        
             stage_element.x = scale.x(stage_element.baseX) + stage.offset.x;
             stage_element.y = scale.y(stage_element.baseY) + stage.offset.y;
             stage_element.scale = scalingFactor;
@@ -799,8 +802,14 @@ function trackMouse(e) {
     mouse.screen.y	= e.clientY;
     mouse.world.x	= scale.x_INV(mouse.screen.x);
     mouse.world.y	= scale.y_INV(mouse.screen.y);
-    console.log(scalingFactor, mouse.screen, mouse.world, stage.offset);
-  }
+}
+
+function simulateMouse() {
+    mouse.screen.x = Math.floor(stage.canvas.width / 2);
+    mouse.screen.y = Math.floor(stage.canvas.height / 2);
+    mouse.world.x = scale.x_INV(mouse.screen.x);
+    mouse.world.y = scale.y_INV(mouse.screen.y);
+}
 
 function resize_canvas(event){
     let w = window.innerWidth;
