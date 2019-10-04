@@ -13,8 +13,8 @@
 // Loading Requirements
 const {app, ipcMain, dialog } = require('electron')
 const path = require('path')
-// const fs = require('fs')
 const https = require('https')
+
 const Window = require('./js/Window')
 const CanvasManager = require('./js/CanvasManager')
 const ImageManager = require('./js/ImageManager')

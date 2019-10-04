@@ -21,7 +21,7 @@ var stage;
 var dark_background;
 var zoom_slider;
 var selected_image;
-
+var touch1, touch2;
 
 var zoom = {
     screen : {
@@ -357,6 +357,61 @@ $(document).ready(function(){
 
     // add listener for resize of window
     window.addEventListener('resize', resize_canvas);
+
+    stage.on("mousedown", function(event){
+        if (event.pointerID == 0 || event.pointerID == -1) {
+            touch1 = new createjs.Point(stage.globalToLocal(event.stageX, 0).x, stage.globalToLocal(0, event.stageY).y);
+        } else if (event.pointerID == 1) {
+            touch2 = new createjs.Point(stage.globalToLocal(event.stageX, 0).x, stage.globalToLocal(0, event.stageY).y);
+        }
+
+        console.log(touch1, touch2);
+    });
+
+    stage.on("pressup", function(event){
+        if (event.pointerID == 0 || event.pointerID == -1) {
+            touch1 = null;
+        } else if (event.pointerID == 1) {
+            touch2 = null;
+        }
+
+        console.log(touch1, touch2);
+    });
+
+    stage.on("pressmove", function(event){
+        if (event.pointerID == -1 || event.pointerID == 0) {
+            var touch = touch1;
+        } else if (event.pointerID == 1) {
+            var touch = touch2;
+        }
+
+        var dX = stage.globalToLocal(event.stageX, 0).x - touch.x;
+        var dY = stage.globalToLocal(0, event.stageY).y - touch.y;
+
+        if (touch1 && touch2) {
+            var oldDist = distance_of_points(touch1, touch2);
+        }
+
+        touch.x += dX;
+        touch.y += dY;
+
+        if (touch1 && touch2) {
+            var newDist = distance_of_points(touch1, touch2);
+            var newZoom = newDist / oldDist;
+
+            if (newZoom > 1) {
+                newZoom = 0.1;
+            } else if (newZoom < 1) {
+                newZoom = -0.1;
+            }
+
+            console.log(newZoom);
+
+            dX /= 2;
+            dY /= 2;
+        }
+    });
+
 
     //save_stage_properties();
 });
@@ -715,49 +770,27 @@ function update_zoom(event){
         zoom.screen.y	= mouse.screen.y;
         zoom.world.x	= mouse.world.x;
         zoom.world.y	= mouse.world.y;
+        trackMouse(event);
     } else {
-        zoom.screen.x = $(window).height() / 2;
-        zoom.screen.y = $(window).width() / 2;
+        console.log("no mouse event");
+        zoom.screen.x = 0;
+        zoom.screen.y = 0;
         zoom.world.x = scale.x_INV(mouse.screen.x);
         zoom.world.y = scale.y_INV(mouse.screen.y);
     }
-    trackMouse(event);
-    //mouse.world.x	= scale.x_INV(mouse.screen.x);
-    //mouse.world.y	= scale.y_INV(mouse.screen.y);
-
-    stage.update();
-
-    /*console.log(event);
-
-    let originX = 0;
-    let originY = 0;
-
-    if (event){
-        originX = event.screenX;
-        originY = event.screenY;
-    }
-
-    console.log(originX, originY);
     
-    originX = originX * scalingFactor;
-    originY = originY * scalingFactor;
-    
-    console.log(originX, originY);
-    */
-    save_stage_properties();
-
     for (let item in stage.children) {
         if (item > 0) {
             let stage_element = stage.children[item];
-
+            
             stage_element.x = scale.x(stage_element.baseX) + stage.offset.x;
             stage_element.y = scale.y(stage_element.baseY) + stage.offset.y;
             stage_element.scale = scalingFactor;
         }
     }
-
-    reselect();
     
+    reselect();
+    save_stage_properties();
     stage.update();
 }
 
@@ -824,4 +857,8 @@ function handle_mousedown_on_background(event){
     deselect_all();
 
     stage.lastClick = {x: event.stageX, y: event.stageY};
+}
+
+function distance_of_points(point1, point2) {
+    return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
 }
