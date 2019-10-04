@@ -271,6 +271,11 @@ $('#plus_zoom').click(function(){
     update_zoom();
 });
 
+// Zoom Slider itself
+$('#zoom_slider').on("change", function(event){
+    update_zoom();
+});
+
 /* 
     Function to handle key strokes. The following keyboard interactions or shortcuts have
     been defined so far:
@@ -349,7 +354,6 @@ $(document).ready(function(){
     // setting up zoom elements
     zoom_slider = document.getElementById('zoom_slider');
     $('#zoom_factor').html("Table Zoom<br/>x"+zoom_slider.value/100);
-    zoom_slider.oninput = update_zoom;
 
     // setting up key handling
     document.onkeydown = handleKey;
