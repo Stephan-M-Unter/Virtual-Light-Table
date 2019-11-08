@@ -52,7 +52,7 @@ body {
 }
 
 .tableButton {
-    background-color: var(--cb_orange);
+    background-color: var(--cb_white);
     -webkit-transition: .2s;
     transition: all .2s;
     opacity: 0.6;
@@ -103,125 +103,13 @@ canvas {
     box-shadow: 2px 2px 10px 1px rgba(120,120,120,1);
 }
 
-#fragment_tray {
-    position: absolute;
-    height: 200px;
-    width: 100vw;
-    bottom: -200px;
-    left: 0;
-}
 
-#tray_handle {
-    position: absolute;
-    top: -30px;
-    left: 620px;
-    transform: translateX(-50%);
-    border-bottom: 30px solid rgba(200,200,200,1);
-    border-left: 50px solid transparent;
-    border-right: 50px solid transparent;
-    height: 0;
-    width: 300px;
-    line-height: 30px;
-    text-align: center;
-    letter-spacing: 1.1em;
-}
-
-.sidebar_horizontal {
-    position: absolute;
-    width: calc(100%);
-    height: calc(100%);
-    bottom: 0;
-    left: 0;
-    background-color: rgb(29,29,27);
-    border: 1px solid rgba(0,0,0);
-    opacity: 0.5;
-    text-align: center;
-    transition: opacity .2s;
-}
-
-.sidebar_horizontal:hover {
-    opacity: 1.0;
-}
-
-.wrapper_fragment_in_tray {
-    vertical-align: bottom;
-    position: relative;
-    display: inline-block;
-    margin-bottom: 20px;
-    margin-top: 20px;
-    height: 160px;
-    width: 200px;
-    /*background-color: rgb(180,180,180);*/
-    background-color: black;
-    border: 1px solid white;
-    cursor: pointer;
-    transition: background-color .2s;
-}
-
-.wrapper_fragment_in_tray + .wrapper_fragment_in_tray {
-    margin-left: 10px;
-}
-
-.wrapper_fragment_in_tray:hover {
-    background-color: rgb(200,200,200);
-}
-
-.name_fragment_in_tray {
-    position: absolute;
-    bottom: 0;
-    height: 30px;
-    width: 100%;
-    text-align: center;
-    line-height: 30px;
-    background-color: rgb(200,200,200);
-    transition: background-color 0.3s;
-}
-
-.thumb_fragment_in_tray {
-    max-width: 100%;
-    max-height: 130px;
-}
-
-
-#fragment_selector {
-    position: absolute;
-    width: 400px;
-    height: 100vh;
-    left: 0px;
-    top: 0;
-}
-
-#selector_handle {
-    position: absolute;
-    top: 190px;
-    right: -215px;
-    transform: rotate(90deg);
-    border-bottom: 30px solid rgba(200,200,200,1);
-    border-left: 50px solid transparent;
-    border-right: 50px solid transparent;
-    height: 0;
-    width: 300px;
-    line-height: 30px;
-    text-align: center;
-    letter-spacing: 1.1em;
-}
-
-#filter_area {
-    height: 30%;
-}
-
-#fragment_list {
-    height: 60%;
-    text-align: center;
-    overflow: auto;
-}
-
-.selector_header {
-    text-align: center;
-    color: white;
+.title {
+    color: var(--cb_white);
     font-size: 2em;
-    margin: 10px 20px;
+    height: 200px;
 }
+
 
 hr {
     margin: 0px 20px;
@@ -242,83 +130,6 @@ hr {
     color: white;
     cursor: pointer;
     vertical-align: bottom;
-}
-
-.wrapper_fragment_in_selector:hover {
-    background-color: rgb(216, 224, 228);
-    color: black;
-}
-
-.thumb_fragment_in_selector {
-    position: absolute;
-    max-width: 100%;
-    max-height: calc(100% - 30px);
-    top: calc(50% - 15px);
-    transform: translate(-50%, -50%);
-}
-
-.name_fragment_in_selector {
-    position: absolute;
-    bottom: 0;
-    height: 30px;
-    width: 100%;
-    font-size: 0.8em;
-    text-align: center;
-    line-height: 30px;
-}
-
-.sidebar_vertical {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgb(29,29,27);
-    background: #f15b40;
-    background: var(--cb_orange);
-    opacity: 0.5;
-    box-shadow: 2px 2px 10px 1px rgba(0,0,0,1);
-    transition: opacity .2s;
-}
-
-.sidebar_vertical:hover {
-    opacity: 1.0;
-}
-
-#start_header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    color: white;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0,0,0,0.6);
-    display: none;
-}
-
-#header1 {
-    position: absolute;
-    font-size: 7em;
-    left: 50%;
-    top: 20%;
-    transform: translate(-50%);
-    opacity: 0;
-}
-
-#header2 {
-    position: absolute;
-    font-size: 2em;
-    left: 33%;
-    top: 33%;
-    opacity: 0;
-}
-
-#header3 {
-    position: absolute;
-    font-size: 4em;
-    top: 35%;
-    left: 37%;
-    opacity: 0;
 }
 
 #zoom_wrapper {

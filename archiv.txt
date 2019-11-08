@@ -1,0 +1,49 @@
+stage.on("mousedown", function(event){
+        if (event.pointerID == 0 || event.pointerID == -1) {
+            touch1 = new createjs.Point(stage.globalToLocal(event.stageX, 0).x, stage.globalToLocal(0, event.stageY).y);
+        } else if (event.pointerID == 1) {
+            touch2 = new createjs.Point(stage.globalToLocal(event.stageX, 0).x, stage.globalToLocal(0, event.stageY).y);
+        }
+    });
+
+    stage.on("pressup", function(event){
+        if (event.pointerID == 0 || event.pointerID == -1) {
+            touch1 = null;
+        } else if (event.pointerID == 1) {
+            touch2 = null;
+        }
+    });
+
+    stage.on("pressmove", function(event){
+        if (event.pointerID == -1 || event.pointerID == 0) {
+            var touch = touch1;
+        } else if (event.pointerID == 1) {
+            var touch = touch2;
+        }
+
+        var dX = stage.globalToLocal(event.stageX, 0).x - touch.x;
+        var dY = stage.globalToLocal(0, event.stageY).y - touch.y;
+
+        if (touch1 && touch2) {
+            var oldDist = distance_of_points(touch1, touch2);
+        }
+
+        touch.x += dX;
+        touch.y += dY;
+
+        if (touch1 && touch2) {
+            var newDist = distance_of_points(touch1, touch2);
+            var newZoom = newDist / oldDist;
+
+            if (newZoom > 1) {
+                newZoom = 0.1;
+            } else if (newZoom < 1) {
+                newZoom = -0.1;
+            }
+
+            console.log(newZoom);
+
+            dX /= 2;
+            dY /= 2;
+        }
+    });

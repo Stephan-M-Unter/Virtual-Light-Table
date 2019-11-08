@@ -9,29 +9,11 @@
     <body>
         <!-- Canvas -->
         <canvas id="table"></canvas>
-        
-        <!-- FragmentTray / Bottom Sidebar -->
-        <div id="fragment_tray">
-            <div class="sidebar sidebar_horizontal">
-                <div class="wrapper_fragment_in_tray">
-                    <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_tray"></img>
-                    <div class="name_fragment_in_tray">CP001_002 - rt</div>
-                </div>
-                <div class="wrapper_fragment_in_tray">
-                    <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_tray"></img>
-                    <div class="name_fragment_in_tray">CP004_005 - rt</div>
-                </div>
-                <div class="sidebar_handle no-select" id="tray_handle">TRAY</div>
-            </div>
-        </div>
 
-        <!-- FragmentSelector / Left Sidebar -->
-        <div id="fragment_selector" class="no-select">
-            <div class="sidebar sidebar_vertical">
-                <div class="selector_header">Filters</div>
-                <div id="filter_area"></div>
-                <hr>
-                <div class="selector_header">Fragment List</div>
+        <!-- Left Sidebar -->
+        <div id="left_sidebar" class="no-select">
+            <div class="sidebar_content" id="fragment_selection">
+                <div id="fragment_filter"></div>
                 <div id="fragment_list">
                     <div class="wrapper_fragment_in_selector">
                         <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
@@ -41,155 +23,31 @@
                         <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
                         <div class="name_fragment_in_selector">CP001_002 - rt</div>
                     </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-
                 </div>
-                <div class="sidebar_handle no-select" id="selector_handle">SELECTOR</div>
+            </div> <!-- </fragment_selection> -->
+
+            <div class="sidebar_content hidden" id="graphical_modes">
+
+            </div> <!-- Graphical Modes -->
+
+            <div class="sidebar_content hidden" id="loaded_fragments">
+
+            </div> <!-- </loaded_fragments> -->
+
+            <!-- Handles -->
+            <div class="sidebar_handle" id="collection_handle">
+                <img class="sidebar_handle_img" src="../imgs/symbol_new_table.png"></img>
+                New Fragments
             </div>
-        </div>
+            <div class="sidebar_handle" id="graphical_modes_handle">
+                <img class="sidebar_handle_img" src="../imgs/symbol_new_table.png"></img>
+                Graphical Modes
+            </div>
+            <div class="sidebar_handle" id="loaded_fragments_handle">
+                <img class="sidebar_handle_img" src="../imgs/symbol_new_table.png"></img>
+                Loaded Fragments
+            </div>
+        </div> <!-- </left_sidebar> -->
 
         <!-- Zoom Elements -->
         <div id="zoom_wrapper" class="no-select">
@@ -200,7 +58,7 @@
             <div class="circleButton tableButton no-select" id="plus_zoom">
                 <img src="../imgs/symbol_plus_zoom.png" class="tableButtonImg"></img>
             </div>
-            <span class="tooltip" id="zoom_factor">Table Zoom<br/>x0.5</span>
+            <span class="tooltip" id="zoom_factor">Table Zoom<br/>x1.0</span>
         </div>
         
         <!-- Control Elements -->
@@ -217,10 +75,12 @@
                 <img src="../imgs/symbol_load.png" class="tableButtonImg">
                 <span class="tooltip">Load Table</span>
             </div>
+            <!-- momentan nicht nötig
             <div class="circleButton tableButton no-select" id="duplicate_table">
                 <img src="../imgs/symbol_duplicate.png" class="tableButtonImg">
                 <span class="tooltip">Duplicate Table</span>
             </div>
+            -->
             <div class="circleButton tableButton no-select" id="hor_flip_table">
                 <img src="../imgs/symbol_horizontal_flip.svg" class="tableButtonImg">
                 <span class="tooltip">Flip Table Horizontally</span>

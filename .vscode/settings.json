@@ -1,0 +1,3 @@
+{
+    "jshint.options": {"esversion": 6, "globals": {"$": false}, "node": true},
+}

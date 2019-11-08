@@ -8,22 +8,21 @@
                     for data storage and data processing. 
 */
 
-'use strict'
+/*global console */
+
+'use strict';
 
 // Loading Requirements
-const {app, ipcMain, dialog } = require('electron')
-const path = require('path')
-const https = require('https')
+const {app, ipcMain, dialog } = require('electron');
+const path = require('path');
 
-const Window = require('./js/Window')
-const CanvasManager = require('./js/CanvasManager')
-const ImageManager = require('./js/ImageManager')
-const SaveManager = require('./js/SaveManager')
-
+const Window = require('./js/Window');
+const CanvasManager = require('./js/CanvasManager');
+const ImageManager = require('./js/ImageManager');
+const SaveManager = require('./js/SaveManager');
 
 // Settings
 const development = true;
-
 
 // Initialisation
 // Managers
@@ -41,21 +40,18 @@ app.commandLine.appendSwitch('touch-events', 'enabled');
 
 /*
     SENDING MESSAGES
-
-    The following functions are designed to send messages to one or multiple controlled windows.
 */
-/*
-    -> redraw-canvas
-
-    This function should be called whenever not just some minor details on the canvas have changed or the UI
-    requested some update about the items' locations, but when the whole setup changes. Otherwise, information
-    about locations between old and new images might be mixed.
-*/
-function send_redraw_canvas(window){
-    console.log("Sent code 'redraw-canvas' to " + window);
-    window.webContents.send('redraw-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
+function send_message(recipient_window, message, data=null) {
+    console.log("Sending code "+message+" to "+recipient_window);
+    recipient_window.webContents.send(message, data);
 }
 
+function send_message_reload_canvas(recipient_window) {
+    console.log("Sending code 'client-reload-whole-canvas' to "+recipient_window);
+    let stage_info = canvas_manager.getStageInformation();
+    let canvas_info = canvas_manager.getCanvasInformation();
+    recipient_window.webContents.send('client-reload-whole-canvas', stage_info, canvas_info);
+}
 
 
 /*
@@ -64,28 +60,31 @@ function send_redraw_canvas(window){
     The following functions listen to the communication with the sub-windows and react to specific code messages.
 
     So far, the following codes have been agreed upon and implemented:
-    - 'clear-table'
-    - 'save-table'
-    - 'load-table'
-    - 'new-pic'
-    - 'update-location'
+    - 'server-clear-table'
+    - 'server-save-table'
+    - 'server-load-table'
+    - 'server-duplicate'
+    - 'server-hor-flip'
+    - 'server-vert-flip'
+    - 'server-update-image'
+    - 'server-update-stage'
 */
-// <- clear-table
-ipcMain.on('clear-table', (event) => {
-    if (development){console.log("Received code 'clear-table'.")};
+// <- server-clear-table
+ipcMain.on('server-clear-table', (event) => {
+    if (development){console.log("Received code 'server-clear-table'.");}
     canvas_manager.clearItems();
-    send_redraw_canvas(event.sender);
-})
+    send_message_reload_canvas(event.sender);
+});
 
-// <- duplicate
-ipcMain.on('duplicate', () => {
-    if (development){console.log("Received code 'duplicate'.")};
-    // TODO
-})
+// <- server-duplicate
+ipcMain.on('server-duplicate', () => {
+    if (development){console.log("Received code 'server-duplicate'.");}
+    // TODO do something
+});
 
-// <- save-table
-ipcMain.on('save-table', () => {
-    if (development){console.log("Received code 'save-table'.")};
+// <- server-save-table
+ipcMain.on('server-save-table', () => {
+    if (development){console.log("Received code 'server-save-table'.");}
     save_window = new Window({
         file: './renderer/save.html',
         type: 'save'
@@ -94,11 +93,11 @@ ipcMain.on('save-table', () => {
     save_window.once('ready-to-show', () => {
         save_window.show();
     });
-})
+});
 
-// <- load-table
-ipcMain.on('load-table', (event) => {
-    if (development){console.log("Received code 'load-table'.")};
+// <- server-load-table
+ipcMain.on('server-load-table', (event) => {
+    if (development){console.log("Received code 'server-load-table'.");}
 
     load_window = new Window({
         file: './renderer/load.html',
@@ -108,64 +107,50 @@ ipcMain.on('load-table', (event) => {
     load_window.once('read-to-show', () => {
         load_window.show();
     });
-    
-    /*
-    let loadedContent = save_manager.loadTable();
-    if (loadedContent) {
-        canvas_manager.setCanvasContent(loadedContent);
-        send_redraw_canvas(event.sender);
-    }
-    */
-})
+});
 
-// <- 'new-pic'
-ipcMain.on('new-pic', (event, data) => {
-    if (development){console.log("Received code 'new-pic'.")};
-    https.get(data, (resp) => {
-        resp.setEncoding('base64');
-        let body = "data:" + resp.headers["content-type"] + ";base64,";
-        resp.on('data', (data) => { body += data});
-        resp.on('end', () => {
-            win.webContents.send('draw-picture', body);
-            //return res.json({result: body, status: 'success'});
-        });
-    }).on('error', (e) => {
-        console.log(`Got error: ${e.message}`);
-    });
-})
+// server-hor-flip
+ipcMain.on('server-hor-flip', (event) => {
+    //TODO do something
+});
 
-// <- update-location
+// <- server-vert-flip
+ipcMain.on('server-vert-flip', (event) => {
+    // TODO do something
+});
+
+// <- server-update-image
 // update: contains location information of a canvas item
-ipcMain.on('update-location', (event, update) => {
-    if (development){console.log("Received code 'update-location'.")};
+ipcMain.on('server-update-image', (event, update) => {
+    if (development){console.log("Received code 'server-update-image'.");}
     let id = update.id;
     let xPos = update.xPos;
     let yPos = update.yPos;
     let rotation = update.rotation;
     canvas_manager.updateItemLocation(id, xPos, yPos, rotation);
-})
+});
 
-// <- update-stage
+// <- server-update-stage
 // update: contains new information about the stage configuration
-ipcMain.on('update-stage', (event, update) => {
-    if (development){console.log("Received code 'update-stage'.")};
+ipcMain.on('server-update-stage', (event, update) => {
+    if (development){console.log("Received code 'server-update-stage'.");}
     canvas_manager.updateStageInformation(update);
-})
+});
 
 // <- get-folder
 ipcMain.on('get-folder', (event) => {
-    if (development){console.log("Received code 'get-folder'.")};
+    if (development){console.log("Received code 'get-folder'.");}
     let filepath = dialog.showOpenDialog({
         title: "Select Folder to Save Configuration in",
         defaultPath: path.join(__dirname+"/.."),
         properties: ['openDirectory']
     });
     event.sender.send('send-folder', filepath);
-})
+});
 
 // <- request-save-files
 ipcMain.on('request-save-files', (event, folder) => {
-    if (development){console.log("Received code 'get-save-files' for folder "+folder+".")};
+    if (development){console.log("Received code 'get-save-files' for folder "+folder+".");}
     save_manager.getSaveFiles(folder, function(err, content) {
         let save_files_names = content.filter(function(item){
             return item.endsWith(".vlt");
@@ -179,7 +164,7 @@ ipcMain.on('request-save-files', (event, folder) => {
 
         event.sender.webContents.send('return-save-files', save_files);
     });
-})
+});
 
 // <- request-saves-folder
 ipcMain.on('request-saves-folder', (event) => {
@@ -187,14 +172,15 @@ ipcMain.on('request-saves-folder', (event) => {
     if (path) {
         event.sender.webContents.send('return-saves-folder', path[0]);
     }
-})
+});
 
+// <- load-file
 ipcMain.on('load-file', (event, file) => {
     load_window.close();
     canvas_manager.clearItems();
-    send_redraw_canvas(main_window);
+    send_message_reload_canvas(main_window);
     canvas_manager.setCanvasContent(file);
-    send_redraw_canvas(main_window);
+    send_message_reload_canvas(main_window);
 });
 
 
@@ -206,14 +192,14 @@ function main() {
         type: 'main'
     });
     main_window.maximize(); // the VLT needs space, so use fullscreen mode
-    //win.removeMenu(); // increase work immersion by removing unnecessary menu
+    //win.removeMenu(); // increase work immersion by removing unnecessary menu TODO
     main_window.once('ready-to-show', () => {
         main_window.show();
-        send_redraw_canvas(main_window);
+        send_message_reload_canvas(main_window);
     });
 }
 
 
-app.on('ready', main)
+app.on('ready', main);
 app.on("window-all-closed", () => {app.quit();});
 

@@ -141,7 +141,7 @@ class CanvasManager {
         }
     }
 
-    getItemLocations(){
+    getCanvasInformation(){
         let items = this.canvasItems["items"];
 
         for (var item in items) {
