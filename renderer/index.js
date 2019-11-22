@@ -9,7 +9,7 @@
 const { ipcRenderer } = require('electron');
 
 // Settings
-const transitionSpeed = 200;
+const trans_speed = 200;
 var light_mode = 'dark';
 
 // Initialisation
@@ -109,10 +109,10 @@ $('#tray_handle').click(function(){
     // toggle mechanism - depending on its current state, show or hide the fragment tray
     if (bottom == "-200px") {
         // this fires when the tray with height 200px is hidden under the window, thus move it up
-        $('#fragment_tray, #tableButtons').stop().animate({bottom: "+=200"}, transitionSpeed);
+        $('#fragment_tray, #tableButtons').stop().animate({bottom: "+=200"}, trans_speed);
     } else {
         // this fires when the tray is visible, thus move it 200px down to hide it under the screen
-        $('#fragment_tray, #tableButtons').stop().animate({bottom: "-=200"}, transitionSpeed);
+        $('#fragment_tray, #tableButtons').stop().animate({bottom: "-=200"}, trans_speed);
     }
 });
 
@@ -123,10 +123,10 @@ $('#selector_handle').click(function(){
     // toggle mechanism - depending on its current state, show or hide the fragment selector
     if (left == "0px") {
         // this fires if the fragment selector is visible, thus move it to left until it's hidden
-        $('#fragment_selector').stop().animate({left: "-=400"}, transitionSpeed);
+        $('#fragment_selector').stop().animate({left: "-=400"}, trans_speed);
     } else {
         // this fires if the fragment selector is hidden left of the screen, thus move it right to make it visible
-        $('#fragment_selector').stop().animate({left: "+=400"}, transitionSpeed);
+        $('#fragment_selector').stop().animate({left: "+=400"}, trans_speed);
     }
 });
 
