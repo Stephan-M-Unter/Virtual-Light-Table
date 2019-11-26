@@ -91,41 +91,26 @@ $('#export').click(function(){export_canvas();});
 // Light Switch Button
 $('#light_switch').click(function(){
     if (light_mode == "dark") {
-        // the current light_mode is dark, thus change to bright
+        // current light_mode is "dark" => change to "bright"
         dark_background = $('body').css('background');
         $('body').css({background: "linear-gradient(356deg, rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%)"});
         light_mode = "bright";
     } else {
-        // the current light_mode is bright, thus change to dark
+        // current light_mode is "bright" => change to "dark"
         $('body').css({background: dark_background});
         light_mode = "dark";
-    }
-});
-
-// Fragment Tray Button
-$('#tray_handle').click(function(){    
-    let bottom = $('#fragment_tray').css('bottom');
-
-    // toggle mechanism - depending on its current state, show or hide the fragment tray
-    if (bottom == "-200px") {
-        // this fires when the tray with height 200px is hidden under the window, thus move it up
-        $('#fragment_tray, #tableButtons').stop().animate({bottom: "+=200"}, trans_speed);
-    } else {
-        // this fires when the tray is visible, thus move it 200px down to hide it under the screen
-        $('#fragment_tray, #tableButtons').stop().animate({bottom: "-=200"}, trans_speed);
     }
 });
 
 // Fragment Selector Button
 $('#selector_handle').click(function(){
     let left = $('#fragment_selector').css('left');
-
     // toggle mechanism - depending on its current state, show or hide the fragment selector
     if (left == "0px") {
-        // this fires if the fragment selector is visible, thus move it to left until it's hidden
+        // this fires if the fragment selector is visible, move it to left until it's hidden
         $('#fragment_selector').stop().animate({left: "-=400"}, trans_speed);
     } else {
-        // this fires if the fragment selector is hidden left of the screen, thus move it right to make it visible
+        // this fires if the fragment selector is hidden left of the screen, move it right to make it visible
         $('#fragment_selector').stop().animate({left: "+=400"}, trans_speed);
     }
 });
@@ -208,7 +193,7 @@ function handle_canvas_mousewheel(event){
 
 $(document).ready(function(){
     // Setting up the stage and defining its width and height
-    stage = new createjs.Stage('table');
+    stage = new createjs.Stage('lighttable');
     
     stage.canvas.width = window.innerWidth;
     stage.canvas.height = window.innerHeight;
@@ -226,7 +211,7 @@ $(document).ready(function(){
     
     // setting up key handling
     document.onkeydown = handleKey;
-    document.getElementById('table').addEventListener('mousewheel', handle_canvas_mousewheel);
+    document.getElementById('lighttable').addEventListener('mousewheel', handle_canvas_mousewheel);
     
     // add listener for resize of window
     window.addEventListener('resize', resize_canvas);
@@ -639,7 +624,7 @@ function export_canvas() {
 
     // creating artificial anchor element for download
     var element = document.createElement('a');
-    element.href = document.getElementById('table').toDataURL('image/png');
+    element.href = document.getElementById('lighttable').toDataURL('image/png');
     element.download = 'reconstruction.png';
     element.style.display = 'none';
 

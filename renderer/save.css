@@ -1,12 +1,4 @@
-:root {
-    --cb_black: #1d1d1b;
-    --cb_red: #f15b40;
-    --cb_orange: #f5852c;
-    --cb_blue: #1c5a9c;
-    --cb_grey: #d8e0e4;
-    --cb_white: #ffffff;
-    --cb_darkred: #a4042a;
-}
+@import "root.css";
 
 html {
     border: 5px solid var(--cb_black);

@@ -8,7 +8,7 @@
     </head>
     <body>
         <!-- Canvas -->
-        <canvas id="table"></canvas>
+        <canvas id="lighttable"></canvas>
 
         <!-- Left Sidebar -->
         <div id="left_sidebar" class="no-select">
@@ -25,13 +25,9 @@
                     </div>
                 </div>
             </div> <!-- </fragment_selection> -->
-
             <div class="sidebar_content hidden" id="graphical_modes">
-
             </div> <!-- Graphical Modes -->
-
             <div class="sidebar_content hidden" id="loaded_fragments">
-
             </div> <!-- </loaded_fragments> -->
 
             <!-- Handles -->
@@ -51,64 +47,46 @@
 
         <!-- Zoom Elements -->
         <div id="zoom_wrapper" class="no-select">
-            <div class="circleButton tableButton no-select" id="minus_zoom">
-                <img src="../imgs/symbol_minus_zoom.png" class="tableButtonImg"></img>
+            <div class="circularButton no-select" id="minus_zoom">
+                <img src="../imgs/symbol_minus_zoom.png" class="circularButtonImg"></img>
             </div>
             <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" onkeydown="return false"/>
-            <div class="circleButton tableButton no-select" id="plus_zoom">
-                <img src="../imgs/symbol_plus_zoom.png" class="tableButtonImg"></img>
+            <div class="circularButton no-select" id="plus_zoom">
+                <img src="../imgs/symbol_plus_zoom.png" class="circularButtonImg"></img>
             </div>
             <span class="tooltip" id="zoom_factor">Table Zoom<br/>x1.0</span>
         </div>
         
         <!-- Control Elements -->
-        <div id="tableButtons" class="no-select">
-            <div class="circleButton tableButton no-select" id="clear_table">
-                <img src="../imgs/symbol_new_table.png" class="tableButtonImg">
+        <div id="table_button_wrapper" class="no-select">
+            <div class="circularButton no-select" id="clear_table">
+                <img src="../imgs/symbol_new_table.png" class="circularButtonImg">
                 <span class="tooltip">Clear Table</span>
             </div>
-            <div class="circleButton tableButton no-select" id="save_table">
-                <img src="../imgs/symbol_save.png" class="tableButtonImg">
+            <div class="circularButton no-select" id="save_table">
+                <img src="../imgs/symbol_save.png" class="circularButtonImg">
                 <span class="tooltip">Save Table</span>
             </div>
-            <div class="circleButton tableButton no-select" id="load_table">
-                <img src="../imgs/symbol_load.png" class="tableButtonImg">
+            <div class="circularButton no-select" id="load_table">
+                <img src="../imgs/symbol_load.png" class="circularButtonImg">
                 <span class="tooltip">Load Table</span>
             </div>
-            <!-- momentan nicht nötig
-            <div class="circleButton tableButton no-select" id="duplicate_table">
-                <img src="../imgs/symbol_duplicate.png" class="tableButtonImg">
-                <span class="tooltip">Duplicate Table</span>
-            </div>
-            -->
-            <div class="circleButton tableButton no-select" id="hor_flip_table">
-                <img src="../imgs/symbol_horizontal_flip.svg" class="tableButtonImg">
+            <div class="circularButton tableButton no-select" id="hor_flip_table">
+                <img src="../imgs/symbol_horizontal_flip.svg" class="circularButtonImg">
                 <span class="tooltip">Flip Table Horizontally</span>
             </div>
-            <div class="circleButton tableButton no-select" id="vert_flip_table">
-                <img src="../imgs/symbol_vertical_flip.svg" class="tableButtonImg">
+            <div class="circularButton no-select" id="vert_flip_table">
+                <img src="../imgs/symbol_vertical_flip.svg" class="circularButtonImg">
                 <span class="tooltip">Flip Table Vertically</span>
             </div>
-            <div class="circleButton tableButton no-select" id="light_switch">
-                <img src="../imgs/symbol_light.png" class="tableButtonImg">
+            <div class="circularButton no-select" id="light_switch">
+                <img src="../imgs/symbol_light.png" class="circularButtonImg">
                 <span class="tooltip">Switch Light On/Off</span>
             </div>
-            <div class="circleButton tableButton no-select" id="export">
-                <img src="../imgs/symbol_export.png" class="tableButtonImg">
+            <div class="circularButton no-select" id="export">
+                <img src="../imgs/symbol_export.png" class="circularButtonImg">
                 <span class="tooltip">Export</span>
             </div>
-        </div>
-
-        <!-- Project Logo -->
-        <!--
-        <img src="../imgs/cb_logo.png" id="cb_logo" class="no-select"></img>
-        -->
-
-        <!-- Start Header -->
-        <div id="start_header">
-            <div id="header1">Virtual Light Table</div>
-            <div id="header2">developed by and for</div>
-            <div id="header3">Crossing Boundaries</div>
         </div>
         
         <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>

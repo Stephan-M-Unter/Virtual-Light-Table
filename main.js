@@ -8,8 +8,6 @@
                     for data storage and data processing. 
 */
 
-/*global console */
-
 'use strict';
 
 // Loading Requirements
@@ -23,6 +21,7 @@ const SaveManager = require('./js/SaveManager');
 
 // Settings
 const development = true;
+app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
 // Managers
@@ -34,8 +33,6 @@ var main_window;
 var save_window;
 var load_window;
 var detail_window;
-
-app.commandLine.appendSwitch('touch-events', 'enabled');
 
 
 /*

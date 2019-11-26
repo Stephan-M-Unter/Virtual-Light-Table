@@ -1,18 +1,19 @@
-:root {
-    --cb_black: #1d1d1b;
-    --cb_red: #f15b40;
-    --cb_orange: #f5852c;
-    --cb_blue: #1c5a9c;
-    --cb_grey: #d8e0e4;
-    --cb_white: #ffffff;
-    --cb_darkred: #a4042a;
-}
-
+@import "root.css";
 
 html {
     overflow: hidden;
 }
 
+body {
+    background: linear-gradient(356deg, var(--cb_black) 0%, rgba(71,71,68,1) 100%);
+}
+
+/* Sidebar */
+#left_sidebar {
+    visibility: hidden;
+}
+
+/* Scrollbars */
 ::-webkit-scrollbar {
     width: 5px;
 }
@@ -25,113 +26,53 @@ html {
     border-radius: 5px;
 }
 
-.no-select {
-    -webkit-user-select: none;  
-    -moz-user-select: none;    
-    -ms-user-select: none;      
-    user-select: none;
-}
-
-body {
-    font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
-    background-color: var(--cb_black);
-    background: linear-gradient(356deg, var(--cb_black) 0%, rgba(71,71,68,1) 100%);
-}
-
-#tableButtons {
+#table_button_wrapper {
     position: fixed;
     bottom: 10px;
     right: 20px;
 }
 
-.circleButton {
+/* Circular Buttons */
+.circularButton {
+    position: relative;
     display: inline-block;
     width: 50px;
     height: 50px;
     border-radius: 25px;
-}
-
-.tableButton {
     background-color: var(--cb_white);
     -webkit-transition: .2s;
-    transition: all .2s;
     opacity: 0.6;
-    text-align: center;
-    position: relative;
     box-shadow: 3px 3px 8px 1px rgba(0,0,0,0.5);
+    text-align: center;
+    transition: all .2s;
 }
-
-.tableButton:hover {
+.circularButton:hover {
     opacity: 1.0;
 }
-
-.tableButton:active {
+.circularButton:active {
     background-color: var(--cb_blue);
     box-shadow: none;
 }
-
-.tableButton + .tableButton {
+.circularButton + .circularButton {
     margin-left: 10px;
 }
-
-.tableButtonImg {
+.circularButtonImg {
     position: relative;
     top: 10px;
-
     max-width: 30px;
-    max-height: 30px;
+    max-height: 30px; /* TODO: Lassen sich hier die Größen relativ bestimmen? */
 }
 
-canvas {
+#lighttable {
     position: fixed;
     background-image: url("../imgs/cb_logo_back.png");
     background-repeat: no-repeat;
     background-position: center;
     top: 0;
     left: 0;
-    /*width: 100vw;
-    height: 100vh;*/
 }
 
-#cb_logo {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    max-width: 100px;
-    -webkit-box-shadow: 2px 2px 10px 1px rgba(120,120,120,1);
-    -moz-box-shadow: 2px 2px 10px 1px rgba(120,120,120,1);
-    box-shadow: 2px 2px 10px 1px rgba(120,120,120,1);
-}
-
-
-.title {
-    color: var(--cb_white);
-    font-size: 2em;
-    height: 200px;
-}
-
-
-hr {
-    margin: 0px 20px;
-    border: 0.5px solid rgb(29,29,27);
-}
-
-.wrapper_fragment_in_selector {
-    position: relative;
-    display: inline-block;
-    position: relative;
-    width: calc(32% - 10px);
-    height: 130px;
-    margin: 5px 2px;
-    text-align: center;
-    background-color: black;
-    transition: all .2s;
-    padding: 2px;
-    color: white;
-    cursor: pointer;
-    vertical-align: bottom;
-}
-
+/* Zoom Slider */
 #zoom_wrapper {
     position: absolute;
     height: 50px;
@@ -143,22 +84,18 @@ hr {
     -webkit-transition: .2s;
     transition: opacity .2s;
 }
-
 #zoom_wrapper * {
     vertical-align: middle;
 }
-
 #zoom_wrapper:before{
     content: '';
     display: inline-block;
     vertical-align: middle;
     height: 100%;
 }
-
 #zoom_wrapper:hover{
     opacity: 1;
 }
-
 #zoom_slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -167,7 +104,6 @@ hr {
     height: 25px;
     background: #f5842c;
 }
-
 #zoom_slider::-webkit-slider-thumb:hover {
     background: rgb(231,80,54);
 }
@@ -175,21 +111,18 @@ hr {
 #zoom_slider::-webkit-slider-thumb:active {
     background: rgb(255,230,7);
 }
-
 #zoom_slider {
     -webkit-appearance: none;
     outline: none;
     height: 10px;
 }
-
-#zoom_wrapper > .circleButton {
+#zoom_wrapper > .circularButton {
     width: 36px;
     height: 36px;
     border-radius: 18px;
     position: relative;
 }
-
-#zoom_wrapper > .circleButton > .tableButtonImg {
+#zoom_wrapper > .circularButton > .circularButtonImg {
     vertical-align: middle;
     position: absolute;
     max-width: 15px;
@@ -198,6 +131,7 @@ hr {
     left: 10px;
 }
 
+/* Tooltips */
 .tooltip {
     visibility: hidden;
     width: 120px;
@@ -210,21 +144,16 @@ hr {
     z-index: 1;
     opacity: 0;
     transition: opacity 0.3s;
-}
-
-.tableButton .tooltip {
-    bottom: 125%;
     left: 50%;
     margin-left: -60px;
 }
-
+.circularButton .tooltip {
+    bottom: 125%;
+}
 #zoom_wrapper .tooltip {
     top: 125%;
-    left: 50%;
-    margin-left: -60px;
 }
-
-.tableButton:hover .tooltip, #zoom_wrapper:hover .tooltip {
+.circularButton:hover .tooltip, #zoom_wrapper:hover .tooltip {
     visibility: visible;
     opacity: 1;
 }
