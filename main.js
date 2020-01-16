@@ -15,12 +15,12 @@ const {app, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 const Window = require('./js/Window');
-const CanvasManager = require('./js/CanvasManager');
-const ImageManager = require('./js/ImageManager');
-const SaveManager = require('./js/SaveManager');
+const CanvasManager = require('./js/CanvasManager'); // manages elements to be shown on screen
+const ImageManager = require('./js/ImageManager'); // manages request of external images
+const SaveManager = require('./js/SaveManager'); // manages loading/saving of files
 
 // Settings
-const development = true;
+const development = true; // console messages and other debugging stuff should only trigger if not being productive
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
@@ -29,27 +29,55 @@ const canvas_manager = new CanvasManager();
 const imageManager = new ImageManager();
 const save_manager = new SaveManager();
 // Windows
-var main_window;
-var save_window;
-var load_window;
-var detail_window;
+var main_window; // main window containing the light table itself
+var save_window; // window for saving a configuration
+var load_window; // window for loading configurations
+var detail_window; // additional window to show fragment details
+
+/* ##############################################################
+###
+###                         MAIN PROCESS
+###
+############################################################## */
+
+function main() {
+    console.clear();
+    main_window = new Window({
+        file: './renderer/index.html',
+        type: 'main'
+    });
+    main_window.maximize(); // the VLT needs space, so use fullscreen mode
+    if (!development) {
+        main_window.removeMenu(); // increase work immersion by removing unnecessary menu TODO
+    }
+    main_window.once('ready-to-show', () => {
+        main_window.show();
+        send_message_reload_canvas(main_window);
+    });
+}
+app.on('ready', main);
+app.on("window-all-closed", () => {app.quit();});
 
 
-/*
-    SENDING MESSAGES
-*/
+/* ##############################################################
+###
+###                    MESSAGES (SEND/RECEIVE)
+###
+############################################################## */
+
+/* SENDING MESSAGES */
+
 function send_message(recipient_window, message, data=null) {
-    console.log("Sending code "+message+" to "+recipient_window);
+    if (development) {console.log("Sending code "+message+" to "+recipient_window);}
     recipient_window.webContents.send(message, data);
 }
 
 function send_message_reload_canvas(recipient_window) {
-    console.log("Sending code 'client-redraw-canvas' to "+recipient_window);
+    if (development) {console.log("Sending code 'client-redraw-canvas' to "+recipient_window);}
     let stage_info = canvas_manager.getStageInformation();
     let canvas_info = canvas_manager.getCanvasInformation();
     recipient_window.webContents.send('client-redraw-canvas', stage_info, canvas_info);
 }
-
 
 /*
     RECEIVING MESSAGES
@@ -60,7 +88,6 @@ function send_message_reload_canvas(recipient_window) {
     - 'server-clear-table'
     - 'server-save-table'
     - 'server-load-table'
-    - 'server-duplicate'
     - 'server-hor-flip'
     - 'server-vert-flip'
     - 'server-update-image'
@@ -71,12 +98,6 @@ ipcMain.on('server-clear-table', (event) => {
     if (development){console.log("Received code 'server-clear-table'.");}
     canvas_manager.clearItems();
     send_message_reload_canvas(event.sender);
-});
-
-// <- server-duplicate
-ipcMain.on('server-duplicate', () => {
-    if (development){console.log("Received code 'server-duplicate'.");}
-    // TODO do something
 });
 
 // <- server-save-table
@@ -179,24 +200,3 @@ ipcMain.on('load-file', (event, file) => {
     canvas_manager.setCanvasContent(file);
     send_message_reload_canvas(main_window);
 });
-
-
-// This is the main process, the main function which creates the windows and controlls everything else.
-function main() {
-    console.clear();
-    main_window = new Window({
-        file: './renderer/index.html',
-        type: 'main'
-    });
-    main_window.maximize(); // the VLT needs space, so use fullscreen mode
-    //win.removeMenu(); // increase work immersion by removing unnecessary menu TODO
-    main_window.once('ready-to-show', () => {
-        main_window.show();
-        send_message_reload_canvas(main_window);
-    });
-}
-
-
-app.on('ready', main);
-app.on("window-all-closed", () => {app.quit();});
-
