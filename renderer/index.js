@@ -1,27 +1,21 @@
-/*global window */
-/*global createjs */
-/*global document */
-/*global console */
-
 'use strict';
 
 // Loading Requirements...
 const { ipcRenderer } = require('electron');
 
-// Settings
-const trans_speed = 200;
-var light_mode = 'dark';
-
 // Initialisation
 var stage, dark_background, zoom_slider, zoom_value, selected_image;
 var touch1, touch2;
 
+// Settings
+const trans_speed = 200;
+var light_mode = 'dark';
+
+/* zoom|mouse|scale: necessary for zoom-to-mouse-cursor */
 var zoom  = {screen  : {x : 0, y : 0},
              world   : {x : 0, y : 0}};
-  
 var mouse = {screen : {x : 0, y : 0},
              world  : {x : 0, y : 0}};
-
 var scale = {length : function(number) {
                 return Math.floor(number * inv_scale(stage.scalingFactor));
             },
@@ -39,7 +33,6 @@ var scale = {length : function(number) {
             }};
 
 
-
 // ###### SENDING MESSAGES ###### //
 
 // -> all messages
@@ -47,14 +40,18 @@ function send_message(code, data=null){
     ipcRenderer.send(code, data);
 }
 
-
 // ###### RECEIVING MESSAGES ###### //
+
+// General naming rule:
+// <-       :: indication that the message is received
+// receiver :: in this case "client", as this client reacts to the messages
+// code     :: specific code which indicates the nature of the message
 
 // <- client-reload-whole-canvas
 // <- client-update-canvas
 // <- client-update-image
 
-ipcRenderer.on('client-reload-whole-canvas', (event, stage_info, canvas_info) => {
+ipcRenderer.on('client-redraw-canvas', (event, stage_info, canvas_info) => {
     clear_stage();
     setup_stage_from_model(stage_info);
     update_images(canvas_info);
@@ -68,7 +65,6 @@ ipcRenderer.on('client-update-image', (event, image_info) => {
     // TODO client-update-image
     // update single image
 });
-
 
 
 // HANDLING USER EVENTS
@@ -87,7 +83,6 @@ $('#hor_flip_table').click(function(){send_message('server-hor-flip');});
 $('#vert_flip_table').click(function(){send_message('server-vert-flip');});
 // Export Button
 $('#export').click(function(){export_canvas();});
-
 // Light Switch Button
 $('#light_switch').click(function(){
     if (light_mode == "dark") {
@@ -101,7 +96,6 @@ $('#light_switch').click(function(){
         light_mode = "dark";
     }
 });
-
 // Fragment Selector Button
 $('#selector_handle').click(function(){
     let left = $('#fragment_selector').css('left');
@@ -119,12 +113,10 @@ $('#selector_handle').click(function(){
 $('#minus_zoom').click(function(){
     update_zoom(-10);
 });
-
 // Positive Zoom Button
 $('#plus_zoom').click(function(){
     update_zoom(10);
 });
-
 // Zoom Slider itself
 $('#zoom_slider').on("change", (event) => {
     let deltaScale = $('#zoom_slider').val() - stage.scalingFactor;
@@ -190,11 +182,8 @@ function handle_canvas_mousewheel(event){
 }
 
 
-
 $(document).ready(function(){
-    // Setting up the stage and defining its width and height
     stage = new createjs.Stage('lighttable');
-    
     stage.canvas.width = window.innerWidth;
     stage.canvas.height = window.innerHeight;
     stage.offset = {x: 0, y:0};

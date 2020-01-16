@@ -44,10 +44,10 @@ function send_message(recipient_window, message, data=null) {
 }
 
 function send_message_reload_canvas(recipient_window) {
-    console.log("Sending code 'client-reload-whole-canvas' to "+recipient_window);
+    console.log("Sending code 'client-redraw-canvas' to "+recipient_window);
     let stage_info = canvas_manager.getStageInformation();
     let canvas_info = canvas_manager.getCanvasInformation();
-    recipient_window.webContents.send('client-reload-whole-canvas', stage_info, canvas_info);
+    recipient_window.webContents.send('client-redraw-canvas', stage_info, canvas_info);
 }
 
 
