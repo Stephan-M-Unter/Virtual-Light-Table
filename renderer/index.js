@@ -158,6 +158,26 @@ class Stage {
         this.stage.addChild(container);
     }
 
+    _rotateObjects(event){
+        var rads_old = Math.atan2(this.mouseClickStart.y - this.rotator.y, this.mouseClickStart.x - this.rotator.x);
+        var rads_new = Math.atan2(event.stageY - this.rotator.y, event.stageX - this.rotator.x);
+        var rads = rads_new - rads_old;
+        var delta_angle = rads * (180 / Math.PI);
+
+        for (let idx in this.selectedList) {
+            let fragment = this.selectedList[idx];
+            let container = fragment.getContainer();
+            fragment.rotateByAngle(delta_angle);
+        }
+        
+        this.bb.rotation += delta_angle;
+        this.rotator.rotation += delta_angle;
+
+        this.mouseClickStart = {x:event.stageX, y:event.stageY};
+
+        this.update();
+    }
+
     _moveObjects(event){
         let moved_object = event.target;
 
@@ -176,10 +196,6 @@ class Stage {
         for (let idx in this.selectedList) {
             let fragment = this.selectedList[idx];
             let container = fragment.getContainer();
-
-            //let dist_x = currentMouseX + container.offset.x - container.x;
-            //let dist_y = currentMouseY + container.offset.y - container.y;
-
             fragment.moveByDistance(delta_x, delta_y);
         }
 
@@ -191,9 +207,32 @@ class Stage {
         this.stage.removeChild(this.bb);
         this.selector.updateBb(this.selectedList);
         this.bb = this.selector.getBb();
-
         this.stage.addChild(this.bb);
+        this._updateRotator(this.bb.center.x, this.bb.center.y, this.bb.height);
         this.stage.update();
+    }
+
+    _updateRotator(x, y, height){
+        this.stage.removeChild(this.rotator);
+
+        if (Object.keys(this.selectedList).length == 1){
+            this.rotator = new createjs.Shape();
+            this.rotator.graphics
+                .beginFill("#f5842c").drawCircle(0, 0, 20);
+            this.rotator.x = x;
+            this.rotator.y = y;
+            this.rotator.regX = 0;
+            this.rotator.regY = height/2;
+
+            this.stage.addChild(this.rotator);
+
+            this.rotator.on("mousedown", (event) => {
+                this.mouseClickStart = {x: event.stageX, y: event.stageY};
+            });
+            this.rotator.on("pressmove", (event) => {
+                this._rotateObjects(event);
+            });
+        }
     }
 
     exportCanvas() {
@@ -272,7 +311,12 @@ class Fragment {
         this.container.y = y;
     }
 
-    rotate(){}
+    rotateToAngle(target_angle){
+        this.container.rotation = target_angle;
+    }
+    rotateByAngle(delta_angle){
+        this.rotateToAngle(this.container.rotation + delta_angle);
+    }
     flip(){}
     
     getContainer(){ return this.container; }
@@ -323,11 +367,6 @@ class Selector {
             let container = fragment.getContainer();
             let image = fragment.getImage().image;
 
-            /*let x_left = container.x;
-            let y_top = container.y;
-            let x_right = container.x + image.width;
-            let y_bottom = container.y + image.height;*/
-
             let bounds = container.getTransformedBounds();
             let x_left = bounds.x;
             let y_top = bounds.y;
@@ -353,12 +392,17 @@ class Selector {
             .beginStroke('#f5842c')
             //.setStrokeDash([15.5])
             //.setStrokeStyle(2)
-            .drawRect(this.x, this.y, this.width, this.height);
+            .drawRect(0, 0, this.width, this.height);
+        bb.center = {x:this.x + this.width/2, y:this.y + this.height/2};
+        bb.x = bb.center.x;
+        bb.y = bb.center.y;
+        bb.regX = this.width/2;
+        bb.regY = this.height/2;
+        bb.height = this.height;
+        bb.width = this.width;
         return bb;
     }
-    getRotationCenter(){
-        return {x:this.x + this.width/2, y:this.y + this.height/2};
-    }
+
 }
 
 $(document).ready(function(){
