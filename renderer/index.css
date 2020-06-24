@@ -75,6 +75,7 @@ body {
 /* Zoom Slider */
 #zoom_wrapper {
     position: absolute;
+    top: 0;
     height: 50px;
     right: 10px;
     display: inline-block;

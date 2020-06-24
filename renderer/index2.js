@@ -304,6 +304,7 @@ function update_images(canvas_info) {
 
             // create the new image itself as a createjs bitmap
             // also, add all the information given by the image_props to the image
+            console.log(loadQueue.getResult(id));
             let image = new createjs.Bitmap(loadQueue.getResult(id));
             image.name = "image_"+image_props.name;
             image.canvasID = id;
