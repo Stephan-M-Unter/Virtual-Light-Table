@@ -50,6 +50,28 @@ class Stage {
     _loadStageConfiguration(settings){
         this.stage.offset = settings.offset;
     }
+    setScaling(scaling){
+        // scaling should only impact the scene if between values 10 and 300
+        // i.e. scaling by 0.1 min or 3.0 max
+        if (scaling >= 10 && scaling <= 300){
+            this.stage.old_scaling = this.stage.scaling;
+            let delta_scaling = scaling-this.stage.scaling;
+            this.stage.scaling = scaling;
+            Scaler.scaling = scaling/100;
+
+            this.stage.offset.x = this.stage.offset.x * scaling / this.stage.old_scaling;
+            this.stage.offset.y = this.stage.offset.y * scaling / this.stage.old_scaling;
+
+            // scaling via zoom slider
+            Scaler.zoom.screen.x = Math.floor(this.stage.canvas.width / 2);
+            Scaler.zoom.screen.y = Math.floor(this.stage.canvas.height / 2);
+            Scaler.zoom.world.x = Scaler.x_INV(Scaler.zoom.screen.x);
+            Scaler.zoom.world.y = Scaler.y_INV(Scaler.zoom.screen.y);
+
+            this._scaleObjects();
+            this.update();
+        }
+    }
 
     update(){ this.stage.update(); }
 
@@ -64,14 +86,33 @@ class Stage {
     }
     _createFragment(event) {
         var new_id = this.getNewFragmentId();
-        var new_fragment = new Fragment(this.stage, new_id, event);
+        var new_fragment = new Fragment(this, new_id, event);
         this.fragmentList[new_id] = new_fragment; // registering fragment in fragmentList
         
         var fragment_container = new_fragment.getContainer();
         var fragment_image = new_fragment.getImage();
         this.stage.addChild(fragment_container);
         
-        fragment_image.on("mousedown", (event) => {
+        this.registerImageEvents(fragment_image);
+
+        this.stage.update();
+    }
+    _removeFragment(id){
+        // iterate over fragmentList and match items with requested id
+        for (let idx in this.fragmentList) {
+            let fragment = this.fragmentList[idx];
+            if (fragment.id == id) {
+                // remove correct fragment both from stage and fragmentList
+                let fragment_container = fragment.getContainer();
+                this.stage.removeChild(fragment_container);
+                delete this.fragmentList[fragment.id];
+                this.stage.update();
+            }
+        }
+    }
+
+    registerImageEvents(image){
+        image.on("mousedown", (event) => {
             var clickedId = event.target.id;
             if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
                 // if ctrl key is not pressed, old selection will be cleared
@@ -91,25 +132,9 @@ class Stage {
             this.mouseClickStart = {x: event.stageX, y: event.stageY};
         });
 
-        fragment_image.on("pressmove", (event) => {
+        image.on("pressmove", (event) => {
             this._moveObjects(event);
         });
-
-
-        this.stage.update();
-    }
-    _removeFragment(id){
-        // iterate over fragmentList and match items with requested id
-        for (let idx in this.fragmentList) {
-            let fragment = this.fragmentList[idx];
-            if (fragment.id == id) {
-                // remove correct fragment both from stage and fragmentList
-                let fragment_container = fragment.getContainer();
-                this.stage.removeChild(fragment_container);
-                delete this.fragmentList[fragment.id];
-                this.stage.update();
-            }
-        }
     }
 
     _isSelected(id){
@@ -171,13 +196,13 @@ class Stage {
         }
         
         this.bb.rotation += delta_angle;
+        this.flipper.rotation += delta_angle;
         this.rotator.rotation += delta_angle;
 
         this.mouseClickStart = {x:event.stageX, y:event.stageY};
 
         this.update();
     }
-
     _moveObjects(event){
         let moved_object = event.target;
 
@@ -200,7 +225,23 @@ class Stage {
         }
 
         this._updateBb();
-        this.stage.update();
+        this.update();
+    }
+    _scaleObjects(){
+        for (let idx in this.fragmentList) {
+            let fragment = this.fragmentList[idx];
+
+            let x_new = Scaler.x(fragment.getX());
+            let y_new = Scaler.y(fragment.getY());
+
+            console.log(fragment.getX(), x_new);
+            fragment.moveToPixel(x_new, y_new);
+            fragment.scaleToValue(this.stage.scaling/100);
+        }
+
+        this._updateBb();
+        this._updateRotator();
+        this.update();
     }
 
     _updateBb(){
@@ -208,21 +249,73 @@ class Stage {
         this.selector.updateBb(this.selectedList);
         this.bb = this.selector.getBb();
         this.stage.addChild(this.bb);
+        this._updateFlipper(this.bb.center.x, this.bb.center.y, this.bb.width, this.bb.height);
         this._updateRotator(this.bb.center.x, this.bb.center.y, this.bb.height);
-        this.stage.update();
+        this.update();
     }
 
+    _updateFlipper(x,y,width,height){
+        this.stage.removeChild(this.flipper);
+
+        if (Object.keys(this.selectedList).length == 1){
+            this.flipper = new createjs.Container();
+
+            let circle = new createjs.Shape();
+            circle.graphics
+                .beginFill("white").drawCircle(0,0,20);
+            this.flipper.addChild(circle);
+
+            let bmp = new createjs.Bitmap("../imgs/symbol_flip.png");
+            bmp.scale = 1;
+            bmp.x = bmp.y = -15;
+            bmp.onload = function(){
+                this.update();
+            }
+            this.flipper.addChild(bmp);
+
+            this.flipper.x = x;
+            this.flipper.y = y;
+            this.flipper.regX = -width/2-30;
+            this.flipper.regY = -height/2+30;
+            this.flipper.name = "Flip Button";
+
+            this.flipper.on("click", (event) => {
+                // the flip button is only accessible if only
+                // one element is selected
+                // TODO: oder doch für mehrere auch?
+                let id = Object.keys(this.selectedList)[0];
+                let fragment = this.selectedList[id];
+                fragment.flip();
+                this.update();
+            })
+
+            this.stage.addChild(this.flipper);
+        }
+    }
     _updateRotator(x, y, height){
         this.stage.removeChild(this.rotator);
 
         if (Object.keys(this.selectedList).length == 1){
-            this.rotator = new createjs.Shape();
-            this.rotator.graphics
+            this.rotator = new createjs.Container();
+            
+            let circle = new createjs.Shape();
+            circle.graphics
                 .beginFill("#f5842c").drawCircle(0, 0, 20);
+            this.rotator.addChild(circle);
+
+            let bmp = new createjs.Bitmap("../imgs/symbol_rotate.png");
+            bmp.scale = 1;
+            bmp.x = bmp.y = -15;
+            this.rotator.addChild(bmp);
+            
             this.rotator.x = x;
             this.rotator.y = y;
             this.rotator.regX = 0;
             this.rotator.regY = height/2;
+            if (this.rotator.y - this.rotator.regY < 0) {
+                this.rotator.regY *= -1;
+            }
+            this.rotator.name = "Rotation Anchor";
 
             this.stage.addChild(this.rotator);
 
@@ -260,44 +353,50 @@ class Stage {
 }
 
 class Fragment {
-    constructor(stage_element, id, event_data){
-        this.stage = stage_element; // stage where the fragment will be shown
-        this.image = this._createImage(event_data);
-        this.container = this._createContainer(event_data.item.properties);
-        this.container.regX = this.image.image.width / 2;
-        this.container.regY = this.image.image.height / 2;
-
+    constructor(stage_object, id, event_data){
         this.id = id;
-        this.image.id = id;
-        this.container.id = id;
-
-        this.container.addChild(this.image);
-
         this.isRecto = event_data.item.properties.recto;
         this.urlRecto = event_data.item.properties.rectoURLlocal;
         this.urlVerso = event_data.item.properties.versoURLlocal;
         this.isSelected = false;
+        this.bothSidesLoaded = false;
+
+        this.framework = stage_object;
+        this.stage = stage_object.stage; // stage where the fragment will be shown
+
+        if (this.isRecto ? this.imageRecto = this._createImage(event_data, id) : this.imageVerso = this._createImage(event_data, id));
+
+        this.container = this._createContainer(event_data.item.properties, id);
+        this.container.regX = this.getImage().image.width / 2;
+        this.container.regY = this.getImage().image.height / 2;
+
+        if (this.isRecto ? this.container.addChild(this.imageRecto) : this.container.addChild(this.imageVerso));
     };
     
-    _createImage(event_data){
+    _createImage(event_data, id){
         var image = new createjs.Bitmap(event_data.result);
-        image.name = "Image";
+
+        if (this.isRecto){
+            image.name = "Image - Recto";
+        } else {
+            image.name = "Image - Verso";
+        }
         image.cursor = "pointer";
         image.x = 0;
         image.y = 0;
+        image.id = id;
         image.scale = this.stage.scaling / 100;
 
         return image;
     }
-    _createContainer(image_properties){
+    _createContainer(image_properties, id){
         var container = new createjs.Container();
 
         container.rotation = image_properties.rotation;
         container.x = image_properties.xPos * (this.stage.scaling / 100) + this.stage.offset.x;
         container.y = image_properties.yPos * (this.stage.scaling / 100) + this.stage.offset.y;
         container.name = "Container";
-
-        container.offset = {x:0, y:0};
+        container.id = id;
 
         return container;
     }
@@ -317,28 +416,122 @@ class Fragment {
     rotateByAngle(delta_angle){
         this.rotateToAngle(this.container.rotation + delta_angle);
     }
-    flip(){}
+    scaleToValue(scaling){
+        this.container.scale = scaling;
+    }
+    flip(){
+        this.isRecto = !this.isRecto;
+        // Möglichkeit 1: bild noch nicht geladen
+        // -> neue loadqueue
+        // andere seite laden
+        // sobald geladen: neues Bitmap erzeugen und einbinden
+        if (this.bothSidesLoaded){
+            // both sides have already been loaded to the application
+            this.container.removeChild(this.image);
+            if (this.isRecto ? this.image = this.image_recto : this.image = this.image_verso);
+            this.container.addChild(this.image);
+        } else {
+            // second side still to be loaded
+            let loadqueue = new createjs.LoadQueue();
+            loadqueue.addEventListener("fileload", (event) => {
+                let second_image = this._createImage(event, this.id);
+                if (this.isRecto ? this.imageRecto = second_image : this.imageVerso = second_image);
+
+                if (this.isRecto) {
+                    this.imageRecto = second_image;
+                    this.framework.registerImageEvents(this.imageRecto);
+                    this.container.removeChild(this.imageVerso);
+                    this.container.addChild(this.imageRecto);
+                } else {
+                    this.imageVerso = second_image;
+                    this.framework.registerImageEvents(this.imageVerso);
+                    this.container.removeChild(this.imageRecto);
+                    this.container.addChild(this.imageVerso);
+                }
+                this.stage.update();
+            });
+            let url;
+            if (this.isRecto ? url=this.urlRecto : url=this.urlVerso);
+            loadqueue.loadFile(url);
+            loadqueue.load();
+        }
+
+        // Möglichkeit 2: Bild existiert
+        // dann einfach bilder austauschen
+        // flag umdrehen
+    }
     
     getContainer(){ return this.container; }
-    getImage(){ return this.image; }
+    getImage(){ 
+        if (this.isRecto) {
+            return this.imageRecto;
+        } else {
+            return this.imageVerso;
+        }
+    }
     getData(){ return {}}; //TODO
+    getPosition(){
+        return {x:this.container.x, y:this.container.y};
+    }
+    getX(){
+        return this.container.x;
+    }
+    getY(){
+        return this.container.y;
+    }
+    getUnscaledX(){
+        return this.container.x / this.container.scale;
+    }
+    getUnscaledY(){
+        return this.container.y / this.container.scale;
+    }
 }
 
 class Scaler {
+    constructor(){
+
+    }
+
+    static zoom = {
+        world:{
+            x:0,
+            y:0
+        },
+        screen:{
+            x:0,
+            y:0
+        }
+    }
+
+    static scaling = 100;
+
+    /*static setZoomWorldX(value){
+        this.zoom.world.x = value;
+    }
+    static setZoomWorldY(value){
+        this.zoom.world.y = value;
+    }
+    static setZoomScreenX(value){
+        this.zoom.screen.x = value;
+    }
+    static setZoomScreenY(value){
+        this.zoom.screen.y = value;
+    }*/
+
     static length(number) {
-        return Math.floor(number * inv_scale(stage.scalingFactor));
+        return Math.floor(number * this.scaling/100);
     }
     static x(number) {
-        return Math.floor((number - zoom.world.x) * inv_scale(stage.scalingFactor) + zoom.screen.x);
+        return Math.floor((number - this.zoom.world.x) * this.scaling + this.zoom.screen.x);
     }
     static y(number) {
-        return Math.floor((number - zoom.world.y) * inv_scale(stage.scalingFactor) + zoom.screen.y);
+        return Math.floor((number - this.zoom.world.y) * this.scaling + this.zoom.screen.y);
     }
     static x_INV(number) {
-        return Math.floor((number - zoom.screen.x) * (1 / inv_scale(stage.scalingFactor)) + zoom.world.x);
+        return Math.floor((number - this.zoom.screen.x) * 1/this.scaling + this.zoom.world.x);
     }
     static y_INV(number) {
-        return Math.floor((number - zoom.screen.y) * (1 / inv_scale(stage.scalingFactor)) + zoom.world.y);
+        return Math.floor((number - this.zoom.screen.y) * 1/this.scaling + this.zoom.world.y);
     }
 }
 
@@ -438,11 +631,16 @@ $(document).ready(function(){
         }
     });
 
+    $('#zoom_slider').on("change", (event) => {
+        let new_scaling = $('#zoom_slider').val();
+        stage.setScaling(new_scaling);
+    });
+    
+    
+    // TODO just for testing
     let test_settings = {
         offset:{x:600, y:200}
     }
-
-    // just for testing
     stage._loadStageConfiguration(test_settings);
     stage.loadFragments({"1":{"name":"CP001_002","xPos":400,"yPos":100,"rotation":60,"recto":true,"rectoURLlocal":"../imgs/CP001_002rt_cutout_0_96ppi.png","versoURLlocal":"../imgs/CP001_002vs_cutout_0_96ppi.png"},"2":{"name":"CP004_005","xPos":200,"yPos":553,"rotation":30,"recto":true,"rectoURLlocal":"../imgs/CP004_005rt_cutout_0_96ppi.png","versoURLlocal":"../imgs/CP004_005vs_cutout_0_96ppi.png"}});
     xyz = stage; // TODO entfernen
