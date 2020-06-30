@@ -1,7 +1,5 @@
 'use strict';
 
-const { TouchBarSlider } = require("electron");
-
 var xyz; // TODO: entfernen
 
 class Stage {
@@ -243,6 +241,39 @@ class Stage {
         this._updateRotator();
         this.update();
     }
+    _flipTable(horizontal_flip=true){
+        // alle Fragmente umdrehen
+        // wenn horizontal:
+            // für alle fragmente positionen an der y-Achse spiegeln
+        // wenn vertikal
+            // für alle Fragmente positionen an der x-Achse spiegeln
+        // canvas updaten
+
+        let y_axis = this.stage.canvas.width/2;
+        let x_axis = this.stage.canvas.height/2;
+
+        for (let idx in this.fragmentList){
+            let fragment = this.fragmentList[idx];
+            fragment.flip();
+
+            let x = fragment.getX();
+            let y = fragment.getY();
+
+            let x_new, y_new;
+            fragment.rotateToAngle(-fragment.getRotation());
+            if (horizontal_flip){
+                x_new = 2*y_axis - x;
+                y_new = y;
+            } else {
+                x_new = x;
+                y_new = 2*x_axis - y;
+                fragment.rotateToAngle(180-fragment.getRotation());
+            }
+            fragment.moveToPixel(x_new, y_new);
+        }
+
+        //this.update();
+    }
 
     _updateBb(){
         this.stage.removeChild(this.bb);
@@ -328,15 +359,26 @@ class Stage {
         }
     }
 
-    exportCanvas() {
+    // @fileFormat - "png", "jpg", "jpeg"
+    exportCanvas(fileFormat="png") {
         // TODO Vorher muss der canvas noch so skaliert werden, dass alle Inhalte angezeigt werden können
     
         //deselect_all(); // we don't want the selection frame and other stuff in the exported image
+
+        let extension, type;
+
+        if (fileFormat == "jpg" || fileFormat == "jpeg") {
+            extension = ".jpg";
+            type = "image/jpeg";
+        } else if (fileFormat == "png") {
+            extension = "png";
+            type = "image/png";
+        }
     
         // creating artificial anchor element for download
         var pseudo_link = document.createElement('a');
-        pseudo_link.href = document.getElementById('lighttable').toDataURL('image/png');
-        pseudo_link.download = 'reconstruction.png';
+        pseudo_link.href = document.getElementById('lighttable').toDataURL(type);
+        pseudo_link.download = 'reconstruction.' + extension;
         pseudo_link.style.display = 'none';
     
         // temporarily appending the anchor, "clicking" on it, and removing it again
@@ -484,6 +526,9 @@ class Fragment {
     }
     getUnscaledY(){
         return this.container.y / this.container.scale;
+    }
+    getRotation(){
+        return this.container.rotation;
     }
 }
 
