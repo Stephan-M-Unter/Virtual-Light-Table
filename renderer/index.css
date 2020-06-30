@@ -53,7 +53,9 @@ body {
     background-color: var(--cb_blue);
     box-shadow: none;
 }
-.circularButton + .circularButton {
+#table_button_wrapper > .circularButton + .circularButton,
+#table_button_wrapper > .circularButton + .circularButtonWrapper,
+#table_button_wrapper > .circularButtonWrapper + .circularButton {
     margin-left: 10px;
 }
 .circularButtonImg {
@@ -61,6 +63,16 @@ body {
     top: 10px;
     max-width: 30px;
     max-height: 30px; /* TODO: Lassen sich hier die Größen relativ bestimmen? */
+}
+
+.circularButtonWrapper {
+    display: inline-block;
+    width: 50px;
+}
+
+.subButton {
+    display: none;
+    margin-bottom: 10px;
 }
 
 #lighttable {

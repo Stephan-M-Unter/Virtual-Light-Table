@@ -71,7 +71,14 @@ class Stage {
         }
     }
 
-    update(){ this.stage.update(); }
+    update(){
+        this.stage.update();
+    }
+    _updateUIElements(){
+        this._updateBb();
+        this._updateRotator();
+        this._updateFlipper();
+    }
 
     loadFragments(imageList){
         for (let id in imageList) {
@@ -241,7 +248,7 @@ class Stage {
         this._updateRotator();
         this.update();
     }
-    _flipTable(horizontal_flip=true){
+    flipTable(horizontal_flip=true){
         // alle Fragmente umdrehen
         // wenn horizontal:
             // für alle fragmente positionen an der y-Achse spiegeln
@@ -267,7 +274,7 @@ class Stage {
             } else {
                 x_new = x;
                 y_new = 2*x_axis - y;
-                fragment.rotateToAngle(180-fragment.getRotation());
+                fragment.rotateToAngle(180+fragment.getRotation());
             }
             fragment.moveToPixel(x_new, y_new);
         }
@@ -363,21 +370,36 @@ class Stage {
     exportCanvas(fileFormat="png") {
         // TODO Vorher muss der canvas noch so skaliert werden, dass alle Inhalte angezeigt werden können
     
-        //deselect_all(); // we don't want the selection frame and other stuff in the exported image
+        // remove UI elements
+        this._clearSelectionList();
+        this._updateUIElements();
 
+        var pseudo_link = document.createElement('a');
         let extension, type;
 
         if (fileFormat == "jpg" || fileFormat == "jpeg") {
-            extension = ".jpg";
+            extension = "jpg";
             type = "image/jpeg";
+            let background_color = "#FF00FF";
+            
+            // creating a pseudo canvas, filling it with background color
+            // then, drawing VLT canvas on top
+            let pseudo_canvas = document.createElement("canvas");
+            pseudo_canvas.width = this.stage.canvas.width;
+            pseudo_canvas.height = this.stage.canvas.height;
+            let pseudo_context = pseudo_canvas.getContext("2d");
+            pseudo_context.fillStyle = background_color;
+            pseudo_context.fillRect(0,0,this.stage.canvas.width,this.stage.canvas.height);
+            pseudo_context.drawImage(this.stage.canvas,0,0);
+            pseudo_link.href = pseudo_canvas.toDataURL();
+
         } else if (fileFormat == "png") {
             extension = "png";
             type = "image/png";
+            pseudo_link.href = document.getElementById('lighttable').toDataURL(type);
         }
     
         // creating artificial anchor element for download
-        var pseudo_link = document.createElement('a');
-        pseudo_link.href = document.getElementById('lighttable').toDataURL(type);
         pseudo_link.download = 'reconstruction.' + extension;
         pseudo_link.style.display = 'none';
     
@@ -453,7 +475,8 @@ class Fragment {
     }
 
     rotateToAngle(target_angle){
-        this.container.rotation = target_angle;
+        this.container.rotation = target_angle%360;
+        console.log(this.getRotation());
     }
     rotateByAngle(delta_angle){
         this.rotateToAngle(this.container.rotation + delta_angle);
@@ -463,10 +486,6 @@ class Fragment {
     }
     flip(){
         this.isRecto = !this.isRecto;
-        // Möglichkeit 1: bild noch nicht geladen
-        // -> neue loadqueue
-        // andere seite laden
-        // sobald geladen: neues Bitmap erzeugen und einbinden
         if (this.bothSidesLoaded){
             // both sides have already been loaded to the application
             this.container.removeChild(this.image);
@@ -654,12 +673,43 @@ $(document).ready(function(){
     $('#save_table').click(function(){send_message('server-save-table');});
     // Load Table Button
     $('#load_table').click(function(){send_message('server-load-table');});
+
+    // Flip Buttons
+    $('#flip_table').click(function(){
+        if ($('#hor_flip_table').css("display") == "none") {
+            // open export buttons
+            $('#hor_flip_table').css("display", "inline-block");
+            $('#vert_flip_table').css("display", "inline-block");
+            $('#flip_table>img').attr("src","../imgs/symbol_x.png");
+        } else {
+            // close export buttons
+            $('#vert_flip_table').css("display", "none");
+            $('#hor_flip_table').css("display", "none");
+            $('#flip_table>img').attr("src","../imgs/symbol_flip.png");
+        }
+    });
     // Horizontal Flip Button
-    $('#hor_flip_table').click(function(){send_message('server-hor-flip-table');});
+    $('#hor_flip_table').click(function(){stage.flipTable(true)});
     // Vertical Flip Button
-    $('#vert_flip_table').click(function(){send_message('server-vert-flip-table');});
-    // Export Button
-    $('#export').click(function(){stage.exportCanvas();});
+    $('#vert_flip_table').click(function(){stage.flipTable(false)});
+    
+    // Export Buttons
+    $('#export').click(function(){
+        if ($('#export_jpg').css("display") == "none") {
+            // open export buttons
+            $('#export_jpg').css("display", "inline-block");
+            $('#export_png').css("display", "inline-block");
+            $('#export>img').attr("src","../imgs/symbol_x.png");
+        } else {
+            // close export buttons
+            $('#export_jpg').css("display", "none");
+            $('#export_png').css("display", "none");
+            $('#export>img').attr("src","../imgs/symbol_export.png");
+        }
+    });
+    $('#export_jpg').click(function(){stage.exportCanvas("jpg")});
+    $('#export_png').click(function(){stage.exportCanvas("png")});
+
     // Light Switch Button
     var light_mode = "dark";
     var dark_background;
