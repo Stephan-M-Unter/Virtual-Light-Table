@@ -1,5 +1,7 @@
 'use strict';
 
+const { ipcRenderer, TouchBarScrubber } = require("electron");
+
 var xyz; // TODO: entfernen
 
 class Stage {
@@ -18,22 +20,7 @@ class Stage {
         this.stage.offset = {x: 0, y:0};
         this.stage.scaling = 100;
 
-        // create (almost) invisible background element to
-        // allow for mouse interaction; pixels have to be barely
-        // visible
-        var background = new createjs.Shape();
-        background.graphics.beginFill("#333333")
-            .drawRect(0, 0, width, height);
-        background.alpha = 0.01;
-        this.stage.addChild(background);
-        background.on("mousedown", (event) => {
-            this._clearSelectionList();
-            this.mouseClickStart = {x: event.stageX, y: event.stageY};
-        });
-        background.on("pressmove", (event) => {
-            this._panScene(event);
-        })
-
+        this._createBackground(width, height);
 
         // selection box
         this.selector = new Selector();
@@ -45,9 +32,80 @@ class Stage {
         });
     }
 
-    _loadStageConfiguration(settings){
-        this.stage.offset = settings.offset;
+    _createBackground(width, height){
+        // create (almost) invisible background element to
+        // allow for mouse interaction; pixels have to be barely
+        // visible
+        var background = new createjs.Shape();
+        background.graphics.beginFill("#333333")
+            .drawRect(0, 0, width, height);
+        background.alpha = 0.01;
+        background.name = "background";
+        this.stage.addChild(background);
+        background.on("mousedown", (event) => {
+            this._clearSelectionList();
+            this.mouseClickStart = {x: event.stageX, y: event.stageY};
+        });
+        background.on("pressmove", (event) => {
+            this._panScene(event);
+        });
+        background.on("pressup", (event) => {
+            this._saveToModel();
+        });
+
     }
+
+    _clearTable(){
+        for (let idx in this.fragmentList) {
+            this.stage.removeChild(this.fragmentList[idx].getContainer());
+        }
+
+        this._clearSelectionList();
+        this._clearFragmentList();
+        this.update();
+    }
+    loadScene(data){
+        this._clearTable();
+
+        if (data && data.stage) {
+            this._loadStageConfiguration(data.stage);
+        } else {
+            this._loadStageConfiguration();
+        }
+
+        if (data && data.fragments) { this._loadFragments(data.fragments)};
+
+        this.update();
+    }
+    _loadStageConfiguration(settings){
+        if (settings && settings.offset ? this.stage.offset = settings.offset : this.stage.offset = {x:0, y:0});
+        //if (this.stage.scaling ? this.stage.scaling = settings.scaling : this.stage.scaling = 100);
+    }
+    getData(){
+        return {
+            "offset":this.stage.offset,
+            "scaling":this.stage.scaling
+        }
+    }
+    getConfiguration(){
+        let stage_data = this.getData();
+        let items_data = {};
+        for (let idx in this.fragmentList){
+            items_data[idx] = this.fragmentList[idx].getData();
+        }
+
+        return {
+            "stage":stage_data,
+            "fragments":items_data
+        }
+
+    }
+    _saveToModel(){
+        let data_object = this.getConfiguration();
+        ipcRenderer.send("server-save-to-model", data_object);
+    }
+
+
     setScaling(scaling){
         // scaling should only impact the scene if between values 10 and 300
         // i.e. scaling by 0.1 min or 3.0 max
@@ -70,6 +128,15 @@ class Stage {
             this.update();
         }
     }
+    resizeCanvas(width, height){
+        this.stage.canvas.width = width;
+        this.stage.canvas.height = height;
+        // TODO auch der Hintergrund muss noch upgedated werden
+        // Problem: createjs.Shapes haben keine width/height
+        // property, geht also nur entweder durch Skalierung
+        // oder durch neuzeichnen
+        this.update();
+    }
 
     update(){
         this.stage.update();
@@ -80,7 +147,7 @@ class Stage {
         this._updateFlipper();
     }
 
-    loadFragments(imageList){
+    _loadFragments(imageList){
         for (let id in imageList) {
             let url = imageList[id].rectoURLlocal;
             if (!imageList[id].recto) { url = imageList[id].versoURLlocal };
@@ -140,6 +207,10 @@ class Stage {
         image.on("pressmove", (event) => {
             this._moveObjects(event);
         });
+
+        image.on("pressup", (event) => {
+            this._saveToModel();
+        });
     }
 
     _isSelected(id){
@@ -156,6 +227,9 @@ class Stage {
     _clearSelectionList(){
         this.selectedList = {};
         this._updateBb();
+    }
+    _clearFragmentList(){
+        this.fragmentList = {};
     }
 
     _panScene(event){
@@ -249,12 +323,7 @@ class Stage {
         this.update();
     }
     flipTable(horizontal_flip=true){
-        // alle Fragmente umdrehen
-        // wenn horizontal:
-            // für alle fragmente positionen an der y-Achse spiegeln
-        // wenn vertikal
-            // für alle Fragmente positionen an der x-Achse spiegeln
-        // canvas updaten
+        this._clearSelectionList();
 
         let y_axis = this.stage.canvas.width/2;
         let x_axis = this.stage.canvas.height/2;
@@ -278,8 +347,7 @@ class Stage {
             }
             fragment.moveToPixel(x_new, y_new);
         }
-
-        //this.update();
+        this._saveToModel();
     }
 
     _updateBb(){
@@ -317,6 +385,10 @@ class Stage {
             this.flipper.regY = -height/2+30;
             this.flipper.name = "Flip Button";
 
+            if (this.flipper.x - this.flipper.regX > this.stage.canvas.width) {
+                this.flipper.regX *= -1;
+            }
+
             this.flipper.on("click", (event) => {
                 // the flip button is only accessible if only
                 // one element is selected
@@ -325,6 +397,7 @@ class Stage {
                 let fragment = this.selectedList[id];
                 fragment.flip();
                 this.update();
+                this._saveToModel();
             })
 
             this.stage.addChild(this.flipper);
@@ -362,6 +435,9 @@ class Stage {
             });
             this.rotator.on("pressmove", (event) => {
                 this._rotateObjects(event);
+            });
+            this.rotator.on("pressup", (event) => {
+                this._saveToModel();
             });
         }
     }
@@ -424,6 +500,7 @@ class Fragment {
         this.urlVerso = event_data.item.properties.versoURLlocal;
         this.isSelected = false;
         this.bothSidesLoaded = false;
+        this.name = event_data.item.properties.name;
 
         this.framework = stage_object;
         this.stage = stage_object.stage; // stage where the fragment will be shown
@@ -476,7 +553,6 @@ class Fragment {
 
     rotateToAngle(target_angle){
         this.container.rotation = target_angle%360;
-        console.log(this.getRotation());
     }
     rotateByAngle(delta_angle){
         this.rotateToAngle(this.container.rotation + delta_angle);
@@ -530,7 +606,17 @@ class Fragment {
             return this.imageVerso;
         }
     }
-    getData(){ return {}}; //TODO
+    getData(){
+        return {
+            "name":this.name,
+            "recto":this.isRecto,
+            "rectoURLlocal":this.urlRecto,
+            "versoURLlocal":this.urlVerso,
+            "xPos":this.container.x,
+            "yPos":this.container.y,
+            "rotation":this.container.rotation
+        }
+    };
     getPosition(){
         return {x:this.container.x, y:this.container.y};
     }
@@ -665,15 +751,18 @@ class Selector {
 $(document).ready(function(){
     var stage = new Stage("lighttable", window.innerWidth, window.innerHeight);
     
-    function send_message(code, data=null){ ipcRenderer.send(code, data); }
-    
+    /* ##########################################
+    #               INPUT/OUTPUT
+    ###########################################*/
+
     // Clear Table Button
-    $('#clear_table').click(function(){send_message('server-clear-table');});
+    $('#clear_table').click(function(){
+        ipcRenderer.send("server-clear-table");
+    });
     // Save Table Button
     $('#save_table').click(function(){send_message('server-save-table');});
     // Load Table Button
     $('#load_table').click(function(){send_message('server-load-table');});
-
     // Flip Buttons
     $('#flip_table').click(function(){
         if ($('#hor_flip_table').css("display") == "none") {
@@ -692,7 +781,6 @@ $(document).ready(function(){
     $('#hor_flip_table').click(function(){stage.flipTable(true)});
     // Vertical Flip Button
     $('#vert_flip_table').click(function(){stage.flipTable(false)});
-    
     // Export Buttons
     $('#export').click(function(){
         if ($('#export_jpg').css("display") == "none") {
@@ -731,12 +819,25 @@ $(document).ready(function(){
         stage.setScaling(new_scaling);
     });
     
-    
+    window.addEventListener('resize', (event) => {
+        stage.resizeCanvas(window.innerWidth, window.innerHeight);
+    });
+
+    /* ##########################################
+    #           SERVER/CLIENT PROTOCOL
+    ###########################################*/
+
+    ipcRenderer.on('client-load-from-model', (event, data) => {
+        console.log('Received client-load-from-model');
+        stage.loadScene(data);
+    });
+
+
     // TODO just for testing
     let test_settings = {
-        offset:{x:600, y:200}
+        offset:{x:0, y:0}
     }
     stage._loadStageConfiguration(test_settings);
-    stage.loadFragments({"1":{"name":"CP001_002","xPos":400,"yPos":100,"rotation":60,"recto":true,"rectoURLlocal":"../imgs/CP001_002rt_cutout_0_96ppi.png","versoURLlocal":"../imgs/CP001_002vs_cutout_0_96ppi.png"},"2":{"name":"CP004_005","xPos":200,"yPos":553,"rotation":30,"recto":true,"rectoURLlocal":"../imgs/CP004_005rt_cutout_0_96ppi.png","versoURLlocal":"../imgs/CP004_005vs_cutout_0_96ppi.png"}});
+    stage._loadFragments({"1":{"name":"CP001_002","xPos":400,"yPos":100,"rotation":60,"recto":true,"rectoURLlocal":"../imgs/CP001_002rt_cutout_0_96ppi.png","versoURLlocal":"../imgs/CP001_002vs_cutout_0_96ppi.png"},"2":{"name":"CP004_005","xPos":200,"yPos":553,"rotation":30,"recto":true,"rectoURLlocal":"../imgs/CP004_005rt_cutout_0_96ppi.png","versoURLlocal":"../imgs/CP004_005vs_cutout_0_96ppi.png"}});
     xyz = stage; // TODO entfernen
 });

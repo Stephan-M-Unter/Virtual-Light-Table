@@ -61,71 +61,129 @@
 
 class CanvasManager {
     constructor() {
-        this.clearAll();
-    }
-
-    _createFragmentID() {
-        let id = "f_" + this.IDcounter;
-        this.IDcounter += 1;
-        return id;
-    }
-
-    clearAll(){
-        this.stage = {
-            "offset":{"x":0,"y":0},
-            "scaling":100
+        this.canvasItems = {
+            "stage": {},
+            "items": {}
         };
-        this.fragments = {};
-        this.IDcounter = 0;
+
     }
 
-    clearFragments(){
-        this.fragments = {};
-    }
-
-    addFragment(fragment_data){
-        let id = this._createFragmentID;
-        this.fragments[id] = fragment_data;
-    }
-
-    removeFragment(id){
-        delete this.fragments[id];
-    }
-
-    updateFragment(id, fragment_data){
-        this.fragments[id] = fragment_data;
-    }
-
-    updateFragments(fragments_data){
-        this.fragments = fragments_data;
-    }
-
-    updateStage(stage_data){
-        this.stage = stage_data;
-    }
-
-    updateAll(data){
-        this.updateStage(data.stage);
-        this.updateFragments(data.fragments);
-    }
-
-    getAll(){
-        return {
-            "stage":this.stage,
-            "fragments":this.fragments
+    addItem(itemID, itemProps) {
+        if (itemID in this.canvasItems["items"]){
+            console.log("**CanvasManager** - itemID " + itemID + " already registered!");
+            return false;
+        } else {
+            this.canvasItems["items"][itemID] = itemProps;
+            return true;
         }
     }
 
-    getFragments(){
-        return this.fragments;
+    removeItem(itemID) {
+        if (itemName in this.canvasItems["items"]) {
+            delete this.canvasItems["items"][itemID];
+            return true;
+        } else {
+            console.log("**CanvasManager** - itemID " + itemID + " has not been found!");
+            return false;
+        }
     }
 
-    getStage(){
-        return this.stage;
+    updateItem(itemID, itemProp, itemValue) {
+        if (itemID in this.canvasItems["items"]) {
+            this.canvasItems["items"][itemID][itemProp] = itemValue;
+            return true;
+        } else {
+            console.log("**CanvasManager** - itemID " + itemID + " has not been found!");
+            return false;
+        }
     }
 
-    getFragment(id){
-        return this.fragments[id];
+    updateItemLocation(itemID, xPos, yPos, rotation) {
+        if (itemID in this.canvasItems["items"]) {
+            this.canvasItems["items"][itemID]['xPos'] = xPos;
+            this.canvasItems["items"][itemID]['yPos'] = yPos;
+            this.canvasItems["items"][itemID]["rotation"] = rotation;
+            console.log("**CanvasManager** - updated item " + itemID + ".");
+            return true;
+        } else {
+            console.log("**CanvasManager** - itemID " + itemID + " has not been found!");
+            return false;
+        }
+    }
+
+    getCanvasContent(){
+        return this.canvasItems;
+    }
+
+    getListOfItems() {
+        return Object.keys(this.canvasItems);
+    }
+
+    getItemProps(itemID) {
+        if (itemID in this.canvasItems) {
+            return this.canvasItems[itemID]
+        }
+    }
+
+    getItemLocation(itemID) {
+        if (itemID in this.canvasItems) {
+            let item = this.canvasItems["items"][itemID];
+
+            if ("meta" in item) {
+                delete item.meta;
+            }
+
+            log.console("Item requested:");
+            log.console(item);
+            return item
+        } else {
+            return false;
+        }
+    }
+
+    getCanvasInformation(){
+        let items = this.canvasItems["items"];
+
+        for (var item in items) {
+            if ("meta" in items[item]) {
+                delete items[item].meta;
+            }
+        }
+        return items;
+    }
+
+    getStageInformation(){
+        console.log(this.canvasItems);
+        return this.canvasItems.stage;
+    }
+
+    clearItems(){
+        this.canvasItems = {
+            "stage": {},
+            "items": {}
+        };
+        this.canvasItems.stage.stage_offset = {x: 0, y: 0};
+        console.log("**CanvasManager** - Canvas content has been cleared.");
+    }
+
+    resetAll(){
+        
+    }
+
+    setCanvasContent(newContent){
+        this.canvasItems = newContent;
+        this.printCanvasItems();
+        return true;
+    }
+
+    printCanvasItems(){
+        console.log("**CanvasManager** - Current Canvas Content ("+Object.keys(this.canvasItems["items"]).length+" items):")
+        console.log(JSON.stringify(this.canvasItems));
+    }
+
+    updateStageInformation(stage_update){
+        this.canvasItems.stage = stage_update;
+        this.printCanvasItems();
     }
 }
 

@@ -25,14 +25,15 @@ app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
 // Managers
-const canvas_manager = new CanvasManager();
+const canvasManager = new CanvasManager();
 const imageManager = new ImageManager();
-const save_manager = new SaveManager();
+const saveManager = new SaveManager();
 // Windows
 var main_window; // main window containing the light table itself
 var save_window; // window for saving a configuration
 var load_window; // window for loading configurations
-var detail_window; // additional window to show fragment details
+var detail_window; // TODO additional window to show fragment details
+var filter_window; // TODO additional window to set database filters
 
 /* ##############################################################
 ###
@@ -50,14 +51,23 @@ function main() {
     if (!development) {
         main_window.removeMenu(); // increase work immersion by removing unnecessary menu TODO
     }
-    main_window.once('ready-to-show', () => {
-        main_window.show();
-        send_message_reload_canvas(main_window);
-    });
 }
+
 app.on('ready', main);
 app.on("window-all-closed", () => {app.quit();});
 
+
+function timestamp(){
+    let now = new Date();
+
+    let second = now.getSeconds().toString().padStart(2,"0");
+    let minute = now.getMinutes().toString().padStart(2,"0");
+    let hour = now.getHours().toString().padStart(2,"0");
+    let day = now.getDay().toString().padStart(2,"0");
+    let month = now.getMonth().toString().padStart(2,"0");
+    let year = now.getFullYear();
+    return "["+day+"/"+month+"/"+year+" "+hour+":"+minute+":"+second+"]";
+}
 
 /* ##############################################################
 ###
@@ -68,16 +78,46 @@ app.on("window-all-closed", () => {app.quit();});
 /* SENDING MESSAGES */
 
 function send_message(recipient_window, message, data=null) {
-    if (development) {console.log("Sending code "+message+" to "+recipient_window);}
+    if (development) {console.log(timestamp() + " " + "Sending code ["+message+"] to client");}
     recipient_window.webContents.send(message, data);
 }
 
-function send_message_reload_canvas(recipient_window) {
-    if (development) {console.log("Sending code 'client-redraw-canvas' to "+recipient_window);}
-    let stage_info = canvas_manager.getStageInformation();
-    let canvas_info = canvas_manager.getCanvasInformation();
-    recipient_window.webContents.send('client-redraw-canvas', stage_info, canvas_info);
-}
+
+/* RECEIVING MESSAGES */
+
+// server-save-to-model
+ipcMain.on('server-save-to-model', (event, data) => {
+    canvasManager.updateAll(data);
+    if (development) { console.log(timestamp() + " " + 'Receiving code [server-save-to-model] from client'); }
+});
+
+ipcMain.on('server-clear-table', (event) => {
+    if (development) { console.log(timestamp() + " " + 'Receiving code [server-clear-table] from client'); }
+    canvasManager.clearAll();
+    send_message(event.sender, 'client-load-from-model', canvasManager.getAll());
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
     RECEIVING MESSAGES
@@ -94,7 +134,7 @@ function send_message_reload_canvas(recipient_window) {
     - 'server-update-stage'
 */
 // <- server-clear-table
-ipcMain.on('server-clear-table', (event) => {
+/*ipcMain.on('server-clear-table', (event) => {
     if (development){console.log("Received code 'server-clear-table'.");}
     canvas_manager.clearItems();
     send_message_reload_canvas(event.sender);
@@ -127,14 +167,8 @@ ipcMain.on('server-load-table', (event) => {
     });
 });
 
-// server-hor-flip
-ipcMain.on('server-hor-flip', (event) => {
-    //TODO do something
-});
-
-// <- server-vert-flip
-ipcMain.on('server-vert-flip', (event) => {
-    // TODO do something
+ipcMain.on('server-save-to-model', (event, data) => {
+    console.log('server-save-to-model', data);
 });
 
 // <- server-update-image
@@ -199,4 +233,4 @@ ipcMain.on('load-file', (event, file) => {
     send_message_reload_canvas(main_window);
     canvas_manager.setCanvasContent(file);
     send_message_reload_canvas(main_window);
-});
+});*/
