@@ -163,6 +163,7 @@ button:disabled {
 }
 
 .load_thumb {
+    position: relative;
     display: inline-block;
     width: 200px;
     height: 150px;
@@ -170,6 +171,22 @@ button:disabled {
     box-shadow: 2px 2px 4px 1px rgba(0,0,0,0.3);
     text-align: center;
     margin: 10px 12px;
+}
+
+.load_thumb_img {
+    display: block;
+    max-width: 90%;
+    max-height: calc(100% - 30px);
+    margin: 5px auto;
+}
+
+.load_thumb_text {
+    position: absolute;
+    line-height: 20px;
+    width: 100%;
+    bottom: 0px;
+    left: 0px;
+    text-align: center;
 }
 
 .error_message {

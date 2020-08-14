@@ -7,70 +7,89 @@ const default_folder = "./saves";
 
 function select_default_folder(){
     $("#folder").val(default_folder);
-    ipcRenderer.send('request-save-files', default_folder);
+    ipcRenderer.send('server-list-savefiles', default_folder);
 }
 
 $(document).ready(function(){
     select_default_folder();
 });
 
-$("#select_folder").click(function(){
-    ipcRenderer.send('request-saves-folder');
-});
+
+
+/* ##########################################
+#               INPUT/OUTPUT
+###########################################*/
 
 $("#default_folder").click(select_default_folder);
 
-ipcRenderer.on('return-saves-folder', (event, path) => {
-    $("#folder").val(path);
-    ipcRenderer.send('request-save-files', path);
-})
+$("#select_folder").click(function(){
+    ipcRenderer.send('server-get-saves-folder');
+});
 
 $("#save_list").on('click', '.save_list_item', function(element){
     $(".save_list_item").removeClass('selected');
     $(this).addClass('selected');
     $("#load").prop("disabled", false);
 
-    let items = saves[$(this).attr('id')]['items'];
+    let fragments = saves[$(this).attr('id')]['fragments'];
 
     $("#thumb_list").empty();
     
     try {
-        for (const [key, value] of Object.entries(items)) {
-            $("#thumb_list").append("<div class='load_thumb'>"+items[key]['name']+"</div>");
+        for (const [key, value] of Object.entries(fragments)) {
+            let url, rt;
+            if (fragments[key]['recto'] ? url = fragments[key]['rectoURLlocal'] : url = fragments[key]['versoURLlocal']);
+            if (fragments[key]['recto'] ? rt = 'rt' : rt = 'vs');
+            let newTile = "<div class='load_thumb'>";
+            newTile += "<img class='load_thumb_img' src='"+url+"'>";
+            newTile += "<span class='load_thumb_text'>"+fragments[key]['name']+" ("+rt+")</span>";
+            newTile += "</div>";
+            $("#thumb_list").append(newTile);
         }
     }
     catch(err) {
+        console.log(err);
         $("#thumb_list").append("<div class='error_message'>Save file broken!</div>");
         $("#load").prop("disabled", true);
     }
 })
 
 $("#load").click(function(){
-    ipcRenderer.send('load-file', (saves[$(".selected").attr('id')]));
+    ipcRenderer.send('server-load-file', (saves[$(".selected").attr('id')]));
 });
 
-ipcRenderer.on('return-save-files', (event, save_files) => {
+/* ##########################################
+#           SERVER/CLIENT PROTOCOL
+###########################################*/
+
+// return-save-files
+ipcRenderer.on('return-save-files', (event, savefiles) => {
     $("#save_list_body").empty();
     $("#thumb_list").empty();
     $("#load").prop("disabled", true);
-    saves = save_files;
-    console.log(saves);
-    for (const [key, value] of Object.entries(save_files)) {
-        let last_editor = '';
-        let number_fragments = '';
+    saves = savefiles;
+    for (const [key, value] of Object.entries(savefiles)) {
+        let lastEditor = '';
+        let numberFragments = '';
         if ('editors' in saves[key]) {
-            last_editor = saves[key]['editors'].slice(-1)[0];
+            lastEditor = saves[key]['editors'].slice(-1)[0];
         }
-        if ('items' in saves[key]) {
-            number_fragments = Object.keys(saves[key]['items']).length;
+        if ('fragments' in saves[key]) {
+            numberFragments = Object.keys(saves[key]['fragments']).length;
         }
 
-        let table_row = "<tr class='save_list_item' id='"+key+"'>";
-        table_row += "<td class='td_filename'>"+key+"</td>";
-        table_row += "<td class='td_fragments'>"+number_fragments+"</td>";
-        table_row += "<td class='td_mtime'>"+saves[key]['mtime']+"</td>";
-        table_row += "<td class='td_editor'>"+last_editor+"</tr>";
+        let tableRow = "<tr class='save_list_item' id='"+key+"'>";
+        tableRow += "<td class='td_filename'>"+key+"</td>";
+        tableRow += "<td class='td_fragments'>"+numberFragments+"</td>";
+        tableRow += "<td class='td_mtime'>"+saves[key]['mtime']+"</td>";
+        tableRow += "<td class='td_editor'>"+lastEditor+"</tr>";
 
-        $("#save_list_body").append(table_row);
+        $("#save_list_body").append(tableRow);
     }
 });
+
+// return-saves-folder
+ipcRenderer.on('return-saves-folder', (event, path) => {
+    $("#folder").val(path);
+    ipcRenderer.send('server-list-savefiles', path);
+})

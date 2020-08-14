@@ -1,0 +1,27 @@
+{
+	"editors"	: ["SMU"],
+	"stage"		: {
+		"offset" 	: {"x":200, "y":200},
+		"scaling" 	: 100
+	},
+	"fragments" : {
+		"f_0" 	: {
+			"name"			: "CP001/002",
+			"recto"			: true,
+			"rectoURLlocal"	: "../imgs/CP001_002rt_cutout_0_96ppi.png",
+			"rotation"		: -60,
+			"versoURLlocal"	: "../imgs/CP001_002vs_cutout_0_96ppi.png",
+			"xPos"			: 471,
+			"yPos"			: 188
+		},
+		"f_1" 	: {
+			"name"			: "CP004/005",
+			"recto"			: false,
+			"rectoURLlocal"	: "../imgs/CP004_005rt_cutout_0_96ppi.png",
+			"rotation"		: 30,
+			"versoURLlocal"	: "../imgs/CP004_005vs_cutout_0_96ppi.png",
+			"xPos"			: 571,
+			"yPos"			: 641
+		}
+	}
+}

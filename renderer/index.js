@@ -20,7 +20,8 @@ class Stage {
         this.stage.offset = {x: 0, y:0};
         this.stage.scaling = 100;
 
-        this._createBackground(width, height);
+        this.background = this._createBackground(width, height);
+        this.stage.addChild(this.background);
 
         // selection box
         this.selector = new Selector();
@@ -41,7 +42,6 @@ class Stage {
             .drawRect(0, 0, width, height);
         background.alpha = 0.01;
         background.name = "background";
-        this.stage.addChild(background);
         background.on("mousedown", (event) => {
             this._clearSelectionList();
             this.mouseClickStart = {x: event.stageX, y: event.stageY};
@@ -52,6 +52,8 @@ class Stage {
         background.on("pressup", (event) => {
             this._saveToModel();
         });
+
+        return background;
 
     }
 
@@ -131,10 +133,10 @@ class Stage {
     resizeCanvas(width, height){
         this.stage.canvas.width = width;
         this.stage.canvas.height = height;
-        // TODO auch der Hintergrund muss noch upgedated werden
-        // Problem: createjs.Shapes haben keine width/height
-        // property, geht also nur entweder durch Skalierung
-        // oder durch neuzeichnen
+
+        this.stage.removeChild(this.background);
+        this.background = this._createBackground(width, height);
+        this.stage.addChildAt(this.background, 0);
         this.update();
     }
 
@@ -760,9 +762,9 @@ $(document).ready(function(){
         ipcRenderer.send("server-clear-table");
     });
     // Save Table Button
-    $('#save_table').click(function(){send_message('server-save-table');});
+    $('#save_table').click(function(){ipcRenderer.send('server-open-save-window');});
     // Load Table Button
-    $('#load_table').click(function(){send_message('server-load-table');});
+    $('#load_table').click(function(){ipcRenderer.send('server-open-load-window');});
     // Flip Buttons
     $('#flip_table').click(function(){
         if ($('#hor_flip_table').css("display") == "none") {
