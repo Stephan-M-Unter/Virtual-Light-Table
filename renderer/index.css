@@ -10,7 +10,26 @@ body {
 
 /* Sidebar */
 #left_sidebar {
-    visibility: hidden;
+    position: absolute;
+    background-color: darkgrey;
+    top: 0;
+    left: 0;
+    width: 500px;
+    height: 100vh;
+}
+
+.sidebar_header {
+    line-height: 2em;
+    text-align: center;
+    font-variant: small-caps;
+    font-size: 1.5em;
+    border-bottom: 2px black solid;
+}
+
+.sidebar_header img {
+    margin-left: 10px;
+    width: 20px;
+    height: 20px;
 }
 
 /* Scrollbars */
@@ -87,9 +106,9 @@ body {
 /* Zoom Slider */
 #zoom_wrapper {
     position: absolute;
-    top: 0;
+    top: 100px;
     height: 50px;
-    right: 10px;
+    right: -80px;
     display: inline-block;
     text-align: middle;
     vertical-align: middle;
@@ -113,8 +132,8 @@ body {
     -webkit-appearance: none;
     appearance: none;
     transition: all .2s;
-    width: 30px;
-    height: 25px;
+    width: 40px;
+    height: 20px;
     background: #f5842c;
 }
 #zoom_slider::-webkit-slider-thumb:hover {
@@ -126,8 +145,10 @@ body {
 }
 #zoom_slider {
     -webkit-appearance: none;
+    transform: rotate(270deg);
     outline: none;
     height: 10px;
+    width: 200px;
 }
 #zoom_wrapper > .circularButton {
     width: 36px;
@@ -164,7 +185,9 @@ body {
     bottom: 125%;
 }
 #zoom_wrapper .tooltip {
-    top: 125%;
+    top: 100%;
+    left: 30%;
+    width: 80px;
 }
 .circularButton:hover .tooltip, #zoom_wrapper:hover .tooltip {
     visibility: visible;

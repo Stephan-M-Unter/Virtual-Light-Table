@@ -12,53 +12,30 @@
 
         <!-- Left Sidebar -->
         <div id="left_sidebar" class="no-select">
-            <div class="sidebar_content" id="fragment_selection">
-                <div id="fragment_filter"></div>
-                <div id="fragment_list">
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP001_002rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
-                    <div class="wrapper_fragment_in_selector">
-                        <img src="../imgs/CP004_005rt_cutout_0.png" class="thumb_fragment_in_selector"></img>
-                        <div class="name_fragment_in_selector">CP001_002 - rt</div>
-                    </div>
+            <div class="sidebar_content_wrapper" id="new_fragments">
+                <div class="sidebar_header">Add New Fragments
+                    <img class="sidebar_help" src="../imgs/help.png" target="help-new-fragments">
                 </div>
-            </div> <!-- </fragment_selection> -->
-            <div class="sidebar_content hidden" id="graphical_modes">
-            </div> <!-- Graphical Modes -->
-            <div class="sidebar_content hidden" id="loaded_fragments">
-            </div> <!-- </loaded_fragments> -->
-
-            <!-- Handles -->
-            <div class="sidebar_handle" id="collection_handle">
-                <img class="sidebar_handle_img" src="../imgs/symbol_new_table.png"></img>
-                New Fragments
+                <div class="sidebar_content" id="new_fragments_content"></div>
             </div>
-            <div class="sidebar_handle" id="graphical_modes_handle">
-                <img class="sidebar_handle_img" src="../imgs/symbol_new_table.png"></img>
-                Graphical Modes
+            <div class="sidebar_content_wrapper" id="graphical_filters">
+                <div class="sidebar_header">Graphical Filters
+                    <img class="sidebar_help" src="../imgs/help.png" target="help-graphical-filters">
+                </div>
+                <div class="sidebar_content" id="graphical_filters_content"></div>
             </div>
-            <div class="sidebar_handle" id="loaded_fragments_handle">
-                <img class="sidebar_handle_img" src="../imgs/symbol_new_table.png"></img>
-                Loaded Fragments
+            <div class="sidebar_content_wrapper" id="fragment_list">
+                <div class="sidebar_header">Fragments
+                    <img class="sidebar_help" src="../imgs/help.png" target="help-fragment-list">
+                </div>
+                <div class="sidebar_content" id="fragment_list_content"></div>
             </div>
         </div> <!-- </left_sidebar> -->
 
         <!-- Zoom Elements -->
         <div id="zoom_wrapper" class="no-select">
-            <!-- REMOVED - It is highly unlikely that somebody really needs a dedicated button to do this
-                <div class="circularButton no-select" id="minus_zoom">
-                    <img src="../imgs/symbol_minus_zoom.png" class="circularButtonImg"></img>
-                </div>
-            -->
             <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" onkeydown="return false"/>
-            <!-- REMOVED - It is highly unlikely that somebody really needs a dedicated button to do this
-                <div class="circularButton no-select" id="plus_zoom">
-                    <img src="../imgs/symbol_plus_zoom.png" class="circularButtonImg"></img>
-                </div>
-                <span class="tooltip" id="zoom_factor">Table Zoom<br/>x1.0</span>
-            -->
+            <span class="tooltip" id="zoom_factor">Zoom<br/>x1.0</span>
         </div> <!-- </zoom_wrapper> -->
         
         <!-- Control Elements -->

@@ -8,8 +8,8 @@ class Stage {
     constructor(DOMelement, width, height){
         // create new stage and set to given DOMelement
         this.stage = new createjs.Stage(DOMelement);
-        this.stage.canvas.width = width;
-        this.stage.canvas.height = height;
+        this.stage.canvas.width = this.width = width;
+        this.stage.canvas.height = this.height = height;
         this.stage.enableMouseOver();
         createjs.Touch.enable(this.stage);
 
@@ -19,6 +19,11 @@ class Stage {
 
         this.stage.offset = {x: 0, y:0};
         this.stage.scaling = 100;
+
+        this.lines = {
+            "horizontal": null,
+            "vertical": null
+        }
 
         this.background = this._createBackground(width, height);
         this.stage.addChild(this.background);
@@ -131,12 +136,13 @@ class Stage {
         }
     }
     resizeCanvas(width, height){
-        this.stage.canvas.width = width;
-        this.stage.canvas.height = height;
+        this.stage.canvas.width = this.width = width;
+        this.stage.canvas.height = this.height = height;
 
         this.stage.removeChild(this.background);
         this.background = this._createBackground(width, height);
         this.stage.addChildAt(this.background, 0);
+
         this.update();
     }
 
@@ -442,6 +448,7 @@ class Stage {
                 this._saveToModel();
             });
         }
+
     }
 
     // @fileFormat - "png", "jpg", "jpeg"
@@ -491,6 +498,44 @@ class Stage {
         let new_id = "f_" + this.fragmentLabel;
         this.fragmentLabel = this.fragmentLabel + 1;
         return new_id;
+    }
+
+    showFlipLine(horizontal) {
+        if (horizontal) {
+            let line = new createjs.Shape();
+            line.graphics.setStrokeStyle(4)
+                .beginStroke("rgba(0,0,0,0.2)")
+                .setStrokeDash([10,8])
+                .moveTo(this.width/2, 0)
+                .lineTo(this.width/2, this.height)
+                .endStroke();
+            this.lines.horizontal = line;
+            this.stage.addChild(this.lines.horizontal);
+            this.update();
+        } else {
+            let line = new createjs.Shape();
+            line.graphics.setStrokeStyle(4)
+                .beginStroke("rgba(0,0,0,0.2)")
+                .setStrokeDash([10,8])
+                .moveTo(0, this.height/2)
+                .lineTo(this.width, this.height/2)
+                .endStroke();
+            this.lines.vertical = line;
+            this.stage.addChild(this.lines.vertical);
+            this.update();
+        }
+    }
+
+    hideFlipeLines() {
+        if (this.lines.horizontal != null) {
+            this.stage.removeChild(this.lines.horizontal);
+            this.lines.horizontal = null;
+        }
+        if (this.lines.vertical != null) {
+            this.stage.removeChild(this.lines.vertical);
+            this.lines.vertical = null;
+        }
+        this.update();
     }
 }
 
@@ -781,8 +826,12 @@ $(document).ready(function(){
     });
     // Horizontal Flip Button
     $('#hor_flip_table').click(function(){stage.flipTable(true)});
+    $('#hor_flip_table').mouseenter(function(){stage.showFlipLine(true)});
+    $('#hor_flip_table').mouseleave(function(){stage.hideFlipeLines()});
     // Vertical Flip Button
     $('#vert_flip_table').click(function(){stage.flipTable(false)});
+    $('#vert_flip_table').mouseenter(function(){stage.showFlipLine(false)});
+    $('#vert_flip_table').mouseleave(function(){stage.hideFlipeLines()});
     // Export Buttons
     $('#export').click(function(){
         if ($('#export_jpg').css("display") == "none") {
@@ -818,6 +867,7 @@ $(document).ready(function(){
 
     $('#zoom_slider').on("change", (event) => {
         let new_scaling = $('#zoom_slider').val();
+        $('#zoom_factor').html('Zoom<br/>x'+new_scaling/100);
         stage.setScaling(new_scaling);
     });
     
