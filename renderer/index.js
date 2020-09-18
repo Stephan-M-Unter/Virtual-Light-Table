@@ -4,9 +4,48 @@ const { ipcRenderer, TouchBarScrubber } = require("electron");
 
 var xyz; // TODO: entfernen
 
+class UIController {
+    constructor(DOMElement, width, height){
+        this.stage = new Stage(this, DOMElement, width, height);
+        this.sidebar = new Sidebar(this);
+    }
+
+    selectFragment(fragmentId){
+        this.stage.selectFragment(fragmentId);
+        this.sidebar.selectFragment(fragmentId);
+    }
+    deselectFragment(fragmentId){
+        this.stage.deselectFragment(fragmentId);
+        this.sidebar.deselectFragment(fragmentId);
+    }
+    clearSelection(){
+        this.stage.clearSelection();
+        this.sidebar.clearSelection();
+    }
+
+    updateFragmentList(){
+        let fragmentList = this.stage.getFragmentList();
+        this.sidebar.updateFragmentList(fragmentList);
+    }
+
+    removeFragments(){
+        let confirmation = confirm("Do you really want to remove this fragment/these fragments?");
+
+        if (confirmation) {
+            this.stage.deleteSelectedFragments();
+            this.updateFragmentList();
+        }
+    }
+
+    getStage(){ return this.stage; }
+    getFragments(){ return this.fragments; }
+    getSelectedFragments(){ return this.selectedFragments; }
+}
+
 class Stage {
-    constructor(DOMelement, width, height){
+    constructor(controller, DOMelement, width, height){
         // create new stage and set to given DOMelement
+        this.controller = controller;
         this.stage = new createjs.Stage(DOMelement);
         this.stage.canvas.width = this.width = width;
         this.stage.canvas.height = this.height = height;
@@ -23,13 +62,13 @@ class Stage {
         this.lines = {
             "horizontal": null,
             "vertical": null
-        }
+        };
 
         this.background = this._createBackground(width, height);
         this.stage.addChild(this.background);
 
         // selection box
-        this.selector = new Selector();
+        this.selector = new Selector(this.controller);
 
         // LoadQueue object for the images
         this.loadqueue = new createjs.LoadQueue();
@@ -48,7 +87,7 @@ class Stage {
         background.alpha = 0.01;
         background.name = "background";
         background.on("mousedown", (event) => {
-            this._clearSelectionList();
+            this.controller.clearSelection();
             this.mouseClickStart = {x: event.stageX, y: event.stageY};
         });
         background.on("pressmove", (event) => {
@@ -67,7 +106,7 @@ class Stage {
             this.stage.removeChild(this.fragmentList[idx].getContainer());
         }
 
-        this._clearSelectionList();
+        this.clearSelection();
         this._clearFragmentList();
         this.update();
     }
@@ -105,8 +144,11 @@ class Stage {
             "stage":stage_data,
             "fragments":items_data
         }
-
     }
+    getFragmentList(){
+        return this.fragmentList;
+    }
+
     _saveToModel(){
         let data_object = this.getConfiguration();
         ipcRenderer.send("server-save-to-model", data_object);
@@ -166,7 +208,7 @@ class Stage {
     }
     _createFragment(event) {
         var new_id = this.getNewFragmentId();
-        var new_fragment = new Fragment(this, new_id, event);
+        var new_fragment = new Fragment(this.controller, this, new_id, event);
         this.fragmentList[new_id] = new_fragment; // registering fragment in fragmentList
         
         var fragment_container = new_fragment.getContainer();
@@ -175,6 +217,7 @@ class Stage {
         
         this.registerImageEvents(fragment_image);
 
+        this.controller.updateFragmentList();
         this.stage.update();
     }
     _removeFragment(id){
@@ -191,20 +234,28 @@ class Stage {
         }
     }
 
+    deleteSelectedFragments(){
+        for (let id in this.selectedList){
+            this._removeFragment(id);
+            delete this.fragmentList[id];
+        }
+        this.controller.clearSelection();
+    }
+
     registerImageEvents(image){
         image.on("mousedown", (event) => {
             var clickedId = event.target.id;
             if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
                 // if ctrl key is not pressed, old selection will be cleared
-                this._clearSelectionList();
+                this.controller.clearSelection();
             }
             if (event.nativeEvent.ctrlKey == true && this._isSelected(clickedId)) {
                 // if ctrl key is pressed AND object is already selected:
                 // -> remove selection for this object
-                this._removeFromSelection(clickedId);
+                this.controller.deselectFragment(clickedId);
             } else {
                 // in all other cases, add object to selection
-                this._addToSelection(clickedId, this.fragmentList[clickedId]);
+                this.controller.selectFragment(clickedId);
             }
             this._moveToTop(this.fragmentList[clickedId]);
             
@@ -219,20 +270,21 @@ class Stage {
         image.on("pressup", (event) => {
             this._saveToModel();
         });
+
     }
 
     _isSelected(id){
         return this.selectedList[id];
     }
-    _addToSelection(id, object){
-        this.selectedList[id] = object;
+    selectFragment(id){
+        this.selectedList[id] = this.fragmentList[id];
         this._updateBb();
     }
-    _removeFromSelection(id){
+    deselectFragment(id){
         delete this.selectedList[id];
         this._updateBb();
     }
-    _clearSelectionList(){
+    clearSelection(){
         this.selectedList = {};
         this._updateBb();
     }
@@ -331,7 +383,7 @@ class Stage {
         this.update();
     }
     flipTable(horizontal_flip=true){
-        this._clearSelectionList();
+        this.clearSelection();
 
         let y_axis = this.stage.canvas.width/2;
         let x_axis = this.stage.canvas.height/2;
@@ -356,6 +408,17 @@ class Stage {
             fragment.moveToPixel(x_new, y_new);
         }
         this._saveToModel();
+    }
+
+    updateSelection(selectionIds){
+        this.selectedList = {};
+
+        for (let idx in selectionIds) {
+            let id = selectionIds[idx];
+            this.selectedList[id] = this.fragmentList[id];
+        }
+
+        this._updateBb();
     }
 
     _updateBb(){
@@ -456,7 +519,7 @@ class Stage {
         // TODO Vorher muss der canvas noch so skaliert werden, dass alle Inhalte angezeigt werden können
     
         // remove UI elements
-        this._clearSelectionList();
+        this.clearSelection();
         this._updateUIElements();
 
         var pseudo_link = document.createElement('a');
@@ -540,7 +603,8 @@ class Stage {
 }
 
 class Fragment {
-    constructor(stage_object, id, event_data){
+    constructor(controller, stage_object, id, event_data){
+        this.controller = controller;
         this.id = id;
         this.isRecto = event_data.item.properties.recto;
         this.urlRecto = event_data.item.properties.rectoURLlocal;
@@ -653,6 +717,13 @@ class Fragment {
             return this.imageVerso;
         }
     }
+    getImageURL(){
+        if (this.isRecto) {
+            return this.urlRecto;
+        } else {
+            return this.urlVerso;
+        }
+    }
     getData(){
         return {
             "name":this.name,
@@ -664,6 +735,9 @@ class Fragment {
             "rotation":this.container.rotation
         }
     };
+    getName(){
+        return this.name;
+    }
     getPosition(){
         return {x:this.container.x, y:this.container.y};
     }
@@ -733,7 +807,8 @@ class Scaler {
 }
 
 class Selector {
-    constructor(){
+    constructor(controller){
+        this.controller = controller;
         this.x = 0;
         this.y = 0;
         this.width = 100;
@@ -795,8 +870,89 @@ class Selector {
 
 }
 
+class Sidebar {
+    constructor(controller){
+        this.controller = controller;
+    }
+
+    _addFragment(id, name, img_url){
+        // thumbnail wrapper
+        let fragment_wrapper = document.createElement("div");
+        fragment_wrapper.setAttribute('class', 'fragment_list_item');
+        fragment_wrapper.setAttribute('id', id);
+
+        // thumbnail description
+        let fragment_name = document.createElement("div");
+        fragment_name.setAttribute('class', 'fragment_list_item_name');
+        let text = document.createTextNode(name);
+        fragment_name.append(text);
+
+        // thumbnail itself
+        let fragment_thumb_wrapper = document.createElement('div');
+        fragment_thumb_wrapper.setAttribute('class', 'fragment_list_item_thumbwrapper');
+
+        let fragment_thumb = document.createElement("img");
+        fragment_thumb.setAttribute('class', 'fragment_list_item_img');
+        fragment_thumb.src = img_url;
+        fragment_thumb_wrapper.appendChild(fragment_thumb);
+        
+        fragment_wrapper.appendChild(fragment_thumb_wrapper);
+        fragment_wrapper.appendChild(fragment_name);
+        
+        $("#fragment_list_content").append(fragment_wrapper);
+
+        let controller = this.controller;
+
+        // Interactions
+        fragment_wrapper.addEventListener('click', function(event){
+            let isActive = $(this).hasClass('fragment_list_item_active');
+            let isCtrl = event.ctrlKey;
+            let id = $(this).attr('id');
+
+            if (isCtrl) {
+                if (isActive) {
+                    // ctrl key pressed and item has already been selected -> deselect
+                    controller.deselectFragment(id);
+                } else {
+                    // ctrl key is pressed and item was not selected -> select
+                    controller.selectFragment(id);
+                }
+            } else {
+                // in all cases, clear the selection list first
+                    controller.clearSelection();
+                // if element had NOT been selected before, select it now
+                if (!isActive) {
+                    controller.selectFragment(id);
+                }
+            }
+        });
+    }
+
+    updateFragmentList(fragmentList){
+        $('#fragment_list_content').empty();
+
+        for (let id in fragmentList){
+            this._addFragment(id, fragmentList[id].getName(), fragmentList[id].getImageURL());
+        }
+    }
+
+    selectFragment(fragmentId){
+        let wrapper = $('div[id="'+fragmentId+'"]');
+        wrapper.addClass('fragment_list_item_active');
+    }
+    deselectFragment(fragmentId){
+        let wrapper = $('div[id="'+fragmentId+'"]');
+        wrapper.removeClass('fragment_list_item_active');
+    }
+    clearSelection(){
+        $('.fragment_list_item_active').removeClass('fragment_list_item_active');
+    }
+}
+
 $(document).ready(function(){
-    var stage = new Stage("lighttable", window.innerWidth, window.innerHeight);
+    var uic = new UIController("lighttable", window.innerWidth, window.innerHeight);
+
+    var stage = uic.getStage();
     
     /* ##########################################
     #               INPUT/OUTPUT
@@ -856,7 +1012,8 @@ $(document).ready(function(){
         if (light_mode == "dark") {
             // current light_mode is "dark" => change to "bright"
             dark_background = $('body').css('background');
-            $('body').css({background: "linear-gradient(356deg, rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%)"});
+            //$('body').css({background: "linear-gradient(356deg, rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%)"});
+            $('body').css({backgroundColor: "white"});
             light_mode = "bright";
         } else {
             // current light_mode is "bright" => change to "dark"
@@ -875,8 +1032,16 @@ $(document).ready(function(){
         stage.resizeCanvas(window.innerWidth, window.innerHeight);
     });
 
+    // Listening to Keystrokes
+
+    $('html').keydown(function(event){
+        if (event.keyCode == 46) {
+            uic.removeFragments();
+        }
+    });
+
     /* ##########################################
-    #           SERVER/CLIENT PROTOCOL
+    #           SERVER/CLIENT COMMUNICATION
     ###########################################*/
 
     ipcRenderer.on('client-load-from-model', (event, data) => {

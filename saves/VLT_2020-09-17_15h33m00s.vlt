@@ -1,0 +1,72 @@
+{
+	"editors"	: ["SMU"],
+	"stage"		: {
+		"offset" 	: {"x":200, "y":200},
+		"scaling" 	: 100
+	},
+	"fragments" : {
+		"f_0" 	: {
+			"name"			: "CP001/002",
+			"recto"			: true,
+			"rectoURLlocal"	: "../imgs/CP001_002rt_cutout_0_96ppi.png",
+			"rotation"		: -60,
+			"versoURLlocal"	: "../imgs/CP001_002vs_cutout_0_96ppi.png",
+			"xPos"			: 471,
+			"yPos"			: 188
+		},
+		"f_1" 	: {
+			"name"			: "CP004/005",
+			"recto"			: false,
+			"rectoURLlocal"	: "../imgs/CP004_005rt_cutout_0_96ppi.png",
+			"rotation"		: 30,
+			"versoURLlocal"	: "../imgs/CP004_005vs_cutout_0_96ppi.png",
+			"xPos"			: 571,
+			"yPos"			: 641
+		},
+		"f_2" 	: {
+			"name"			: "CP004/005",
+			"recto"			: false,
+			"rectoURLlocal"	: "../imgs/CP004_005rt_cutout_0_96ppi.png",
+			"rotation"		: 180,
+			"versoURLlocal"	: "../imgs/CP004_005vs_cutout_0_96ppi.png",
+			"xPos"			: 900,
+			"yPos"			: 900
+		},
+		"f_3" 	: {
+			"name"			: "CP001/002",
+			"recto"			: true,
+			"rectoURLlocal"	: "../imgs/CP001_002rt_cutout_0_96ppi.png",
+			"rotation"		: 0,
+			"versoURLlocal"	: "../imgs/CP001_002vs_cutout_0_96ppi.png",
+			"xPos"			: 1300,
+			"yPos"			: 200
+		},
+		"f_4" 	: {
+			"name"			: "CP004/005",
+			"recto"			: false,
+			"rectoURLlocal"	: "../imgs/CP004_005rt_cutout_0_96ppi.png",
+			"rotation"		: -30,
+			"versoURLlocal"	: "../imgs/CP004_005vs_cutout_0_96ppi.png",
+			"xPos"			: 2000,
+			"yPos"			: 1800
+		},
+		"f_5" 	: {
+			"name"			: "CP004/005",
+			"recto"			: false,
+			"rectoURLlocal"	: "../imgs/CP004_005rt_cutout_0_96ppi.png",
+			"rotation"		: 78,
+			"versoURLlocal"	: "../imgs/CP004_005vs_cutout_0_96ppi.png",
+			"xPos"			: 500,
+			"yPos"			: 1400
+		},
+		"f_6" 	: {
+			"name"			: "CP001/002",
+			"recto"			: true,
+			"rectoURLlocal"	: "../imgs/CP001_002rt_cutout_0_96ppi.png",
+			"rotation"		: -158,
+			"versoURLlocal"	: "../imgs/CP001_002vs_cutout_0_96ppi.png",
+			"xPos"			: 1500,
+			"yPos"			: 400
+		}
+	}
+}

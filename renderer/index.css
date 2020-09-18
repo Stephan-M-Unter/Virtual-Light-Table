@@ -28,9 +28,59 @@ body {
 
 .sidebar_header img {
     margin-left: 10px;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
 }
+
+#fragment_list_content {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 5px;
+}
+
+.fragment_list_item {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    width: 150px;
+    height: 150px;
+    background-color: white;
+    text-align: center;
+    margin: 5px;
+}
+
+.fragment_list_item_thumbwrapper {
+    position: absolute;
+    height: calc(100% - 20px);
+    width: 100%;
+    vertical-align: middle;
+}
+
+.fragment_list_item_img {
+    position: absolute;
+    margin: auto;
+    top: 50%;
+    vertical-align: middle;
+    max-height: calc(100% - 10px);
+    max-width: calc(100% - 10px);
+    transform: translate(-50%, -50%);
+}
+
+.fragment_list_item_name {
+    position: absolute;
+    bottom: 0px;
+    text-align: center;
+    width: 100%;
+    line-height: 20px;
+}
+
+.fragment_list_item_active {
+    background-color: var(--cb_orange);
+}
+
+
+
+
 
 /* Scrollbars */
 ::-webkit-scrollbar {
