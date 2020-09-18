@@ -1,7 +1,8 @@
 'use strict';
 
 const { ipcRenderer, TouchBarScrubber } = require("electron");
-
+const { getImageOutline } = require("image-outline");
+ 
 var xyz; // TODO: entfernen
 
 class UIController {
@@ -278,13 +279,18 @@ class Stage {
     }
     selectFragment(id){
         this.selectedList[id] = this.fragmentList[id];
+        this.fragmentList[id].getImage().shadow = new createjs.Shadow("#f15b40", 0, 0, 10);
         this._updateBb();
     }
     deselectFragment(id){
         delete this.selectedList[id];
+        this.fragmentList[id].getImage().shadow = null;
         this._updateBb();
     }
     clearSelection(){
+        for (let id in this.selectedList) {
+            this.selectedList[id].getImage().shadow = null;
+        }
         this.selectedList = {};
         this._updateBb();
     }
@@ -383,7 +389,7 @@ class Stage {
         this.update();
     }
     flipTable(horizontal_flip=true){
-        this.clearSelection();
+        this.controller.clearSelection();
 
         let y_axis = this.stage.canvas.width/2;
         let x_axis = this.stage.canvas.height/2;
