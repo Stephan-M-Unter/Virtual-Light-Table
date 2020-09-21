@@ -1,6 +1,6 @@
 'use strict';
 
-const { ipcRenderer, TouchBarScrubber } = require("electron");
+const { ipcRenderer } = require("electron");
 const { UIController } = require("./classes/UIController");
  
 var xyz; // TODO: entfernen
@@ -14,9 +14,7 @@ $(document).ready(function(){
     ###########################################*/
 
     // Clear Table Button
-    $('#clear_table').click(function(){
-        ipcRenderer.send("server-clear-table");
-    });
+    $('#clear_table').click(function(){ipcRenderer.send("server-clear-table");});
     // Save Table Button
     $('#save_table').click(function(){ipcRenderer.send('server-open-save-window');});
     // Load Table Button
@@ -24,12 +22,12 @@ $(document).ready(function(){
     // Flip Buttons
     $('#flip_table').click(function(){
         if ($('#hor_flip_table').css("display") == "none") {
-            // open export buttons
+            // open flipping buttons
             $('#hor_flip_table').css("display", "inline-block");
             $('#vert_flip_table').css("display", "inline-block");
             $('#flip_table>img').attr("src","../imgs/symbol_x.png");
         } else {
-            // close export buttons
+            // close flipping buttons
             $('#vert_flip_table').css("display", "none");
             $('#hor_flip_table').css("display", "none");
             $('#flip_table>img').attr("src","../imgs/symbol_flip.png");
@@ -67,7 +65,6 @@ $(document).ready(function(){
         if (light_mode == "dark") {
             // current light_mode is "dark" => change to "bright"
             dark_background = $('body').css('background');
-            //$('body').css({background: "linear-gradient(356deg, rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%)"});
             $('body').css({backgroundColor: "white"});
             light_mode = "bright";
         } else {
@@ -83,16 +80,12 @@ $(document).ready(function(){
         stage.setScaling(new_scaling);
     });
     
-    window.addEventListener('resize', (event) => {
-        stage.resizeCanvas(window.innerWidth, window.innerHeight);
-    });
+    window.addEventListener('resize', (event) => {stage.resizeCanvas(window.innerWidth, window.innerHeight);});
 
     /* Keystrokes */
     $('html').keydown(function(event){
         // Delete
-        if (event.keyCode == 46) {
-            uic.removeFragments();
-        }
+        if (event.keyCode == 46) {uic.removeFragments();}
     });
 
 
@@ -105,7 +98,7 @@ $(document).ready(function(){
     // Receiving stage and fragment configuration from server.
     ipcRenderer.on('client-load-from-model', (event, data) => {
         console.log('Received client-load-from-model');
-        stage.loadScene(data);
+        uic.loadScene(data);
     });
 
 

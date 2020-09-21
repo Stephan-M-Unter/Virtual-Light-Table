@@ -108,6 +108,12 @@ class Stage {
         return this.fragmentList;
     }
 
+    getCenter(){
+        let cx = this.width / 2;
+        let cy = this.height / 2;
+        return {"x":cx, "y":cy};
+    }
+
     _saveToModel(){
         let data_object = this.getConfiguration();
         ipcRenderer.send("server-save-to-model", data_object);
@@ -179,7 +185,7 @@ class Stage {
         this.controller.updateFragmentList();
         this.stage.update();
     }
-    _removeFragment(id){
+    removeFragment(id){
         // iterate over fragmentList and match items with requested id
         for (let idx in this.fragmentList) {
             let fragment = this.fragmentList[idx];
@@ -195,8 +201,7 @@ class Stage {
 
     deleteSelectedFragments(){
         for (let id in this.selectedList){
-            this._removeFragment(id);
-            delete this.fragmentList[id];
+            this.removeFragment(id);
         }
         this.controller.clearSelection();
     }
@@ -230,6 +235,16 @@ class Stage {
             this._saveToModel();
         });
 
+        image.on("mouseover", (event) => {
+            var id = event.target.id;
+            this.controller.highlightFragment(id);
+        });
+
+        image.on("mouseout", (event) => {
+            var id = event.target.id;
+            this.controller.unhighlightFragment(id);
+        });
+
     }
 
     _isSelected(id){
@@ -252,6 +267,20 @@ class Stage {
         this.selectedList = {};
         this._updateBb();
     }
+    highlightFragment(id){
+        this.fragmentList[id].getImage().shadow = new createjs.Shadow("#A4042A", 0, 0, 10);
+        this.update();
+    }
+    unhighlightFragment(id){
+        if (id in this.selectedList) {
+            this.fragmentList[id].getImage().shadow = new createjs.Shadow("#f15b40", 0, 0, 10);
+        } else {
+            this.fragmentList[id].getImage().shadow = null;
+        }
+        this.update();
+    }
+
+
     _clearFragmentList(){
         this.fragmentList = {};
     }
@@ -265,19 +294,7 @@ class Stage {
 
         this.mouseClickStart = {x: currentMouseX, y: currentMouseY};
 
-        for (let idx in this.fragmentList) {
-            let fragment = this.fragmentList[idx];
-            let container = fragment.getContainer();
-
-            fragment.moveByDistance(delta_x, delta_y);
-        }
-
-        this.stage.offset.x += delta_x;
-        this.stage.offset.y += delta_y;
-
-        this._updateBb();
-
-        this.stage.update();
+        this.moveStage(delta_x, delta_y);
     }
 
     _moveToTop(fragment){
@@ -330,6 +347,18 @@ class Stage {
         this._updateBb();
         this.update();
     }
+    moveStage(delta_x, delta_y) {
+        for (let idx in this.fragmentList) {
+            let fragment = this.fragmentList[idx];
+            fragment.moveByDistance(delta_x, delta_y);
+        }
+
+        this.stage.offset.x += delta_x;
+        this.stage.offset.y += delta_y;
+        this._updateBb();
+
+        this.stage.update();
+    }
     _scaleObjects(){
         for (let idx in this.fragmentList) {
             let fragment = this.fragmentList[idx];
@@ -372,6 +401,7 @@ class Stage {
             fragment.moveToPixel(x_new, y_new);
         }
         this._saveToModel();
+        this.controller.updateFragmentList();
     }
 
     updateSelection(selectionIds){

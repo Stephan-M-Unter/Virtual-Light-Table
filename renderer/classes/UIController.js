@@ -29,6 +29,19 @@ class UIController {
         this.sidebar.clearSelection();
     }
 
+    highlightFragment(fragmentId) {
+        this.stage.highlightFragment(fragmentId);
+        this.sidebar.highlightFragment(fragmentId);
+    }
+    unhighlightFragment(fragmentId) {
+        try {
+            this.stage.unhighlightFragment(fragmentId);
+            this.sidebar.unhighlightFragment(fragmentId);
+        } catch(err) {
+
+        }
+    }
+
     // update sidebar fragment list according to fragments on stage
     updateFragmentList(){
         let fragmentList = this.stage.getFragmentList();
@@ -44,6 +57,33 @@ class UIController {
             this.stage.deleteSelectedFragments();
             this.updateFragmentList();
         }
+    }
+    removeFragment(id){
+        let confirmation = confirm("Do you really want to remove this fragment?");
+
+        if (confirmation){
+            this.stage.removeFragment(id);
+            this.updateFragmentList();
+        }
+    }
+
+    // reroute new stage/fragment data to stage, then update sidebar
+    loadScene(data) {
+        this.stage.loadScene(data);
+        this.updateFragmentList();
+    }
+
+    centerToFragment(id){
+        // get fragment center coordinates
+        // move panel such that fragment center is in center of window
+
+        let stage_c = this.stage.getCenter();
+        let fragment_c = this.stage.getFragmentList()[id].getPosition();
+
+        let delta_x = stage_c.x - fragment_c.x;
+        let delta_y = stage_c.y - fragment_c.y;
+
+        this.stage.moveStage(delta_x, delta_y);
     }
 
     // Getter Methods
