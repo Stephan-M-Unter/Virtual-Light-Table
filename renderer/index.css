@@ -48,6 +48,7 @@ body {
     background-color: white;
     text-align: center;
     margin: 5px;
+    border: 5px solid white;
 }
 
 .fragment_list_item_thumbwrapper {
@@ -97,7 +98,7 @@ body {
     background-color: lightgray;
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 90%;
+    background-size: 80%;
 }
 
 .delete_button {
@@ -157,7 +158,31 @@ body {
     box-shadow: 3px 3px 8px 1px rgba(0,0,0,0.5);
     text-align: center;
     transition: all .2s;
+    overflow: hidden;
 }
+
+.circularButton:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(245, 133, 44, 1),
+      transparent
+    );
+    transition: all 650ms;
+  }
+  
+  .circularButton:hover:before {
+    left: 100%;
+  }
+
+
+
 .circularButton:hover {
     opacity: 1.0;
 }
