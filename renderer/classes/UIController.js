@@ -45,7 +45,8 @@ class UIController {
     // update sidebar fragment list according to fragments on stage
     updateFragmentList(){
         let fragmentList = this.stage.getFragmentList();
-        this.sidebar.updateFragmentList(fragmentList);
+        let selectedList = this.stage.getSelectedList();
+        this.sidebar.updateFragmentList(fragmentList, selectedList);
     }
 
     // ask for delete confirmation; if approved, send removal signal to stage and update

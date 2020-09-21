@@ -93,12 +93,18 @@ class Sidebar {
         }, false);
     }
 
-    updateFragmentList(fragmentList){
+    updateFragmentList(fragmentList, selectedList){
         $('#fragment_list_content').empty();
 
         if (!$.isEmptyObject(fragmentList)) {
             for (let id in fragmentList){
                 this._addFragment(id, fragmentList[id].getName(), fragmentList[id].getImageURL());
+            }
+
+            if (!$.isEmptyObject(selectedList)){
+                for (let s_id in selectedList){
+                    this.selectFragment(s_id);
+                }
             }
         } else {
             let no_fragments_text = document.createElement("div");

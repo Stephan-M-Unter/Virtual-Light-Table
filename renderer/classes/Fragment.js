@@ -100,6 +100,8 @@ class Fragment {
             loadqueue.load();
         }
 
+        this.controller.updateFragmentList();
+
         // Möglichkeit 2: Bild existiert
         // dann einfach bilder austauschen
         // flag umdrehen

@@ -107,6 +107,9 @@ class Stage {
     getFragmentList(){
         return this.fragmentList;
     }
+    getSelectedList(){
+        return this.selectedList;
+    }
 
     getCenter(){
         let cx = this.width / 2;
