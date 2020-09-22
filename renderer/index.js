@@ -23,11 +23,13 @@ $(document).ready(function(){
     $('#flip_table').click(function(){
         if ($('#hor_flip_table').css("display") == "none") {
             // open flipping buttons
+            $('#flip_table').addClass('button_active');
             $('#hor_flip_table').css("display", "inline-block");
             $('#vert_flip_table').css("display", "inline-block");
             $('#flip_table>img').attr("src","../imgs/symbol_x.png");
         } else {
             // close flipping buttons
+            $('#flip_table').removeClass('button_active');
             $('#vert_flip_table').css("display", "none");
             $('#hor_flip_table').css("display", "none");
             $('#flip_table>img').attr("src","../imgs/symbol_flip.png");
@@ -45,11 +47,13 @@ $(document).ready(function(){
     $('#export').click(function(){
         if ($('#export_jpg').css("display") == "none") {
             // open export buttons
+            $('#export').addClass('button_active');
             $('#export_jpg').css("display", "inline-block");
             $('#export_png').css("display", "inline-block");
             $('#export>img').attr("src","../imgs/symbol_x.png");
         } else {
             // close export buttons
+            $('#export').removeClass('button_active');
             $('#export_jpg').css("display", "none");
             $('#export_png').css("display", "none");
             $('#export>img').attr("src","../imgs/symbol_export.png");
@@ -66,10 +70,12 @@ $(document).ready(function(){
             // current light_mode is "dark" => change to "bright"
             dark_background = $('body').css('background');
             $('body').css({backgroundColor: "white"});
+            $('#light_switch').addClass('button_active');
             light_mode = "bright";
         } else {
             // current light_mode is "bright" => change to "dark"
             $('body').css({background: dark_background});
+            $('#light_switch').removeClass('button_active');
             light_mode = "dark";
         }
     });

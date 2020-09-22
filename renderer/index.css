@@ -12,11 +12,17 @@ body {
 /* Sidebar */
 #left_sidebar {
     position: absolute;
-    background-color: darkgrey;
+    background-color: rgba(200, 200, 200, 0.7);
     top: 0;
     left: 0;
     width: 500px;
     height: 100vh;
+    transition: .2s all;
+}
+
+#left_sidebar:hover {
+    background-color: rgba(200,200,200,1);
+    transition: .2s all;
 }
 
 .sidebar_header {
@@ -49,6 +55,7 @@ body {
     text-align: center;
     margin: 5px;
     border: 5px solid white;
+    transition: .2s all;
 }
 
 .fragment_list_item_thumbwrapper {
@@ -92,13 +99,27 @@ body {
 }
 
 .fragment_list_button {
+    border-radius: 50%;
     position: absolute;
     width: 30px;
     height: 30px;
     background-color: lightgray;
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 80%;
+    background-size: 70%;
+    overflow: hidden;
+    opacity: 0.8;
+}
+
+.fragment_list_button:hover {
+    opacity: 1;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+    transition: .2s all;
+}
+
+.fragment_list_button:active {
+    background-color: var(--cb_blue);
+    box-shadow: none;
 }
 
 .delete_button {
@@ -117,6 +138,7 @@ body {
 .details_button {
     bottom: 18px;
     right: 40px;
+    background-image: url("../imgs/symbol_details.png");
 }
 
 .hidden {
@@ -141,27 +163,29 @@ body {
 
 #table_button_wrapper {
     position: fixed;
+    display: flex;
     bottom: 10px;
     right: 20px;
 }
 
 /* Circular Buttons */
-.circularButton {
+.squareButton {
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.5);
     position: relative;
     display: inline-block;
     width: 50px;
     height: 50px;
-    border-radius: 25px;
+    /* border-radius: 25px; */
     background-color: var(--cb_white);
     -webkit-transition: .2s;
     opacity: 0.6;
-    box-shadow: 3px 3px 8px 1px rgba(0,0,0,0.5);
     text-align: center;
     transition: all .2s;
     overflow: hidden;
+    border-right: 1px solid rgba(200,200,200,0.7);
 }
 
-.circularButton:before {
+.squareButton:before {
     content: "";
     position: absolute;
     top: 0;
@@ -176,25 +200,25 @@ body {
     );
     transition: all 650ms;
   }
-  
-  .circularButton:hover:before {
+
+  .squareButton:hover:before {
     left: 100%;
+  }
+
+  #export {
+      border-right: none;
   }
 
 
 
-.circularButton:hover {
+.squareButton:hover {
     opacity: 1.0;
 }
-.circularButton:active {
+.squareButton:active {
     background-color: var(--cb_blue);
     box-shadow: none;
 }
-#table_button_wrapper > .circularButton + .circularButton,
-#table_button_wrapper > .circularButton + .circularButtonWrapper,
-#table_button_wrapper > .circularButtonWrapper + .circularButton {
-    margin-left: 10px;
-}
+
 .circularButtonImg {
     position: relative;
     top: 10px;
@@ -205,12 +229,25 @@ body {
 .circularButtonWrapper {
     display: inline-block;
     width: 50px;
+    height: 50px;
 }
 
 .subButton {
     display: none;
-    margin-bottom: 10px;
+    position: relative;
+    margin-bottom: -5px;
 }
+.subButtonWrapper {
+    position: absolute;
+    bottom: 50px;
+    width: 50px;
+}
+
+.button_active {
+    background-color: #777777;
+}
+
+
 
 #lighttable {
     position: fixed;
@@ -268,13 +305,13 @@ body {
     height: 10px;
     width: 200px;
 }
-#zoom_wrapper > .circularButton {
+#zoom_wrapper > .squareButton {
     width: 36px;
     height: 36px;
     border-radius: 18px;
     position: relative;
 }
-#zoom_wrapper > .circularButton > .circularButtonImg {
+#zoom_wrapper > .squareButton > .circularButtonImg {
     vertical-align: middle;
     position: absolute;
     max-width: 15px;
@@ -287,7 +324,7 @@ body {
 .tooltip {
     visibility: hidden;
     width: 120px;
-    background-color: #555;
+    background-color: #ffffff;
     color: #fff;
     text-align: center;
     border-radius: 6px;
@@ -299,7 +336,7 @@ body {
     left: 50%;
     margin-left: -60px;
 }
-.circularButton .tooltip {
+.squareButton .tooltip {
     bottom: 125%;
 }
 #zoom_wrapper .tooltip {
@@ -307,7 +344,12 @@ body {
     left: 30%;
     width: 80px;
 }
-.circularButton:hover .tooltip, #zoom_wrapper:hover .tooltip {
+/* .squareButton:hover .tooltip, #zoom_wrapper:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+} */
+
+.squareButton:hover .tooltip{
     visibility: visible;
     opacity: 1;
 }
