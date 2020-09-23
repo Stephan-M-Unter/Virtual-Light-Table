@@ -85,6 +85,19 @@ $(document).ready(function(){
         $('#zoom_factor').html('Zoom<br/>x'+new_scaling/100);
         stage.setScaling(new_scaling);
     });
+
+    $('#sidebar_handle').on("mousedown", (event) => {
+        window.addEventListener("mousemove", resizeSidebar, false);
+        window.addEventListener("mouseup", stopResizingSidebar, false);
+        console.log($('#left_sidebar').css('max-width'));
+    });
+
+    function resizeSidebar(event){
+        $('#left_sidebar').css('width', event.pageX);
+    }
+    function stopResizingSidebar(event){
+        window.removeEventListener("mousemove", resizeSidebar);
+    }
     
     window.addEventListener('resize', (event) => {stage.resizeCanvas(window.innerWidth, window.innerHeight);});
 
