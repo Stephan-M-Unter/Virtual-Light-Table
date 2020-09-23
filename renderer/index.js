@@ -1,7 +1,7 @@
 'use strict';
 
-const { ipcRenderer } = require("electron");
 const { UIController } = require("./classes/UIController");
+const { ipcRenderer } = require("electron");
  
 var xyz; // TODO: entfernen
 
@@ -14,11 +14,11 @@ $(document).ready(function(){
     ###########################################*/
 
     // Clear Table Button
-    $('#clear_table').click(function(){ipcRenderer.send("server-clear-table");});
+    $('#clear_table').click(function(){uic.sendToServer("server-clear-table");});
     // Save Table Button
-    $('#save_table').click(function(){ipcRenderer.send('server-open-save-window');});
+    $('#save_table').click(function(){uic.sendToServer('server-open-save-window');});
     // Load Table Button
-    $('#load_table').click(function(){ipcRenderer.send('server-open-load-window');});
+    $('#load_table').click(function(){uic.sendToServer('server-open-load-window');});
     // Flip Buttons
     $('#flip_table').click(function(){
         if ($('#hor_flip_table').css("display") == "none") {
@@ -36,13 +36,13 @@ $(document).ready(function(){
         }
     });
     // Horizontal Flip Button
-    $('#hor_flip_table').click(function(){stage.flipTable(true)});
-    $('#hor_flip_table').mouseenter(function(){stage.showFlipLine(true)});
-    $('#hor_flip_table').mouseleave(function(){stage.hideFlipeLines()});
+    $('#hor_flip_table').click(function(){stage.flipTable(true);});
+    $('#hor_flip_table').mouseenter(function(){stage.showFlipLine(true);});
+    $('#hor_flip_table').mouseleave(function(){stage.hideFlipeLines();});
     // Vertical Flip Button
-    $('#vert_flip_table').click(function(){stage.flipTable(false)});
-    $('#vert_flip_table').mouseenter(function(){stage.showFlipLine(false)});
-    $('#vert_flip_table').mouseleave(function(){stage.hideFlipeLines()});
+    $('#vert_flip_table').click(function(){stage.flipTable(false);});
+    $('#vert_flip_table').mouseenter(function(){stage.showFlipLine(false);});
+    $('#vert_flip_table').mouseleave(function(){stage.hideFlipeLines();});
     // Export Buttons
     $('#export').click(function(){
         if ($('#export_jpg').css("display") == "none") {
@@ -59,8 +59,8 @@ $(document).ready(function(){
             $('#export>img').attr("src","../imgs/symbol_export.png");
         }
     });
-    $('#export_jpg').click(function(){stage.exportCanvas("jpg")});
-    $('#export_png').click(function(){stage.exportCanvas("png")});
+    $('#export_jpg').click(function(){stage.exportCanvas("jpg");});
+    $('#export_png').click(function(){stage.exportCanvas("png");});
 
     // Light Switch Button
     var light_mode = "dark";
@@ -80,7 +80,7 @@ $(document).ready(function(){
         }
     });
 
-    $('#zoom_slider').on("change", (event) => {
+    $('#zoom_slider').on("change", () => {
         let new_scaling = $('#zoom_slider').val();
         $('#zoom_factor').html('Zoom<br/>x'+new_scaling/100);
         stage.setScaling(new_scaling);

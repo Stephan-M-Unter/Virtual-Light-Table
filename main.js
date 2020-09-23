@@ -32,8 +32,8 @@ const saveManager = new SaveManager();
 var mainWindow; // main window containing the light table itself
 var saveWindow; // window for saving a configuration
 var loadWindow; // window for loading configurations
-var detail_window; // TODO additional window to show fragment details
-var filter_window; // TODO additional window to set database filters
+var detailWindow; // TODO additional window to show fragment details
+var filterWindow; // TODO additional window to set database filters
 
 /* ##############################################################
 ###
@@ -42,7 +42,6 @@ var filter_window; // TODO additional window to set database filters
 ############################################################## */
 
 function main() {
-    console.clear();
     mainWindow = new Window({
         file: './renderer/index.html',
         type: 'main'
@@ -108,6 +107,20 @@ ipcMain.on('server-open-save-window', (event) => {
     saveWindow.removeMenu();
     saveWindow.once('ready-to-show', () => {
         saveWindow.show();
+    });
+});
+
+// server-open-detail-window
+ipcMain.on('server-open-detail-window', (event, id) => {
+    if (development) { console.log(timestamp() + " " + 'Receiving code [server-open-detail-window] from client for fragment with id ' + id);}
+    detailWindow = new Window({
+        file: "./renderer/details.html",
+        type: 'detail',
+    });
+    detailWindow.removeMenu();
+    detailWindow.maximize();
+    detailWindow.once('ready-to-show', () => {
+        detailWindow.show();
     });
 });
 

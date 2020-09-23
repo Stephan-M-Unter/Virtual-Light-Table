@@ -6,11 +6,20 @@
 */
 const { Sidebar } = require("./Sidebar");
 const { Stage } = require("./Stage");
+const { ipcRenderer } = require("electron");
 
 class UIController {
     constructor(DOMElement, width, height){
         this.stage = new Stage(this, DOMElement, width, height);
         this.sidebar = new Sidebar(this);
+    }
+
+    sendToServer(message, data){
+        if (data) {
+            ipcRenderer.send(message, data);
+        } else {
+            ipcRenderer.send(message);
+        }
     }
 
     // send selection signal to all view elements necessary

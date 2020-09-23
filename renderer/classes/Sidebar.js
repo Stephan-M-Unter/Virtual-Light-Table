@@ -1,8 +1,6 @@
 class Sidebar {
     constructor(controller){
         this.controller = controller;
-        
-        
     }
     
     _addFragment(id, name, img_url){
@@ -90,6 +88,7 @@ class Sidebar {
             controller.centerToFragment(id);
         }, false);
         details_button.addEventListener('click', function(event){
+            controller.sendToServer('server-open-detail-window', id);
         }, false);
     }
 

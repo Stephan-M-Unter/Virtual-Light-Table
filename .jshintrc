@@ -1,0 +1,10 @@
+{
+    "esversion": 6,
+    "globals": {
+        "$": false,
+        "document": false,
+        "require": false,
+        "window": false,
+        "console": false
+    }
+}
