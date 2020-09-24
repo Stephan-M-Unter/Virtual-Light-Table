@@ -88,9 +88,11 @@ $(document).ready(function(){
 
     /* Sidebar Width Adjustment */
     $('#sidebar_handle').on("mousedown", startResizingSidebar);
+    $('#sidebar_handle').on("touchstart", startResizingSidebar);
     function startResizingSidebar(event) {
         window.addEventListener("mousemove", resizeSidebar, false);
         window.addEventListener("mouseup", stopResizingSidebar, false);
+        window.addEventListener("touchend", stopResizingSidebar, false);
     }
     function resizeSidebar(event){
         $('#left_sidebar').css('width', event.pageX);
