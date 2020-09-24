@@ -83,7 +83,7 @@ body {
     text-align: left;
     font-variant: small-caps;
     font-size: 1.5em;
-    border-bottom: 2px black solid;
+    border-bottom: 2px #111111 solid;
     color: var(--cb_grey);
     background-color: rgba(29,29,27,0.7);
     transition: .2s background-color;
