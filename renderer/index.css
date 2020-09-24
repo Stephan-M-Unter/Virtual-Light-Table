@@ -30,6 +30,11 @@ body {
     transition: .2s background-color;
 }
 
+#fragment_list_content {
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+
 #sidebar_content {
     position: absolute;
     width: 100%;
