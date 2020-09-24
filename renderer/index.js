@@ -86,19 +86,37 @@ $(document).ready(function(){
         stage.setScaling(new_scaling);
     });
 
-    $('#sidebar_handle').on("mousedown", (event) => {
+    /* Sidebar Width Adjustment */
+    $('#sidebar_handle').on("mousedown", startResizingSidebar);
+    function startResizingSidebar(event) {
         window.addEventListener("mousemove", resizeSidebar, false);
         window.addEventListener("mouseup", stopResizingSidebar, false);
-        console.log($('#left_sidebar').css('max-width'));
-    });
-
+    }
     function resizeSidebar(event){
         $('#left_sidebar').css('width', event.pageX);
+        if (event.pageX < 330) {
+            $('.sidebar_header').addClass('small');
+        } else {
+            $('.sidebar_header').removeClass('small');
+        }
     }
     function stopResizingSidebar(event){
         window.removeEventListener("mousemove", resizeSidebar);
     }
+
+    $('.sidebar_header').click(function() {
+        // only react if the clicked element is not yet expanded
+        if (!$(this).parent().hasClass("expanded")) {
+            // first, retotate downarrow back and remove expanded label
+            $('.arrow.down').removeClass('down');
+            $('.expanded').removeClass('expanded');
+            // second, rotate arrow down and expand clicked segment
+            $(this).find(".arrow").addClass("down");
+            $(this).parent().addClass("expanded");
+        };
+    }); 
     
+    /* Window Resizement */
     window.addEventListener('resize', (event) => {stage.resizeCanvas(window.innerWidth, window.innerHeight);});
 
     /* Keystrokes */

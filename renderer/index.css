@@ -12,29 +12,32 @@ body {
 /* Sidebar */
 #left_sidebar {
     position: relative;
-    background-color: rgba(200, 200, 200, 0.7);
+    background-color: rgba(29, 29, 27, 0.5);
     top: 0;
     left: 0;
     width: 500px;
     max-width: 50%;
-    min-width: 3px;
+    min-width: 180px;
     height: 100vh;
     transition: .2s background-color;
     float: left;
 }
 
 #left_sidebar:hover,
-#left_sidebar:hover #sidebar_handle_grabber,
-#sidebar_handle_grabber:hover,
-#sidebar_handle_grabber:hover #left_sidebar
+#sidebar_handle:hover #left_sidebar
 {
-    background-color: rgba(200,200,200,1);
+    background-color: rgba(29,29,27,1);
     transition: .2s background-color;
 }
 
 #sidebar_content {
     position: absolute;
     width: 100%;
+    color: var(--cb_grey);
+}
+
+.content_collapsed {
+    height: 0px;
 }
 
 #sidebar_handle {
@@ -50,26 +53,95 @@ body {
 #sidebar_handle_grabber {
     position: absolute;
     top: 50%;
-    height: 150px;
-    width: 30px;
+    width: 20px;
+    height: 100px;
+    background-color: rgba(100,100,100,1);
+    transform: translateX(-40%) translateY(-50%);
+    border: 2px solid rgb(40,40,40);
+    border-radius: 10px;
+    writing-mode: vertical-lr;
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: bold;
     transition: .2s background-color;
-    background-color: rgba(200,200,200,0.7);
-    left: 7px;
-    transform: translateY(-50%);
-    transform: perspective(5px) rotateY(6deg);
-    border: 1px solid black;
+}
+
+#sidebar_handle_grabber:hover,
+#left_sidebar:hover #sidebar_handle_grabber {
+    background-color: rgba(200,200,200,1);
+    transition: .2s background-color;
 }
 
 .sidebar_header {
+    padding-left: 10px;
     line-height: 2em;
-    text-align: center;
+    text-align: left;
     font-variant: small-caps;
     font-size: 1.5em;
     border-bottom: 2px black solid;
+    color: var(--cb_grey);
+    background-color: rgba(29,29,27,0.7);
+    transition: .2s background-color;
 }
 
-.sidebar_header img {
-    margin-left: 10px;
+.sidebar_header_title {
+    position: relative;
+    display: inline-block;
+}
+
+.sidebar_header.small {
+    font-size: 1.1em;
+}
+
+.sidebar_header.small .sidebar_header_help {
+    visibility: hidden;
+}
+
+.arrow {
+    float: right;
+    position: relative;
+    /* margin: 1em; */
+}
+
+.arrow:before {
+    right: 5px;
+    top: 10px;
+    position: absolute;
+    content: '';
+    width: 0;
+    height: 0;
+    border: .5em solid transparent;
+    border-left-color: gray;
+    transform-origin: 0 50%;
+    transition: transform .25s;
+}
+
+.arrow.down::before {
+    transform: rotate(90deg);
+    transition: transform .25s;
+}
+
+#left_sidebar:hover .sidebar_header,
+#sidebar_handle:hover .sidebar_header {
+    background-color: black;
+    transition: .2s background-color;
+}
+
+.expanded .sidebar_header {
+    background-color: rgba(164,4,42,0.7);
+    transition: .2s background-color;
+}
+
+#left_sidebar:hover .expanded .sidebar_header,
+#sidebar_handle:hover .expanded .sidebar_header {
+    transition: .2s background-color;
+    background-color: rgba(164,4,42,1);
+}
+
+.sidebar_header_help {
+    position: relative;
+    display: inline-block;
+    margin-left: 2px;
     width: 15px;
     height: 15px;
 }
@@ -91,6 +163,7 @@ body {
     margin: 5px;
     border: 5px solid white;
     transition: .2s all;
+    color: var(--cb_black);
 }
 
 .fragment_list_item_thumbwrapper {
@@ -228,39 +301,40 @@ body {
     width: 100%;
     height: 100%;
     background: linear-gradient(
-      120deg,
-      transparent,
-      rgba(245, 133, 44, 1),
-      transparent
-    );
-    transition: all 650ms;
-  }
-
-  .squareButton:hover:before {
-    left: 100%;
-  }
-
-  #export {
-      border-right: none;
-  }
-
-
-
-.squareButton:hover {
-    opacity: 1.0;
-}
-.squareButton:active {
-    background-color: var(--cb_blue);
-    box-shadow: none;
-}
-
-.circularButtonImg {
-    position: relative;
-    top: 10px;
-    max-width: 30px;
-    max-height: 30px; /* TODO: Lassen sich hier die Größen relativ bestimmen? */
-}
-
+        120deg,
+        transparent,
+        rgba(245, 133, 44, 1),
+        transparent
+        );
+        transition: all 650ms;
+    }
+    
+    .squareButton:hover:before {
+        left: 100%;
+    }
+    
+    #export {
+        border-right: none;
+    }
+    
+    
+    
+    .squareButton:hover {
+        opacity: 1.0;
+        box-shadow: 4px 4px 15px rgba(0,0,0,0.8);
+    }
+    .squareButton:active {
+        background-color: var(--cb_blue);
+        box-shadow: none;
+    }
+    
+    .circularButtonImg {
+        position: relative;
+        top: 10px;
+        max-width: 30px;
+        max-height: 30px; /* TODO: Lassen sich hier die Größen relativ bestimmen? */
+    }
+    
 .circularButtonWrapper {
     display: inline-block;
     width: 50px;
