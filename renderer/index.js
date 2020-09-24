@@ -87,10 +87,10 @@ $(document).ready(function(){
     });
 
     /* Sidebar Width Adjustment */
-    $('#sidebar_handle').on("mousedown touchstart", startResizingSidebar);
+    $('#sidebar_handle').on("mousedown", startResizingSidebar);
     function startResizingSidebar(event) {
         window.addEventListener("mousemove", resizeSidebar, false);
-        window.addEventListener("mouseup touchend", stopResizingSidebar, false);
+        window.addEventListener("mouseup", stopResizingSidebar, false);
     }
     function resizeSidebar(event){
         $('#left_sidebar').css('width', event.pageX);
@@ -101,7 +101,7 @@ $(document).ready(function(){
         }
     }
     function stopResizingSidebar(event){
-        window.removeEventListener("mousemove touchmove", resizeSidebar);
+        window.removeEventListener("mousemove", resizeSidebar);
     }
 
     $('.sidebar_header').click(function() {
