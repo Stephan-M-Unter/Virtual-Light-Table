@@ -154,6 +154,7 @@ body {
 #fragment_list_content {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     padding: 5px;
 }
 
