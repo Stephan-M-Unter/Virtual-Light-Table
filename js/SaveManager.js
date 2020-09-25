@@ -95,9 +95,9 @@ class SaveManager {
         console.log("**SaveManager** - Loading " + filepath);
         let json = JSON.parse(content);
         json['mtime'] = mtime;
-        console.log(json);
+        //console.log(json);
         return json
     }
 }
 
-module.exports = SaveManager
+module.exports = SaveManager;
