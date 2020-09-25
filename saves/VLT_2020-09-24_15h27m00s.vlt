@@ -1,5 +1,5 @@
 {
-	"editors"	: ["SMU"],
+	"editors"	: [["SMU", 1600961220000]],
 	"stage"		: {
 		"offset" 	: {"x":200, "y":200},
 		"scaling" 	: 100
