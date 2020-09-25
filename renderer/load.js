@@ -29,9 +29,14 @@ $("#select_folder").click(function(){
 $("#save_list").on('click', '.save_list_item', function(element){
     $(".save_list_item").removeClass('selected');
     $(this).addClass('selected');
-    $("#load").prop("disabled", false);
+    $("#load").removeClass("disabled");
+    $("#thumb_reconstruction").css("display", "inline-block");
+    $("#load_details").css("display", "inline-block");
 
     let fragments = saves[$(this).attr('id')]['fragments'];
+    
+    let editors = '<div>Editors: ' + saves[$(this).attr('id')]['editors'].join() + '</div>';
+    $('#load_details').empty().append(editors);
 
     $("#thumb_list").empty();
     
@@ -55,7 +60,9 @@ $("#save_list").on('click', '.save_list_item', function(element){
 })
 
 $("#load").click(function(){
-    ipcRenderer.send('server-load-file', (saves[$(".selected").attr('id')]));
+    if (!$('#load').hasClass('disabled')){
+        ipcRenderer.send('server-load-file', (saves[$(".selected").attr('id')]));
+    }
 });
 
 /* ##########################################
@@ -66,7 +73,9 @@ $("#load").click(function(){
 ipcRenderer.on('return-save-files', (event, savefiles) => {
     $("#save_list_body").empty();
     $("#thumb_list").empty();
-    $("#load").prop("disabled", true);
+    $("#load").addClass("disabled");
+    $('#thumb_reconstruction').css("display", "none");
+    $('#load_details').css('display', 'none');
     saves = savefiles;
     for (const [key, value] of Object.entries(savefiles)) {
         let lastEditor = '';

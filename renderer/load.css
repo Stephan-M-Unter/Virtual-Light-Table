@@ -1,3 +1,5 @@
+@import 'root.css';
+
 html {
     overflow: hidden;
 }
@@ -17,7 +19,6 @@ html {
 }
 
 body {
-    font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
     display: flex;
     width: 100vw;
     margin: 0;
@@ -27,16 +28,15 @@ body {
     user-select: none;
 }
 
-* {
-    transition: all .2s;
-}
-
 #left_area {
     position: relative;
+    padding: 0px 40px;
+    display: flex;
+    flex-flow: column;
     flex: 60%;
     min-width: 350px;
     height: 100vh;
-    background-color: #a4042a;
+    background-color: rgb(100,100,100);
     box-shadow: 2px 2px 10px 1px rgba(0,0,0,1);
     z-index: 1;
     text-align: center;
@@ -44,6 +44,8 @@ body {
 
 #right_area {
     position: relative;
+    display: flex;
+    flex-flow: column;
     flex: 40%;
     height: 100vh;
     background-color: #dddddd;
@@ -51,6 +53,8 @@ body {
 }
 
 .title {
+    font-variant: small-caps;
+    flex: 0 0 30px;
     width: 100%;
     text-align: center;
     font-size: 2em;
@@ -58,57 +62,71 @@ body {
     margin: 20px auto;
 }
 
-button {
+.button {
+    flex: 0 0 50px;
     transition: background-color .2s;
-    border: 1px solid #1d1d1b;
-    background-color: #f15b40;
-    font-size: 1.2em;
+    background-color: rgb(230,230,230);
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    border: none;
     color: #1d1d1b;
-    height: 50px;
 }
 
-button:hover {
-    background-color: #f5852c;
+.button:hover {
+    background-color: white;
+    box-shadow: 4px 4px 8px black;
 }
 
-button:active {
+.button:active {
     background-color: #1c5a9c;
+    box-shadow: none;
 }
 
-button:disabled {
-    background-color: #aaaaaa;
+#load.disabled {
+    background-color: rgb(140, 140, 140);
+    box-shadow: none;
 }
 
 #folder_button_wrapper {
     position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 20px 0;
+    display: flex;
+    flex-flow: row;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 #select_folder {
-    width: 60%;
+    height: 40px;
+    line-height: 40px;
+    flex: 0 0 100px;
+    font-size: 1em;
+    margin: 0px 10px;
 }
 
 #default_folder {
-    width: 30%;
+    height: 40px;
+    line-height: 40px;
+    flex: 0 0 80px;
+    font-size: 1em;
 }
 
 #folder {
+    flex: 1 1 auto;
     width: 90%;
     background-color:#dddddd;
-    height: 20px;
+    height: 30px;
     line-height: 20px;
     border: none;
     font-style: italic;
     color: #555555;
     padding: 0 5px;
+    margin: auto;
 }
 
 #save_list {
-    width: 90%;
+    flex: 1 1 auto;
+    width: 100%;
     margin: 10px auto;
-    height: 500px;
+    height: fill;
     background-color: white;
     left: 50%;
     overflow: auto;
@@ -127,13 +145,15 @@ button:disabled {
     text-align: center;
 }
 
-#save_list table thead {
-    background-color: #444444;
+th {
     color: white;
+    background-color: #444444;
+    position: sticky;
+    top: 0;
 }
 
 .save_list_item td {
-    padding: 5px 0;
+    padding: 8px 0;
 }
 
 .td_filename {
@@ -146,38 +166,77 @@ button:disabled {
 }
 
 .save_list_item:hover {
-    background-color: #f5852c;
+    color: white;
+    background-color: var(--cb_darkred);
 }
 
 .save_list_item.selected {
-    background-color: #1c5a9c;
+    background-color: var(--cb_orange);
     color: white;
 }
 
 #load {
-    width: 90%;
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    height: 50px;
+    line-height: 50px;
+    width: 30%;
+    bottom: 20px;
+    background-color: var(--cb_orange);
+    margin: 0px auto 20px auto;
+    font-size: 1.5em;
+}
+
+#thumb_reconstruction {
+    flex: 0 0 300px;
+    width: 100%;
+    height: 300px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+    display: none;
+}
+
+#load_details {
+    flex: 0 1 auto;
+    width: 100%;
+    background-color: white;
+    height: auto;
+    border: 1px solid black;
+    display: none;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+#thumb_list {
+    flex: 0 0 auto;
+    overflow-y: auto;
+    display: flex;
+    flex-flow: wrap;
+    justify-content: center;
 }
 
 .load_thumb {
     position: relative;
     display: inline-block;
-    width: 200px;
+    vertical-align: middle;
+    width: 150px;
     height: 150px;
     background-color: white;
     box-shadow: 2px 2px 4px 1px rgba(0,0,0,0.3);
     text-align: center;
     margin: 10px 12px;
+    padding: 5px;
 }
 
 .load_thumb_img {
+    padding-bottom: 20px;
+    margin: auto;
     display: block;
-    max-width: 90%;
-    max-height: calc(100% - 30px);
-    margin: 5px auto;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    padding: 5px auto 30px auto;
+    top: 50%;
+    transform: translateY(-50%);
+    box-sizing: border-box;
 }
 
 .load_thumb_text {
