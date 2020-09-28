@@ -113,7 +113,7 @@ $(document).ready(function(){
             // second, rotate arrow down and expand clicked segment
             $(this).find(".arrow").addClass("down");
             $(this).parent().addClass("expanded");
-        };
+        }
     }); 
     
     /* Window Resizement */
