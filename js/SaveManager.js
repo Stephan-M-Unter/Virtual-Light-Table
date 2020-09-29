@@ -9,11 +9,11 @@
                     disk, e.g. the saving of table configurations and their respective loading.
 */
 
-'use strict'
+'use strict';
 
-const { dialog } = require('electron')
-const path = require('path')
-const fs = require('fs')
+const { dialog } = require('electron');
+const path = require('path');
+const fs = require('fs');
 
 class SaveManager {
     constructor(){
@@ -35,13 +35,13 @@ class SaveManager {
                 name: 'Virtual Light Table Save',
                 extensions: ['vlt']
             }]
-        })
+        });
 
         if (filepath) {
             // save current status of canvasManager to a .vtl-file
-            let canvasContent = JSON.stringify(tableConfiguration)
+            let canvasContent = JSON.stringify(tableConfiguration);
             fs.writeFileSync(filepath, canvasContent, 'utf-8');
-            console.log("**SaveManager** - Saved table configuration to " + filepath)
+            console.log("**SaveManager** - Saved table configuration to " + filepath);
         }
     }
 
@@ -94,9 +94,9 @@ class SaveManager {
         let mtime = stats.mtime.toLocaleString();
         console.log("**SaveManager** - Loading " + filepath);
         let json = JSON.parse(content);
-        json['mtime'] = mtime;
+        json.mtime = mtime;
         //console.log(json);
-        return json
+        return json;
     }
 }
 

@@ -57,7 +57,7 @@
                     meta:       contains all meta information about an object as loaded from the database
 */
 
-'use strict'
+'use strict';
 
 class CanvasManager {
     constructor() {
@@ -113,7 +113,7 @@ class CanvasManager {
         return {
             "stage":this.stage,
             "fragments":this.fragments
-        }
+        };
     }
 
     getFragments(){
@@ -129,4 +129,4 @@ class CanvasManager {
     }
 }
 
-module.exports = CanvasManager
+module.exports = CanvasManager;

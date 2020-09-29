@@ -19,7 +19,7 @@ class Fragment {
         this.container.regY = this.getImage().image.height / 2;
 
         if (this.isRecto ? this.container.addChild(this.imageRecto) : this.container.addChild(this.imageVerso));
-    };
+    }
     
     _createImage(event_data, id){
         var image = new createjs.Bitmap(event_data.result);
@@ -131,8 +131,8 @@ class Fragment {
             "xPos":this.container.x,
             "yPos":this.container.y,
             "rotation":this.container.rotation
-        }
-    };
+        };
+    }
     getName(){
         return this.name;
     }

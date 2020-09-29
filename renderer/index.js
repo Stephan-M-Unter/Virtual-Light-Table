@@ -38,11 +38,11 @@ $(document).ready(function(){
     // Horizontal Flip Button
     $('#hor_flip_table').click(function(){stage.flipTable(true);});
     $('#hor_flip_table').mouseenter(function(){stage.showFlipLine(true);});
-    $('#hor_flip_table').mouseleave(function(){stage.hideFlipeLines();});
+    $('#hor_flip_table').mouseleave(function(){stage.hideFlipLines();});
     // Vertical Flip Button
     $('#vert_flip_table').click(function(){stage.flipTable(false);});
     $('#vert_flip_table').mouseenter(function(){stage.showFlipLine(false);});
-    $('#vert_flip_table').mouseleave(function(){stage.hideFlipeLines();});
+    $('#vert_flip_table').mouseleave(function(){stage.hideFlipLines();});
     // Export Buttons
     $('#export').click(function(){
         if ($('#export_jpg').css("display") == "none") {

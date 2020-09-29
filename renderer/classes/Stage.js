@@ -78,7 +78,7 @@ class Stage {
             this._loadStageConfiguration();
         }
 
-        if (data && data.fragments) { this._loadFragments(data.fragments)};
+        if (data && data.fragments) { this._loadFragments(data.fragments);}
 
         this.update();
     }
@@ -90,7 +90,7 @@ class Stage {
         return {
             "offset":this.stage.offset,
             "scaling":this.stage.scaling
-        }
+        };
     }
     getConfiguration(){
         let stage_data = this.getData();
@@ -102,7 +102,7 @@ class Stage {
         return {
             "stage":stage_data,
             "fragments":items_data
-        }
+        };
     }
     getFragmentList(){
         return this.fragmentList;
@@ -168,7 +168,7 @@ class Stage {
     _loadFragments(imageList){
         for (let id in imageList) {
             let url = imageList[id].rectoURLlocal;
-            if (!imageList[id].recto) { url = imageList[id].versoURLlocal };
+            if (!imageList[id].recto) { url = imageList[id].versoURLlocal; }
             this.loadqueue.loadManifest([{id:id, src:url, properties:imageList[id]}], false);
         }
         //TODO: necessary to check that image can only be added once?
@@ -329,7 +329,7 @@ class Stage {
     _moveObjects(event){
         let moved_object = event.target;
 
-        if (moved_object.name = "Image") {
+        if (moved_object.name == "Image") {
             moved_object = moved_object.parent;
         }
 
@@ -407,17 +407,6 @@ class Stage {
         this.controller.updateFragmentList();
     }
 
-    updateSelection(selectionIds){
-        this.selectedList = {};
-
-        for (let idx in selectionIds) {
-            let id = selectionIds[idx];
-            this.selectedList[id] = this.fragmentList[id];
-        }
-
-        this._updateBb();
-    }
-
     _updateBb(){
         this.stage.removeChild(this.bb);
         this.selector.updateBb(this.selectedList);
@@ -444,7 +433,7 @@ class Stage {
             bmp.x = bmp.y = -15;
             bmp.onload = function(){
                 this.update();
-            }
+            };
             this.flipper.addChild(bmp);
 
             this.flipper.x = x;
@@ -466,7 +455,7 @@ class Stage {
                 fragment.flip();
                 this.update();
                 this._saveToModel();
-            })
+            });
 
             this.stage.addChild(this.flipper);
         }
@@ -586,7 +575,7 @@ class Stage {
         }
     }
 
-    hideFlipeLines() {
+    hideFlipLines() {
         if (this.lines.horizontal != null) {
             this.stage.removeChild(this.lines.horizontal);
             this.lines.horizontal = null;
@@ -608,16 +597,6 @@ class Selector {
         this.height = 100;
     }
 
-    _setPosition(x,y){
-        this.x = x;
-        this.y = y;
-    }
-    _setWidth(new_width){
-        this.width = width;
-    }
-    _setHeight(new_height){
-        this.height = height;
-    }
     updateBb(selectionList){
         var left, top, right, bottom;
         for (let idx in selectionList) {
