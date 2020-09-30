@@ -15,6 +15,20 @@ $(document).ready(function(){
 });
 
 
+function convertTime(milliseconds){
+    let time = new Date(milliseconds);
+
+    let year = time.getFullYear();
+    let month = ((time.getMonth()+1) < 10 ? '0' : '') + (time.getMonth()+1);
+    let day = (time.getDate() < 10 ? '0' : '') + time.getDate();
+
+    let hour = time.getHours();
+    let minute = (time.getMinutes() < 10 ? '0' : '') + time.getMinutes();
+    let second = (time.getSeconds() < 10 ? '0' : '') + time.getSeconds();
+
+    return day+"."+month+"."+year+", "+hour+":"+minute+":"+second;
+}
+
 
 /* ##########################################
 #               INPUT/OUTPUT
@@ -26,17 +40,83 @@ $("#select_folder").click(function(){
     ipcRenderer.send('server-get-saves-folder');
 });
 
-$("#save_list").on('click', '.save_list_item', function(element){
+$("#save_list").on('click', '.save_list_item', function(){
+    let filename = $(this).attr('id');
     $(".save_list_item").removeClass('selected');
     $(this).addClass('selected');
     $("#load").removeClass("disabled");
     $("#thumb_reconstruction").css("display", "inline-block");
     $("#load_details").css("display", "inline-block");
 
-    let fragments = saves[$(this).attr('id')].fragments;
+    let fragments = saves[filename].fragments;
     
-    let editors = '<div>Editors: ' + saves[$(this).attr('id')].editors.join() + '</div>';
-    $('#load_details').empty().append(editors);
+    // Create the load_details_section
+    let editors = saves[filename].editors;
+    let annots = saves[filename].annots;
+
+    let table = document.createElement('table');
+
+    // create filename row
+    let filename_row = document.createElement('tr');
+    let filename_td1 = document.createElement('td');
+    filename_td1.setAttribute('class', 'label');
+    let filename_td2 = document.createElement('td');
+    filename_td2.setAttribute('class', 'content');
+    filename_td1.appendChild(document.createTextNode("Filename:"));
+    filename_td2.appendChild(document.createTextNode(filename));
+    filename_row.appendChild(filename_td1);
+    filename_row.appendChild(filename_td2);
+    table.appendChild(filename_row);
+
+
+
+    // create editor rows:
+    let first_editor = true;
+    for (let idx in editors) {
+        let editor = editors[idx][0];
+        let time = convertTime(editors[idx][1]);
+
+        let editor_row = document.createElement('tr');
+        let editor_td1 = document.createElement('td');
+        editor_td1.setAttribute('class', 'label');
+        let editor_td2 = document.createElement('td');
+        editor_td2.setAttribute('class', 'content');
+        if (first_editor) {
+            first_editor = false;
+            editor_row.setAttribute('class', 'first_row');
+            editor_td1.appendChild(document.createTextNode("Last Editors:"));
+        }
+        editor_td2.appendChild(document.createTextNode("\u2022 " + editor + " (" + time + ")"));
+        editor_row.appendChild(editor_td1);
+        editor_row.appendChild(editor_td2);
+        table.appendChild(editor_row);
+    }
+
+    // create annotation rows:
+    let first_annot = true;
+    for (let idx in annots) {
+        let annot = annots[idx][2];
+        let editor = annots[idx][0];
+        let time = convertTime(annots[idx][1]);
+
+        let annot_row = document.createElement('tr');
+        let annot_td1 = document.createElement('td');
+        annot_td1.setAttribute('class', 'label');
+        let annot_td2 = document.createElement('td');
+        annot_td2.setAttribute('class', 'content');
+        if (first_annot) {
+            first_annot = false;
+            annot_row.setAttribute('class', 'first_row');
+            annot_td1.appendChild(document.createTextNode("Annotations:"));
+        }
+        annot_td2.appendChild(document.createTextNode("\u2022 " + annot + " (" + editor + ", " + time + ")"));
+        annot_row.appendChild(annot_td1);
+        annot_row.appendChild(annot_td2);
+        table.appendChild(annot_row);
+    }
+
+
+    $('#load_details').empty().append(table);
 
     $("#thumb_list").empty();
     
@@ -54,6 +134,8 @@ $("#save_list").on('click', '.save_list_item', function(element){
     }
     catch(err) {
         console.log(err);
+        $('#thumb_reconstruction').css("display", "none");
+        $('#load_details').css('display', 'none');
         $("#thumb_list").append("<div class='error_message'>Save file broken!</div>");
         $("#load").prop("disabled", true);
     }
@@ -90,8 +172,8 @@ ipcRenderer.on('return-save-files', (event, savefiles) => {
         let tableRow = "<tr class='save_list_item' id='"+key+"'>";
         tableRow += "<td class='td_filename'>"+key+"</td>";
         tableRow += "<td class='td_fragments'>"+numberFragments+"</td>";
-        tableRow += "<td class='td_mtime'>"+saves[key].mtime+"</td>";
-        tableRow += "<td class='td_editor'>"+lastEditor+"</tr>";
+        tableRow += "<td class='td_mtime'>"+convertTime(saves[key].mtime)+"</td>";
+        tableRow += "<td class='td_editor'>"+lastEditor[0]+"</tr>";
 
         $("#save_list_body").append(tableRow);
     }

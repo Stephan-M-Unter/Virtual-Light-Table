@@ -5,7 +5,7 @@ html {
 }
 
 ::-webkit-scrollbar {
-    width: 5px;
+    width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -33,7 +33,6 @@ body {
     padding: 0px 40px;
     display: flex;
     flex-flow: column;
-    flex: 60%;
     min-width: 350px;
     height: 100vh;
     background-color: rgb(100,100,100);
@@ -153,7 +152,7 @@ th {
 }
 
 .save_list_item td {
-    padding: 8px 0;
+    padding: 8px 5px;
 }
 
 .td_filename {
@@ -190,19 +189,41 @@ th {
     width: 100%;
     height: 300px;
     border: 1px solid black;
+    background-color: black;
     margin-bottom: 10px;
     display: none;
 }
 
 #load_details {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     width: 100%;
     background-color: white;
     height: auto;
+    max-height: 250px;
     border: 1px solid black;
     display: none;
     padding: 5px;
     box-sizing: border-box;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+#load_details table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#load_details td {
+    vertical-align: top;
+    padding: 10px;
+}
+
+.first_row td {
+    border-top: 1px solid rgba(0,0,0,0.3);
+}
+
+.label {
+    border-right: 1px solid rgba(0,0,0,0.3);
 }
 
 #thumb_list {
@@ -211,18 +232,19 @@ th {
     display: flex;
     flex-flow: wrap;
     justify-content: center;
+    max-height: 100%;
 }
 
 .load_thumb {
     position: relative;
     display: inline-block;
     vertical-align: middle;
-    width: 150px;
-    height: 150px;
+    width: 100px;
+    height: 100px;
     background-color: white;
     box-shadow: 2px 2px 4px 1px rgba(0,0,0,0.3);
     text-align: center;
-    margin: 10px 12px;
+    margin: 5px 6px;
     padding: 5px;
 }
 
