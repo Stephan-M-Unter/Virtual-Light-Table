@@ -59,6 +59,8 @@ $("#save_list").on('click', '.save_list_item', function(){
     let table = document.createElement('table');
 
     // create filename row
+    let filename_body = document.createElement('tbody');
+    filename_body.setAttribute('id', 'details_filename');
     let filename_row = document.createElement('tr');
     let filename_td1 = document.createElement('td');
     filename_td1.setAttribute('class', 'label');
@@ -68,12 +70,15 @@ $("#save_list").on('click', '.save_list_item', function(){
     filename_td2.appendChild(document.createTextNode(filename));
     filename_row.appendChild(filename_td1);
     filename_row.appendChild(filename_td2);
-    table.appendChild(filename_row);
+    filename_body.append(filename_row);
+    table.appendChild(filename_body);
 
 
 
     // create editor rows:
     let first_editor = true;
+    let editor_body = document.createElement('tbody');
+    editor_body.setAttribute('id', 'details_editors');
     for (let idx in editors) {
         let editor = editors[idx][0];
         let time = convertTime(editors[idx][1]);
@@ -91,11 +96,14 @@ $("#save_list").on('click', '.save_list_item', function(){
         editor_td2.appendChild(document.createTextNode("\u2022 " + editor + " (" + time + ")"));
         editor_row.appendChild(editor_td1);
         editor_row.appendChild(editor_td2);
-        table.appendChild(editor_row);
+        editor_body.appendChild(editor_row);
     }
+    table.appendChild(editor_body);
 
     // create annotation rows:
     let first_annot = true;
+    let annot_body = document.createElement('tbody');
+    annot_body.setAttribute('id', 'details_annots');
     for (let idx in annots) {
         let annot = annots[idx][2];
         let editor = annots[idx][0];
@@ -114,8 +122,9 @@ $("#save_list").on('click', '.save_list_item', function(){
         annot_td2.appendChild(document.createTextNode("\u2022 " + annot + " (" + editor + ", " + time + ")"));
         annot_row.appendChild(annot_td1);
         annot_row.appendChild(annot_td2);
-        table.appendChild(annot_row);
+        annot_body.appendChild(annot_row);
     }
+    table.appendChild(annot_body);
 
 
     $('#load_details').empty().append(table);

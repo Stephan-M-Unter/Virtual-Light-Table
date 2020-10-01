@@ -215,11 +215,20 @@ th {
 
 #load_details td {
     vertical-align: top;
-    padding: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
-.first_row td {
+tbody:not(:first-child) tr:first-child td {
     border-top: 1px solid rgba(0,0,0,0.3);
+}
+
+tbody tr:first-child td {
+    padding-top: 5px;
+}
+
+tbody tr:last-child td {
+    padding-bottom: 5px;
 }
 
 .label {
