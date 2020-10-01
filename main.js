@@ -49,6 +49,9 @@ function main() {
     if (!development) {
         mainWindow.removeMenu(); // increase work immersion by removing unnecessary menu TODO
     }
+    mainWindow.on('close', function(){
+        app.quit();
+    });
 }
 
 app.on('ready', main);
@@ -164,7 +167,7 @@ ipcMain.on('server-open-load-window', (event) => {
             file: './renderer/load.html',
             type: 'load'
         });
-        // TODO loadWindow.removeMenu();
+        loadWindow.removeMenu();
         loadWindow.once('read-to-show', () => {
             loadWindow.show();
         });
