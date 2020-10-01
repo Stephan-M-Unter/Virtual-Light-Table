@@ -156,15 +156,22 @@ ipcMain.on('server-get-saves-folder', (event) => {
 // server-open-load-window
 ipcMain.on('server-open-load-window', (event) => {
     if (development) { console.log(timestamp() + " " + 'Receiving code [server-open-load-window] from client'); }
-    
-    loadWindow = new Window({
-        file: './renderer/load.html',
-        type: 'load'
-    });
-    // TODO loadWindow.removeMenu();
-    loadWindow.once('read-to-show', () => {
+
+    if (loadWindow != null) {
         loadWindow.show();
-    });
+    } else {
+        loadWindow = new Window({
+            file: './renderer/load.html',
+            type: 'load'
+        });
+        // TODO loadWindow.removeMenu();
+        loadWindow.once('read-to-show', () => {
+            loadWindow.show();
+        });
+        loadWindow.on('close', function(){
+            loadWindow = null;
+        });
+    }
 });
 
 
