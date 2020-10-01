@@ -79,6 +79,7 @@ class CanvasManager {
         this.editors = [];
         this.annots = [];
         this.IDcounter = 0;
+        this.screenshot = null;
     }
 
     clearFragments(){
@@ -111,7 +112,8 @@ class CanvasManager {
             "stage":this.stage,
             "fragments":this.fragments,
             "editors": this.editors,
-            "annots": this.annots
+            "annots": this.annots,
+            "screenshot": this.screenshot
         };
     }
 
@@ -151,6 +153,14 @@ class CanvasManager {
     addEditor(editor) {
         let time_ms = new Date().getTime();
         this.editors.push([editor, time_ms]);
+    }
+
+    setScreenshot(screenshot) {
+        this.screenshot = screenshot;
+    }
+
+    getScreenshot() {
+        return this.screenshot;
     }
 }
 

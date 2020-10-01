@@ -124,9 +124,10 @@ ipcMain.on('server-load-file', (event, file) => {
 });
 
 // server-save-file
-ipcMain.on('server-save-file', (event, editor) => {
+ipcMain.on('server-save-file', (event, data) => {
     if (development) { console.log(timestamp() + " " + 'Receiving code [server-save-file] from client'); }
-    canvasManager.addEditor(editor);
+    canvasManager.addEditor(data.editor);
+    canvasManager.setScreenshot(data.screenshot);
     saveManager.saveTable(canvasManager.getAll());
 });
 
@@ -176,44 +177,3 @@ ipcMain.on('server-open-load-window', (event) => {
         });
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-// <- get-folder
-ipcMain.on('get-folder', (event) => {
-    if (development){console.log("Received code 'get-folder'.");}
-    let filepath = dialog.showOpenDialog({
-        title: "Select Folder to Save Configuration in",
-        defaultPath: path.join(__dirname+"/.."),
-        properties: ['openDirectory']
-    });
-    event.sender.send('send-folder', filepath);
-});
-
-// <- request-save-files
-
-
-
-
-// <- load-file
-*/

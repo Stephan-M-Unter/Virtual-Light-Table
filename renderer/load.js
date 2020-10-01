@@ -46,6 +46,12 @@ $("#save_list").on('click', '.save_list_item', function(){
     $(this).addClass('selected');
     $("#load").removeClass("disabled");
     $("#thumb_reconstruction").css("display", "inline-block");
+    $("#thumb_reconstruction").empty();
+
+    let thumbnail = document.createElement('img');
+    thumbnail.src = saves[filename].screenshot;
+    document.getElementById('thumb_reconstruction').appendChild(thumbnail);
+
     $("#load_details").css("display", "inline-block");
 
     let fragments = saves[filename].fragments;

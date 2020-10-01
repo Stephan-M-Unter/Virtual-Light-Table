@@ -20,8 +20,15 @@ $(document).ready(function(){
     // Save Table Button
     $('#save_table').click(function(){
         dialogs.prompt("Please enter your name(s)/initials:", function(editor){
-            console.log("Editor", editor, editor!='', editor!=null);
-            if (editor!='' && editor!=null) { uic.sendToServer('server-save-file', editor); }
+            if (editor!='' && editor!=null) {
+                uic.clearSelection();
+                let screenshot = document.getElementById('lighttable').toDataURL("image/png");
+                let data = {
+                    "editor": editor,
+                    "screenshot": screenshot
+                };
+                uic.sendToServer('server-save-file', data);
+            }
         });
     });
     // Load Table Button
