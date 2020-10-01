@@ -64,9 +64,13 @@ class CanvasManager {
         this.clearAll();
     }
 
-    _createFragmentID() {
+    createFragmentID() {
+        // TODO obsolete?
         let id = "f_" + this.IDcounter;
         this.IDcounter += 1;
+        if (id in this.fragments) {
+            id = this.createFragmentID();
+        }
         return id;
     }
 
@@ -87,7 +91,8 @@ class CanvasManager {
     }
 
     addFragment(fragment_data){
-        let id = this._createFragmentID;
+        // TODO obsolete?
+        let id = this.createFragmentID;
         this.fragments[id] = fragment_data;
     }
 

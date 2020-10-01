@@ -41,8 +41,8 @@ class Fragment {
         var container = new createjs.Container();
 
         container.rotation = image_properties.rotation;
-        container.x = image_properties.xPos * (this.stage.scaling / 100) + this.stage.offset.x;
-        container.y = image_properties.yPos * (this.stage.scaling / 100) + this.stage.offset.y;
+        container.x = image_properties.xPos;// * (this.stage.scaling / 100) + this.stage.offset.x;
+        container.y = image_properties.yPos;// * (this.stage.scaling / 100) + this.stage.offset.y;
         container.name = "Container";
         container.id = id;
 

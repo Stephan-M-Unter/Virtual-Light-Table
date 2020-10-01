@@ -49,6 +49,7 @@ body {
     height: 100vh;
     background-color: #dddddd;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .title {

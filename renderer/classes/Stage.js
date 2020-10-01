@@ -175,7 +175,12 @@ class Stage {
         this.loadqueue.load();
     }
     _createFragment(event) {
-        var new_id = this.getNewFragmentId();
+        var new_id;
+        if (event.item.id) {
+            new_id = event.item.id;
+        } else {
+            new_id = this.getNewFragmentId();
+        }
         var new_fragment = new Fragment(this.controller, this, new_id, event);
         this.fragmentList[new_id] = new_fragment; // registering fragment in fragmentList
         
@@ -546,6 +551,9 @@ class Stage {
     getNewFragmentId() {
         let new_id = "f_" + this.fragmentLabel;
         this.fragmentLabel = this.fragmentLabel + 1;
+        if (new_id in this.fragmentList) {
+            new_id = this.getNewFragmentId();
+        }
         return new_id;
     }
 
