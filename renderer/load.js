@@ -52,7 +52,11 @@ $("#save_list").on('click', '.save_list_item', function(){
     
     // Create the load_details_section
     let editors = saves[filename].editors;
+    console.log(Array.from(editors));
+    editors.sort(function(a,b){return a[1] - b[1]});
+    console.log(editors);
     let annots = saves[filename].annots;
+    annots = annots.sort(function(a,b){return a[1] - b[1]});
 
     let table = document.createElement('table');
 

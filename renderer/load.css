@@ -227,7 +227,7 @@ th {
 }
 
 #thumb_list {
-    flex: 0 0 auto;
+    /* flex: 0 0 auto; */
     overflow-y: auto;
     display: flex;
     flex-flow: wrap;
