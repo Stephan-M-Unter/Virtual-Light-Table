@@ -23,14 +23,24 @@ class SaveManager {
     saveTable(tableConfiguration){
         // read current date for some default filename
         let now = new Date();
-        let date = now.getFullYear()+"-"+now.getMonth()+"-"+now.getDate();
-        let time = now.getHours()+"h"+now.getMinutes()+"m"+now.getSeconds()+"s";
+
+        let year = now.getFullYear();
+        let month = ((now.getMonth()+1) < 10 ? '0' : '') + (now.getMonth()+1);
+        let day = (now.getDate() < 10 ? '0' : '') + now.getDate();
+    
+        let hour = now.getHours();
+        let minute = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+        let second = (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
+
+
+        let date = year+"-"+month+"-"+day;
+        let time = hour+"h"+minute+"m"+second+"s";
         let filename = "VLT_"+date+"_"+time;
 
         // create save dialog
         let filepath = dialog.showSaveDialog({
             title: "Save Current Table Configuration",
-            defaultPath: path.join(__dirname+"/..", filename),
+            defaultPath: path.join(__dirname+"/../saves/", filename),
             filters: [{
                 name: 'Virtual Light Table Save',
                 extensions: ['vlt']
@@ -97,6 +107,11 @@ class SaveManager {
         json.mtime = mtime;
         //console.log(json);
         return json;
+    }
+
+    saveSavefile(filepath, data) {
+        let json = JSON.stringify(data);
+        fs.writeFileSync(filepath, json);
     }
 }
 

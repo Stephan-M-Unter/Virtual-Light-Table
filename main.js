@@ -30,7 +30,6 @@ const imageManager = new ImageManager();
 const saveManager = new SaveManager();
 // Windows
 var mainWindow; // main window containing the light table itself
-var saveWindow; // window for saving a configuration
 var loadWindow; // window for loading configurations
 var detailWindow; // TODO additional window to show fragment details
 var filterWindow; // TODO additional window to set database filters
@@ -86,7 +85,8 @@ function sendMessage(recipient_window, message, data=null) {
 
 // server-save-to-model
 ipcMain.on('server-save-to-model', (event, data) => {
-    canvasManager.updateAll(data);
+    canvasManager.updateStage(data.stage);
+    canvasManager.updateFragments(data.fragments);
     if (development) { console.log(timestamp() + " " + 'Receiving code [server-save-to-model] from client'); }
 });
 
@@ -95,19 +95,6 @@ ipcMain.on('server-clear-table', (event) => {
     if (development) { console.log(timestamp() + " " + 'Receiving code [server-clear-table] from client'); }
     canvasManager.clearAll();
     sendMessage(event.sender, 'client-load-from-model', canvasManager.getAll());
-});
-
-// server-open-save-window
-ipcMain.on('server-open-save-window', (event) => {
-    if (development) { console.log(timestamp() + " " + 'Receiving code [server-open-save-window] from client'); }
-    saveWindow = new Window({
-        file: './renderer/save.html',
-        type: 'save'
-    });
-    saveWindow.removeMenu();
-    saveWindow.once('ready-to-show', () => {
-        saveWindow.show();
-    });
 });
 
 // server-open-detail-window
@@ -129,8 +116,15 @@ ipcMain.on('server-load-file', (event, file) => {
     if (development) { console.log(timestamp() + " " + 'Receiving code [server-load-file] from loadWindow'); }
     loadWindow.close();
     canvasManager.clearAll();
-    canvasManager.updateAll(file);
+    canvasManager.loadFile(file);
     sendMessage(mainWindow, 'client-load-from-model', canvasManager.getAll());
+});
+
+// server-save-file
+ipcMain.on('server-save-file', (event, editor) => {
+    if (development) { console.log(timestamp() + " " + 'Receiving code [server-save-file] from client'); }
+    canvasManager.addEditor(editor);
+    saveManager.saveTable(canvasManager.getAll());
 });
 
 // server-list-savefiles

@@ -3,7 +3,7 @@
 const { ipcRenderer } = require('electron');
 
 var saves;
-const default_folder = "./saves";
+const default_folder = "./saves/";
 
 function select_default_folder(){
     $("#folder").val(default_folder);

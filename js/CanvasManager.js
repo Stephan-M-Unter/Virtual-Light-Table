@@ -76,6 +76,8 @@ class CanvasManager {
             "scaling":100
         };
         this.fragments = {};
+        this.editors = [];
+        this.annots = [];
         this.IDcounter = 0;
     }
 
@@ -104,15 +106,12 @@ class CanvasManager {
         this.stage = stage_data;
     }
 
-    updateAll(data){
-        this.updateStage(data.stage);
-        this.updateFragments(data.fragments);
-    }
-
     getAll(){
         return {
             "stage":this.stage,
-            "fragments":this.fragments
+            "fragments":this.fragments,
+            "editors": this.editors,
+            "annots": this.annots
         };
     }
 
@@ -126,6 +125,32 @@ class CanvasManager {
 
     getFragment(id){
         return this.fragments[id];
+    }
+
+    getEditors(){
+        return this.editors;
+    }
+
+    getAnnots(){
+        return this.annots;
+    }
+
+    addAnnot(annot_text, author){
+        let time_ms = new Date().getTime();
+        this.annots.push([author, time_ms, annot_text]);
+    }
+
+    loadFile(file) {
+        this.clearAll();
+        this.stage = file.stage;
+        this.fragments = file.fragments;
+        this.editors = file.editors;
+        this.annots = file.annots;
+    }
+
+    addEditor(editor) {
+        let time_ms = new Date().getTime();
+        this.editors.push([editor, time_ms]);
     }
 }
 

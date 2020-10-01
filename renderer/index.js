@@ -1,8 +1,10 @@
 'use strict';
 
-const { UIController } = require("./classes/UIController");
-const { ipcRenderer } = require("electron");
- 
+const { UIController } = require('./classes/UIController');
+const { ipcRenderer } = require('electron');
+const Dialogs = require('dialogs');
+const dialogs = Dialogs();
+
 var xyz; // TODO: entfernen
 
 $(document).ready(function(){
@@ -16,7 +18,12 @@ $(document).ready(function(){
     // Clear Table Button
     $('#clear_table').click(function(){uic.sendToServer("server-clear-table");});
     // Save Table Button
-    $('#save_table').click(function(){uic.sendToServer('server-open-save-window');});
+    $('#save_table').click(function(){
+        dialogs.prompt("Please enter your name(s)/initials:", function(editor){
+            console.log("Editor", editor, editor!='', editor!=null);
+            if (editor!='' && editor!=null) { uic.sendToServer('server-save-file', editor); }
+        });
+    });
     // Load Table Button
     $('#load_table').click(function(){uic.sendToServer('server-open-load-window');});
     // Flip Buttons
