@@ -39,6 +39,7 @@ body {
     box-shadow: 2px 2px 10px 1px rgba(0,0,0,1);
     z-index: 1;
     text-align: center;
+    box-sizing: border-box  ;
 }
 
 #right_area {
@@ -78,12 +79,13 @@ body {
 
 .button:active {
     background-color: #1c5a9c;
-    box-shadow: none;
+    /* box-shadow: none; */
+    box-shadow: inset 2px 2px 3px black;
 }
 
-#load.disabled {
-    background-color: rgb(140, 140, 140);
-    box-shadow: none;
+.button.disabled {
+    background-color: rgb(140, 140, 140) !important;
+    box-shadow: none !important;
 }
 
 #folder_button_wrapper {
@@ -183,6 +185,22 @@ th {
     background-color: var(--cb_orange);
     margin: 0px auto 20px auto;
     font-size: 1.5em;
+}
+
+#delete {
+    background-color: var(--cb_red);
+    position: absolute;
+    height: 50px;
+    width: 50px;
+    bottom: 20px;
+    right: 40px;
+}
+
+#delete img {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 #thumb_reconstruction {

@@ -135,7 +135,6 @@ ipcMain.on('server-save-file', (event, data) => {
 // server-list-savefiles
 ipcMain.on('server-list-savefiles', (event, folder) => {
     if (development){console.log(timestamp() + " " + "Received code [server-list-savefiles] for folder "+folder);}
-    
     saveManager.getSaveFiles(folder, function(err, content) {
         let filesNames = content.filter(function(item){
             return item.endsWith(".vlt");
@@ -146,7 +145,6 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
         filesNames.forEach(name => {
             savefiles[name] = saveManager.loadSaveFile(folder + "/" + name);
         });
-
         event.sender.webContents.send('return-save-files', savefiles);
     });
 });
@@ -175,6 +173,26 @@ ipcMain.on('server-open-load-window', (event) => {
         });
         loadWindow.on('close', function(){
             loadWindow = null;
+        });
+    }
+});
+
+ipcMain.on('server-delete-save', (event, filename) => {
+    if (development) { console.log(timestamp() + " " + "Receiving code [server-delete-save] from loadWindow"); }
+    let deleted = saveManager.deleteFile(filename);
+    if (deleted) {
+        let folder = saveManager.getCurrentFolder();
+        saveManager.getSaveFiles(folder, function(err, content) {
+            let filesNames = content.filter(function(item){
+                return item.endsWith(".vlt");
+            });
+            
+            let savefiles = {};
+    
+            filesNames.forEach(name => {
+                savefiles[name] = saveManager.loadSaveFile(folder + "/" + name);
+            });
+            event.sender.webContents.send('return-save-files', savefiles);
         });
     }
 });

@@ -45,6 +45,7 @@ $("#save_list").on('click', '.save_list_item', function(){
     $(".save_list_item").removeClass('selected');
     $(this).addClass('selected');
     $("#load").removeClass("disabled");
+    $("#delete").removeClass("disabled");
     $("#thumb_reconstruction").css("display", "inline-block");
     $("#thumb_reconstruction").empty();
 
@@ -164,6 +165,22 @@ $("#load").click(function(){
     }
 });
 
+$("#delete").click(function(){
+    // 0. nur etwas machen, wenn der Button überhaupt aktiv ist
+    if ($(this).hasClass("disabled")) {
+        return false;
+    }
+    // 1. um welches Savefile geht es?
+    let filename = $(".selected").attr("id");
+    // 2. Bestätigungsdialog
+    let confirmation = confirm("Do you really want to delete this savefile? This action is not revertable.");
+    // 3. Nachricht an Server: Save löschen
+    if (confirmation) {
+        ipcRenderer.send("server-delete-save", filename);
+    }
+    // [4. Nachricht von Server mit aktuellem Speicherzustand]
+});
+
 /* ##########################################
 #           SERVER/CLIENT PROTOCOL
 ###########################################*/
@@ -173,6 +190,7 @@ ipcRenderer.on('return-save-files', (event, savefiles) => {
     $("#save_list_body").empty();
     $("#thumb_list").empty();
     $("#load").addClass("disabled");
+    $("#delete").addClass("disabled");
     $('#thumb_reconstruction').css("display", "none");
     $('#load_details').css('display', 'none');
     saves = savefiles;

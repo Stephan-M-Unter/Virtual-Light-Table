@@ -17,7 +17,8 @@ const fs = require('fs');
 
 class SaveManager {
     constructor(){
-
+        this.defaultSaveFolder = "./saves";
+        this.currentSaveFolder = this.defaultSaveFolder;
     }
 
     saveTable(tableConfiguration){
@@ -92,6 +93,7 @@ class SaveManager {
     }
 
     getSaveFiles(folder, callback) {
+        this.currentSaveFolder = folder;
         console.log("Reading folder " + folder + ".");
         fs.readdir(folder, (err, files) => {
             callback(null, files);
@@ -112,6 +114,19 @@ class SaveManager {
     saveSavefile(filepath, data) {
         let json = JSON.stringify(data);
         fs.writeFileSync(filepath, json);
+    }
+
+    deleteFile(filename) {
+        fs.unlinkSync(path.join(this.currentSaveFolder, filename));
+        return true;
+    }
+
+    getCurrentFolder() {
+        return this.currentSaveFolder;
+    }
+
+    getDefaultFolder() {
+        return this.defaultSaveFolder;
     }
 }
 
