@@ -94,6 +94,14 @@ $(document).ready(function(){
         }
     });
 
+    $("#annot_button").click(function(){
+        if ($('#annot_window').css('display') == "flex") {
+            $('#annot_window').css('display', 'none');
+        } else {
+            $('#annot_window').css('display', 'flex');
+        }
+    });
+
     $('#zoom_slider').on("change", () => {
         let new_scaling = $('#zoom_slider').val();
         $('#zoom_factor').html('Zoom<br/>x'+new_scaling/100);
