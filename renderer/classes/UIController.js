@@ -6,12 +6,14 @@
 */
 const { Sidebar } = require("./Sidebar");
 const { Stage } = require("./Stage");
+const { AnnotationPopup } = require("./AnnotationPopup");
 const { ipcRenderer } = require("electron");
 
 class UIController {
     constructor(DOMElement, width, height){
         this.stage = new Stage(this, DOMElement, width, height);
         this.sidebar = new Sidebar(this);
+        this.annotationPopup = new AnnotationPopup(this);
     }
 
     sendToServer(message, data){
@@ -21,6 +23,18 @@ class UIController {
             ipcRenderer.send(message);
         }
     }
+    
+    addNewAnnotation(annotationID, isNewEntry){
+        this.annotationPopup.addNewAnnotation(annotationID, isNewEntry);
+    }
+    deleteAnnotation(annotationElement){
+
+    }
+    updateAnnotation(annotationElement){
+
+    }
+
+    toggleAnnotSubmitButton(){ this.annotationPopup.toggleAnnotSubmitButton(); }
 
     // send selection signal to all view elements necessary
     selectFragment(fragmentId){
@@ -79,6 +93,7 @@ class UIController {
 
     // reroute new stage/fragment data to stage, then update sidebar
     loadScene(data) {
+        this.annotationPopup.loadAnnotations(data.annots);
         this.stage.loadScene(data);
         this.updateFragmentList();
     }

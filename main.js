@@ -121,7 +121,6 @@ ipcMain.on('server-load-file', (event, file) => {
     canvasManager.clearAll();
     canvasManager.loadFile(file);
     sendMessage(mainWindow, 'client-load-from-model', canvasManager.getAll());
-    console.log(canvasManager.getFragments());
 });
 
 // server-save-file

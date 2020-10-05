@@ -61,7 +61,13 @@ $("#save_list").on('click', '.save_list_item', function(){
     let editors = saves[filename].editors;
     if (editors) { editors.sort(function(a,b){return a[1] - b[1]}); }
     let annots = saves[filename].annots;
-    if (annots) { annots = annots.sort(function(a,b){return a[1] - b[1]}); }
+    let annot_items;
+    if (annots) {
+        annot_items = Object.keys(annots).map(function(key){
+            return [key, annots[key]];
+        });
+        annot_items.sort(function(a, b){ return a.time - b.time; });
+    }
 
     let table = document.createElement('table');
 
@@ -111,10 +117,11 @@ $("#save_list").on('click', '.save_list_item', function(){
     let first_annot = true;
     let annot_body = document.createElement('tbody');
     annot_body.setAttribute('id', 'details_annots');
-    for (let idx in annots) {
-        let annot = annots[idx][2];
-        let editor = annots[idx][0];
-        let time = convertTime(annots[idx][1]);
+    for (let idx in annot_items) {
+        let annot_id = annot_items[idx][0];
+        let annot = annots[annot_id].text;
+        let editor = annots[annot_id].editor;
+        let time = convertTime(annots[annot_id].time);
 
         let annot_row = document.createElement('tr');
         let annot_td1 = document.createElement('td');

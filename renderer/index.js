@@ -101,6 +101,19 @@ $(document).ready(function(){
             $('#annot_window').css('display', 'flex');
         }
     });
+    $('#annot_close').click(function(){
+        $('#annot_window').css('display', 'none');
+    });
+    $('#annot_text').keyup(function(event){ uic.toggleAnnotSubmitButton(); });
+    $('#annot_editor').keyup(function(event){ uic.toggleAnnotSubmitButton(); });
+
+
+
+    $('#annot_submit').click(function(event){
+        if (!$(this).hasClass('disabled')){
+            uic.addNewAnnotation($(this).attr('target'), true);
+        }
+    });
 
     $('#zoom_slider').on("change", () => {
         let new_scaling = $('#zoom_slider').val();
