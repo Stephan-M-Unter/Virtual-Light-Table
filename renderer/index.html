@@ -17,6 +17,10 @@
             <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" onkeydown="return false"/>
             <span class="tooltip" id="zoom_factor">Zoom<br/>x1.0</span>
         </div> <!-- </zoom_wrapper> -->
+
+        <div id="scale_to_fit" class="no-select">
+            <img src="../imgs/symbol_fit.png"/>
+        </div>
         
         <!-- Control Elements -->
         <div id="table_button_wrapper" class="no-select">
@@ -100,7 +104,12 @@
                             <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
                             <div class="arrow"></div>
                         </div>
-                        <div class="sidebar_content" id="new_fragments_content"></div>
+                        <div class="sidebar_content" id="new_fragments_content">
+                            <div id="upload_button" class="wide_button">
+                                <img class="button_img" src="../imgs/symbol_plus_zoom.png"/>
+                                <div class="button_label">Local File</div>
+                            </div>
+                        </div>
                     </div> <!-- </new_fragments> -->
                     <div class="sidebar_content_wrapper" id="graphical_filters">
                         <div class="sidebar_header">
@@ -112,7 +121,7 @@
                     </div> <!-- </graphical filters> -->
                     <div class="sidebar_content_wrapper expanded" id="fragment_list">
                         <div class="sidebar_header">
-                            <div class="sidebar_header_title">Fragments</div>
+                            <div class="sidebar_header_title">Light Table</div>
                             <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
                             <div class="arrow down"></div>
                         </div>

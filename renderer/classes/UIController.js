@@ -24,8 +24,12 @@ class UIController {
         }
     }
     
-    addNewAnnotation(annotationID, isNewEntry){
-        this.annotationPopup.addNewAnnotation(annotationID, isNewEntry);
+    sendAnnotation(id){
+        if (id) {
+            this.annotationPopup.updateAnnotation(id);
+        } else {
+            this.annotationPopup.addAnnotation();
+        }
     }
     deleteAnnotation(annotationElement){
 

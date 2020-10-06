@@ -111,7 +111,7 @@ $(document).ready(function(){
 
     $('#annot_submit').click(function(event){
         if (!$(this).hasClass('disabled')){
-            uic.addNewAnnotation($(this).attr('target'), true);
+            uic.sendAnnotation($(this).attr('target'));
         }
     });
 
@@ -130,9 +130,9 @@ $(document).ready(function(){
     function resizeSidebar(event){
         $('#left_sidebar').css('width', event.pageX);
         if (event.pageX < 330) {
-            $('.sidebar_header').addClass('small');
+            $('#left_sidebar').addClass('small');
         } else {
-            $('.sidebar_header').removeClass('small');
+            $('#left_sidebar').removeClass('small');
         }
     }
     function stopResizingSidebar(event){

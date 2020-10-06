@@ -187,11 +187,21 @@ ipcMain.on('server-delete-save', (event, filename) => {
             });
             
             let savefiles = {};
-    
+            
             filesNames.forEach(name => {
                 savefiles[name] = saveManager.loadSaveFile(folder + "/" + name);
             });
             event.sender.webContents.send('return-save-files', savefiles);
         });
     }
+});
+
+ipcMain.on('server-write-annotation', (event, annot_data) => {
+    if (development) { console.log(timestamp() + " " + "Receiving code [server-write-annotation] from client"); }
+    canvasManager.setAnnotation(annot_data);
+});
+
+ipcMain.on('server-remove-annotation', (event, id) => {
+    if (development) { console.log(timestamp() + " " + "Receiving code [server-remove-annotation] from client"); }
+    canvasManager.removeAnnotation(id);
 });

@@ -1,21 +1,164 @@
+const { Util } = require('./Util');
+
 class AnnotationPopup {
     constructor(controller) {
         this.controller = controller;
         this.annotationIDs = [];
+        this.annotationCounter = 0;
     }
 
-    convertTime(milliseconds) {
-        let time = new Date(milliseconds);
+    _createAnnotationElement(id, text, editor, time){
+        // create elements
+        let annotation_element = document.createElement('div');
+        annotation_element.setAttribute('class', 'annotation');
+        annotation_element.setAttribute('id', id);
+
+        let annot_text_element = document.createElement('div');
+        annot_text_element.setAttribute('class', 'annot_text');
+
+        let annot_editor_element = document.createElement('div');
+        annot_editor_element.setAttribute('class', 'annot_editor');
+
+        let annot_time_element = document.createElement('div');
+        annot_time_element.setAttribute('class', 'annot_time');
+
+        let annot_signature_element = document.createElement('div');
+        annot_signature_element.setAttribute('class', 'annot_sig');
+
+        // fill in the values
+        time = document.createTextNode(Util.convertTime(time));
+        text = document.createTextNode($.trim(text));
+        editor = document.createTextNode($.trim(editor));
+
+        annot_text_element.appendChild(text);
+        annot_editor_element.appendChild(editor);
+        annot_time_element.appendChild(time);
+        annotation_element.appendChild(annot_text_element);
+        annot_signature_element.appendChild(annot_editor_element);
+        annot_signature_element.appendChild(annot_time_element);
+        annotation_element.appendChild(annot_signature_element);
+        
+        return annotation_element;
+    }
+
+    _createEditButton(){
+        // create DOM elements
+        let edit_element = document.createElement('div');
+        let edit_img = document.createElement('img');
+
+        // DOM attributes
+        edit_element.setAttribute('class', 'annot_edit');
+        edit_img.src = '../imgs/symbol_edit.png';
+
+        // DOM hierarchy
+        edit_element.appendChild(edit_img);
+
+        return edit_element;
+    }
+
+    _createDeleteButton(){
+        // create DOM elements
+        let delete_element = document.createElement('div');
+        let delete_img = document.createElement('img');
+
+        // DOM attributes
+        delete_element.setAttribute('class', 'annot_delete');
+        delete_img.src = '../imgs/symbol_bin.png';
+
+        // DOM hierarchy
+        delete_element.appendChild(delete_img);
+
+        return delete_element;
+    }
+
+    _createHideButton(){
+
+    }
+
+    _createCollapeButton(){
+
+    }
+
+    _createAnnotationID(){
+        let new_id = "a_" + this.annotationCounter;
+        if (!this.annotationIDs.includes(new_id)) {
+            // if ID not yet existant, return this new one and increment counter
+            this.annotationCounter = this.annotationCounter + 1;
+            return new_id;
+        } else {
+            // if ID is existant, increase counter and create new ID
+            this.annotationCounter = this.annotationCounter + 1;
+            return this._createAnnotationID();
+        }
+    }
+
+    loadAnnotations(annots_object){
+        // clear annotations from old entries
+        this._clearAll();
+
+        for (let annot_id in annots_object) {
+            let annot = annots_object[annot_id];
+            
+            this.annotationIDs.push(annot_id);
+
+            let annotation = this._createAnnotationElement(annot_id, annot.text, annot.editor, annot.time);
+
+            if (annot.hidden) {
+                annotation.setAttribute('class', 'annotation hidden_annot');
+            }
+
+            document.getElementById('annot_view').appendChild(annotation);
+        }
+    }
     
-        let year = time.getFullYear();
-        let month = ((time.getMonth()+1) < 10 ? '0' : '') + (time.getMonth()+1);
-        let day = (time.getDate() < 10 ? '0' : '') + time.getDate();
+    addAnnotation(){
+        let new_id = this._createAnnotationID();
+        this.annotationIDs.push(new_id);
+        
+        // retrieve data from fields
+        let text = $.trim($('#annot_text').val());
+        let editor = $.trim($('#annot_editor').val());
+        let time = new Date().getTime();
+        let timestamp = Util.convertTime(time);
+
+        // clear fields
+        this._clearAnnotationForm();
+        
+        // create annotation element
+        let annotation = this._createAnnotationElement(new_id, text, editor, timestamp);
+        annotation.setAttribute('class', 'annotation new_annot');
+
+        // create buttons for edit and delete
+        let edit = this._createEditButton();
+        edit.addEventListener('click', () => { this.editAnnotation(annotation); });
+        let del = this._createDeleteButton();
+        del.addEventListener('click', () => { this.deleteAnnotation(annotation); } );
+        annotation.appendChild(edit);
+        annotation.appendChild(del);
+        
+        // add element to DOM
+        document.getElementById('annot_view').appendChild(annotation);
+
+        this._writeToServer(new_id, text, editor, time, false);
+    }
     
-        let hour = time.getHours();
-        let minute = (time.getMinutes() < 10 ? '0' : '') + time.getMinutes();
-        let second = (time.getSeconds() < 10 ? '0' : '') + time.getSeconds();
-    
-        return day+"."+month+"."+year+", "+hour+":"+minute+":"+second;
+    updateAnnotation(annotationID){
+        let annotation = $('#'+annotationID);
+
+        let text = $.trim($('#annot_text').val());
+        let editor = $.trim($('#annot_editor').val());
+        let time = new Date().getTime();
+        let timestamp = Util.convertTime(time);
+
+        annotation.find('.annot_text').text(text);
+        annotation.find('.annot_editor').text(editor);
+        annotation.find('.annot_time').text(timestamp);
+
+        this._writeToServer(annotationID, text, editor, time, false);
+
+        $('#annot_submit').text('Submit New Annotation').attr('target', '');
+
+        this._clearAnnotationForm();
     }
 
     toggleAnnotSubmitButton(){
@@ -23,10 +166,8 @@ class AnnotationPopup {
     }
 
     static toggleAnnotSubmitButton(){
-        let text = $('#annot_text').val();
-        text = $.trim(text);
-        let editor = $('#annot_editor').val();
-        editor = $.trim(editor);
+        let text = $.trim($('#annot_text').val());
+        let editor = $.trim($('#annot_editor').val());
         if (editor != '' && text != '') {
             // editor and text have been inserted, ready to submit
             $('#annot_submit').removeClass('disabled');    
@@ -35,128 +176,17 @@ class AnnotationPopup {
             $('#annot_submit').addClass('disabled');
         }
     }
-
-    static clearAnnotationForm(){
-        $('#annot_text').val('');
-        $('#annot_editor').val('');
-        AnnotationPopup.toggleAnnotSubmitButton();
-    }
-
-    static clearAnnotations(){
-        this.annotationIDs = [];
-        AnnotationPopup.clearAnnotationForm();
-        $('#annot_view').empty();
-    }
-
-    addNewAnnotation(annotationID, isNewEntry, loadedData) {
-        // first, derive the annotation ID (if available) or create new one (if new annotation)
-        let id;
-        if (annotationID) {
-            id = annotationID;
-            if (this.annotationIDs.includes(annotationID)) {
-                this.updateAnnotation(annotationID);
-                $('#annot_submit').attr('target', '').text('Submit New Annotation');
-                AnnotationPopup.clearAnnotationForm();
-                return 0;
-            }
-        } else {
-            // TODO create ID
-            id = "dummyID";
-        }
-        this.annotationIDs.push(id);
-
-        // create elements
-        let annotation_element = document.createElement('div');
-        if (loadedData) {
-            if (loadedData.hidden) {
-                annotation_element.setAttribute('class', 'annotation hidden_annot');
-            } else {
-                annotation_element.setAttribute('class', 'annotation');
-            }
-        } else {
-            annotation_element.setAttribute('class', 'annotation new_annot');
-        }
-        annotation_element.setAttribute('id', id);
-        let annot_text_element = document.createElement('div');
-        annot_text_element.setAttribute('class', 'annot_text');
-        let annot_editor_element = document.createElement('div');
-        annot_editor_element.setAttribute('class', 'annot_editor');
-        let annot_time_element = document.createElement('div');
-        annot_time_element.setAttribute('class', 'annot_time');
-
-        // fill in the values
-        let time = new Date().getTime();
-        let timestamp = document.createTextNode(this.convertTime(time));
-        let text;
-        let editor;
-        if (loadedData) { 
-            text = document.createTextNode(loadedData.text);
-            editor = document.createTextNode(loadedData.editor);
-        } else {
-            text = document.createTextNode($.trim($('#annot_text').val().replace(/\\r/g, "<br/>")));
-            editor = document.createTextNode($.trim($('#annot_editor').val()));
-        }
-
-        if (isNewEntry) {
-            // create edit button for new annots
-            let edit_element = document.createElement('div');
-            edit_element.setAttribute('class', 'annot_edit');
-            let edit_img = document.createElement('img');
-            edit_img.src = '../imgs/symbol_edit.png';
-            edit_element.appendChild(edit_img);
-            
-            edit_element.addEventListener('click', this.editAnnotation);
-            annotation_element.appendChild(edit_element);
-            
-            // create delete button for new annots
-            let delete_element = document.createElement('div');
-            delete_element.setAttribute('class', 'annot_delete');
-            let delete_img = document.createElement('img');
-            delete_img.src = '../imgs/symbol_bin.png';
-            delete_element.appendChild(delete_img);
-            
-            delete_element.addEventListener('click', this.deleteAnnotation);
-            annotation_element.appendChild(delete_element);
-        }
-
-        // create hide button
-        if (!isNewEntry) {
-            let hide_element = document.createElement('div');
-            hide_element.setAttribute('class', 'annot_hide');
-    
-            hide_element.addEventListener('click', this.hideAnnotation);
-            annotation_element.appendChild(hide_element);
-        }
-
-        // create DOM hierarchy
-        annot_text_element.appendChild(text);
-        annot_time_element.appendChild(timestamp);
-        annot_editor_element.appendChild(editor);
-        annotation_element.appendChild(annot_text_element);
-        annotation_element.appendChild(annot_editor_element);
-        annotation_element.appendChild(annot_time_element);
-        document.getElementById('annot_view').appendChild(annotation_element);
-
-        AnnotationPopup.clearAnnotationForm();
-    }
-    
-    updateAnnotation(annotationID){
-        let annotation = $('#'+annotationID);
-        annotation.find('.annot_text').text($.trim($('#annot_text').val()));
-        annotation.find('.annot_editor').text($.trim($('#annot_editor').val()));
-        AnnotationPopup.clearAnnotationForm();
-    }
     
 
-    deleteAnnotation(event){
-        let annotation = $(event.target).parent().parent();
+    deleteAnnotation(annotation){
+        annotation = $(annotation);
         let id = annotation.attr('id');
-
         annotation.remove();
+        this._removeFromServer(id);
     }
     
-    editAnnotation(event){
-        let annotation = $(event.target).parent().parent();
+    editAnnotation(annotation){
+        annotation = $(annotation);
         let editor = annotation.find('.annot_editor').text();
         let text = annotation.find('.annot_text').text();
         let id = annotation.attr('id');
@@ -178,11 +208,36 @@ class AnnotationPopup {
         }
     }
 
-    loadAnnotations(annots) {
-        AnnotationPopup.clearAnnotations();
-        for (let id in annots) {
-            this.addNewAnnotation(id, false, annots[id]);
-        }
+    _clearAll(){
+        this._clearAnnotationView();
+        this._clearAnnotationForm();
+    }
+
+    _clearAnnotationView() {
+        this.annotationIDs = [];
+        $('#annot_view').empty();
+    }
+
+    _clearAnnotationForm() {
+        $('#annot_text').val('');
+        $('#annot_editor').val('');
+        $('#annot_submit').addClass('disabled');
+    }
+
+    _writeToServer(id, text, editor, time, hidden) {
+        let annot_data = {
+            "id" : id,
+            "text" : text,
+            "editor" : editor,
+            "time" : time,
+            "hidden" : hidden
+        };
+
+        this.controller.sendToServer('server-write-annotation', annot_data);
+    }
+
+    _removeFromServer(id) {
+        this.controller.sendToServer('server-remove-annotation', id);
     }
 }
 

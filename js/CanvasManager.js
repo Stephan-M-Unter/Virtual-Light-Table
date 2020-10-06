@@ -81,7 +81,7 @@ class CanvasManager {
         };
         this.fragments = {};
         this.editors = [];
-        this.annots = [];
+        this.annots = {};
         this.IDcounter = 0;
         this.screenshot = null;
     }
@@ -142,9 +142,17 @@ class CanvasManager {
         return this.annots;
     }
 
-    addAnnot(annot_text, author){
-        let time_ms = new Date().getTime();
-        this.annots.push([author, time_ms, annot_text]);
+    setAnnotation(data){
+        this.annots[data.id] = {
+            "text" : data.text,
+            "editor" : data.editor,
+            "hidden" : data.hidden,
+            "time" : data.time
+        };
+    }
+
+    removeAnnotation(id) {
+        delete this.annots[id];
     }
 
     loadFile(file) {
