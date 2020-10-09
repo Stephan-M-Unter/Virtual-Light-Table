@@ -79,7 +79,7 @@ class UIController {
     // ask for delete confirmation; if approved, send removal signal to stage and update
     // sidebar fragment list accordingly
     removeFragments(){
-        let confirmation = confirm("Do you really want to remove this fragment/these fragments?");
+        let confirmation = confirm("Do you really want to remove this fragment/these fragments from the light table? (the original files will not be deleted)");
 
         if (confirmation) {
             this.stage.deleteSelectedFragments();
@@ -87,7 +87,7 @@ class UIController {
         }
     }
     removeFragment(id){
-        let confirmation = confirm("Do you really want to remove this fragment?");
+        let confirmation = confirm("Do you really want to remove this fragment from the light table? (the original files will not be deleted)");
 
         if (confirmation){
             this.stage.removeFragment(id);

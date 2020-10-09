@@ -21,6 +21,10 @@
         <div id="scale_to_fit" class="no-select">
             <img src="../imgs/symbol_fit.png"/>
         </div>
+
+        <div id="hide_hud" class="squareButton no-select">
+            <img src="../imgs/symbol_eye.png"/>
+        </div>
         
         <!-- Control Elements -->
         <div id="table_button_wrapper" class="no-select">
@@ -82,6 +86,9 @@
         
         <div id="annot_window">
             <div id="annot_title">Annotations</div>
+            <div id="annot_show">
+
+            </div>
             <div id="annot_close">
                 <img src="../imgs/symbol_x.png"/>
             </div>
@@ -105,9 +112,13 @@
                             <div class="arrow"></div>
                         </div>
                         <div class="sidebar_content" id="new_fragments_content">
-                            <div id="upload_button" class="wide_button">
-                                <img class="button_img" src="../imgs/symbol_plus_zoom.png"/>
+                            <div id="upload_local" class="wide_button">
+                                <img class="button_img" src="../imgs/symbol_upload_local.png"/>
                                 <div class="button_label">Local File</div>
+                            </div>
+                            <div id="upload_url" class="wide_button">
+                                <img class="button_img" src="../imgs/symbol_www.png"/>
+                                <div class="button_label">From URL</div>
                             </div>
                         </div>
                     </div> <!-- </new_fragments> -->

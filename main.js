@@ -33,6 +33,7 @@ var mainWindow; // main window containing the light table itself
 var loadWindow; // window for loading configurations
 var detailWindow; // TODO additional window to show fragment details
 var filterWindow; // TODO additional window to set database filters
+var localUploadWindow;
 
 /* ##############################################################
 ###
@@ -204,4 +205,17 @@ ipcMain.on('server-write-annotation', (event, annot_data) => {
 ipcMain.on('server-remove-annotation', (event, id) => {
     if (development) { console.log(timestamp() + " " + "Receiving code [server-remove-annotation] from client"); }
     canvasManager.removeAnnotation(id);
+});
+
+ipcMain.on('server-upload-local', (event) => {
+    imageManager.selectImageFromFilesystem();
+    localUploadWindow = new Window({
+        file: "./renderer/upload.html",
+        type: 'upload',
+    });
+    localUploadWindow.removeMenu();
+    localUploadWindow.maximize();
+    localUploadWindow.once('ready-to-show', () => {
+        localUploadWindow.show();
+    });
 });

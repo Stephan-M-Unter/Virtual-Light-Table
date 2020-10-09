@@ -94,6 +94,25 @@ $(document).ready(function(){
         }
     });
 
+    $('#hide_hud').click(function(){
+        if ($(this).hasClass('hide_active')) {
+            // if the HUD is currently hidden, show it again
+            $('#left_sidebar').removeClass('hidden');
+            $('#zoom_wrapper').removeClass('hidden');
+            $('#table_button_wrapper').removeClass('hidden');
+            $('#annot_button').removeClass('hidden');
+            $('#scale_to_fit').removeClass('hidden');
+            $(this).removeClass('hide_active');
+        } else {
+            $('#left_sidebar').addClass('hidden');
+            $('#zoom_wrapper').addClass('hidden');
+            $('#table_button_wrapper').addClass('hidden');
+            $('#annot_button').addClass('hidden');
+            $('#scale_to_fit').addClass('hidden');
+            $(this).addClass('hide_active');
+        }
+    });
+
     $("#annot_button").click(function(){
         if ($('#annot_window').css('display') == "flex") {
             $('#annot_window').css('display', 'none');
@@ -106,13 +125,17 @@ $(document).ready(function(){
     });
     $('#annot_text').keyup(function(event){ uic.toggleAnnotSubmitButton(); });
     $('#annot_editor').keyup(function(event){ uic.toggleAnnotSubmitButton(); });
-
-
-
     $('#annot_submit').click(function(event){
         if (!$(this).hasClass('disabled')){
             uic.sendAnnotation($(this).attr('target'));
         }
+    });
+
+    $('#upload_local').click(function(){
+        uic.sendToServer('server-upload-local');
+    });
+    $('#upload_url').click(function(){
+        // TODO
     });
 
     $('#zoom_slider').on("change", () => {

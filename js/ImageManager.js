@@ -12,11 +12,26 @@
 
 'use strict'
 
-const https = require('https')
+const https = require('https');
+const fs = require('fs');
+const { dialog } = require('electron');
 
 class ImageManager {
     constructor(){
 
+    }
+
+    selectImageFromFilesystem() {
+        let filepath = dialog.showOpenDialog({
+            title: "Select Image",
+            filters: [{
+                name: "Image Files",
+                extensions: ['jpg', 'png']
+            }],
+            properties: []
+        });
+
+        return filepath;
     }
 
     requestImage(url){
