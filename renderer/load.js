@@ -148,7 +148,7 @@ $("#save_list").on('click', '.save_list_item', function(){
     try {
         for (const [key, value] of Object.entries(fragments)) {
             let url, rt;
-            if (fragments[key].recto ? url = fragments[key].rectoURLlocal : url = fragments[key].versoURLlocal);
+            if (fragments[key].recto ? url = fragments[key].rectoURL : url = fragments[key].versoURL);
             if (fragments[key].recto ? rt = 'rt' : rt = 'vs');
             let newTile = "<div class='load_thumb'>";
             newTile += "<img class='load_thumb_img' src='"+url+"'>";

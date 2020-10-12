@@ -9,7 +9,7 @@
                     https://codeburst.io/build-a-todo-app-with-electron-d6c61f58b55a.
 */
 
-'use strict'
+'use strict';
 
 const { BrowserWindow } = require('electron');
 const development = true;
@@ -23,18 +23,7 @@ let mainProps = {
     webPreferences: {
         nodeIntegration: true
     }
-}
-
-let saveProps = {
-    width: 600,
-    height: 800,
-    icon: './imgs/icons/png/logo.png',
-    //frame: false,
-    show: false,
-    webPreferences: {
-        nodeIntegration: true
-    }
-}
+};
 
 let loadProps = {
     width: 1200,
@@ -44,20 +33,30 @@ let loadProps = {
     webPreferences: {
         nodeIntegration: true
     }
-}
+};
+
+let uploadProps = {
+    width: 1500,
+    height: 1000,
+    icon: './imgs/icons/png/logo.png',
+    show: false,
+    webPreferences: {
+        nodeIntegration: true
+    }
+};
 
 class Window extends BrowserWindow {
     // Constructor for creating a new Window
     constructor({ file, type, ...windowSettings }) {
         let props = mainProps;
-        if (type == "save") {
-            props = saveProps;
-        } else if (type == "load") {
-            props = loadProps
+        if (type == "load") {
+            props = loadProps;
+        } else if (type == "upload") {
+            props = uploadProps;
         }
         // TODO: If not main, then change props
 
-        super({ ...props, ...windowSettings })
+        super({ ...props, ...windowSettings });
         
         // Load content and open dev tools
         this.loadFile(file)
@@ -75,4 +74,4 @@ class Window extends BrowserWindow {
     }
 }
 
-module.exports = Window
+module.exports = Window;

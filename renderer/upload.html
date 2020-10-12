@@ -4,8 +4,32 @@
     <head>
         <title></title>
         <link rel="stylesheet" type="text/css" href="upload.css"/>
+        <script src="../js/libs/jquery-3.4.1.min.js"></script>
+        <script>window.$ = window.jQuery = require('../js/libs/jquery-3.4.1.min.js');</script>
     </head>
     <body>
+        <div id="canvas_wrapper">
+            <div id="recto_canvas_wrapper">
+                <div class="canvas_label" id="recto_canvas_label">Recto</div>
+                <canvas id="recto_canvas"></canvas>
+                <div class="button scale_button">
+                    <img src="../imgs/symbol_ruler.png"/>
+                </div>
+            </div>
+            <div id="switch_wrapper">
+                <div class="button" id="switch_button">
+                    <img src="../imgs/symbol_switch.png"/>
+                </div>
+            </div>
+            <div id="verso_canvas_wrapper">
+                <div class="canvas_label" id="verso_canvas_label">Verso</div>
+                <canvas id="verso_canvas"></canvas>
+                <div class="button scale_button">
+                    <img src="../imgs/symbol_ruler.png"/>
+                </div>
+            </div>
+        </div>
+        <div id="load_button">Load</div>
 
         <script src="upload.js"></script>
     </body>

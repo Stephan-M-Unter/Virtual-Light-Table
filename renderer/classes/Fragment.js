@@ -3,8 +3,8 @@ class Fragment {
         this.controller = controller;
         this.id = id;
         this.isRecto = event_data.item.properties.recto;
-        this.urlRecto = event_data.item.properties.rectoURLlocal;
-        this.urlVerso = event_data.item.properties.versoURLlocal;
+        this.urlRecto = event_data.item.properties.rectoURL;
+        this.urlVerso = event_data.item.properties.versoURL;
         this.isSelected = false;
         this.bothSidesLoaded = false;
         this.name = event_data.item.properties.name;
@@ -41,8 +41,16 @@ class Fragment {
         var container = new createjs.Container();
 
         container.rotation = image_properties.rotation;
-        container.x = image_properties.xPos;// * (this.stage.scaling / 100) + this.stage.offset.x;
-        container.y = image_properties.yPos;// * (this.stage.scaling / 100) + this.stage.offset.y;
+
+        if (image_properties.xPos && image_properties.yPos) {
+            container.x = image_properties.xPos;// * (this.stage.scaling / 100) + this.stage.offset.x;
+            container.y = image_properties.yPos;// * (this.stage.scaling / 100) + this.stage.offset.y;
+        } else {
+            let canvas_size = this.controller.getCanvasCenter();
+            container.x = canvas_size.x;
+            container.y = canvas_size.y;
+        }
+        console.log(container.x, container.y);
         container.name = "Container";
         container.id = id;
 
@@ -126,8 +134,8 @@ class Fragment {
         return {
             "name":this.name,
             "recto":this.isRecto,
-            "rectoURLlocal":this.urlRecto,
-            "versoURLlocal":this.urlVerso,
+            "rectoURL":this.urlRecto,
+            "versoURL":this.urlVerso,
             "xPos":this.container.x,
             "yPos":this.container.y,
             "rotation":this.container.rotation

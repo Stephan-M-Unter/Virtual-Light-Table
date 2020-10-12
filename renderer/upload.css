@@ -1,0 +1,87 @@
+@import 'root.css';
+
+body {
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    margin: 0;
+    padding: 10px;
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#canvas_wrapper {
+    width: 100%;
+    flex: 1 0 auto;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: row;
+}
+
+#recto_canvas_wrapper, #verso_canvas_wrapper {
+    flex: 1 0 auto;
+    display: flex;
+    flex-flow: column;
+    position: relative;
+}
+
+.canvas_label {
+    text-align: center;
+    margin: auto;
+    font-size: 1.8em;
+    background-color: rgb(150, 150, 150);
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+canvas {
+    width: 100%;
+    flex: 1 0 auto;
+    box-sizing: border-box;
+    background-color: white;
+    border: 1px solid rgb(100, 100, 100);
+}
+
+#switch_wrapper {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.button {
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    margin: 5px;
+}
+
+.scale_button {
+    position: absolute;
+    background-color: darkgray;
+    bottom: 5px;
+    right: 5px;
+}
+
+.button img {
+    padding: 5px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#load_button {
+    width: 200px;
+    max-width: 100%;
+    font-variant: small-caps;
+    height: 50px;
+    background-color: var(--cb_orange);
+    text-align: center;
+    line-height: 50px;
+    font-size: 1.5em;
+    margin: 10px auto;
+}

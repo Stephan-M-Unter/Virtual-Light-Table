@@ -94,6 +94,14 @@ class UIController {
             this.updateFragmentList();
         }
     }
+    addFragment(fragment_data) {
+        this.stage._loadFragments({"upload":fragment_data});
+        this.updateFragmentList();
+    }
+
+    getCanvasCenter(){
+        return this.stage.getCenter();
+    }
 
     // reroute new stage/fragment data to stage, then update sidebar
     loadScene(data) {

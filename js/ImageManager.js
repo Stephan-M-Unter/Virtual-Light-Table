@@ -31,7 +31,7 @@ class ImageManager {
             properties: []
         });
 
-        return filepath;
+        return filepath[0];
     }
 
     requestImage(url){
@@ -49,4 +49,4 @@ class ImageManager {
     }
 }
 
-module.exports = ImageManager
+module.exports = ImageManager;
