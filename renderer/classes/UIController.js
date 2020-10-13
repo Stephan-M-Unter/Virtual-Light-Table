@@ -8,6 +8,7 @@ const { Sidebar } = require("./Sidebar");
 const { Stage } = require("./Stage");
 const { AnnotationPopup } = require("./AnnotationPopup");
 const { ipcRenderer } = require("electron");
+const { Util } = require('./Util');
 
 class UIController {
     constructor(DOMElement, width, height){
@@ -97,6 +98,11 @@ class UIController {
     addFragment(fragment_data) {
         this.stage._loadFragments({"upload":fragment_data});
         this.updateFragmentList();
+        $('.arrow.down').removeClass('down');
+        $('.expanded').removeClass('expanded');
+        // second, rotate arrow down and expand clicked segment
+        $('#fragment_list').find(".arrow").addClass("down");
+        $('#fragment_list').addClass("expanded");
     }
 
     getCanvasCenter(){

@@ -42,7 +42,7 @@ canvas {
     width: 100%;
     flex: 1 0 auto;
     box-sizing: border-box;
-    background-color: white;
+    background-color: rgb(50,50,50);
     border: 1px solid rgb(100, 100, 100);
 }
 
@@ -52,6 +52,17 @@ canvas {
     align-items: center;
     justify-content: center;
 }
+    
+.button_wrapper {
+    width: 100%;
+    display: flex;
+    flex-flow: row;
+    visibility: hidden;
+}
+
+#right_buttons {
+    flex-flow: row-reverse;
+}
 
 .button {
     width: 50px;
@@ -60,11 +71,16 @@ canvas {
     margin: 5px;
 }
 
-.scale_button {
+.upload_button {
     position: absolute;
-    background-color: darkgray;
-    bottom: 5px;
-    right: 5px;
+    left: 50%;
+    top: 50%;
+    width: 100px;
+    height: 100px;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.scale_button {
 }
 
 .button img {
@@ -72,6 +88,21 @@ canvas {
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+}
+
+#name_wrapper {
+    text-align: center;
+    margin: 10px 0px;
+}
+
+#name_label {
+    color: lightgray;
+    font-size: 1.1em;
+}
+
+#name {
+    width: 400px;
+    line-height: 1.5em;
 }
 
 #load_button {

@@ -50,7 +50,6 @@ class Fragment {
             container.x = canvas_size.x;
             container.y = canvas_size.y;
         }
-        console.log(container.x, container.y);
         container.name = "Container";
         container.id = id;
 

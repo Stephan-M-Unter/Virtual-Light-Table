@@ -70,7 +70,7 @@ class Window extends BrowserWindow {
         // Show Window once rendering is finished
         this.once('ready-to-show', () => {
             this.show()
-        })
+        });
     }
 }
 
