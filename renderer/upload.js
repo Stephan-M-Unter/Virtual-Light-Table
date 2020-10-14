@@ -6,6 +6,8 @@ var rectoURL = null;
 var versoURL = null;
 var name;
 var isNameSuggested = false;
+var rectoImage = null;
+var versoImage = null;
 
 function deactivateCanvas(wrapper) {
     // background -> grau
@@ -26,10 +28,16 @@ function activateCanvas(wrapper) {
     wrapper.find('.button_wrapper').css('visibility', 'visible');
 }
 
-function draw(canvas, url) {
+function draw(canvas, url, isRecto) {
     var ctx = canvas[0].getContext('2d');
     var img = new Image();
     var src = url;
+
+    if (isRecto) {
+        rectoImage = img;
+    } else {
+        versoImage = img;
+    }
   
     img.src = src;
     img.onload = function(){
@@ -85,10 +93,10 @@ ipcRenderer.on('upload-image-path', (event, filepath) => {
     if (!rectoURL) {
         rectoURL = filepath;
         activateCanvas($('#recto_canvas_wrapper'));
-        draw($('#recto_canvas'), filepath);
+        draw($('#recto_canvas'), filepath, true);
     } else {
         versoURL = filepath;
         activateCanvas($('#verso_canvas_wrapper'));
-        draw($('#verso_canvas'), filepath);
+        draw($('#verso_canvas'), filepath, false);
     }
 });
