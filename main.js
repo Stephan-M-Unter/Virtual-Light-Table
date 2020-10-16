@@ -229,3 +229,12 @@ ipcMain.on('server-upload-ready', (event, data) => {
     localUploadWindow.close();
     mainWindow.send('client-local-upload', data);
 });
+
+ipcMain.on('upload-new-image', (event) => {
+    if (development) { console.log(timestamp() + " " + "Receiving code [upload-new-image] from client"); }
+    let filepath = imageManager.selectImageFromFilesystem();
+
+    if (filepath) {
+        sendMessage(localUploadWindow, 'new-upload-image', filepath);
+    }
+});

@@ -8,6 +8,7 @@ var name;
 var isNameSuggested = false;
 var rectoImage = null;
 var versoImage = null;
+var lastUpload = null;
 
 function deactivateCanvas(wrapper) {
     // background -> grau
@@ -16,7 +17,6 @@ function deactivateCanvas(wrapper) {
     wrapper.find(".upload_button").css('display', 'block');
     // button_wrapper -> weg
     wrapper.find('.button_wrapper').css('visibility', 'hidden');
-    
 }
 
 function activateCanvas(wrapper) {    
@@ -28,20 +28,52 @@ function activateCanvas(wrapper) {
     wrapper.find('.button_wrapper').css('visibility', 'visible');
 }
 
-function draw(canvas, url, isRecto) {
-    var ctx = canvas[0].getContext('2d');
-    var img = new Image();
-    var src = url;
+function clearCanvas(canvas_id) {
+    let canvas = document.getElementById(canvas_id);
+    let ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+}
 
-    if (isRecto) {
-        rectoImage = img;
-    } else {
-        versoImage = img;
-    }
-  
-    img.src = src;
+function draw(canvas, url) {
+    canvas = document.getElementById(canvas);
+    canvas.width = parseInt($(canvas).css('width'))-2;
+    canvas.height = parseInt($(canvas).css('height'))-2;
+
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.src = url;
+
     img.onload = function(){
-      ctx.drawImage(img,0,0);
+        if (canvas == 'recto_canvas') {
+            rectoImage = img;
+        } else {
+            versoImage = img;
+        }
+        let img_width = img.width;
+        let img_height = img.height;
+        let canvas_width = $(canvas).width();
+        let canvas_height = $(canvas).height();
+        let ratio_w = img_width / canvas_width;
+        let ratio_h = img_height / canvas_height;
+        let ratio = Math.max(ratio_w, ratio_h);
+
+        let x = 0;
+        let y = 0;
+        let width = img_width;
+        let height = img_height;
+
+        if (ratio <= 1) {
+            x = (canvas_width/2) - (img_width/2);
+            y = (canvas_height/2) - (img_height/2);
+        } else {
+            width /= ratio;
+            height /= ratio;
+            x = (canvas_width/2) - (width/2);
+            y = (canvas_height/2) - (height/2);
+        }
+
+        console.log("Drawing Image:", x, y, width, height);
+        ctx.drawImage(img,x,y,width,height);
     };
   }
 
@@ -53,9 +85,23 @@ $('.bin_button').click(function(){
 
     if ($(this).attr('id') == 'left_bin_button') {
         rectoURL = null;
+        rectoImage = null;
+        clearCanvas('recto_canvas');
     } else {
         versoURL = null;
+        versoImage = null;
+        clearCanvas('verso_canvas');
     }
+});
+
+$('.upload_button').click(function(){
+    if ($(this).attr('id') == 'left_upload') {
+        lastUpload = "recto";
+    } else {
+        lastUpload = "verso";
+    }
+
+    ipcRenderer.send('upload-new-image');
 });
 
 $('#load_button').click(function(){
@@ -74,11 +120,24 @@ $('#switch_button').click(function(){
     rectoURL = versoURL;
     versoURL = temp;
 
-    if (rectoURL) { activateCanvas($('#recto_canvas_wrapper')); }
-    else { deactivateCanvas($('#recto_canvas_wrapper')); }
+    clearCanvas('recto_canvas');
+    clearCanvas('verso_canvas');
 
-    if (versoURL) { activateCanvas($('#verso_canvas_wrapper')); }
-    else { deactivateCanvas($('#verso_canvas_wrapper')); }
+    if (rectoURL) {
+        activateCanvas($('#recto_canvas_wrapper'));
+        draw('recto_canvas', rectoURL);
+    }
+    else {
+        deactivateCanvas($('#recto_canvas_wrapper'));
+    }
+
+    if (versoURL) {
+        activateCanvas($('#verso_canvas_wrapper'));
+        draw('verso_canvas', versoURL);
+    }
+    else {
+        deactivateCanvas($('#verso_canvas_wrapper'));
+    }
 });
 
 ipcRenderer.on('upload-image-path', (event, filepath) => {
@@ -93,10 +152,23 @@ ipcRenderer.on('upload-image-path', (event, filepath) => {
     if (!rectoURL) {
         rectoURL = filepath;
         activateCanvas($('#recto_canvas_wrapper'));
-        draw($('#recto_canvas'), filepath, true);
+        draw('recto_canvas', filepath);
     } else {
         versoURL = filepath;
         activateCanvas($('#verso_canvas_wrapper'));
-        draw($('#verso_canvas'), filepath, false);
+        draw('verso_canvas', filepath);
     }
+});
+
+ipcRenderer.on('new-upload-image', (event, filepath) => {
+    if (lastUpload == "recto") {
+        rectoURL = filepath;
+        activateCanvas($('#recto_canvas_wrapper'));
+        draw('recto_canvas', filepath);
+    } else {
+        activateCanvas($('#verso_canvas_wrapper'));
+        versoURL = filepath;
+        draw('verso_canvas', filepath);
+    }
+    lastUpload = null;
 });
