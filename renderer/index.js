@@ -132,7 +132,7 @@ $(document).ready(function(){
     });
 
     $('#upload_local').click(function(){
-        uic.sendToServer('server-upload-local');
+        uic.sendToServer('server-start-upload');
     });
     $('#upload_url').click(function(){
         // TODO

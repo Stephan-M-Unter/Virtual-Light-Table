@@ -848,7 +848,7 @@ body {
 
 .small .wide_button {
     display: inline-block;
-    width: 50px;
+    width: 90%;
     box-sizing: border-box;
     font-size: 1.2em;
 }

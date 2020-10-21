@@ -458,7 +458,6 @@ class Stage {
                 let id = Object.keys(this.selectedList)[0];
                 let fragment = this.selectedList[id];
                 fragment.flip();
-                this.update();
                 this._saveToModel();
             });
 
@@ -610,7 +609,7 @@ class Selector {
         for (let idx in selectionList) {
             let fragment = selectionList[idx];
             let container = fragment.getContainer();
-            let image = fragment.getImage().image;
+            // let image = fragment.getImage().image;
 
             let bounds = container.getTransformedBounds();
             let x_left = bounds.x;

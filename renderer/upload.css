@@ -3,7 +3,7 @@
 body {
     width: 100vw;
     height: 100vh;
-    background-color: black;
+    background-color: rgb(200, 200, 200);
     margin: 0;
     padding: 10px;
     display: flex;
@@ -32,7 +32,6 @@ body {
     text-align: center;
     margin: auto;
     font-size: 1.8em;
-    background-color: rgb(150, 150, 150);
     width: 100%;
     padding: 5px;
     box-sizing: border-box;
@@ -69,25 +68,49 @@ canvas {
     height: 50px;
     background-color: white;
     margin: 5px;
+    box-shadow: 1px 1px 4px rgb(0,0,0);
+    transition: .2s all;
 }
 
-.upload_button {
+.button:hover {
+    box-shadow: 5px 5px 10px rgb(0,0,0);
+    transition: .2s all;
+}
+
+.button:active {
+    background-color: var(--cb_blue);
+    box-shadow: none;
+}
+
+.button.inactive {
+    box-shadow: none;
+    background-color: rgb(100, 100, 100);
+}
+
+.upload_wrapper {
     position: absolute;
+    display: flex;
+    flex-flow: row;
     left: 50%;
     top: 50%;
-    width: 100px;
-    height: 100px;
     transform: translateX(-50%) translateY(-50%);
 }
 
-.scale_button {
+.upload_button {
+    width: 80px;
+    height: 80px;
 }
 
 .button img {
-    padding: 5px;
+    padding: 10px;
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+}
+
+#load_button.disabled {
+    background-color: rgb(50,50,50);
+    box-shadow: none;
 }
 
 #name_wrapper {
@@ -96,7 +119,6 @@ canvas {
 }
 
 #name_label {
-    color: lightgray;
     font-size: 1.1em;
 }
 

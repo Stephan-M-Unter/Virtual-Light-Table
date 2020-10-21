@@ -207,11 +207,10 @@ ipcMain.on('server-remove-annotation', (event, id) => {
     canvasManager.removeAnnotation(id);
 });
 
-ipcMain.on('server-upload-local', (event) => {
-    if (development) { console.log(timestamp() + " " + "Receiving code [server-upload-local] from client"); }
-    let filepath = imageManager.selectImageFromFilesystem();
+ipcMain.on('server-start-upload', (event) => {
+    if (development) { console.log(timestamp() + " " + "Receiving code [server-start-upload] from client"); }
     
-    if(filepath) {
+    if (!localUploadWindow) {
         localUploadWindow = new Window({
             file: "./renderer/upload.html",
             type: 'upload',
@@ -219,7 +218,9 @@ ipcMain.on('server-upload-local', (event) => {
         localUploadWindow.removeMenu();
         localUploadWindow.once('ready-to-show', () => {
             localUploadWindow.show();
-            sendMessage(localUploadWindow, 'upload-image-path', filepath);
+        });
+        localUploadWindow.on('close', function(){
+            localUploadWindow = null;
         });
     }
 });
@@ -227,6 +228,7 @@ ipcMain.on('server-upload-local', (event) => {
 ipcMain.on('server-upload-ready', (event, data) => {
     if (development) { console.log(timestamp() + " " + "Receiving code [server-upload-ready] from client"); }
     localUploadWindow.close();
+    localUploadWindow = null;
     mainWindow.send('client-local-upload', data);
 });
 

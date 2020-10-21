@@ -99,6 +99,7 @@ class Fragment {
                     this.container.removeChild(this.imageRecto);
                     this.container.addChild(this.imageVerso);
                 }
+                this.framework._updateBb();
                 this.stage.update();
             });
             let url;

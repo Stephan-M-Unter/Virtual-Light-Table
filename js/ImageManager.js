@@ -31,7 +31,11 @@ class ImageManager {
             properties: []
         });
 
-        return filepath[0];
+        if (filepath) {
+            return filepath[0];
+        } else {
+            return null;
+        }
     }
 
     requestImage(url){
