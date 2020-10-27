@@ -86,7 +86,6 @@ class Fragment {
             let loadqueue = new createjs.LoadQueue();
             loadqueue.addEventListener("fileload", (event) => {
                 let second_image = this._createImage(event, this.id);
-                if (this.isRecto ? this.imageRecto = second_image : this.imageVerso = second_image);
 
                 if (this.isRecto) {
                     this.imageRecto = second_image;
@@ -99,6 +98,8 @@ class Fragment {
                     this.container.removeChild(this.imageRecto);
                     this.container.addChild(this.imageVerso);
                 }
+                this.container.regX = second_image.image.width / 2;
+                this.container.regY = second_image.image.height / 2;
                 this.framework._updateBb();
                 this.stage.update();
             });

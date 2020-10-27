@@ -4,6 +4,8 @@ const { ipcRenderer } = require("electron");
 const Dialogs = require('dialogs');
 const dialogs = Dialogs();
 
+var rectoStage = null;
+var versoStage = null;
 var rectoURL = null;
 var versoURL = null;
 var name;
@@ -11,6 +13,11 @@ var isNameSuggested = false;
 var rectoImage = null;
 var versoImage = null;
 var lastUpload = null;
+var clippingActive = false;
+var clipping_x = 100;
+var clipping_y = 100;
+var clipping_width = 200;
+var clipping_height = 100;
 
 function checkIfReady(){
     if (rectoURL && versoURL && $('#name').val() != '') {
@@ -38,55 +45,69 @@ function activateCanvas(wrapper) {
     wrapper.find('.button_wrapper').css('visibility', 'visible');
 }
 
-function clearCanvas(canvas_id) {
-    let canvas = document.getElementById(canvas_id);
-    let ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+function clearCanvas(stage) {
+    stage.removeAllChildren();
+    stage.update();
 }
 
-function draw(canvas, url) {
-    canvas = document.getElementById(canvas);
-    canvas.width = parseInt($(canvas).css('width'))-2;
-    canvas.height = parseInt($(canvas).css('height'))-2;
+function draw() {
+    clearCanvas(rectoStage);
+    clearCanvas(versoStage);
+    if (rectoURL) {
+        drawCanvas('recto_canvas', rectoURL);
+    }
+    // if there is a versoURL; 
+    if (versoURL) {
+        drawCanvas('verso_canvas', versoURL);
+    }
+}
 
-    var ctx = canvas.getContext('2d');
-    var img = new Image();
-    img.src = url;
+function drawCanvas(canvas, url) {
+    let stage;
+    if (canvas == "recto_canvas") {
+        stage = rectoStage;
+    } else {
+        stage = versoStage;
+    }
+    canvas = $('#'+canvas);
+    stage.canvas.width = canvas.width();
+    stage.canvas.height = canvas.height();
+    
+    let image = new Image();
+    image.src = url;
+    image.onload = function(){
+        let img = new createjs.Bitmap(image);
 
-    img.onload = function(){
-        if (canvas == 'recto_canvas') {
-            rectoImage = img;
-        } else {
-            versoImage = img;
-        }
-        let img_width = img.width;
-        let img_height = img.height;
-        let canvas_width = $(canvas).width();
-        let canvas_height = $(canvas).height();
+        let img_width = img.image.width;
+        let img_height = img.image.height;
+        let canvas_width = stage.canvas.width;
+        let canvas_height = stage.canvas.height;
+
         let ratio_w = img_width / canvas_width;
         let ratio_h = img_height / canvas_height;
         let ratio = Math.max(ratio_w, ratio_h);
-
+        
         let x = 0;
         let y = 0;
-        let width = img_width;
-        let height = img_height;
-
         if (ratio <= 1) {
             x = (canvas_width/2) - (img_width/2);
             y = (canvas_height/2) - (img_height/2);
         } else {
-            width /= ratio;
-            height /= ratio;
-            x = (canvas_width/2) - (width/2);
-            y = (canvas_height/2) - (height/2);
+            x = (canvas_width/2) - ((img_width/ratio)/2);
+            y = (canvas_height/2) - ((img_height/ratio)/2);
+            img.scale /= ratio;
         }
-
-        ctx.drawImage(img,x,y,width,height);
+        img.x = x;
+        img.y = y;
+        stage.addChild(img);
+        stage.update();
     };
   }
 
-$(document).ready(function(){});
+$(document).ready(function(){
+    rectoStage = new createjs.Stage('recto_canvas');
+    versoStage = new createjs.Stage('verso_canvas');
+});
 
 $('.bin_button').click(function(){
     let wrapper = $(this).parent().parent();
@@ -95,11 +116,11 @@ $('.bin_button').click(function(){
     if ($(this).attr('id') == 'left_bin_button') {
         rectoURL = null;
         rectoImage = null;
-        clearCanvas('recto_canvas');
+        clearCanvas(rectoStage);
     } else {
         versoURL = null;
         versoImage = null;
-        clearCanvas('verso_canvas');
+        clearCanvas(versoStage);
     }
     checkIfReady();
 });
@@ -135,11 +156,11 @@ $('.www_upload_button').click(function(){
             if (lastUpload == "recto") {
                 rectoURL = url;
                 activateCanvas($('#recto_canvas_wrapper'));
-                draw('recto_canvas', url);
+                drawCanvas('recto_canvas', url);
             } else {
                 versoURL = url;
                 activateCanvas($('#verso_canvas_wrapper'));
-                draw('verso_canvas', url);
+                drawCanvas('verso_canvas', url);
             }
             lastUpload = null;
             checkIfReady();
@@ -165,12 +186,8 @@ $('#switch_button').click(function(){
     rectoURL = versoURL;
     versoURL = temp;
 
-    clearCanvas('recto_canvas');
-    clearCanvas('verso_canvas');
-
     if (rectoURL) {
         activateCanvas($('#recto_canvas_wrapper'));
-        draw('recto_canvas', rectoURL);
     }
     else {
         deactivateCanvas($('#recto_canvas_wrapper'));
@@ -178,11 +195,12 @@ $('#switch_button').click(function(){
 
     if (versoURL) {
         activateCanvas($('#verso_canvas_wrapper'));
-        draw('verso_canvas', versoURL);
     }
     else {
         deactivateCanvas($('#verso_canvas_wrapper'));
     }
+
+    draw();
 });
 
 /*ipcRenderer.on('upload-image-path', (event, filepath) => {
@@ -209,11 +227,11 @@ ipcRenderer.on('new-upload-image', (event, filepath) => {
     if (lastUpload == "recto") {
         rectoURL = filepath;
         activateCanvas($('#recto_canvas_wrapper'));
-        draw('recto_canvas', filepath);
+        drawCanvas('recto_canvas', filepath);
     } else {
         activateCanvas($('#verso_canvas_wrapper'));
         versoURL = filepath;
-        draw('verso_canvas', filepath);
+        drawCanvas('verso_canvas', filepath);
     }
     lastUpload = null;
     checkIfReady();
