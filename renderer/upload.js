@@ -6,33 +6,32 @@ const dialogs = Dialogs();
 
 var recto = {
     "stage"     : null,
-    "url"       : null,
-    "image"     : null,
     "cropbox"   : new createjs.Shape(),
     "crop_nw"   : new createjs.Shape(),
     "crop_ne"   : new createjs.Shape(),
     "crop_sw"   : new createjs.Shape(),
-    "crop_se"   : new createjs.Shape()
+    "crop_se"   : new createjs.Shape(),
+    "url"       : null,
+    "offset_x"  : null,
+    "offset_y"  : null
 }
 
 var verso = {
     "stage"     : null,
-    "url"       : null,
-    "image"     : null,
     "cropbox"   : new createjs.Shape(),
     "crop_nw"   : new createjs.Shape(),
     "crop_ne"   : new createjs.Shape(),
     "crop_sw"   : new createjs.Shape(),
-    "crop_se"   : new createjs.Shape()
+    "crop_se"   : new createjs.Shape(),
+    "url"       : null,
+    "offset_x"  : null,
+    "offset_y"  : null
 }
 
 var name;
 var isNameSuggested = false;
 var lastUpload = null;
-var crop_x = 150;
-var crop_y = 100;
-var crop_w = 80;
-var crop_h = 100;
+var crop_x, crop_y, crop_w, crop_h;
 
 function checkIfReady(){
     if (recto.url && verso.url && $('#name').val() != '') {
@@ -107,6 +106,15 @@ function drawCanvas(canvas, url) {
         let ratio_w = img_width / canvas_width;
         let ratio_h = img_height / canvas_height;
         let ratio = Math.max(ratio_w, ratio_h);
+
+        let offset_x, offset_y;
+        if (side == "rt") {
+            offset_x = recto.offset_x;
+            offset_y = recto.offset_y;
+        } else {
+            offset_x = verso.offset_x;
+            offset_y = verso.offset_y;
+        }
         
         let x = 0;
         let y = 0;
@@ -119,6 +127,10 @@ function drawCanvas(canvas, url) {
             img.scale /= ratio;
             img_back.scale /= ratio;
         }
+        if (offset_x && offset_y) {
+            x = offset_x;
+            y = offset_y;
+        }
         img.x = img_back.x = x;
         img.y = img_back.y = y;
 
@@ -127,6 +139,12 @@ function drawCanvas(canvas, url) {
         } else {
             img.mask = verso.cropbox;
         }
+
+        img_back.on("mousedown", (event) => {
+            img_back.offset_x = event.stageX - img_back.x;
+            img_back.offset_y = event.stageY - img_back.y;
+        });
+        img_back.on("pressmove", (event) => {moveImage(event, img_back, img, side)});
 
         var shadow = new createjs.Shape();
         shadow.graphics.beginFill("white");
@@ -137,6 +155,21 @@ function drawCanvas(canvas, url) {
         stage.addChildAt(img_back, shadow, img, 0);
         stage.update();
     };
+}
+
+function moveImage(event, img_back, img, side) {
+    img_back.x = img.x = event.stageX - img_back.offset_x;
+    img_back.y = img.y = event.stageY - img_back.offset_y;
+
+    if (side == "rt") {
+        recto.stage.update();
+        recto.offset_x = img_back.x;
+        recto.offset_y = img_back.y;
+    } else {
+        verso.stage.update();
+        verso.offset_x = img_back.x;
+        verso.offset_y = img_back.y;
+    }
 }
 
 function drawCropBox(side) {
@@ -191,9 +224,6 @@ function drawCropBox(side) {
     
 }
 
-function startCropSize(loc, side){
-}
-
 function cropSize(event, loc, side){
     let dx = crop_x - event.stageX;
     let dy = crop_y - event.stageY;
@@ -239,12 +269,6 @@ function cropSize(event, loc, side){
         }
     }
 
-
-    drawCropBox("rt");
-    drawCropBox("vs");
-}
-
-function endCropSize(event){
     drawCropBox("rt");
     drawCropBox("vs");
 }
@@ -263,9 +287,9 @@ $(document).ready(function(){
     verso.crop_sw.on("pressmove", (event)=>{cropSize(event, 'sw', "vs")});
     verso.crop_se.on("pressmove", (event)=>{cropSize(event, 'se', "vs")});
 
-    //crop_w = Math.floor($('#recto_canvas').width()/2);
+    crop_w = Math.floor($('#recto_canvas').width()/2);
     crop_h = Math.floor($('#recto_canvas').height()/2);
-    //crop_x = crop_w/2;
+    crop_x = crop_w/2;
     crop_y = crop_h/2;
 });
 
@@ -345,6 +369,14 @@ $('#switch_button').click(function(){
     let temp = recto.url;
     recto.url = verso.url;
     verso.url = temp;
+
+    temp = recto.offset_x;
+    recto.offset_x = verso.offset_x;
+    verso.offset_x = temp;
+
+    temp = recto.offset_y;
+    recto.offset_y = verso.offset_y;
+    verso.offset_y = temp;
 
     crop_x = recto.stage.canvas.width - crop_x - crop_w;
 
