@@ -214,6 +214,7 @@ ipcRenderer.on('return-save-files', (event, savefiles) => {
         let tableRow = "<tr class='save_list_item' id='"+key+"'>";
         tableRow += "<td class='td_filename'>"+key+"</td>";
         tableRow += "<td class='td_fragments'>"+numberFragments+"</td>";
+        console.log(saves[key]);
         tableRow += "<td class='td_mtime'>"+convertTime(saves[key].mtime)+"</td>";
         tableRow += "<td class='td_editor'>"+lastEditor[0]+"</tr>";
 

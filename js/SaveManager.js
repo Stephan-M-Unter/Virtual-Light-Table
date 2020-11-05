@@ -103,7 +103,7 @@ class SaveManager {
     loadSaveFile(filepath) {
         let content = fs.readFileSync(filepath).toString();
         let stats = fs.statSync(filepath);
-        let mtime = stats.mtime.toLocaleString();
+        let mtime = stats.mtimeMs;
         console.log("**SaveManager** - Loading " + filepath);
         let json = JSON.parse(content);
         json.mtime = mtime;
