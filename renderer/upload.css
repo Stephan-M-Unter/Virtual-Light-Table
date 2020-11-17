@@ -87,6 +87,19 @@ canvas {
     background-color: rgb(100, 100, 100);
 }
 
+.button.active {
+    box-shadow: inset 2px 2px 3px black;
+    background-color: var(--cb_blue);
+}
+
+#mutex_wrapper * {
+    margin: 0;
+}
+
+#switch_wrapper > * {
+    margin: 15px 10px;
+}
+
 .upload_wrapper {
     position: absolute;
     display: flex;
