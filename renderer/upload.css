@@ -70,6 +70,7 @@ canvas {
     margin: 5px;
     box-shadow: 1px 1px 4px rgb(0,0,0);
     transition: .2s all;
+    user-select: none;
 }
 
 .button:hover {
@@ -90,6 +91,10 @@ canvas {
 .button.active {
     box-shadow: inset 2px 2px 3px black;
     background-color: var(--cb_blue);
+}
+
+.button.hidden {
+    display: none;
 }
 
 #mutex_wrapper * {
@@ -120,6 +125,11 @@ canvas {
     width: 100%;
     box-sizing: border-box;
 }
+
+.upload_button img {
+    padding: 18px;
+}
+
 
 #load_button.disabled {
     background-color: rgb(50,50,50);

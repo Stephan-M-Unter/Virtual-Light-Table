@@ -36,7 +36,8 @@ var verso = {
 
 var name;
 var isNameSuggested = false;
-var mode = "move";
+var mode = "crop";
+var action = "move";
 var lastUpload = null;
 var crop_x, crop_y, crop_w, crop_h;
 var polygon = [];
@@ -88,13 +89,8 @@ function clearPolygon() {
 function draw() {
     clearCanvas(recto.stage);
     clearCanvas(verso.stage);
-    if (recto.url) {
-        drawCanvas('recto_canvas', recto.url);
-    }
-    // if there is a verso.url; 
-    if (verso.url) {
-        drawCanvas('verso_canvas', verso.url);
-    }
+    if (recto.url) drawCanvas('recto_canvas', recto.url);
+    if (verso.url) drawCanvas('verso_canvas', verso.url);
     drawMasks();
 }
 
@@ -166,10 +162,10 @@ function drawCanvas(canvas, url) {
         img.rotation = img_back.rotation = rotation;
         
         if (side == "rt") {
-            img.mask = recto.cropbox;
+            //img.mask = recto.cropbox;
             recto.img = img;
         } else {
-            img.mask = verso.cropbox;
+            //img.mask = verso.cropbox;
             verso.img = img;
         }
         
@@ -189,9 +185,9 @@ function drawCanvas(canvas, url) {
         
         function handlePressMove(event) {
             // if mode is rotate, image should be rotated, not moved
-            if (mode == "rotate") {
+            if (action == "rotate") {
                 rotateImage(event, img_back, img, side);
-            } else if (mode == "move") {
+            } else if (action == "move") {
                 // if mode is move, move the image
                 moveImage(event, img_back, img, side);
             }
@@ -205,22 +201,21 @@ function drawCanvas(canvas, url) {
         }
         
         stage.addChildAt(img_back, shadow, img, 0);
+        drawMasks();
         stage.update();
     };
 }
 
 function drawPolygon(side) {
     if (polygon.length == 0) return;
-    let poly;
+
     if (side == "rt") {
-        recto.stage.addChild(recto.polygon);
-        poly = recto.polygon;
+        recto.stage.removeChild(recto.polygon);
     } else {
-        verso.stage.addChild(verso.polygon);
-        poly = verso.polygon;
+        verso.stage.removeChild(verso.polygon);
     }
 
-    poly.graphics.clear();
+    let poly= new createjs.Shape();
     poly.graphics.beginStroke('green');
     
     let started = false;
@@ -244,28 +239,35 @@ function drawPolygon(side) {
     }
 
     polygon.pop();
+    if (side == "rt") {
+        recto.polygon = poly;
+        if (recto.img) recto.stage.addChild(recto.polygon);
+    } else {
+        verso.polygon = poly;
+        if (verso.img) verso.stage.addChild(verso.polygon);
+    }
 }
 
 function rotateImage(event, img_back, img, side) {
-    var rads_old = Math.atan2(mousestart_y, mousestart_x);
-    var rads_new = Math.atan2(event.stageY, event.stageX);
+    var rads_old = Math.atan2(mousestart_y - recto.stage.canvas.height/2, mousestart_x - recto.stage.canvas.width/2);
+    var rads_new = Math.atan2(event.stageY - recto.stage.canvas.height/2, event.stageX - recto.stage.canvas.width/2);
     var rads = rads_new - rads_old;
     var delta_angle = rads * (180 / Math.PI);
 
-    img_back.rotation += delta_angle;
-    img.rotation += delta_angle;
+    img_back.rotation = (img_back.rotation + delta_angle)%360;
+    img.rotation = (img.rotation + delta_angle)%360;
 
     mousestart_x = event.stageX;
     mousestart_y = event.stageY;
 
     if (side == "rt") {
-        recto.stage.update();
         recto.rotation = img.rotation;
+        recto.stage.update();
     } else {
-        verso.stage.update();
         verso.rotation = img.rotation;
+        verso.stage.update();
     }
-
+    
 }
 
 function moveImage(event, img_back, img, side) {
@@ -384,35 +386,59 @@ function cropSize(event, loc, side){
 }
 
 function drawMasks() {
-    recto.stage.removeChild(recto.crop_ne, recto.crop_nw, recto.crop_se, recto.crop_sw, recto.cropbox, recto.polygon);
-    verso.stage.removeChild(verso.crop_ne, verso.crop_nw, verso.crop_se, verso.crop_sw, verso.cropbox, verso.polygon);
+    recto.stage.removeChild(recto.crop_ne, recto.crop_nw, recto.crop_se, recto.crop_sw, recto.cropbox);
+    recto.stage.removeChild(recto.polygon);
+    verso.stage.removeChild(verso.crop_ne, verso.crop_nw, verso.crop_se, verso.crop_sw, verso.cropbox);
+    verso.stage.removeChild(verso.polygon);
     if (mode == "cut") {
         drawPolygon("rt");
         if (recto.img) recto.img.mask = recto.polygon;
         drawPolygon("vs");
         if (verso.img) verso.img.mask = verso.polygon;
-    } else {
+    } else if (mode == "crop") {
         drawCropBox("rt");
         if (recto.img) recto.img.mask = recto.cropbox;
         drawCropBox("vs");
         if (verso.img) verso.img.mask = verso.cropbox;
     }
-
     recto.stage.update();
     verso.stage.update();
 }
 
 function addPolygonNode(event, side) {
-    if (!mode == "cut") return;
-
-    let node;
-    if (side == "rt") {
-        node = [event.stageX, event.stageY];
-    } else {
-        node = [verso.stage.canvas.width - event.stageX, event.stageY];
+    if (mode == "cut" && action == "cut") {
+        let node;
+        if (side == "rt") {
+            node = [event.stageX, event.stageY];
+        } else {
+            node = [verso.stage.canvas.width - event.stageX, event.stageY];
+        }
+        polygon.push(node);
+        drawMasks();
     }
-    polygon.push(node);
-    drawMasks();
+}
+
+function updateModeButtons(){
+    // check for mode - if crop, hide cut buttons, if cut, show them
+    if (mode == "crop") {
+        $('#cut_button').addClass('hidden');
+        $('#clear_polygon').addClass('hidden');
+        $('#undo_button').addClass('hidden');
+    } else {
+        $('#cut_button').removeClass('hidden');
+        $('#clear_polygon').removeClass('hidden');
+        $('#undo_button').removeClass('hidden');
+    }
+
+    // check for action and color according button
+    $('.active').removeClass('active');
+    if (action == "move") {
+        $('#move_button').addClass('active');
+    } else if (action == "rotate") {
+        $('#rotate_button').addClass('active');
+    } else if (action == "cut") {
+        $('#cut_button').addClass('active');
+    }
 }
 
 $(document).ready(function(){
@@ -447,12 +473,14 @@ $('.bin_button').click(function(){
         recto.image = null;
         recto.offset_x = null;
         recto.offset_y = null;
+        recto.rotation = 0;
         clearCanvas(recto.stage);
     } else {
         verso.url = null;
         verso.image = null;
         verso.offset_x = null;
         verso.offset_y = null;
+        verso.rotation = 0;
         clearCanvas(verso.stage);
     }
     checkIfReady();
@@ -509,6 +537,7 @@ $('.www_upload_button').click(function(){
 
 $('#load_button').click(function(){
     if (!$(this).hasClass("disabled")){
+        // TODO create masks for recto + verso
         let fragment_data = {
             "rectoURL": recto.url,
             "versoURL": verso.url,
@@ -521,91 +550,95 @@ $('#load_button').click(function(){
 });
 
 $('#switch_button').click(function(){
+    // switch image URL
     let temp = recto.url;
     recto.url = verso.url;
     verso.url = temp;
 
+    // switch offset
     temp = recto.offset_x;
     recto.offset_x = verso.offset_x;
     verso.offset_x = temp;
 
+    // switch offsets
     temp = recto.offset_y;
     recto.offset_y = verso.offset_y;
     verso.offset_y = temp;
 
+    // switch rotation of images
     temp = recto.rotation;
     recto.rotation = verso.rotation;
     verso.rotation = temp;
 
+    // switch imgs (which is the top image layer)
     temp = recto.img;
     recto.img = verso.img;
     verso.img = temp;
 
+    // switch polygons
     temp = recto.polygon;
     recto.polygon = verso.polygon;
     verso.polygon = temp;
 
+    // crop_x is the only thing changing when mirroring the
+    // canvas horizontally; thus, it must be converted
     crop_x = recto.stage.canvas.width - crop_x - crop_w;
 
-    let new_polygon;
+    let new_polygon = [];
     for (let idx in polygon) {
-        new_polygon = [];
         let x = verso.stage.canvas.width - polygon[idx][0];
         let y = polygon[idx][1];
         new_polygon.push([x,y]);
     }
     polygon = new_polygon;
 
-    if (recto.url) {
-        activateCanvas($('#recto_canvas_wrapper'));
-    }
-    else {
-        deactivateCanvas($('#recto_canvas_wrapper'));
-    }
-
-    if (verso.url) {
-        activateCanvas($('#verso_canvas_wrapper'));
-    }
-    else {
-        deactivateCanvas($('#verso_canvas_wrapper'));
-    }
-
+    deactivateCanvas($('#recto_canvas_wrapper'));
+    deactivateCanvas($('#verso_canvas_wrapper'));
+    if (recto.url) activateCanvas($('#recto_canvas_wrapper'));
+    if (verso.url) activateCanvas($('#verso_canvas_wrapper'));
     draw();
 });
 
 $('#cut_button').click(function(){
-    $('.active').removeClass('active');
-    $(this).addClass('active');
-    $('#clear_polygon').removeClass('inactive');
-    mode = "cut";
+    action = "cut";
+    updateModeButtons();
     if (recto.img) recto.img.mask = recto.polygon;
     if (verso.img) verso.img.mask = verso.polygon;
     drawMasks();
 });
 
-$('#crop_button').click(function(){
-    $('.active').removeClass('active');
-    $(this).addClass('active');
-    $('#clear_polygon').addClass('inactive');
-    mode = "crop";
-    if (recto.img) recto.img.mask = recto.cropbox;
-    if (verso.img) verso.img.mask = verso.cropbox;
+$('#cropcut_button').click(function(){
+    if (mode == "crop") {
+        // switch to cut mode
+        mode = "cut";
+        if (polygon.length == 0) {
+            action = "cut";
+        }
+        $('#cropcut_button img').attr('src', '../imgs/symbol_cut.png');
+    } else {
+        // switch to crop mode
+        mode = "crop";
+        action = "move";
+        $('#cropcut_button img').attr('src', '../imgs/symbol_crop.png');
+    }
+    updateModeButtons();
     drawMasks();
 });
 
 $('#move_button').click(function(){
-    $('.active').removeClass('active');
-    $(this).addClass('active');
-    $('#clear_polygon').addClass('inactive');
-    mode = "move";
+    action = "move";
+    updateModeButtons();
 });
 
 $('#rotate_button').click(function(){
-    $('.active').removeClass('active');
-    $(this).addClass('active');
-    $('#clear_polygon').addClass('inactive');
-    mode="rotate";
+    action ="rotate";
+    updateModeButtons();
 })
+
+$('#undo_button').click(function(){
+    polygon.pop();
+    drawMasks();
+});
 
 
 /*ipcRenderer.on('upload-image-path', (event, filepath) => {
