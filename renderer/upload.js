@@ -542,7 +542,7 @@ $('#load_button').click(function(){
             "rectoURL": recto.url,
             "versoURL": verso.url,
             "recto": true,
-            "name": "Test",
+            "name": $('#name').val(),
             "rotation": 0,
         };
         ipcRenderer.send('server-upload-ready', fragment_data);
