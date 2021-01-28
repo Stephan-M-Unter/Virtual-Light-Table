@@ -18,7 +18,7 @@ let mainProps = {
     width: 1024,
     height: 800,
     //frame: false,
-    icon: './imgs/icons/png/logo.png',
+    //icon: './imgs/icons/png/logo.png',
     show: false,
     webPreferences: {
         nodeIntegration: true
@@ -28,7 +28,7 @@ let mainProps = {
 let loadProps = {
     width: 1200,
     height: 800,
-    icon: './imgs/icons/png/logo.png',
+    //icon: './imgs/icons/png/logo.png',
     show: false,
     webPreferences: {
         nodeIntegration: true
@@ -38,7 +38,7 @@ let loadProps = {
 let uploadProps = {
     width: 1500,
     height: 1000,
-    icon: './imgs/icons/png/logo.png',
+    //icon: './imgs/icons/png/logo.png',
     show: false,
     webPreferences: {
         nodeIntegration: true
