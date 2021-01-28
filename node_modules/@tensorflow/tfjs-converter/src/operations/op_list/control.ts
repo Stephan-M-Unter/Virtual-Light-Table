@@ -1,5 +1,3 @@
-import {OpMapper} from '../types';
-
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -16,8 +14,19 @@ import {OpMapper} from '../types';
  * limitations under the License.
  * =============================================================================
  */
+import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
+  {
+    'tfOpName': 'EmptyTensorList',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'elementShape', 'type': 'shape'},
+      {'start': 1, 'name': 'maxNumElements', 'type': 'number'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
   {
     'tfOpName': 'LoopCond',
     'category': 'control',
@@ -352,7 +361,8 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'tensor', 'type': 'tensor'},
     ],
-    'attrs':
-        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
-  },
+    'attrs': [
+      {'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}
+    ]
+  }
 ];

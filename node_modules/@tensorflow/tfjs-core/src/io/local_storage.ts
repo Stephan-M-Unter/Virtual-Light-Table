@@ -165,12 +165,21 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.setItem(
             this.keys.weightData,
             arrayBufferToBase64String(modelArtifacts.weightData));
-        this.LS.setItem(this.keys.modelMetadata, JSON.stringify({
+        const result: ModelArtifacts = {
           format: modelArtifacts.format,
           generatedBy: modelArtifacts.generatedBy,
-          convertedBy: modelArtifacts.convertedBy,
-          userDefinedMetadata: modelArtifacts.userDefinedMetadata
-        }));
+          convertedBy: modelArtifacts.convertedBy
+        };
+        if (modelArtifacts.signature != null) {
+          result.signature = modelArtifacts.signature;
+        }
+        if (modelArtifacts.userDefinedMetadata != null) {
+          result.userDefinedMetadata = modelArtifacts.userDefinedMetadata;
+        }
+        if (modelArtifacts.modelInitializer != null) {
+          result.modelInitializer = modelArtifacts.modelInitializer;
+        }
+        this.LS.setItem(this.keys.modelMetadata, JSON.stringify(result));
 
         return {modelArtifactsInfo};
       } catch (err) {
@@ -240,7 +249,15 @@ export class BrowserLocalStorage implements IOHandler {
       out.format = metadata['format'];
       out.generatedBy = metadata['generatedBy'];
       out.convertedBy = metadata['convertedBy'];
-      out.userDefinedMetadata = metadata['userDefinedMetadata'];
+      if (metadata['signature'] != null) {
+        out.signature = metadata['signature'];
+      }
+      if (metadata['userDefinedMetadata'] != null) {
+        out.userDefinedMetadata = metadata['userDefinedMetadata'];
+      }
+      if (metadata['modelInitializer'] != null) {
+        out.modelInitializer = metadata['modelInitializer'];
+      }
     }
 
     // Load weight data.

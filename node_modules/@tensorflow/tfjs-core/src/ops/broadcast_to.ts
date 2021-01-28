@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
-import {KernelBackend} from '../backends/backend';
 import {ENGINE} from '../engine';
-import {BroadcastTo, BroadCastToAttrs, BroadcastToInputs} from '../kernel_names';
+import {Tile, TileAttrs, TileInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -80,14 +79,11 @@ function broadcastTo_<R extends Rank>(
     return clone(input) as Tensor<R>;
   }
 
-  const forward = (backend: KernelBackend) => backend.tile(input, reps);
-
-  const inputs: BroadcastToInputs = {x: input};
-  const attrs: BroadCastToAttrs = {shape, inputShape};
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, null /* grad */,
-             BroadcastTo, attrs as unknown as NamedAttrMap) as Tensor<R>;
+  // TODO call broadcastTo kernel directly once backends implement broadcstTo
+  const inputs: TileInputs = {x: input};
+  const attrs: TileAttrs = {reps};
+  return ENGINE.runKernel(
+      Tile, inputs as {} as NamedTensorMap, attrs as unknown as NamedAttrMap);
 }
 
 export const broadcastTo = op({broadcastTo_});
