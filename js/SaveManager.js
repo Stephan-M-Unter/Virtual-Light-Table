@@ -39,7 +39,7 @@ class SaveManager {
         let filename = "VLT_"+date+"_"+time;
 
         // create save dialog
-        let filepath = dialog.showSaveDialog({
+        let filepath = dialog.showSaveDialogSync({
             title: "Save Current Table Configuration",
             defaultPath: path.join(__dirname+"/../saves/", filename),
             filters: [{
@@ -47,6 +47,12 @@ class SaveManager {
                 extensions: ['vlt']
             }]
         });
+        // TODO: man könnte hier auch mit dialog.showSaveDialog arbeiten; die Parameter sind
+        // die gleichen, aber der main process würde nicht durch den save dialog blockiert
+        // werden. Als Ergebnis gibt es ein promise-Object, das dann vermutlich durch eine
+        // callback-Funktion abgefangen werden müssen. Quelle: https://www.electronjs.org/docs/api/dialog
+
+        console.log(filepath);
 
         if (filepath) {
             // save current status of canvasManager to a .vtl-file

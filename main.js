@@ -81,7 +81,7 @@ function timestamp(){
 
 function sendMessage(recipient_window, message, data=null) {
     if (development) {console.log(timestamp() + " " + "Sending code ["+message+"] to client");}
-    recipient_window.webContents.send(message, data);
+    recipient_window.send(message, data);
 }
 
 
@@ -145,7 +145,7 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
         filesNames.forEach(name => {
             savefiles[name] = saveManager.loadSaveFile(folder + "/" + name);
         });
-        event.sender.webContents.send('return-save-files', savefiles);
+        event.sender.send('return-save-files', savefiles);
     });
 });
 
