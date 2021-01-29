@@ -1,137 +1,233 @@
 /*
-    The UI Controller is the controller instance for the whole view; it controls all individual
-    view elements, e.g. the canvas stage or the sidebar, such that changes can be updated in
-    all places accordingly. Mainly used for communicaton with the server process and for distribution
-    of signals which are relevant for multiple view elements.
+    The UI Controller is the controller instance
+    for the whole view; it controls all individual
+    view elements, e.g. the canvas stage or the sidebar,
+    such that changes can be updated in all places
+    accordingly. Mainly used for communicaton with
+    the server process and for distribution of
+    signals which are relevant for multiple view elements.
 */
-const { Sidebar } = require("./Sidebar");
-const { Stage } = require("./Stage");
-const { AnnotationPopup } = require("./AnnotationPopup");
-const { ipcRenderer } = require("electron");
-const { Util } = require('./Util');
+const {Sidebar} = require('./Sidebar');
+const {Stage} = require('./Stage');
+const {AnnotationPopup} = require('./AnnotationPopup');
+const {ipcRenderer} = require('electron');
 
+/**
+ * TODO
+ */
 class UIController {
-    constructor(DOMElement, width, height){
-        this.stage = new Stage(this, DOMElement, width, height);
-        this.sidebar = new Sidebar(this);
-        this.annotationPopup = new AnnotationPopup(this);
+  /**
+     * TODO
+     * @param {*} DOMElement
+     * @param {*} width
+     * @param {*} height
+     */
+  constructor(DOMElement, width, height) {
+    this.stage = new Stage(this, DOMElement, width, height);
+    this.sidebar = new Sidebar(this);
+    this.annotationPopup = new AnnotationPopup(this);
+  }
+
+  /**
+   * TODO
+   * @param {*} message
+   * @param {*} data
+   */
+  sendToServer(message, data) {
+    if (data) {
+      ipcRenderer.send(message, data);
+    } else {
+      ipcRenderer.send(message);
     }
+  }
 
-    sendToServer(message, data){
-        if (data) {
-            ipcRenderer.send(message, data);
-        } else {
-            ipcRenderer.send(message);
-        }
+  /**
+   * TODO
+   * @param {*} id
+   */
+  sendAnnotation(id) {
+    if (id) {
+      this.annotationPopup.updateAnnotation(id);
+    } else {
+      this.annotationPopup.addAnnotation();
     }
-    
-    sendAnnotation(id){
-        if (id) {
-            this.annotationPopup.updateAnnotation(id);
-        } else {
-            this.annotationPopup.addAnnotation();
-        }
-    }
-    deleteAnnotation(annotationElement){
+  }
+
+  /**
+   * TODO
+   * @param {*} annotationElement
+   */
+  deleteAnnotation(annotationElement) {
+
+  }
+
+  /**
+   * TODO
+   * @param {*} annotationElement
+   */
+  updateAnnotation(annotationElement) {
+
+  }
+
+  /**
+   * TODO
+   */
+  toggleAnnotSubmitButton() {
+    this.annotationPopup.toggleAnnotSubmitButton();
+  }
+
+  /**
+   * TODO: send selection signal to all view elements necessary
+   * @param {*} fragmentId
+   */
+  selectFragment(fragmentId) {
+    this.stage.selectFragment(fragmentId);
+    this.sidebar.selectFragment(fragmentId);
+  }
+
+  /**
+   * TODO: send deselection signal to all view elements necessary
+   * @param {*} fragmentId
+   */
+  deselectFragment(fragmentId) {
+    this.stage.deselectFragment(fragmentId);
+    this.sidebar.deselectFragment(fragmentId);
+  }
+
+  /**
+   * TODO: inform all necessary view elements to clear their selection lists
+   */
+  clearSelection() {
+    this.stage.clearSelection();
+    this.sidebar.clearSelection();
+  }
+
+  /**
+   * TODO
+   * @param {*} fragmentId
+   */
+  highlightFragment(fragmentId) {
+    this.stage.highlightFragment(fragmentId);
+    this.sidebar.highlightFragment(fragmentId);
+  }
+
+  /**
+   * TODO
+   * @param {*} fragmentId
+   */
+  unhighlightFragment(fragmentId) {
+    try {
+      this.stage.unhighlightFragment(fragmentId);
+      this.sidebar.unhighlightFragment(fragmentId);
+    } catch (err) {
 
     }
-    updateAnnotation(annotationElement){
+  }
 
+  /**
+   * TODO: update sidebar fragment list according to fragments on stage
+   */
+  updateFragmentList() {
+    const fragmentList = this.stage.getFragmentList();
+    const selectedList = this.stage.getSelectedList();
+    this.sidebar.updateFragmentList(fragmentList, selectedList);
+  }
+
+  /**
+   * TODO: ask for delete confirmation; if approved, send removal
+   * signal to stage and update sidebar fragment list accordingly
+   */
+  removeFragments() {
+    const confirmation = confirm('Do you really want to remove this' +
+        'fragment/these fragments from the light table? (the original' +
+        'files will not be deleted)');
+
+    if (confirmation) {
+      this.stage.deleteSelectedFragments();
+      this.updateFragmentList();
     }
+  }
 
-    toggleAnnotSubmitButton(){ this.annotationPopup.toggleAnnotSubmitButton(); }
+  /**
+   * TODO
+   * @param {*} id
+   */
+  removeFragment(id) {
+    const confirmation = confirm('Do you really want to remove this fragment' +
+            'from the light table? (the original files will not be deleted)');
 
-    // send selection signal to all view elements necessary
-    selectFragment(fragmentId){
-        this.stage.selectFragment(fragmentId);
-        this.sidebar.selectFragment(fragmentId);
+    if (confirmation) {
+      this.stage.removeFragment(id);
+      this.updateFragmentList();
     }
-    // send deselection signal to all view elements necessary
-    deselectFragment(fragmentId){
-        this.stage.deselectFragment(fragmentId);
-        this.sidebar.deselectFragment(fragmentId);
-    }
-    // inform all necessary view elements to clear their selection lists
-    clearSelection(){
-        this.stage.clearSelection();
-        this.sidebar.clearSelection();
-    }
+  }
 
-    highlightFragment(fragmentId) {
-        this.stage.highlightFragment(fragmentId);
-        this.sidebar.highlightFragment(fragmentId);
-    }
-    unhighlightFragment(fragmentId) {
-        try {
-            this.stage.unhighlightFragment(fragmentId);
-            this.sidebar.unhighlightFragment(fragmentId);
-        } catch(err) {
+  /**
+   * TODO
+   * @param {*} fragmentData
+   */
+  addFragment(fragmentData) {
+    this.stage._loadFragments({'upload': fragmentData});
+    this.updateFragmentList();
+    $('.arrow.down').removeClass('down');
+    $('.expanded').removeClass('expanded');
+    // second, rotate arrow down and expand clicked segment
+    $('#fragment_list').find('.arrow').addClass('down');
+    $('#fragment_list').addClass('expanded');
+  }
 
-        }
-    }
+  /**
+   * TODO
+   * @return {*}
+   */
+  getCanvasCenter() {
+    return this.stage.getCenter();
+  }
 
-    // update sidebar fragment list according to fragments on stage
-    updateFragmentList(){
-        let fragmentList = this.stage.getFragmentList();
-        let selectedList = this.stage.getSelectedList();
-        this.sidebar.updateFragmentList(fragmentList, selectedList);
-    }
+  /**
+   * TODO: reroute new stage/fragment data to stage, then update sidebar
+   * @param {*} data
+   */
+  loadScene(data) {
+    this.annotationPopup.loadAnnotations(data.annots);
+    this.stage.loadScene(data);
+    this.updateFragmentList();
+  }
 
-    // ask for delete confirmation; if approved, send removal signal to stage and update
-    // sidebar fragment list accordingly
-    removeFragments(){
-        let confirmation = confirm("Do you really want to remove this fragment/these fragments from the light table? (the original files will not be deleted)");
+  /**
+   * TODO
+   * @param {*} id
+   */
+  centerToFragment(id) {
+    // get fragment center coordinates
+    // move panel such that fragment center is in center of window
 
-        if (confirmation) {
-            this.stage.deleteSelectedFragments();
-            this.updateFragmentList();
-        }
-    }
-    removeFragment(id){
-        let confirmation = confirm("Do you really want to remove this fragment from the light table? (the original files will not be deleted)");
+    const stageC = this.stage.getCenter();
+    const fragmentC = this.stage.getFragmentList()[id].getPosition();
 
-        if (confirmation){
-            this.stage.removeFragment(id);
-            this.updateFragmentList();
-        }
-    }
-    addFragment(fragment_data) {
-        this.stage._loadFragments({"upload":fragment_data});
-        this.updateFragmentList();
-        $('.arrow.down').removeClass('down');
-        $('.expanded').removeClass('expanded');
-        // second, rotate arrow down and expand clicked segment
-        $('#fragment_list').find(".arrow").addClass("down");
-        $('#fragment_list').addClass("expanded");
-    }
+    const deltaX = stageC.x - fragmentC.x;
+    const deltaY = stageC.y - fragmentC.y;
 
-    getCanvasCenter(){
-        return this.stage.getCenter();
-    }
+    this.stage.moveStage(deltaX, deltaY);
+  }
 
-    // reroute new stage/fragment data to stage, then update sidebar
-    loadScene(data) {
-        this.annotationPopup.loadAnnotations(data.annots);
-        this.stage.loadScene(data);
-        this.updateFragmentList();
-    }
+  // Getter Methods
 
-    centerToFragment(id){
-        // get fragment center coordinates
-        // move panel such that fragment center is in center of window
+  /**
+   * TODO
+   * @return {*}
+   */
+  getStage() {
+    return this.stage;
+  }
 
-        let stage_c = this.stage.getCenter();
-        let fragment_c = this.stage.getFragmentList()[id].getPosition();
-
-        let delta_x = stage_c.x - fragment_c.x;
-        let delta_y = stage_c.y - fragment_c.y;
-
-        this.stage.moveStage(delta_x, delta_y);
-    }
-
-    // Getter Methods
-    getStage(){ return this.stage; }
-    getSidebar(){ return this.sidebar; }
+  /**
+   * TODO
+   * @return {*}
+   */
+  getSidebar() {
+    return this.sidebar;
+  }
 }
 
 module.exports.UIController = UIController;

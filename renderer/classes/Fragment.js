@@ -1,168 +1,281 @@
+/**
+ * TODO
+ */
 class Fragment {
-    constructor(controller, stage_object, id, event_data){
-        this.controller = controller;
-        this.id = id;
-        this.isRecto = event_data.item.properties.recto;
-        this.urlRecto = event_data.item.properties.rectoURL;
-        this.urlVerso = event_data.item.properties.versoURL;
-        this.isSelected = false;
-        this.bothSidesLoaded = false;
-        this.name = event_data.item.properties.name;
+  /**
+     * TODO
+     * @param {*} controller
+     * @param {*} stageObject
+     * @param {*} id
+     * @param {*} eventData
+     */
+  constructor(controller, stageObject, id, eventData) {
+    this.controller = controller;
+    this.id = id;
+    this.isRecto = eventData.item.properties.recto;
+    this.urlRecto = eventData.item.properties.rectoURL;
+    this.urlVerso = eventData.item.properties.versoURL;
+    this.isSelected = false;
+    this.bothSidesLoaded = false;
+    this.name = eventData.item.properties.name;
 
-        this.framework = stage_object;
-        this.stage = stage_object.stage; // stage where the fragment will be shown
+    this.framework = stageObject;
+    this.stage = stageObject.stage; // stage where the fragment will be shown
 
-        if (this.isRecto ? this.imageRecto = this._createImage(event_data, id) : this.imageVerso = this._createImage(event_data, id));
+    if (this.isRecto ? this.imageRecto = this._createImage(eventData, id) :
+        this.imageVerso = this._createImage(eventData, id));
 
-        this.container = this._createContainer(event_data.item.properties, id);
-        this.container.regX = this.getImage().image.width / 2;
-        this.container.regY = this.getImage().image.height / 2;
+    this.container = this._createContainer(eventData.item.properties, id);
+    this.container.regX = this.getImage().image.width / 2;
+    this.container.regY = this.getImage().image.height / 2;
 
-        if (this.isRecto ? this.container.addChild(this.imageRecto) : this.container.addChild(this.imageVerso));
+    if (this.isRecto ? this.container.addChild(this.imageRecto) :
+        this.container.addChild(this.imageVerso));
+  }
+
+  /**
+   * TODO
+   * @param {*} eventData
+   * @param {*} id
+   * @return {*}
+   */
+  _createImage(eventData, id) {
+    const image = new createjs.Bitmap(eventData.result);
+
+    if (this.isRecto) {
+      image.name = 'Image - Recto';
+    } else {
+      image.name = 'Image - Verso';
     }
-    
-    _createImage(event_data, id){
-        var image = new createjs.Bitmap(event_data.result);
+    image.cursor = 'pointer';
+    image.x = 0;
+    image.y = 0;
+    image.id = id;
+    image.scale = this.stage.scaling / 100;
 
-        if (this.isRecto){
-            image.name = "Image - Recto";
-        } else {
-            image.name = "Image - Verso";
-        }
-        image.cursor = "pointer";
-        image.x = 0;
-        image.y = 0;
-        image.id = id;
-        image.scale = this.stage.scaling / 100;
+    return image;
+  }
 
-        return image;
+  /**
+   * TODO
+   * @param {*} imageProperties
+   * @param {*} id
+   * @return {*}
+   */
+  _createContainer(imageProperties, id) {
+    const container = new createjs.Container();
+
+    container.rotation = imageProperties.rotation;
+
+    if (imageProperties.xPos && imageProperties.yPos) {
+      container.x = imageProperties.xPos;
+      // * (this.stage.scaling / 100) + this.stage.offset.x;
+      container.y = imageProperties.yPos;
+      // * (this.stage.scaling / 100) + this.stage.offset.y;
+    } else {
+      const canvasSize = this.controller.getCanvasCenter();
+      container.x = canvasSize.x;
+      container.y = canvasSize.y;
     }
-    _createContainer(image_properties, id){
-        var container = new createjs.Container();
+    container.name = 'Container';
+    container.id = id;
 
-        container.rotation = image_properties.rotation;
+    return container;
+  }
 
-        if (image_properties.xPos && image_properties.yPos) {
-            container.x = image_properties.xPos;// * (this.stage.scaling / 100) + this.stage.offset.x;
-            container.y = image_properties.yPos;// * (this.stage.scaling / 100) + this.stage.offset.y;
-        } else {
-            let canvas_size = this.controller.getCanvasCenter();
-            container.x = canvas_size.x;
-            container.y = canvas_size.y;
-        }
-        container.name = "Container";
-        container.id = id;
+  /**
+   * TODO
+   * @param {*} distX
+   * @param {*} distY
+   */
+  moveByDistance(distX, distY) {
+    this.container.x += distX;
+    this.container.y += distY;
+  }
 
-        return container;
-    }
+  /**
+   * TODO
+   * @param {*} x
+   * @param {*} y
+   */
+  moveToPixel(x, y) {
+    this.container.x = x;
+    this.container.y = y;
+  }
 
-    moveByDistance(dist_x, dist_y){
-        this.container.x += dist_x;
-        this.container.y += dist_y;
-    }
-    moveToPixel(x, y){
-        this.container.x = x;
-        this.container.y = y;
-    }
+  /**
+   * TODO
+   * @param {*} targetAngle
+   */
+  rotateToAngle(targetAngle) {
+    this.container.rotation = targetAngle%360;
+  }
 
-    rotateToAngle(target_angle){
-        this.container.rotation = target_angle%360;
-    }
-    rotateByAngle(delta_angle){
-        this.rotateToAngle(this.container.rotation + delta_angle);
-    }
-    scaleToValue(scaling){
-        this.container.scale = scaling;
-    }
-    flip(){
-        this.isRecto = !this.isRecto;
-        if (this.bothSidesLoaded){
-            // both sides have already been loaded to the application
-            this.container.removeChild(this.image);
-            if (this.isRecto ? this.image = this.image_recto : this.image = this.image_verso);
-            this.container.addChild(this.image);
-        } else {
-            // second side still to be loaded
-            let loadqueue = new createjs.LoadQueue();
-            loadqueue.addEventListener("fileload", (event) => {
-                let second_image = this._createImage(event, this.id);
+  /**
+   * TODO
+   * @param {*} deltaAngle
+   */
+  rotateByAngle(deltaAngle) {
+    this.rotateToAngle(this.container.rotation + deltaAngle);
+  }
 
-                if (this.isRecto) {
-                    this.imageRecto = second_image;
-                    this.framework.registerImageEvents(this.imageRecto);
-                    this.container.removeChild(this.imageVerso);
-                    this.container.addChild(this.imageRecto);
-                } else {
-                    this.imageVerso = second_image;
-                    this.framework.registerImageEvents(this.imageVerso);
-                    this.container.removeChild(this.imageRecto);
-                    this.container.addChild(this.imageVerso);
-                }
-                this.container.regX = second_image.image.width / 2;
-                this.container.regY = second_image.image.height / 2;
-                this.framework._updateBb();
-                this.stage.update();
-            });
-            let url;
-            if (this.isRecto ? url=this.urlRecto : url=this.urlVerso);
-            loadqueue.loadFile(url);
-            loadqueue.load();
-        }
+  /**
+   * TODO
+   * @param {*} scaling
+   */
+  scaleToValue(scaling) {
+    this.container.scale = scaling;
+  }
 
-        this.controller.updateFragmentList();
+  /**
+   * TODO
+   */
+  flip() {
+    this.isRecto = !this.isRecto;
+    if (this.bothSidesLoaded) {
+      // both sides have already been loaded to the application
+      this.container.removeChild(this.image);
+      if (this.isRecto ? this.image = this.image_recto :
+            this.image = this.image_verso);
+      this.container.addChild(this.image);
+    } else {
+      // second side still to be loaded
+      const loadqueue = new createjs.LoadQueue();
+      loadqueue.addEventListener('fileload', (event) => {
+        const secondImage = this._createImage(event, this.id);
 
-        // Möglichkeit 2: Bild existiert
-        // dann einfach bilder austauschen
-        // flag umdrehen
-    }
-    
-    getContainer(){ return this.container; }
-    getImage(){ 
         if (this.isRecto) {
-            return this.imageRecto;
+          this.imageRecto = secondImage;
+          this.framework.registerImageEvents(this.imageRecto);
+          this.container.removeChild(this.imageVerso);
+          this.container.addChild(this.imageRecto);
         } else {
-            return this.imageVerso;
+          this.imageVerso = secondImage;
+          this.framework.registerImageEvents(this.imageVerso);
+          this.container.removeChild(this.imageRecto);
+          this.container.addChild(this.imageVerso);
         }
+        this.container.regX = secondImage.image.width / 2;
+        this.container.regY = secondImage.image.height / 2;
+        this.framework._updateBb();
+        this.stage.update();
+      });
+      let url;
+      if (this.isRecto ? url=this.urlRecto : url=this.urlVerso);
+      loadqueue.loadFile(url);
+      loadqueue.load();
     }
-    getImageURL(){
-        if (this.isRecto) {
-            return this.urlRecto;
-        } else {
-            return this.urlVerso;
-        }
+
+    this.controller.updateFragmentList();
+
+    // Möglichkeit 2: Bild existiert
+    // dann einfach bilder austauschen
+    // flag umdrehen
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getContainer() {
+    return this.container;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getImage() {
+    if (this.isRecto) {
+      return this.imageRecto;
+    } else {
+      return this.imageVerso;
     }
-    getData(){
-        return {
-            "name":this.name,
-            "recto":this.isRecto,
-            "rectoURL":this.urlRecto,
-            "versoURL":this.urlVerso,
-            "xPos":this.container.x,
-            "yPos":this.container.y,
-            "rotation":this.container.rotation
-        };
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getImageURL() {
+    if (this.isRecto) {
+      return this.urlRecto;
+    } else {
+      return this.urlVerso;
     }
-    getName(){
-        return this.name;
-    }
-    getPosition(){
-        return {x:this.container.x, y:this.container.y};
-    }
-    getX(){
-        return this.container.x;
-    }
-    getY(){
-        return this.container.y;
-    }
-    getUnscaledX(){
-        return this.container.x / this.container.scale;
-    }
-    getUnscaledY(){
-        return this.container.y / this.container.scale;
-    }
-    getRotation(){
-        return this.container.rotation;
-    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getData() {
+    return {
+      'name': this.name,
+      'recto': this.isRecto,
+      'rectoURL': this.urlRecto,
+      'versoURL': this.urlVerso,
+      'xPos': this.container.x,
+      'yPos': this.container.y,
+      'rotation': this.container.rotation,
+    };
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getName() {
+    return this.name;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getPosition() {
+    return {x: this.container.x, y: this.container.y};
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getX() {
+    return this.container.x;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getY() {
+    return this.container.y;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getUnscaledX() {
+    return this.container.x / this.container.scale;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getUnscaledY() {
+    return this.container.y / this.container.scale;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getRotation() {
+    return this.container.rotation;
+  }
 }
 
 module.exports.Fragment = Fragment;

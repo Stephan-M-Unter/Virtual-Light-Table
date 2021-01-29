@@ -1,6 +1,11 @@
+/**
+ * TODO
+ */
 class Scaler {
-    constructor(){
-
+    /**
+     * TODO
+     */
+    constructor() {
     }
 
     static zoom = {
