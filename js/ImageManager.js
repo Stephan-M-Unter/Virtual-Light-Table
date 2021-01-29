@@ -22,7 +22,7 @@ class ImageManager {
     }
 
     selectImageFromFilesystem() {
-        let filepath = dialog.showOpenDialog({
+        let filepath = dialog.showOpenDialogSync({
             title: "Select Image",
             filters: [{
                 name: "Image Files",
@@ -30,6 +30,10 @@ class ImageManager {
             }],
             properties: []
         });
+        // TODO: man könnte hier auch mit dialog.showOpenDialog arbeiten; die Parameter sind
+        // die gleichen, aber der main process würde nicht durch den open dialog blockiert
+        // werden. Als Ergebnis gibt es ein promise-Object, das dann vermutlich durch eine
+        // callback-Funktion abgefangen werden müssen. Quelle: https://www.electronjs.org/docs/api/dialog
 
         if (filepath) {
             return filepath[0];
