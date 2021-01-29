@@ -10,7 +10,9 @@
   "author": "Stephan M. Unter",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^11.2.1"
+    "electron": "^11.2.1",
+    "eslint": "^7.18.0",
+    "eslint-config-google": "^0.14.0"
   },
   "dependencies": {
     "dialogs": "^2.0.1",
