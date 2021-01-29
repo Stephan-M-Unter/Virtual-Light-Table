@@ -65,8 +65,9 @@ function timestamp(){
     let second = now.getSeconds().toString().padStart(2,"0");
     let minute = now.getMinutes().toString().padStart(2,"0");
     let hour = now.getHours().toString().padStart(2,"0");
-    let day = now.getDay().toString().padStart(2,"0");
-    let month = now.getMonth().toString().padStart(2,"0");
+    let day = now.getDate().toString().padStart(2,"0");
+    let month = now.getMonth()+1; // zero-based value, 0 is first month of the year
+    month = month.toString().padStart(2,"0");
     let year = now.getFullYear();
     return "["+day+"/"+month+"/"+year+" "+hour+":"+minute+":"+second+"]";
 }
