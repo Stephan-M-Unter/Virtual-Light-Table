@@ -338,17 +338,17 @@ function rotateImage(event, imgBack, img, side) {
  * @param {*} side
  */
 function moveImage(event, imgBack, img, side) {
-  imgBack.x = img.x = event.stageX - imgBack.offsetX;
-  imgBack.y = img.y = event.stageY - imgBack.offsetY;
+  imgBack.x = img.x = event.stageX - imgBack.offset_x;
+  imgBack.y = img.y = event.stageY - imgBack.offset_y;
 
   if (side == 'rt') {
     recto.stage.update();
-    recto.offsetX = imgBack.x;
-    recto.offsetY = imgBack.y;
+    recto.offset_x = imgBack.x;
+    recto.offset_y = imgBack.y;
   } else {
     verso.stage.update();
-    verso.offsetX = imgBack.x;
-    verso.offsetY = imgBack.y;
+    verso.offset_x = imgBack.x;
+    verso.offset_y = imgBack.y;
   }
 }
 
