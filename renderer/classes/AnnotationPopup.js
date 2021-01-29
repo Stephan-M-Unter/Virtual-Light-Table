@@ -7,7 +7,7 @@ class AnnotationPopup {
         this.annotationCounter = 0;
     }
 
-    _createAnnotationElement(id, text, editor, time){
+    _createAnnotationElement(id, text, editor, timestamp){
         // create elements
         let annotation_element = document.createElement('div');
         annotation_element.setAttribute('class', 'annotation');
@@ -26,7 +26,7 @@ class AnnotationPopup {
         annot_signature_element.setAttribute('class', 'annot_sig');
 
         // fill in the values
-        time = document.createTextNode(Util.convertTime(time));
+        let time = document.createTextNode(timestamp);
         text = document.createTextNode($.trim(text));
         editor = document.createTextNode($.trim(editor));
 
@@ -121,7 +121,7 @@ class AnnotationPopup {
         let time = new Date().getTime();
         let timestamp = Util.convertTime(time);
 
-        // clear fields
+        // clear input fields
         this._clearAnnotationForm();
         
         // create annotation element
