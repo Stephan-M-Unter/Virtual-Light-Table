@@ -19,11 +19,9 @@ class UIController {
   /**
      * TODO
      * @param {*} DOMElement
-     * @param {*} width
-     * @param {*} height
      */
-  constructor(DOMElement, width, height) {
-    this.stage = new Stage(this, DOMElement, width, height);
+  constructor(DOMElement) {
+    this.stage = new Stage(this, DOMElement);
     this.sidebar = new Sidebar(this);
     this.annotationPopup = new AnnotationPopup(this);
   }

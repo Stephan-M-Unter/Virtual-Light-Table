@@ -2,22 +2,26 @@ const {Fragment} = require('./Fragment');
 const {Scaler} = require('./Scaler');
 
 /**
- * TODO
+ * TODO The Stage Class holds methods for everyting happening
+ * on the (main) stage of the VLT.
  */
 class Stage {
   /**
-     * TODO
-     * @param {*} controller
-     * @param {*} DOMelement
-     * @param {*} width
-     * @param {*} height
+     * Stage Constructor. Creates a new stage from scratch and
+     * sets sets default values for necessary settings.
+     *
+     * @param {*} controller Instance of the UI Controller class
+     * which is reponsible for the communication between application
+     * components.
+     * @param {*} DOMelement Reference to the HTML canvas element the
+     * new stage will setup upon.
      */
-  constructor(controller, DOMelement, width, height) {
+  constructor(controller, DOMelement) {
     // create new stage and set to given DOMelement
     this.controller = controller;
     this.stage = new createjs.Stage(DOMelement);
-    this.stage.canvas.width = this.width = width;
-    this.stage.canvas.height = this.height = height;
+    this.stage.canvas.width = this.width = window.innerWidth;
+    this.stage.canvas.height = this.height = window.innerHeight;
     this.stage.enableMouseOver();
     createjs.Touch.enable(this.stage);
 
@@ -33,7 +37,7 @@ class Stage {
       'vertical': null,
     };
 
-    this.background = this._createBackground(width, height);
+    this.background = this._createBackground();
     this.stage.addChild(this.background);
 
     // selection box
@@ -47,20 +51,19 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @param {*} width
-   * @param {*} height
-   * @return {*}
+   * Creates nearly invisible background element necessary for
+   * mouse interactions. In order to register mouse events, the
+   * background is set to a minimal transparency.
+   * @return {createjs.Shape} Returns the background shape object.
    */
-  _createBackground(width, height) {
-    // create (almost) invisible background element to
-    // allow for mouse interaction; pixels have to be barely
-    // visible
+  _createBackground() {
     const background = new createjs.Shape();
     background.graphics.beginFill('#333333')
-        .drawRect(0, 0, width, height);
+        .drawRect(0, 0, this.width, this.height);
     background.alpha = 0.01;
     background.name = 'background';
+
+    // Interactions on Background
     background.on('mousedown', (event) => {
       this.controller.clearSelection();
       this.mouseClickStart = {x: event.stageX, y: event.stageY};
@@ -76,25 +79,33 @@ class Stage {
   }
 
   /**
-   * TODO
+   * Removes all objects from the table. First, all registered elements in
+   * "this.fragmentList" are removed from the stage, then the selection
+   * and the fragmentList itself are cleared. Finally, the stage is updated
+   * to display the changes onscreen.
    */
   _clearTable() {
+    // remove fragments from canvas
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         this.stage.removeChild(this.fragmentList[idx].getContainer());
       }
     }
-
     this.clearSelection();
     this._clearFragmentList();
     this.update();
   }
 
   /**
-   * TODO
+   * Function to load a new fragment scene from data. First, the stage
+   * is cleared, then both variables for the stage configuration (like
+   * scalingfactors, offset etc.) are set (or set to default values),
+   * followed by adding the saved fragments.
+   * Finally, the stage is updated to display changes onscreen.
    * @param {*} data
    */
   loadScene(data) {
+    // IDEA Ask users if they want to save yet unsaved changes?
     this._clearTable();
 
     if (data && data.stage) {
@@ -111,19 +122,28 @@ class Stage {
   }
 
   /**
-   * TODO
+   * Loads Stage settings from input settings object. If no settings
+   * are provided, loads default values.
    * @param {*} settings
    */
   _loadStageConfiguration(settings) {
-    if (settings && settings.offset ? this.stage.offset = settings.offset :
-        this.stage.offset = {x: 0, y: 0});
-    // if (this.stage.scaling ? this.stage.scaling = settings.scaling :
-    //      this.stage.scaling = 100);
+    // default values
+    this.stage.offset = {x: 0, y: 0};
+    this.stage.scaling = 100;
+
+    if (settings) {
+      if (settings.offset) {
+        this.stage.offset = settings.offset;
+      }
+      if (settings.scaling) {
+        this.stage.scaling = settings.scaling;
+      }
+    }
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Getter Method for stage settings.
+   * @return {Object} Contains '.offset' and '.scaling'.
    */
   getData() {
     return {
@@ -133,12 +153,15 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Getter Method for full stage configuration, i.e. stage settings
+   * and loaded fragments.
+   * @return {Object} Contains '.stage' with stage settings and
+   * '.fragments' with loaded fragments.
    */
   getConfiguration() {
     const stageData = this.getData();
     const itemsData = {};
+
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         itemsData[idx] = this.fragmentList[idx].getData();
@@ -152,24 +175,25 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Getter Method for this.fragmentList.
+   * @return {Object} Returns current list of fragments.
    */
   getFragmentList() {
     return this.fragmentList;
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Getter Method for this.selectedList.
+   * @return {Object} Return current list of selected items.
    */
   getSelectedList() {
     return this.selectedList;
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Getter Method for stage center.
+   * @return {Object} Returns object with '.x' and '.y' being
+   * the coordinates of the stage's center.
    */
   getCenter() {
     const cx = this.width / 2;
@@ -178,7 +202,8 @@ class Stage {
   }
 
   /**
-   * TODO
+   * Collects the full stage configuration information and sends it
+   * to the server to save it to model.
    */
   _saveToModel() {
     const dataObject = this.getConfiguration();
@@ -186,58 +211,79 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @param {*} scaling
+   * Method to set the scaling of a scene. Only allows for a scaling between
+   * (const scaleMin) and (const scaleMax). Updates the scaling value
+   * accordingly and then invokes the following scaling of all items
+   * on stage.
+   * @param {int} scaling New scaling value (as given by zoom slider, e.g.
+   * values between 10 and 300, not 0.1 and 3.0)
+   * IDEA
    */
   setScaling(scaling) {
-    // scaling should only impact the scene if between values 10 and 300
-    // i.e. scaling by 0.1 min or 3.0 max
-    if (scaling >= 10 && scaling <= 300) {
-      this.stage.old_scaling = this.stage.scaling;
-      this.stage.scaling = scaling;
-      Scaler.scaling = scaling/100;
+    const scaleMin = 10;
+    const scaleMax = 300;
 
-      this.stage.offset.x = this.stage.offset.x * scaling /
-            this.stage.old_scaling;
-      this.stage.offset.y = this.stage.offset.y * scaling /
-            this.stage.old_scaling;
+
+    if (scaling >= scaleMin && scaling <= scaleMax) {
+      const oldScaling = this.stage.scaling;
+      this.stage.scaling = scaling;
+
+      this.stage.offset.x = this.stage.offset.x * scaling / oldScaling;
+      this.stage.offset.y = this.stage.offset.y * scaling / oldScaling;
 
       // scaling via zoom slider
-      Scaler.zoom.screen.x = Math.floor(this.stage.canvas.width / 2);
-      Scaler.zoom.screen.y = Math.floor(this.stage.canvas.height / 2);
-      Scaler.zoom.world.x = Scaler.x_INV(Scaler.zoom.screen.x);
-      Scaler.zoom.world.y = Scaler.y_INV(Scaler.zoom.screen.y);
+      const center = this.getCenter();
+      // Scaler.zoom.screen.x = Math.floor(center.x);
+      // Scaler.zoom.screen.y = Math.floor(center.y);
+      // Scaler.zoom.world.x = Scaler.x_INV(Scaler.zoom.screen.x);
+      // Scaler.zoom.world.y = Scaler.y_INV(Scaler.zoom.screen.y);
 
+      Scaler.zoom.screen.x = Math.floor(center.x);
+      Scaler.zoom.screen.y = Math.floor(center.y);
+      Scaler.zoom.world.x = Math.floor(center.x);
+      Scaler.zoom.world.y = Math.floor(center.y);
+
+      // TODO Problem: ich nehme an, dass durch Rundungsfehler Verschiebungen
+      // stattfinden. Lösung? Vielleicht doch wieder im Fragment eine
+      // "echte" x- und y-position abspeichern, von der ausgehend
+      // Skalierungen und Bewegungen gemacht werden?
+      // IDEA
+
+      Scaler.scaling = 100/oldScaling;
+      this._scaleObjects();
+      Scaler.scaling = scaling/100;
       this._scaleObjects();
       this.update();
     }
   }
 
   /**
-   * TODO
-   * @param {*} width
-   * @param {*} height
+   * Resizes the stage canvas to a new given size and recreates the
+   * necessary background in an according size.
+   * @param {*} width Width of the new canvas in px.
+   * @param {*} height Height of the new canvas in px.
    */
   resizeCanvas(width, height) {
     this.stage.canvas.width = this.width = width;
     this.stage.canvas.height = this.height = height;
 
     this.stage.removeChild(this.background);
-    this.background = this._createBackground(width, height);
+    this.background = this._createBackground();
     this.stage.addChildAt(this.background, 0);
 
     this.update();
   }
 
   /**
-   * TODO
+   * Helper method for visual reasons, simply updates the stage to
+   * show potential changes onscreen.
    */
   update() {
     this.stage.update();
   }
 
   /**
-   * TODO
+   * Helper method to control all UI update methods with one method.
    */
   _updateUIElements() {
     this._updateBb();
@@ -543,12 +589,15 @@ class Stage {
 
   /**
    * TODO
+   * IDEA
    */
   _scaleObjects() {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
         const xNew = Scaler.x(fragment.getX());
+        console.log('scaling:', this.stage.scaling);
+        console.log('x_scale:', fragment.getX(), xNew);
         const yNew = Scaler.y(fragment.getY());
         fragment.moveToPixel(xNew, yNew);
         fragment.scaleToValue(this.stage.scaling/100);

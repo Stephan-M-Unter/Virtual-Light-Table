@@ -8,8 +8,7 @@ const dialogs = new Dialogs();
 let xyz; // TODO: entfernen
 
 $(document).ready(function() {
-  const uic = new UIController('lighttable',
-      window.innerWidth, window.innerHeight);
+  const uic = new UIController('lighttable');
   const stage = uic.getStage();
 
   /* ##########################################
@@ -20,6 +19,7 @@ $(document).ready(function() {
   $('#clear_table').click(function() {
     uic.sendToServer('server-clear-table');
   });
+
   // Save Table Button
   $('#save_table').click(function() {
     dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
@@ -35,10 +35,12 @@ $(document).ready(function() {
       }
     });
   });
+
   // Load Table Button
   $('#load_table').click(function() {
     uic.sendToServer('server-open-load-window');
   });
+
   // Flip Buttons
   $('#flip_table').click(function() {
     if ($('#hor_flip_table').css('display') == 'none') {
@@ -55,6 +57,7 @@ $(document).ready(function() {
       $('#flip_table>img').attr('src', '../imgs/symbol_flip.png');
     }
   });
+
   // Horizontal Flip Button
   $('#hor_flip_table').click(function() {
     stage.flipTable(true);
@@ -65,6 +68,7 @@ $(document).ready(function() {
   $('#hor_flip_table').mouseleave(function() {
     stage.hideFlipLines();
   });
+
   // Vertical Flip Button
   $('#vert_flip_table').click(function() {
     stage.flipTable(false);
@@ -75,6 +79,7 @@ $(document).ready(function() {
   $('#vert_flip_table').mouseleave(function() {
     stage.hideFlipLines();
   });
+
   // Export Buttons
   $('#export').click(function() {
     if ($('#export_jpg').css('display') == 'none') {
@@ -116,25 +121,27 @@ $(document).ready(function() {
     }
   });
 
-  $('#hide_hud').click(function() {
-    if ($(this).hasClass('hide_active')) {
+  // Hide HUD button
+  $('#hide_hud').click(function(event) {
+    if ($(event.target).hasClass('hide_active')) {
       // if the HUD is currently hidden, show it again
       $('#left_sidebar').removeClass('hidden');
       $('#zoom_wrapper').removeClass('hidden');
       $('#table_button_wrapper').removeClass('hidden');
       $('#annot_button').removeClass('hidden');
       $('#scale_to_fit').removeClass('hidden');
-      $(this).removeClass('hide_active');
+      $(event.target).removeClass('hide_active');
     } else {
       $('#left_sidebar').addClass('hidden');
       $('#zoom_wrapper').addClass('hidden');
       $('#table_button_wrapper').addClass('hidden');
       $('#annot_button').addClass('hidden');
       $('#scale_to_fit').addClass('hidden');
-      $(this).addClass('hide_active');
+      $(event.target).addClass('hide_active');
     }
   });
 
+  // Annotation Button
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
       $('#annot_window').css('display', 'none');
@@ -152,18 +159,12 @@ $(document).ready(function() {
     uic.toggleAnnotSubmitButton();
   });
   $('#annot_submit').click(function(event) {
-    if (!$(this).hasClass('disabled')) {
-      uic.sendAnnotation($(this).attr('target'));
+    if (!$(even.target).hasClass('disabled')) {
+      uic.sendAnnotation($(event.target).attr('target'));
     }
   });
 
-  $('#upload_local').click(function() {
-    uic.sendToServer('server-start-upload');
-  });
-  $('#upload_url').click(function() {
-    // TODO
-  });
-
+  // Zoom Slider
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
     $('#zoom_factor').html('Zoom<br/>x'+newScaling/100);
@@ -173,22 +174,31 @@ $(document).ready(function() {
   /* Sidebar Width Adjustment */
   $('#sidebar_handle').on('mousedown', startResizingSidebar);
 
+  // Upload Local Image Button
+  $('#upload_local').click(function() {
+    uic.sendToServer('server-start-upload');
+  });
+
   /**
-   * TODO
-   * @param {*} event
+   * Triggered in the case of sidebar resizing. Adds additional event listeners
+   * for mouse movement (resizing the sidebar) and mouseup (stopping resizing).
    */
-  function startResizingSidebar(event) {
+  function startResizingSidebar() {
     window.addEventListener('mousemove', resizeSidebar, false);
     window.addEventListener('mouseup', stopResizingSidebar, false);
   }
 
   /**
-   * TODO
-   * @param {*} event
+   * Changes width of the sidebar according to the event/cursor position.
+   * If a specific treshold (const thresh) is undershot, the sidebar is
+   * extended with the "small" CSS class.
+   * @param {*} event Contains the current event.pageX position of the cursor.
    */
   function resizeSidebar(event) {
     $('#left_sidebar').css('width', event.pageX);
-    if (event.pageX < 330) {
+
+    const thresh = 330;
+    if (event.pageX < thresh) {
       $('#left_sidebar').addClass('small');
     } else {
       $('#left_sidebar').removeClass('small');
@@ -196,31 +206,33 @@ $(document).ready(function() {
   }
 
   /**
-   * TODO
-   * @param {*} event
+   * Triggered during sidebar resizing event. Removes additional event listeners
+   * for mouse movement or mouseup. Only mousedown for restarting resizing
+   * remains in place.
    */
-  function stopResizingSidebar(event) {
+  function stopResizingSidebar() {
     window.removeEventListener('mousemove', resizeSidebar);
+    window.removeEventListener('mouseup', stopResizingSidebar);
   }
 
-  $('.sidebar_header').click(function() {
+  $('.sidebar_header').click(function(event) {
     // only react if the clicked element is not yet expanded
-    if (!$(this).parent().hasClass('expanded')) {
-      // first, retotate downarrow back and remove expanded label
+    if (!$(event.target).parent().hasClass('expanded')) {
+      // first, retotate down-arrow back and remove expanded label
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
       // second, rotate arrow down and expand clicked segment
-      $(this).find('.arrow').addClass('down');
-      $(this).parent().addClass('expanded');
+      $(event.target).find('.arrow').addClass('down');
+      $(event.target).parent().addClass('expanded');
     }
   });
 
-  /* Window Resizement */
-  window.addEventListener('resize', (event) => {
+  // Window Resizement
+  window.addEventListener('resize', () => {
     stage.resizeCanvas(window.innerWidth, window.innerHeight);
   });
 
-  /* Keystrokes */
+  // Keystrokes
   $('html').keydown(function(event) {
     // Delete
     if (event.keyCode == 46) {

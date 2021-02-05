@@ -24,6 +24,7 @@ const mainProps = {
   show: false,
   webPreferences: {
     nodeIntegration: true,
+    // TODO: devTools: false,
   },
 };
 
@@ -34,6 +35,7 @@ const loadProps = {
   show: false,
   webPreferences: {
     nodeIntegration: true,
+    // TODO: devTools: false,
   },
 };
 
@@ -44,6 +46,7 @@ const uploadProps = {
   show: false,
   webPreferences: {
     nodeIntegration: true,
+    // TODO: devTools: false,
   },
 };
 
