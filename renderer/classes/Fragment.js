@@ -31,6 +31,18 @@ class Fragment {
 
     if (this.isRecto ? this.container.addChild(this.imageRecto) :
         this.container.addChild(this.imageVerso));
+
+    if (eventData.item.properties.baseX) {
+      this.baseX = eventData.item.properties.baseX;
+    } else {
+      this.baseX = this.container.x / this.container.scale;
+    }
+
+    if (eventData.item.properties.baseY) {
+      this.baseY = eventData.item.properties.baseY;
+    } else {
+      this.baseY = this.container.y / this.container.scale;
+    }
   }
 
   /**
@@ -73,9 +85,9 @@ class Fragment {
       container.y = imageProperties.yPos;
       // * (this.stage.scaling / 100) + this.stage.offset.y;
     } else {
-      const canvasSize = this.controller.getCanvasCenter();
-      container.x = canvasSize.x;
-      container.y = canvasSize.y;
+      const canvasCenter = this.controller.getCanvasCenter();
+      container.x = canvasCenter.x;
+      container.y = canvasCenter.y;
     }
     container.name = 'Container';
     container.id = id;
@@ -85,12 +97,17 @@ class Fragment {
 
   /**
    * TODO
-   * @param {*} distX
-   * @param {*} distY
+   * @param {*} distX Number of pixels in current scaling by which
+   * the image has to be moved in x direction.
+   * @param {*} distY Number of pixels in current scaling by which
+   * the image has to be moved in y direction.
    */
   moveByDistance(distX, distY) {
     this.container.x += distX;
     this.container.y += distY;
+
+    this.baseX = this.baseX + (distX / this.container.scale);
+    this.baseY = this.baseY + (distY / this.container.scale);
   }
 
   /**
@@ -238,6 +255,13 @@ class Fragment {
   }
 
   /**
+   * @return {*}
+   */
+  getBaseX() {
+    return this.baseX;
+  }
+
+  /**
    * TODO
    * @return {*}
    */
@@ -246,27 +270,18 @@ class Fragment {
   }
 
   /**
+   * @return {*}
+   */
+  getBaseY() {
+    return this.baseY;
+  }
+
+  /**
    * TODO
    * @return {*}
    */
   getY() {
     return this.container.y;
-  }
-
-  /**
-   * TODO
-   * @return {*}
-   */
-  getUnscaledX() {
-    return this.container.x / this.container.scale;
-  }
-
-  /**
-   * TODO
-   * @return {*}
-   */
-  getUnscaledY() {
-    return this.container.y / this.container.scale;
   }
 
   /**

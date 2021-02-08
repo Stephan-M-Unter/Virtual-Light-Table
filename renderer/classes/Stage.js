@@ -29,7 +29,6 @@ class Stage {
     this.selectedList = {};
     this.fragmentLabel = 0;
 
-    this.stage.offset = {x: 0, y: 0};
     this.stage.scaling = 100;
 
     this.lines = {
@@ -99,7 +98,7 @@ class Stage {
   /**
    * Function to load a new fragment scene from data. First, the stage
    * is cleared, then both variables for the stage configuration (like
-   * scalingfactors, offset etc.) are set (or set to default values),
+   * scalingfactors etc.) are set (or set to default values),
    * followed by adding the saved fragments.
    * Finally, the stage is updated to display changes onscreen.
    * @param {*} data
@@ -128,13 +127,9 @@ class Stage {
    */
   _loadStageConfiguration(settings) {
     // default values
-    this.stage.offset = {x: 0, y: 0};
     this.stage.scaling = 100;
 
     if (settings) {
-      if (settings.offset) {
-        this.stage.offset = settings.offset;
-      }
       if (settings.scaling) {
         this.stage.scaling = settings.scaling;
       }
@@ -143,11 +138,10 @@ class Stage {
 
   /**
    * Getter Method for stage settings.
-   * @return {Object} Contains '.offset' and '.scaling'.
+   * @return {Object} Contains '.scaling'.
    */
   getData() {
     return {
-      'offset': this.stage.offset,
       'scaling': this.stage.scaling,
     };
   }
@@ -202,6 +196,14 @@ class Stage {
   }
 
   /**
+   * Getter Method for current scaling factor.
+   * @return {int} Returns the current scaling factor.
+   */
+  getScaling() {
+    return this.stage.scaling;
+  }
+
+  /**
    * Collects the full stage configuration information and sends it
    * to the server to save it to model.
    */
@@ -217,42 +219,45 @@ class Stage {
    * on stage.
    * @param {int} scaling New scaling value (as given by zoom slider, e.g.
    * values between 10 and 300, not 0.1 and 3.0)
+   * @param {int} scaleCenterX
+   * @param {int} scaleCenterY
    * IDEA
    */
-  setScaling(scaling) {
+  setScaling(scaling, scaleCenterX, scaleCenterY) {
     const scaleMin = 10;
     const scaleMax = 300;
 
-
     if (scaling >= scaleMin && scaling <= scaleMax) {
-      const oldScaling = this.stage.scaling;
+      this.controller.clearSelection();
+      this.clearSelection();
+      let distX = 0;
+      let distY = 0;
       this.stage.scaling = scaling;
 
-      this.stage.offset.x = this.stage.offset.x * scaling / oldScaling;
-      this.stage.offset.y = this.stage.offset.y * scaling / oldScaling;
-
-      // scaling via zoom slider
+      // zoom at screen center
       const center = this.getCenter();
-      // Scaler.zoom.screen.x = Math.floor(center.x);
-      // Scaler.zoom.screen.y = Math.floor(center.y);
-      // Scaler.zoom.world.x = Scaler.x_INV(Scaler.zoom.screen.x);
-      // Scaler.zoom.world.y = Scaler.y_INV(Scaler.zoom.screen.y);
-
       Scaler.zoom.screen.x = Math.floor(center.x);
       Scaler.zoom.screen.y = Math.floor(center.y);
-      Scaler.zoom.world.x = Math.floor(center.x);
-      Scaler.zoom.world.y = Math.floor(center.y);
 
-      // TODO Problem: ich nehme an, dass durch Rundungsfehler Verschiebungen
-      // stattfinden. Lösung? Vielleicht doch wieder im Fragment eine
-      // "echte" x- und y-position abspeichern, von der ausgehend
-      // Skalierungen und Bewegungen gemacht werden?
-      // IDEA
+      // overwrite center if specific zoom center is given
+      if (scaleCenterX && scaleCenterY) {
+        // Scaler.zoom.screen.x = Math.floor(scaleCenterX);
+        // Scaler.zoom.screen.y = Math.floor(scaleCenterY);
+        distX = center.x - scaleCenterX;
+        distY = center.y - scaleCenterY;
+        this.moveStage(distX, distY);
+        // distX = (distX * scaling * -1) / oldScaling;
+        // distY = (distY * scaling * -1) / oldScaling;
+      }
 
-      Scaler.scaling = 100/oldScaling;
-      this._scaleObjects();
+      Scaler.zoom.world.x = Scaler.zoom.screen.x;
+      Scaler.zoom.world.y = Scaler.zoom.screen.y;
+
       Scaler.scaling = scaling/100;
       this._scaleObjects();
+
+      this.moveStage(-distX, -distY);
+
       this.update();
     }
   }
@@ -580,8 +585,6 @@ class Stage {
       }
     }
 
-    this.stage.offset.x += deltaX;
-    this.stage.offset.y += deltaY;
     this._updateBb();
 
     this.stage.update();
@@ -595,10 +598,8 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        const xNew = Scaler.x(fragment.getX());
-        console.log('scaling:', this.stage.scaling);
-        console.log('x_scale:', fragment.getX(), xNew);
-        const yNew = Scaler.y(fragment.getY());
+        const xNew = Scaler.x(fragment.getBaseX());
+        const yNew = Scaler.y(fragment.getBaseY());
         fragment.moveToPixel(xNew, yNew);
         fragment.scaleToValue(this.stage.scaling/100);
       }
@@ -857,7 +858,71 @@ class Stage {
     }
     this.update();
   }
+
+  /**
+   * This function determines the position of the most extreme pixels for
+   * top, bottom, left, right, as well as the width and height of the
+   * resulting box.
+   * @return {Object} Object containing the abovementioned information.
+   */
+  getMBR() {
+    const dimensions = {};
+
+    let left; let top; let right; let bottom;
+    for (const idx in this.fragmentList) {
+      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
+        const fragment = this.fragmentList[idx];
+        const container = fragment.getContainer();
+
+        const bounds = container.getTransformedBounds();
+        const xLeft = bounds.x;
+        const yTop = bounds.y;
+        const xRight = bounds.x + bounds.width;
+        const yBottom = bounds.y + bounds.height;
+
+        (!left ? left = xLeft : left = Math.min(left, xLeft));
+        (!top ? top = yTop : top = Math.min(top, yTop));
+        (!right ? right = xRight : right = Math.max(right, xRight));
+        (!bottom ? bottom = yBottom : bottom = Math.max(bottom, yBottom));
+      }
+    }
+
+    dimensions.left = left;
+    dimensions.right = right;
+    dimensions.top = top;
+    dimensions.bottom = bottom;
+    dimensions.center = {};
+    if (left && right) {
+      dimensions.width = Math.abs(left - right);
+      dimensions.center.x = left + dimensions.width / 2;
+    }
+    if (top && bottom) {
+      dimensions.height = Math.abs(top - bottom);
+      dimensions.center.y = top + dimensions.height / 2;
+    }
+
+    return dimensions;
+  }
+
+  /**
+   * TODO
+   */
+  fitToScreen() {
+    const dimensions = this.getMBR();
+    const center = this.getCenter();
+    const distX = center.x - dimensions.center.x;
+    const distY = center.y - dimensions.center.y;
+    this.moveStage(distX, distY);
+
+    const scalingHeight = this.stage.scaling * this.height / dimensions.height;
+    const scalingWidth = this.stage.scaling * this.width / dimensions.width;
+    const scaling = Math.min(scalingWidth, scalingHeight);
+    if (Math.abs(this.stage.scaling - scaling) > 1) {
+      this.setScaling(scaling);
+    }
+  }
 }
+
 
 /**
  * TODO

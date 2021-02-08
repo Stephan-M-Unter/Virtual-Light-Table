@@ -15,7 +15,7 @@ body {
   background-color: rgba(29, 29, 27, 0.5);
   top: 0;
   left: 0;
-  width: 500px;
+  width: 200px;
   max-width: 50%;
   min-width: 180px;
   height: 100vh;
@@ -792,21 +792,21 @@ body {
   user-select: none;
 }
 
-#scale_to_fit {
+#fit_to_screen {
   width: 40px;
   height: 40px;
   background: white;
-  opacity: 0.3;
+  /* opacity: 0.3; */
   position: absolute;
   top: 25px;
   right: 50px;
 }
 
-#scale_to_fit:hover {
+#fit_to_screen:hover {
   opacity: 1;
 }
 
-#scale_to_fit img {
+#fit_to_screen img {
   height: 100%;
   width: 100%;
   padding: 5px;

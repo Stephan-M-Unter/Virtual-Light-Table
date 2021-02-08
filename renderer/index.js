@@ -121,6 +121,11 @@ $(document).ready(function() {
     }
   });
 
+  // Fit to Screen
+  $('#fit_to_screen').click(function(event) {
+    stage.fitToScreen();
+  });
+
   // Hide HUD button
   $('#hide_hud').click(function(event) {
     if ($(event.target).hasClass('hide_active')) {
@@ -231,6 +236,16 @@ $(document).ready(function() {
   window.addEventListener('resize', () => {
     stage.resizeCanvas(window.innerWidth, window.innerHeight);
   });
+
+  document.getElementById('lighttable')
+      .addEventListener('wheel', function(event) {
+        const deltaZoom = event.deltaY / 10;
+        const newScaling = stage.getScaling() - deltaZoom;
+        const x = event.pageX;
+        const y = event.pageY;
+        stage.setScaling(newScaling, x, y);
+        $('#zoom_slider').val(newScaling);
+      });
 
   // Keystrokes
   $('html').keydown(function(event) {

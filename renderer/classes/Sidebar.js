@@ -62,7 +62,7 @@ class Sidebar {
 
     // Interactions
     fragmentWrapper.addEventListener('click', function(event) {
-      const isActive = $(this).hasClass('fragment_list_item_active');
+      const isActive = $(event.target).hasClass('fragment_list_item_active');
       const isCtrl = event.ctrlKey;
       // let id = $(this).attr('id');
 
@@ -91,11 +91,10 @@ class Sidebar {
     fragmentWrapper.addEventListener('mouseleave', function(event) {
       // let id = $(this).attr('id');
       controller.unhighlightFragment(id);
-      if (!$(this).hasClass('fragment_list_item_active')) {
+      if (!$(event.target).hasClass('fragment_list_item_active')) {
         sidebar.removeFragmentListButtons(id);
       }
     });
-
 
     deleteButton.addEventListener('click', function(event) {
       controller.removeFragment(id);

@@ -35,20 +35,19 @@ class Scaler {
     }*/
 
     static length(number) {
-        return Math.floor(number * this.scaling/100);
+        return Math.round(number * this.scaling/100);
     }
     static x(number) {
-        console.log('center:', this.zoom.screen);
-        return Math.floor((number - this.zoom.world.x) * this.scaling + this.zoom.screen.x);
+        return Math.round((number - this.zoom.world.x) * this.scaling + this.zoom.screen.x);
     }
     static y(number) {
-        return Math.floor((number - this.zoom.world.y) * this.scaling + this.zoom.screen.y);
+        return Math.round((number - this.zoom.world.y) * this.scaling + this.zoom.screen.y);
     }
     static x_INV(number) {
-        return Math.floor((number - this.zoom.screen.x) / this.scaling + this.zoom.world.x);
+        return Math.round((number - this.zoom.screen.x) / this.scaling + this.zoom.world.x);
     }
     static y_INV(number) {
-        return Math.floor((number - this.zoom.screen.y) / this.scaling + this.zoom.world.y);
+        return Math.round((number - this.zoom.screen.y) / this.scaling + this.zoom.world.y);
     }
 }
 
