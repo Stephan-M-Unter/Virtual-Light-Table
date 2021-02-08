@@ -258,6 +258,7 @@ class Stage {
 
       this.moveStage(-distX, -distY);
 
+      this._saveToModel();
       this.update();
     }
   }
@@ -920,6 +921,7 @@ class Stage {
     if (Math.abs(this.stage.scaling - scaling) > 1) {
       this.setScaling(scaling);
     }
+    this._saveToModel();
   }
 }
 

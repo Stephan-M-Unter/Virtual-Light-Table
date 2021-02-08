@@ -134,14 +134,14 @@ $(document).ready(function() {
       $('#zoom_wrapper').removeClass('hidden');
       $('#table_button_wrapper').removeClass('hidden');
       $('#annot_button').removeClass('hidden');
-      $('#scale_to_fit').removeClass('hidden');
+      $('#fit_to_screen').removeClass('hidden');
       $(event.target).removeClass('hide_active');
     } else {
       $('#left_sidebar').addClass('hidden');
       $('#zoom_wrapper').addClass('hidden');
       $('#table_button_wrapper').addClass('hidden');
       $('#annot_button').addClass('hidden');
-      $('#scale_to_fit').addClass('hidden');
+      $('#fit_to_screen').addClass('hidden');
       $(event.target).addClass('hide_active');
     }
   });
