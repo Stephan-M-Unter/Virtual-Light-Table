@@ -10,6 +10,7 @@ class Fragment {
      * @param {*} eventData
      */
   constructor(controller, stageObject, id, eventData) {
+    console.log(eventData.item.properties);
     this.controller = controller;
     this.id = id;
     this.isRecto = eventData.item.properties.recto;
@@ -69,7 +70,7 @@ class Fragment {
     image.x = 0;
     image.y = 0;
     image.id = id;
-    image.scale = this.stage.scaling / 100;
+    // image.scale = this.stage.scaling / 100;
 
     return image;
   }
@@ -82,8 +83,9 @@ class Fragment {
    */
   _createContainer(imageProperties, id) {
     const container = new createjs.Container();
-
+    
     container.rotation = imageProperties.rotation;
+    container.scale = this.stage.scaling / 100;
 
     if (imageProperties.xPos && imageProperties.yPos) {
       container.x = imageProperties.xPos;

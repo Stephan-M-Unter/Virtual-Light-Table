@@ -47,6 +47,9 @@ class Stage {
     this.loadqueue.addEventListener('fileload', (event) => {
       this._createFragment(event);
     });
+    this.loadqueue.on('complete', () => {
+      this.fitToScreen();
+    });
   }
 
   /**
@@ -117,11 +120,12 @@ class Stage {
       this._loadStageConfiguration();
     }
 
-    // TODO Verschieben der Szene according to Größenverhältnisse
-    // bei Speichern und aktuelles Fenster - für jeweils x und y müssen
-    // die Fragmente um die Hälfte des Größenunterschiedes verschoben werden,
-    // damit am Ende das, was beim Speichern im Zentrum zu sehen war,
-    // auch beim Laden garantiert wieder im Zentrum zu sehen sein wird
+    /*
+    * Schritte:
+    * alles in x1.0 skalieren
+    * prüfen ob alles ins Sichtfeld passt
+    * falls nicht, entsprechend anpassen, sonst so lassen
+    */
 
     this.update();
   }
@@ -944,18 +948,22 @@ class Stage {
    * TODO
    */
   fitToScreen() {
-    const dimensions = this.getMBR();
-    const center = this.getCenter();
-    const distX = center.x - dimensions.center.x;
-    const distY = center.y - dimensions.center.y;
-    this.moveStage(distX, distY);
-
+    let dimensions = this.getMBR();
+    const sidebar = $('#left_sidebar').width();
+    const width = this.width - sidebar;
     const scalingHeight = this.stage.scaling * this.height / dimensions.height;
-    const scalingWidth = this.stage.scaling * this.width / dimensions.width;
+    const scalingWidth = this.stage.scaling * width / dimensions.width;
     const scaling = Math.min(scalingWidth, scalingHeight);
     if (Math.abs(this.stage.scaling - scaling) > 1) {
       this.controller.setScaling(scaling);
     }
+
+    dimensions = this.getMBR();
+    const center = this.getCenter();
+    const distX = center.x - dimensions.center.x + sidebar/2;
+    const distY = center.y - dimensions.center.y;
+    this.moveStage(distX, distY);
+
     this._saveToModel();
   }
 }

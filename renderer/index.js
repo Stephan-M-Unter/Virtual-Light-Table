@@ -275,7 +275,6 @@ $(document).ready(function() {
     const desc = data.desc || '';
     const duration = data.duration || '';
     const color = data.color || '';
-    console.log(desc);
     uic.showVisualFeedback(title, desc, color, duration);
   });
 

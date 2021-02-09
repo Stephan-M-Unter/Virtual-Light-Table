@@ -223,6 +223,7 @@ body {
   margin: 5px;
   border: 5px solid white;
   transition: 0.2s all;
+  overflow: hidden;
   color: var(--cb_black);
 }
 
