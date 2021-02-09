@@ -9,6 +9,33 @@ body {
   background-color: #555555;
 }
 
+/* Visual Feedback Popup */
+
+#visual_feedback {
+  position: fixed;
+  left: 50%;
+  bottom: 25%;
+  transform: translateX(-50%);
+  text-align: center;
+  max-width: 350px;
+  min-width: 250px;
+  background-color: lightgreen;
+  padding: 10px 20px;
+  opacity: 0.0;
+  display: none;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+}
+
+#vf_title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#vf_desc {
+  font-size: 0.9em;
+}
+
 /* Sidebar */
 #left_sidebar {
   position: relative;

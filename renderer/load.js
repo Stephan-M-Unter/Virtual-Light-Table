@@ -36,6 +36,24 @@ function convertTime(milliseconds) {
   return day+'.'+month+'.'+year+', '+hour+':'+minute+':'+second;
 }
 
+/**
+ * TODO
+ */
+function deleteSavefile() {
+  if ($('.selected').length > 0) {
+    // 1. um welches Savefile geht es?
+    const filename = $('.selected').attr('id');
+    // 2. Bestätigungsdialog
+    const confirmation = confirm('Do you really want to delete '+
+            'this savefile? This action is irreversible.');
+      // 3. Nachricht an Server: Save löschen
+    if (confirmation) {
+      ipcRenderer.send('server-delete-save', filename);
+    }
+    // [4. Nachricht von Server mit aktuellem Speicherzustand]
+  }
+}
+
 
 /* ##########################################
 #               INPUT/OUTPUT
@@ -47,7 +65,7 @@ $('#select_folder').click(function() {
   ipcRenderer.send('server-get-saves-folder');
 });
 
-$('#save_list').on('click', '.save_list_item', function() {
+$('#save_list').on('click', '.save_list_item', function(event) {
   const filename = $(this).attr('id');
   $('.save_list_item').removeClass('selected');
   $(this).addClass('selected');
@@ -190,21 +208,16 @@ $('#load').click(function() {
   }
 });
 
-$('#delete').click(function() {
-  // 0. nur etwas machen, wenn der Button überhaupt aktiv ist
-  if ($(this).hasClass('disabled')) {
-    return false;
+$('#delete').click(function(event) {
+  if (!$(event.target).hasClass('disabled')) {
+    deleteSavefile();
   }
-  // 1. um welches Savefile geht es?
-  const filename = $('.selected').attr('id');
-  // 2. Bestätigungsdialog
-  const confirmation = confirm('Do you really want to delete'+
-        'this savefile? This action is not revertable.');
-  // 3. Nachricht an Server: Save löschen
-  if (confirmation) {
-    ipcRenderer.send('server-delete-save', filename);
+});
+
+$('html').keyup(function(event) {
+  if (event.keyCode == 46) {
+    deleteSavefile();
   }
-  // [4. Nachricht von Server mit aktuellem Speicherzustand]
 });
 
 /* ##########################################
@@ -233,7 +246,6 @@ ipcRenderer.on('return-save-files', (event, savefiles) => {
     let tableRow = '<tr class=\'save_list_item\' id=\''+key+'\'>';
     tableRow += '<td class=\'td_filename\'>'+key+'</td>';
     tableRow += '<td class=\'td_fragments\'>'+numberFragments+'</td>';
-    console.log(saves[key]);
     tableRow += '<td class=\'td_mtime\'>'+convertTime(saves[key].mtime)+'</td>';
     tableRow += '<td class=\'td_editor\'>'+lastEditor[0]+'</tr>';
 

@@ -43,6 +43,12 @@ class Fragment {
     } else {
       this.baseY = this.container.y / this.container.scale;
     }
+
+    if (eventData.item.properties.baseX && eventData.item.properties.baseY) {
+      const newX = this.baseX * this.container.scale;
+      const newY = this.baseY * this.container.scale;
+      this.moveToPixel(newX, newY);
+    }
   }
 
   /**
@@ -233,7 +239,9 @@ class Fragment {
       'rectoURL': this.urlRecto,
       'versoURL': this.urlVerso,
       'xPos': this.container.x,
+      'baseX': this.baseX,
       'yPos': this.container.y,
+      'baseY': this.baseY,
       'rotation': this.container.rotation,
     };
   }
@@ -251,7 +259,12 @@ class Fragment {
    * @return {*}
    */
   getPosition() {
-    return {x: this.container.x, y: this.container.y};
+    return {
+      x: this.container.x,
+      y: this.container.y,
+      baseX: this.baseX,
+      baseY: this.baseY,
+    };
   }
 
   /**

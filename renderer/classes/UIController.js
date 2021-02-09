@@ -183,6 +183,21 @@ class UIController {
   }
 
   /**
+   * Function to update the whole table with a new scaling value, i.e.
+   * both the stage itself (with the fragments to rescale and move) and
+   * the zoom slider which should always show the acurate scaling factor.
+   *
+   * @param {*} scalingValue Value for new scaling ratio; this value
+   * gives is the ratio * 100, e.g. not x1.0 but 100.
+   * @param {*} scaleX x position of scaling center if not window center.
+   * @param {*} scaleY y position of scaling center if not window center.
+   */
+  setScaling(scalingValue, scaleX, scaleY) {
+    this.stage.setScaling(scalingValue, scaleX, scaleY);
+    $('#zoom_slider').val(scalingValue);
+  }
+
+  /**
    * TODO: reroute new stage/fragment data to stage, then update sidebar
    * @param {*} data
    */
@@ -207,6 +222,49 @@ class UIController {
     const deltaY = stageC.y - fragmentC.y;
 
     this.stage.moveStage(deltaX, deltaY);
+  }
+
+  /**
+   * TODO
+   * @param {*} titleText Text to be displayed as title of the feedback box.
+   * @param {*} descText Text to be displayed as description
+   * of the feedback box.
+   * @param {*} color Color of the feedback box. If no color is given, the
+   * box will be rendered in white.
+   * @param {*} duration Display duration of the message. If no duration
+   * is given, the duration is adjusted to the total length of the
+   * message, with a minimum of 2000ms.
+   */
+  showVisualFeedback(titleText, descText, color, duration) {
+    if (!color) {
+      color = 'white';
+    }
+    if (!duration) {
+      duration = (titleText.length + descText.length) * 40;
+      duration = Math.max(duration, 1500);
+    }
+    $('#vf_title').empty().text(titleText);
+    $('#vf_desc').empty().text(descText);
+    $('#visual_feedback').css('backgroundColor', color);
+    $('#visual_feedback').css('display', 'block');
+    $('#visual_feedback').css('left', '50%');
+    $('#visual_feedback').css('left', '-=30px');
+
+    $('#visual_feedback').stop().animate({
+      opacity: '1.0',
+      left: '+=15px',
+    }, 700, function() {
+      $('#visual_feedback')
+          .delay(duration)
+          .animate({
+            opacity: '0.0',
+            left: '+=15px',
+          }, 700, function() {
+            $('#visual_feedback')
+                .css('display', 'none')
+                .css('left', '50%');
+          });
+    });
   }
 
   // Getter Methods

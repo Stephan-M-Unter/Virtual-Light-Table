@@ -28,6 +28,7 @@ class SaveManager {
   constructor() {
     this.defaultSaveFolder = './saves';
     this.currentSaveFolder = this.defaultSaveFolder;
+    this.filepath = null;
   }
 
   /**
@@ -41,12 +42,9 @@ class SaveManager {
     const year = now.getFullYear();
     const month = ((now.getMonth()+1) < 10 ? '0' : '') + (now.getMonth()+1);
     const day = (now.getDate() < 10 ? '0' : '') + now.getDate();
-
     const hour = now.getHours();
     const minute = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
     const second = (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
-
-
     const date = year+'-'+month+'-'+day;
     const time = hour+'h'+minute+'m'+second+'s';
     const filename = 'VLT_'+date+'_'+time;
@@ -74,6 +72,7 @@ class SaveManager {
       const canvasContent = JSON.stringify(tableConfiguration);
       fs.writeFileSync(filepath, canvasContent, 'utf-8');
       console.log('**SaveManager** - Saved table configuration to ' + filepath);
+      return filepath;
     }
   }
 
@@ -146,6 +145,7 @@ class SaveManager {
     console.log('**SaveManager** - Loading ' + filepath);
     const json = JSON.parse(content);
     json.mtime = mtime;
+    this.filepath = filepath;
     return json;
   }
 
@@ -183,6 +183,13 @@ class SaveManager {
    */
   getDefaultFolder() {
     return this.defaultSaveFolder;
+  }
+
+  /**
+   * @return {*}
+   */
+  getCurrentFile() {
+    return this.filepath;
   }
 }
 

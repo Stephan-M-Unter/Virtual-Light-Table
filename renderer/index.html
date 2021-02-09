@@ -101,50 +101,56 @@
                 <div class="button disabled" id="annot_submit">Submit New Annotation</div>
             </div>
         </div>
+
+        <!-- Visual Feedback Popup -->
+        <div id="visual_feedback">
+            <div id="vf_title"></div>
+            <div id="vf_desc"></div>
+        </div>
             
-            <!-- Left Sidebar -->
-            <div id="left_sidebar" class="no-select small">
-                <div id="sidebar_content">
-                    <div class="sidebar_content_wrapper" id="new_fragments">
-                        <div class="sidebar_header">
-                            <div class="sidebar_header_title">Add Fragments</div>
-                            <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
-                            <div class="arrow"></div>
+        <!-- Left Sidebar -->
+        <div id="left_sidebar" class="no-select small">
+            <div id="sidebar_content">
+                <div class="sidebar_content_wrapper" id="new_fragments">
+                    <div class="sidebar_header">
+                        <div class="sidebar_header_title">Add Fragments</div>
+                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
+                        <div class="arrow"></div>
+                    </div>
+                    <div class="sidebar_content" id="new_fragments_content">
+                        <div id="upload_local" class="wide_button">
+                            <img class="button_img" src="../imgs/symbol_upload_local.png"/>
+                            <div class="button_label">Custom Fragment</div>
                         </div>
-                        <div class="sidebar_content" id="new_fragments_content">
-                            <div id="upload_local" class="wide_button">
-                                <img class="button_img" src="../imgs/symbol_upload_local.png"/>
-                                <div class="button_label">Custom Fragment</div>
-                            </div>
-                        </div>
-                    </div> <!-- </new_fragments> -->
-                    <div class="sidebar_content_wrapper" id="graphical_filters">
-                        <div class="sidebar_header">
-                            <div class="sidebar_header_title">Graphical Filters</div>
-                            <img class="sidebar_header_help" src="../imgs/help.png" target="help-graphical-filters">
-                            <div class="arrow"></div>
-                        </div>
-                        <div class="sidebar_content" id="graphical_filters_content"></div>
-                    </div> <!-- </graphical filters> -->
-                    <div class="sidebar_content_wrapper expanded" id="fragment_list">
-                        <div class="sidebar_header">
-                            <div class="sidebar_header_title">Light Table</div>
-                            <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
-                            <div class="arrow down"></div>
-                        </div>
-                        <div class="sidebar_content" id="fragment_list_content">
-                            <div id="fragment_list_nocontent">No fragments selected</div>
-                        </div>
-                    </div> <!-- </fragment_list> -->
-                </div>
-                <div id="sidebar_handle">
-                    <div id="sidebar_handle_grabber">...</div>
-                </div>
-            </div> <!-- </left_sidebar> -->
-            <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
-            <script src="../js/libs/createjs.min.js"></script>
-            <script src="../js/libs/preloadjs.min.js"></script>
-            <script src="../js/libs/hammer.min.js"></script>
-            <script src="./index.js"></script>
-        </body>
+                    </div>
+                </div> <!-- </new_fragments> -->
+                <div class="sidebar_content_wrapper" id="graphical_filters">
+                    <div class="sidebar_header">
+                        <div class="sidebar_header_title">Graphical Filters</div>
+                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-graphical-filters">
+                        <div class="arrow"></div>
+                    </div>
+                    <div class="sidebar_content" id="graphical_filters_content"></div>
+                </div> <!-- </graphical filters> -->
+                <div class="sidebar_content_wrapper expanded" id="fragment_list">
+                    <div class="sidebar_header">
+                        <div class="sidebar_header_title">Light Table</div>
+                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
+                        <div class="arrow down"></div>
+                    </div>
+                    <div class="sidebar_content" id="fragment_list_content">
+                        <div id="fragment_list_nocontent">No fragments selected</div>
+                    </div>
+                </div> <!-- </fragment_list> -->
+            </div>
+            <div id="sidebar_handle">
+                <div id="sidebar_handle_grabber">...</div>
+            </div>
+        </div> <!-- </left_sidebar> -->
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+        <script src="../js/libs/createjs.min.js"></script>
+        <script src="../js/libs/preloadjs.min.js"></script>
+        <script src="../js/libs/hammer.min.js"></script>
+        <script src="./index.js"></script>
+    </body>
 </html>

@@ -107,15 +107,21 @@ class Stage {
     // IDEA Ask users if they want to save yet unsaved changes?
     this._clearTable();
 
+    if (data && data.fragments) {
+      this._loadFragments(data.fragments);
+    }
+
     if (data && data.stage) {
       this._loadStageConfiguration(data.stage);
     } else {
       this._loadStageConfiguration();
     }
 
-    if (data && data.fragments) {
-      this._loadFragments(data.fragments);
-    }
+    // TODO Verschieben der Szene according to Größenverhältnisse
+    // bei Speichern und aktuelles Fenster - für jeweils x und y müssen
+    // die Fragmente um die Hälfte des Größenunterschiedes verschoben werden,
+    // damit am Ende das, was beim Speichern im Zentrum zu sehen war,
+    // auch beim Laden garantiert wieder im Zentrum zu sehen sein wird
 
     this.update();
   }
@@ -131,7 +137,7 @@ class Stage {
 
     if (settings) {
       if (settings.scaling) {
-        this.stage.scaling = settings.scaling;
+        this.controller.setScaling(settings.scaling);
       }
     }
   }
@@ -257,8 +263,8 @@ class Stage {
       this._scaleObjects();
 
       this.moveStage(-distX, -distY);
-
       this._saveToModel();
+
       this.update();
     }
   }
@@ -758,13 +764,27 @@ class Stage {
   /**
    * TODO
    * @param {*} fileFormat "png", "jpg", "jpeg"
+   * @param {*} thumb
+   * @return {*}
    */
-  exportCanvas(fileFormat='png') {
-    // TODO Vorher muss der canvas noch so skaliert werden,
-    // dass alle Inhalte angezeigt werden können
+  exportCanvas(fileFormat='png', thumb=false) {
+    // change stage such that all fragments are visible
+    const dimensions = this.getMBR();
+    const center = this.getCenter();
+    const distX = center.x - dimensions.center.x;
+    const distY = center.y - dimensions.center.y;
+    this.moveStage(distX, distY);
+
+    const oldScaling = this.stage.scaling;
+    const scalingHeight = this.stage.scaling * this.height / dimensions.height;
+    const scalingWidth = this.stage.scaling * this.width / dimensions.width;
+    const scaling = Math.min(scalingWidth, scalingHeight);
+    if (Math.abs(this.stage.scaling - scaling) > 1) {
+      this.controller.setScaling(scaling);
+    }
 
     // remove UI elements
-    this.clearSelection();
+    this.controller.clearSelection();
     this._updateUIElements();
 
     const pseudoLink = document.createElement('a');
@@ -792,6 +812,16 @@ class Stage {
       pseudoLink.href = document.getElementById('lighttable').toDataURL(type);
     }
 
+    if (thumb) {
+      const screenshot = document.getElementById('lighttable')
+          .toDataURL('image/png');
+      this.controller.setScaling(oldScaling);
+      this.moveStage(-distX, -distY);
+      this.update();
+      this._saveToModel();
+      return screenshot;
+    }
+
     // creating artificial anchor element for download
     pseudoLink.download = 'reconstruction.' + extension;
     pseudoLink.style.display = 'none';
@@ -800,6 +830,11 @@ class Stage {
     document.body.appendChild(pseudoLink);
     pseudoLink.click();
     document.body.removeChild(pseudoLink);
+
+    // revert stage to original configuration
+    this.controller.setScaling(oldScaling);
+    this.moveStage(-distX, -distY);
+    this.update();
   }
 
   /**
@@ -919,7 +954,7 @@ class Stage {
     const scalingWidth = this.stage.scaling * this.width / dimensions.width;
     const scaling = Math.min(scalingWidth, scalingHeight);
     if (Math.abs(this.stage.scaling - scaling) > 1) {
-      this.setScaling(scaling);
+      this.controller.setScaling(scaling);
     }
     this._saveToModel();
   }

@@ -24,9 +24,7 @@ $(document).ready(function() {
   $('#save_table').click(function() {
     dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
       if (editor!='' && editor!=null) {
-        uic.clearSelection();
-        const screenshot = document.getElementById('lighttable')
-            .toDataURL('image/png');
+        const screenshot = stage.exportCanvas('png', true);
         const data = {
           'editor': editor,
           'screenshot': screenshot,
@@ -173,7 +171,7 @@ $(document).ready(function() {
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
     $('#zoom_factor').html('Zoom<br/>x'+newScaling/100);
-    stage.setScaling(newScaling);
+    uic.setScaling(newScaling);
   });
 
   /* Sidebar Width Adjustment */
@@ -243,7 +241,7 @@ $(document).ready(function() {
         const newScaling = stage.getScaling() - deltaZoom;
         const x = event.pageX;
         const y = event.pageY;
-        stage.setScaling(newScaling, x, y);
+        uic.setScaling(newScaling, x, y);
         $('#zoom_slider').val(newScaling);
       });
 
@@ -269,6 +267,16 @@ $(document).ready(function() {
   ipcRenderer.on('client-local-upload', (event, data) => {
     console.log('Received client-local-upload');
     uic.addFragment(data);
+  });
+
+  ipcRenderer.on('client-display-feedback', (event, data) => {
+    console.log('Received client-display-feedback');
+    const title = data.title || '';
+    const desc = data.desc || '';
+    const duration = data.duration || '';
+    const color = data.color || '';
+    console.log(desc);
+    uic.showVisualFeedback(title, desc, color, duration);
   });
 
   xyz = stage;

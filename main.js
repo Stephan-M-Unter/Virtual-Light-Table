@@ -124,6 +124,12 @@ ipcMain.on('server-clear-table', (event) => {
   }
   canvasManager.clearAll();
   sendMessage(event.sender, 'client-load-from-model', canvasManager.getAll());
+  const feedback = {
+    title: 'Table Cleared',
+    desc: 'The table has successfully been cleared.',
+    color: 'lightgreen',
+  };
+  sendMessage(event.sender, 'client-display-feedback', feedback);
 });
 
 // server-open-detail-window
@@ -154,6 +160,12 @@ ipcMain.on('server-load-file', (event, file) => {
   canvasManager.clearAll();
   canvasManager.loadFile(file);
   sendMessage(mainWindow, 'client-load-from-model', canvasManager.getAll());
+  const feedback = {
+    title: 'Table Loaded',
+    desc: 'Successfully loaded file: \n'+saveManager.getCurrentFile(),
+    color: 'lightgreen',
+  };
+  sendMessage(mainWindow, 'client-display-feedback', feedback);
 });
 
 // server-save-file
@@ -164,7 +176,15 @@ ipcMain.on('server-save-file', (event, data) => {
   }
   canvasManager.addEditor(data.editor);
   canvasManager.setScreenshot(data.screenshot);
-  saveManager.saveTable(canvasManager.getAll());
+  const filepath = saveManager.saveTable(canvasManager.getAll());
+  const response = {
+    title: 'Table Saved',
+    desc: 'Lighttable scene has successfully been saved to:\n'+filepath,
+    color: 'lightgreen',
+  };
+  if (filepath) {
+    sendMessage(mainWindow, 'client-display-feedback', response);
+  }
 });
 
 // server-list-savefiles
@@ -239,7 +259,7 @@ ipcMain.on('server-delete-save', (event, filename) => {
       filesNames.forEach((name) => {
         savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
       });
-      event.sender.webContents.send('return-save-files', savefiles);
+      event.sender.send('return-save-files', savefiles);
     });
   }
 });
