@@ -286,6 +286,12 @@ $(document).ready(function() {
       } else if (event.keyCode == 78) {
         // Ctrl + N -> Table Clear
         clearTable();
+      } else if (event.keyCode == 90) {
+        // Ctrl + Z -> Undo Step
+        uic.sendToServer('server-undo-step');
+      } else if (event.keyCode == 89) {
+        // Ctrl + Y -> Redo Step
+        uic.sendToServer('server-redo-step');
       }
     } else {
       if (event.keyCode == 46) {

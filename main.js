@@ -108,11 +108,52 @@ function sendMessage(recipientWindow, message, data=null) {
 
 // server-save-to-model
 ipcMain.on('server-save-to-model', (event, data) => {
-  canvasManager.updateStage(data.stage);
-  canvasManager.updateFragments(data.fragments);
   if (development) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-to-model] from client');
+  }
+  canvasManager.updateAll(data);
+});
+
+// server-undo-step
+ipcMain.on('server-undo-step', (event) => {
+  if (development) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-undo-step] from client');
+  }
+  const undo = canvasManager.undoStep();
+  if (undo) {
+    const data = canvasManager.getAll();
+    data['undo'] = true;
+    sendMessage(event.sender, 'client-load-from-model', data);
+  } else {
+    const feedback = {
+      title: 'Undo Impossible',
+      desc: 'There are no more undo steps possible.',
+      color: 'red',
+    };
+    sendMessage(event.sender, 'client-display-feedback', feedback);
+  }
+});
+
+// server-redo-step
+ipcMain.on('server-redo-step', (event) => {
+  if (development) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-redo-step] from client');
+  }
+  const redo = canvasManager.redoStep();
+  if (redo) {
+    const data = canvasManager.getAll();
+    data['undo'] = true;
+    sendMessage(event.sender, 'client-load-from-model', data);
+  } else {
+    const feedback = {
+      title: 'Redo Impossible',
+      desc: 'There are no more redo steps available.',
+      color: 'red',
+    };
+    sendMessage(event.sender, 'client-display-feedback', feedback);
   }
 });
 
@@ -124,12 +165,6 @@ ipcMain.on('server-clear-table', (event) => {
   }
   canvasManager.clearAll();
   sendMessage(event.sender, 'client-load-from-model', canvasManager.getAll());
-  const feedback = {
-    title: 'Table Cleared',
-    desc: 'The table has successfully been cleared.',
-    color: 'lightgreen',
-  };
-  sendMessage(event.sender, 'client-display-feedback', feedback);
 });
 
 // server-open-detail-window

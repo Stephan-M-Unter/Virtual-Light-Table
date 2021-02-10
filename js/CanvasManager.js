@@ -108,6 +108,9 @@ class CanvasManager {
     this.annots = {};
     this.IDcounter = 0;
     this.screenshot = null;
+    this.steps = [];
+    this.redoSteps = [];
+    this.maxSteps = 30;
   }
 
   /**
@@ -146,18 +149,145 @@ class CanvasManager {
 
   /**
    * TODO
-   * @param {*} fragmentsData
+   * @param {*} data
    */
-  updateFragments(fragmentsData) {
-    this.fragments = fragmentsData;
+  updateAll(data) {
+    this.doStep();
+    if (data.stage) {
+      this.stage = data.stage;
+    }
+    if (data.fragments) {
+      this.fragments = data.fragments;
+    }
+    if (data.editors) {
+      this.editors = data.editors;
+    }
+    if (data.annots) {
+      this.annots = data.annots;
+    }
+    if (data.IDcounter) {
+      this.IDcounter = data.IDcounter;
+    }
+    if (data.screenshot) {
+      this.screenshot = data.screenshot;
+    }
   }
 
   /**
    * TODO
-   * @param {*} stageData
+   * @return {*}
    */
-  updateStage(stageData) {
-    this.stage = stageData;
+  doStep() {
+    // starting a new action branch, all redos are deleted
+    this.redoSteps = [];
+
+    // saving current configuration as undo step
+    const step = {
+      stage: this.stage,
+      fragments: this.fragments,
+      editors: this.editors,
+      annots: this.annots,
+      IDcounter: this.IDcounter,
+      screenshot: this.screenshot,
+    };
+    this.steps.push(step);
+
+    // if maximum step length is reached, remove first undos
+    while (this.steps.length > this.maxSteps) {
+      this.steps.shift();
+    }
+
+    console.log('Current UndoLog-Size: ', this.steps.length);
+    return true;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  undoStep() {
+    // return false in case that no undo steps are available
+    if (this.steps.length == 0) {
+      return false;
+    }
+
+    // saving current state as new entry in redoSteps
+    const step = {
+      stage: this.stage,
+      fragments: this.fragments,
+      editors: this.editors,
+      annots: this.annots,
+      IDcounter: this.IDcounter,
+      screenshot: this.screenshot,
+    };
+    this.redoSteps.push(step);
+    console.log('Current RedoLog-Size: ', this.redoSteps.length);
+
+    // loading former state
+    const data = this.steps.pop();
+    if (data.stage) {
+      this.stage = data.stage;
+    }
+    if (data.fragments) {
+      this.fragments = data.fragments;
+    }
+    if (data.editors) {
+      this.editors = data.editors;
+    }
+    if (data.annots) {
+      this.annots = data.annots;
+    }
+    if (data.IDcounter) {
+      this.IDcounter = data.IDcounter;
+    }
+    if (data.screenshot) {
+      this.screenshot = data.screenshot;
+    }
+    return true;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  redoStep() {
+    // if there are no redo steps saved, there is nothing we can do
+    if (this.redoSteps.length == 0) {
+      return false;
+    }
+
+    // saving current configuration as undo step
+    const step = {
+      stage: this.stage,
+      fragments: this.fragments,
+      editors: this.editors,
+      annots: this.annots,
+      IDcounter: this.IDcounter,
+      screenshot: this.screenshot,
+    };
+    this.steps.push(step);
+
+    // load first redo step available
+    const data = this.redoSteps.pop();
+    if (data.stage) {
+      this.stage = data.stage;
+    }
+    if (data.fragments) {
+      this.fragments = data.fragments;
+    }
+    if (data.editors) {
+      this.editors = data.editors;
+    }
+    if (data.annots) {
+      this.annots = data.annots;
+    }
+    if (data.IDcounter) {
+      this.IDcounter = data.IDcounter;
+    }
+    if (data.screenshot) {
+      this.screenshot = data.screenshot;
+    }
+    return true;
   }
 
   /**
@@ -242,6 +372,7 @@ class CanvasManager {
    */
   loadFile(file) {
     this.clearAll();
+    this.doStep();
     this.stage = file.stage;
     this.fragments = file.fragments;
     this.editors = file.editors;

@@ -245,7 +245,7 @@ class UIController {
     }
     $('#vf_title').empty().text(titleText);
     $('#vf_desc').empty().text(descText);
-    $('#visual_feedback').css('backgroundColor', color);
+    $('#visual_feedback').css('background-color', color);
     $('#visual_feedback').css('display', 'block');
     $('#visual_feedback').css('left', '50%');
     $('#visual_feedback').css('left', '-=30px');

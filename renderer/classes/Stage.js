@@ -120,13 +120,6 @@ class Stage {
       this._loadStageConfiguration();
     }
 
-    /*
-    * Schritte:
-    * alles in x1.0 skalieren
-    * prüfen ob alles ins Sichtfeld passt
-    * falls nicht, entsprechend anpassen, sonst so lassen
-    */
-
     this.update();
   }
 
@@ -267,8 +260,6 @@ class Stage {
       this._scaleObjects();
 
       this.moveStage(-distX, -distY);
-      this._saveToModel();
-
       this.update();
     }
   }
@@ -963,8 +954,6 @@ class Stage {
     const distX = center.x - dimensions.center.x + sidebar/2;
     const distY = center.y - dimensions.center.y;
     this.moveStage(distX, distY);
-
-    this._saveToModel();
   }
 }
 
