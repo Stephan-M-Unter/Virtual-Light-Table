@@ -28,18 +28,6 @@
         
         <!-- Control Elements -->
         <div id="table_button_wrapper" class="no-select">
-            <div class="squareButton no-select" id="clear_table">
-                <img src="../imgs/symbol_new_table.png" class="circularButtonImg">
-                <span class="tooltip">Clear Table</span>
-            </div>
-            <div class="squareButton no-select" id="save_table">
-                <img src="../imgs/symbol_save.png" class="circularButtonImg">
-                <span class="tooltip">Save Table</span>
-            </div>
-            <div class="squareButton no-select" id="load_table">
-                <img src="../imgs/symbol_load.png" class="circularButtonImg">
-                <span class="tooltip">Load Table</span>
-            </div>
             <div class="circularButtonWrapper" id="flip_buttons">
                 <div class="subButtonWrapper">
                     <div class="squareButton no-select subButton" id="hor_flip_table">
@@ -60,6 +48,7 @@
                 <img src="../imgs/symbol_light.png" class="circularButtonImg">
                 <span class="tooltip">Switch Light On/Off</span>
             </div>
+            <!--
             <div class="circularButtonWrapper" id="export_buttons">
                 <div class="subButtonWrapper">
                     <div class="squareButton no-select subButton" id="export_jpg">
@@ -76,6 +65,7 @@
                     <span class="tooltip">Export</span>
                 </div>
             </div>
+            -->
         </div>
         
         <div id="annot_button">
@@ -111,6 +101,52 @@
         <!-- Left Sidebar -->
         <div id="left_sidebar" class="no-select small">
             <div id="sidebar_content">
+                <div class="sidebar_content_wrapper expanded" id="control">
+                    <div class="sidebar_header">
+                        <div class="sidebar_header_title">Control Panel</div>
+                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
+                        <div class="arrow down"></div>
+                    </div>
+                    <div class="sidebar_content" id="control_content">
+
+                        <div id="clear_table" class="wide_button no_select">
+                            <img class="button_img" src="../imgs/symbol_new_table.png"/>
+                            <div class="button_label">Clear Table</div>
+                        </div>
+
+                        <div id="save_table" class="wide_button no_select">
+                            <img class="button_img" src="../imgs/symbol_save.png"/>
+                            <div class="button_label">Save</div>
+                        </div>
+
+                        <div id="load_table" class="wide_button no_select">
+                            <img class="button_img" src="../imgs/symbol_load.png"/>
+                            <div class="button_label">Load</div>
+                        </div>
+
+                        <div id="export_table" class="wide_button no_select">
+                            <img class="button_img" src="../imgs/symbol_export.png"/>
+                            <div class="button_label">Export</div>
+                        </div>
+
+                        <hr>
+
+                        <div class="sidebar_header_title">Display</div>
+                        <div class="displayWrapper">
+                            <input type="checkbox" id="light_box"/>
+                            <label>Light</label>
+                        </div>
+                        <div class="displayWrapper">
+                            <input type="checkbox" id="grid_box"/>
+                            <label>Grid/Scale</label>
+                        </div>
+                        <div class="displayWrapper">
+                            <input type="checkbox" id="fibre_box"/>
+                            <label>Fibres</label>
+                        </div>
+
+                    </div>
+                </div> <!-- </new_fragments> -->
                 <div class="sidebar_content_wrapper" id="new_fragments">
                     <div class="sidebar_header">
                         <div class="sidebar_header_title">Add Fragments</div>
@@ -122,6 +158,8 @@
                             <img class="button_img" src="../imgs/symbol_upload_local.png"/>
                             <div class="button_label">Custom Fragment</div>
                         </div>
+                        <hr>
+                        <div>Space for future TPOP fragment selection.</div>
                     </div>
                 </div> <!-- </new_fragments> -->
                 <div class="sidebar_content_wrapper" id="graphical_filters">
@@ -130,13 +168,17 @@
                         <img class="sidebar_header_help" src="../imgs/help.png" target="help-graphical-filters">
                         <div class="arrow"></div>
                     </div>
-                    <div class="sidebar_content" id="graphical_filters_content"></div>
+                    <div class="sidebar_content" id="graphical_filters_content">
+                        <div>
+                            Under construction.
+                        </div>
+                    </div>
                 </div> <!-- </graphical filters> -->
-                <div class="sidebar_content_wrapper expanded" id="fragment_list">
+                <div class="sidebar_content_wrapper" id="fragment_list">
                     <div class="sidebar_header">
                         <div class="sidebar_header_title">Light Table</div>
                         <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
-                        <div class="arrow down"></div>
+                        <div class="arrow"></div>
                     </div>
                     <div class="sidebar_content" id="fragment_list_content">
                         <div id="fragment_list_nocontent">No fragments selected</div>

@@ -67,6 +67,10 @@ body {
   color: var(--cb_grey);
 }
 
+#sidebar_content hr {
+  border-top: 1px solid white;
+}
+
 .sidebar_content {
   text-align: center;
 }
@@ -111,16 +115,16 @@ body {
   padding-left: 10px;
   line-height: 2em;
   text-align: left;
-  font-variant: small-caps;
-  font-size: 1.5em;
   border-bottom: 2px #111111 solid;
   color: var(--cb_grey);
   background-color: rgba(29, 29, 27, 0.7);
   transition: 0.2s background-color;
   box-sizing: border-box;
+  font-size: 1.5em;
 }
 
 .sidebar_header_title {
+  font-variant: small-caps;
   position: relative;
   display: inline-block;
 }
@@ -175,7 +179,7 @@ body {
 }
 
 .sidebar_content_wrapper.expanded .sidebar_content {
-  height: calc(100vh - 150px);
+  height: calc(100vh - 200px);
   opacity: 1;
   padding: 0px 10px;
   transition: 0.2s all;
@@ -183,7 +187,7 @@ body {
 }
 
 .small .sidebar_content_wrapper.expanded .sidebar_content {
-  height: calc(100vh - 100px);
+  height: calc(100vh - 140px);
 }
 
 .sidebar_content_wrapper .sidebar_content {
@@ -202,6 +206,17 @@ body {
   margin-left: 2px;
   width: 15px;
   height: 15px;
+  display: none;
+}
+
+.displayWrapper {
+  display: block;
+  margin: 15px auto;
+}
+
+.displayWrapper * {
+  display: inline-block;
+  line-height: 20px;
 }
 
 #fragment_list_content {
@@ -844,9 +859,11 @@ body {
   width: 60%;
   max-width: 300px;
   height: 50px;
-  background-color: gray;
+  background-color: #aaaaaa;
+  color: black;
   margin: 5px auto;
   position: relative;
+  box-sizing: border-box;
   display: flex;
   flex-flow: row;
   overflow: hidden;
@@ -877,10 +894,12 @@ body {
 }
 
 .small .wide_button {
-  display: inline-block;
+  display: flex;
   width: 90%;
   box-sizing: border-box;
   font-size: 1.2em;
+  align-items: center;
+  justify-content: center;
 }
 
 .small .wide_button .button_label {

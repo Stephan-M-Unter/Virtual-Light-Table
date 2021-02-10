@@ -49,14 +49,33 @@ function toggleLight() {
     darkBackground = $('body').css('background');
     $('body').css({backgroundColor: 'white'});
     $('#light_switch').addClass('button_active');
+    $('#light_box').prop('checked', true);
     lightMode = 'bright';
   } else {
     // current light_mode is "bright" => change to "dark"
     $('body').css({background: darkBackground});
     $('#light_switch').removeClass('button_active');
+    $('#light_box').prop('checked', false);
     lightMode = 'dark';
   }
 }
+
+/**
+ * TODO
+ */
+function toggleGrid() {
+  // TODO
+  console.log('Grid toggled.');
+}
+
+/**
+ * TODO
+ */
+function toggleFibres() {
+  // TODO
+  console.log('Fibres toggled.');
+}
+
 
 $(document).ready(function() {
   uic = new UIController('lighttable');
@@ -146,6 +165,17 @@ $(document).ready(function() {
   // Light Switch Button
   $('#light_switch').click(function() {
     toggleLight();
+  });
+  $('#light_box').on('change', function() {
+    toggleLight();
+  });
+
+
+  $('#grid_box').on('change', function() {
+    toggleGrid();
+  });
+  $('#fibre_box').on('change', function() {
+    toggleFibres();
   });
 
   // Fit to Screen
@@ -249,13 +279,14 @@ $(document).ready(function() {
 
   $('.sidebar_header').click(function(event) {
     // only react if the clicked element is not yet expanded
-    if (!$(event.target).parent().hasClass('expanded')) {
+    if (!$(this).parent().hasClass('expanded') &&
+      !$(this).parent().hasClass('disabled')) {
       // first, retotate down-arrow back and remove expanded label
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
       // second, rotate arrow down and expand clicked segment
-      $(event.target).find('.arrow').addClass('down');
-      $(event.target).parent().addClass('expanded');
+      $(this).find('.arrow').addClass('down');
+      $(this).parent().addClass('expanded');
     }
   });
 
@@ -300,6 +331,12 @@ $(document).ready(function() {
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
         toggleLight();
+      } else if (event.keyCode == 71) {
+        // G -> Toggle Grid
+        toggleGrid();
+      } else if (event.keyCode == 70) {
+        // F -> Toggle Fibres
+        toggleFibres();
       }
     }
   });
