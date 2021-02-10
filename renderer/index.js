@@ -4,11 +4,62 @@ const {UIController} = require('./classes/UIController');
 const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
 const dialogs = new Dialogs();
+let uic;
+let lightMode = 'dark';
+let darkBackground;
 
 let xyz; // TODO: entfernen
 
+/**
+ * TODO
+ */
+function saveTable() {
+  dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
+    if (editor!='' && editor!=null) {
+      const screenshot = stage.exportCanvas('png', true);
+      const data = {
+        'editor': editor,
+        'screenshot': screenshot,
+      };
+      uic.sendToServer('server-save-file', data);
+    }
+  });
+}
+
+/**
+ * TODO
+ */
+function loadTable() {
+  uic.sendToServer('server-open-load-window');
+}
+
+/**
+ * TODO
+ */
+function clearTable() {
+  uic.sendToServer('server-clear-table');
+}
+
+/**
+ * TODO
+ */
+function toggleLight() {
+  if (lightMode == 'dark') {
+    // current light_mode is "dark" => change to "bright"
+    darkBackground = $('body').css('background');
+    $('body').css({backgroundColor: 'white'});
+    $('#light_switch').addClass('button_active');
+    lightMode = 'bright';
+  } else {
+    // current light_mode is "bright" => change to "dark"
+    $('body').css({background: darkBackground});
+    $('#light_switch').removeClass('button_active');
+    lightMode = 'dark';
+  }
+}
+
 $(document).ready(function() {
-  const uic = new UIController('lighttable');
+  uic = new UIController('lighttable');
   const stage = uic.getStage();
 
   /* ##########################################
@@ -17,26 +68,17 @@ $(document).ready(function() {
 
   // Clear Table Button
   $('#clear_table').click(function() {
-    uic.sendToServer('server-clear-table');
+    clearTable();
   });
 
   // Save Table Button
   $('#save_table').click(function() {
-    dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
-      if (editor!='' && editor!=null) {
-        const screenshot = stage.exportCanvas('png', true);
-        const data = {
-          'editor': editor,
-          'screenshot': screenshot,
-        };
-        uic.sendToServer('server-save-file', data);
-      }
-    });
+    saveTable();
   });
 
   // Load Table Button
   $('#load_table').click(function() {
-    uic.sendToServer('server-open-load-window');
+    loadTable();
   });
 
   // Flip Buttons
@@ -102,21 +144,8 @@ $(document).ready(function() {
   });
 
   // Light Switch Button
-  let lightMode = 'dark';
-  let darkBackground;
   $('#light_switch').click(function() {
-    if (lightMode == 'dark') {
-      // current light_mode is "dark" => change to "bright"
-      darkBackground = $('body').css('background');
-      $('body').css({backgroundColor: 'white'});
-      $('#light_switch').addClass('button_active');
-      lightMode = 'bright';
-    } else {
-      // current light_mode is "bright" => change to "dark"
-      $('body').css({background: darkBackground});
-      $('#light_switch').removeClass('button_active');
-      lightMode = 'dark';
-    }
+    toggleLight();
   });
 
   // Fit to Screen
@@ -247,9 +276,25 @@ $(document).ready(function() {
 
   // Keystrokes
   $('html').keydown(function(event) {
-    // Delete
-    if (event.keyCode == 46) {
-      uic.removeFragments();
+    if (event.ctrlKey) {
+      if (event.keyCode == 83) {
+        // Ctrl + S -> Save
+        saveTable();
+      } else if (event.keyCode == 76) {
+        // Ctrl + L -> Load
+        loadTable();
+      } else if (event.keyCode == 78) {
+        // Ctrl + N -> Table Clear
+        clearTable();
+      }
+    } else {
+      if (event.keyCode == 46) {
+        // DEL -> Delete Fragment(s)
+        uic.removeFragments();
+      } else if (event.keyCode == 76) {
+        // L -> Toggle Light
+        toggleLight();
+      }
     }
   });
 

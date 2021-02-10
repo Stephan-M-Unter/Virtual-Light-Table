@@ -10,7 +10,6 @@ class Fragment {
      * @param {*} eventData
      */
   constructor(controller, stageObject, id, eventData) {
-    console.log(eventData.item.properties);
     this.controller = controller;
     this.id = id;
     this.isRecto = eventData.item.properties.recto;
