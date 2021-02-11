@@ -902,6 +902,31 @@ body {
   justify-content: center;
 }
 
-.small .wide_button .button_label {
-  display: none;
+.narrow_button {
+  width: 30%;
+  max-width: 80px;
+  height: 50px;
+  background-color: #aaaaaa;
+  color: black;
+  margin: 5px auto;
+  position: relative;
+  box-sizing: border-box;
+  display: inline-block;
+  flex-flow: row;
+  overflow: hidden;
 }
+
+#export_detail_wrapper {
+  height: 0px;
+  overflow: hidden;
+  transition: all .2s;
+}
+
+#export_detail_wrapper.expanded {
+  height: auto;
+  transition: all .2s;
+}
+
+/* .small .wide_button .button_label {
+  display: none;
+} */

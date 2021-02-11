@@ -759,23 +759,26 @@ class Stage {
   /**
    * TODO
    * @param {*} fileFormat "png", "jpg", "jpeg"
+   * @param {*} full
    * @param {*} thumb
    * @return {*}
    */
-  exportCanvas(fileFormat='png', thumb=false) {
-    // change stage such that all fragments are visible
+  exportCanvas(fileFormat='png', full=true, thumb=false) {
     const dimensions = this.getMBR();
     const center = this.getCenter();
     const distX = center.x - dimensions.center.x;
     const distY = center.y - dimensions.center.y;
-    this.moveStage(distX, distY);
-
     const oldScaling = this.stage.scaling;
-    const scalingHeight = this.stage.scaling * this.height / dimensions.height;
-    const scalingWidth = this.stage.scaling * this.width / dimensions.width;
-    const scaling = Math.min(scalingWidth, scalingHeight);
-    if (Math.abs(this.stage.scaling - scaling) > 1) {
-      this.controller.setScaling(scaling);
+    if (full) {
+      // change stage such that all fragments are visible
+      this.moveStage(distX, distY);
+      const scalingHeight = this.stage.scaling *
+          this.height / dimensions.height;
+      const scalingWidth = this.stage.scaling * this.width / dimensions.width;
+      const scaling = Math.min(scalingWidth, scalingHeight);
+      if (Math.abs(this.stage.scaling - scaling) > 1) {
+        this.controller.setScaling(scaling);
+      }
     }
 
     // remove UI elements
@@ -826,10 +829,12 @@ class Stage {
     pseudoLink.click();
     document.body.removeChild(pseudoLink);
 
-    // revert stage to original configuration
-    this.controller.setScaling(oldScaling);
-    this.moveStage(-distX, -distY);
-    this.update();
+    if (full) {
+      // revert stage to original configuration
+      this.controller.setScaling(oldScaling);
+      this.moveStage(-distX, -distY);
+      this.update();
+    }
   }
 
   /**

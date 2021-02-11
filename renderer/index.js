@@ -80,6 +80,7 @@ function toggleFibres() {
 $(document).ready(function() {
   uic = new UIController('lighttable');
   const stage = uic.getStage();
+  clearTable();
 
   /* ##########################################
     #               INPUT/OUTPUT
@@ -140,26 +141,33 @@ $(document).ready(function() {
   });
 
   // Export Buttons
-  $('#export').click(function() {
-    if ($('#export_jpg').css('display') == 'none') {
-      // open export buttons
-      $('#export').addClass('button_active');
-      $('#export_jpg').css('display', 'inline-block');
-      $('#export_png').css('display', 'inline-block');
-      $('#export>img').attr('src', '../imgs/symbol_x.png');
+  $('#export_table').click(function() {
+    if ($('#export_detail_wrapper').hasClass('expanded')) {
+      $('#export_table').removeClass('button_active');
+      $('#export_detail_wrapper').removeClass('expanded');
     } else {
-      // close export buttons
-      $('#export').removeClass('button_active');
-      $('#export_jpg').css('display', 'none');
-      $('#export_png').css('display', 'none');
-      $('#export>img').attr('src', '../imgs/symbol_export.png');
+      $('#export_table').addClass('button_active');
+      $('#export_detail_wrapper').addClass('expanded');
     }
   });
-  $('#export_jpg').click(function() {
-    stage.exportCanvas('jpg');
+  $('#jpg_snap').click(function() {
+    stage.exportCanvas('jpg', false);
   });
-  $('#export_png').click(function() {
-    stage.exportCanvas('png');
+  $('#jpg_full').click(function() {
+    stage.exportCanvas('jpg', true);
+  });
+  $('#png_snap').click(function() {
+    stage.exportCanvas('png', false);
+  });
+  $('#png_full').click(function() {
+    stage.exportCanvas('png', true);
+  });
+
+  $('#undo').click(function() {
+    uic.sendToServer('server-undo-step');
+  });
+  $('#redo').click(function() {
+    uic.sendToServer('server-redo-step');
   });
 
   // Light Switch Button
@@ -185,21 +193,21 @@ $(document).ready(function() {
 
   // Hide HUD button
   $('#hide_hud').click(function(event) {
-    if ($(event.target).hasClass('hide_active')) {
+    if ($('#hide_hud').hasClass('hide_active')) {
       // if the HUD is currently hidden, show it again
       $('#left_sidebar').removeClass('hidden');
       $('#zoom_wrapper').removeClass('hidden');
       $('#table_button_wrapper').removeClass('hidden');
       $('#annot_button').removeClass('hidden');
       $('#fit_to_screen').removeClass('hidden');
-      $(event.target).removeClass('hide_active');
+      $('#hide_hud').removeClass('hide_active');
     } else {
       $('#left_sidebar').addClass('hidden');
       $('#zoom_wrapper').addClass('hidden');
       $('#table_button_wrapper').addClass('hidden');
       $('#annot_button').addClass('hidden');
       $('#fit_to_screen').addClass('hidden');
-      $(event.target).addClass('hide_active');
+      $('#hide_hud').addClass('hide_active');
     }
   });
 
