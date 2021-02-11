@@ -403,6 +403,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 83) {
         // S -> Toggle Scale
         toggleScale();
+      } else if (event.keyCode = 27) {
+        // ESC -> deselct All
+        uic.clearSelection();
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

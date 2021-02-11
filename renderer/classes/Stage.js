@@ -133,35 +133,35 @@ class Stage {
         unit = '10 cm';
       }
 
-      const startX = this.width - 20;
-      const startY = this.height - 120;
+      const endX = this.width - 150;
+      const endY = this.height - 50;
 
       const scale = new createjs.Shape();
       scale.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
-      scale.graphics.moveTo(startX, startY);
-      scale.graphics.lineTo(startX-cm, startY);
+      scale.graphics.moveTo(endX, endY);
+      scale.graphics.lineTo(endX-cm, endY);
       scale.graphics.endStroke();
       this.scale.addChild(scale);
 
       const start = new createjs.Shape();
       start.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
-      start.graphics.moveTo(startX, startY);
-      start.graphics.lineTo(startX, startY-10);
+      start.graphics.moveTo(endX, endY);
+      start.graphics.lineTo(endX, endY-10);
       start.graphics.endStroke();
       this.scale.addChild(start);
 
       const end = new createjs.Shape();
       end.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
-      end.graphics.moveTo(startX-cm, startY);
-      end.graphics.lineTo(startX-cm, startY-10);
+      end.graphics.moveTo(endX-cm, endY);
+      end.graphics.lineTo(endX-cm, endY-10);
       end.graphics.endStroke();
       this.scale.addChild(end);
 
       const text = new createjs.Text(unit);
       text.scale = 1.5;
       const bounds = text.getBounds();
-      text.x = startX - bounds.width*text.scale;
-      text.y = startY + bounds.height*text.scale - 5;
+      text.x = endX - bounds.width*text.scale;
+      text.y = endY + bounds.height*text.scale - 5;
       this.scale.addChild(text);
     }
 
