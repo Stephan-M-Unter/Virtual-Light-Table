@@ -64,8 +64,7 @@ function toggleLight() {
  * TODO
  */
 function toggleGrid() {
-  // TODO
-  console.log('Grid toggled.');
+  uic.toggleGridMode();
 }
 
 /**
@@ -74,6 +73,13 @@ function toggleGrid() {
 function toggleFibres() {
   // TODO
   console.log('Fibres toggled.');
+}
+
+/**
+ * TODO
+ */
+function toggleScale() {
+  uic.toggleScaleMode();
 }
 
 
@@ -181,6 +187,9 @@ $(document).ready(function() {
 
   $('#grid_box').on('change', function() {
     toggleGrid();
+  });
+  $('#scale_box').on('change', function() {
+    toggleScale();
   });
   $('#fibre_box').on('change', function() {
     toggleFibres();
@@ -345,6 +354,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 70) {
         // F -> Toggle Fibres
         toggleFibres();
+      } else if (event.keyCode == 83) {
+        // S -> Toggle Scale
+        toggleScale();
       }
     }
   });

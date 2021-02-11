@@ -1,3 +1,4 @@
+const {TouchBarScrubber, TouchBarSlider} = require('electron');
 const {Fragment} = require('./Fragment');
 const {Scaler} = require('./Scaler');
 
@@ -36,6 +37,12 @@ class Stage {
       'vertical': null,
     };
 
+    this.gridMode = false;
+    this.grid = new createjs.Container();
+    this.stage.addChild(this.grid);
+    this.scaleMode = false;
+    this.scale = new createjs.Container();
+    this.stage.addChild(this.scale);
     this.background = this._createBackground();
     this.stage.addChild(this.background);
 
@@ -78,6 +85,109 @@ class Stage {
     });
 
     return background;
+  }
+
+  /**
+   * TODO
+   */
+  updateGrid() {
+    this.grid.removeAllChildren();
+
+    if (this.gridMode) {
+      const CmInPx = 38 * this.stage.scaling / 100;
+
+      for (let i = 0; i < this.width; i += CmInPx) {
+        const line = new createjs.Shape();
+        line.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,0.4)');
+        line.graphics.moveTo(i, 0);
+        line.graphics.lineTo(i, this.height);
+        line.graphics.endStroke();
+        this.grid.addChild(line);
+      }
+
+      for (let i = 0; i < this.height; i += CmInPx) {
+        const line = new createjs.Shape();
+        line.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,0.4)');
+        line.graphics.moveTo(0, i);
+        line.graphics.lineTo(this.width, i);
+        line.graphics.endStroke();
+        this.grid.addChild(line);
+      }
+    }
+
+    this.update();
+  }
+
+  /**
+   * TODO
+   */
+  updateScale() {
+    this.scale.removeAllChildren();
+
+    if (this.scaleMode) {
+      let cm = 38 * this.stage.scaling / 100;
+      let unit = '1 cm';
+
+      if (this.width / cm > 50) {
+        cm *= 10;
+        unit = '10 cm';
+      }
+
+      const startX = this.width - 20;
+      const startY = this.height - 120;
+
+      const scale = new createjs.Shape();
+      scale.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
+      scale.graphics.moveTo(startX, startY);
+      scale.graphics.lineTo(startX-cm, startY);
+      scale.graphics.endStroke();
+      this.scale.addChild(scale);
+
+      const start = new createjs.Shape();
+      start.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
+      start.graphics.moveTo(startX, startY);
+      start.graphics.lineTo(startX, startY-10);
+      start.graphics.endStroke();
+      this.scale.addChild(start);
+
+      const end = new createjs.Shape();
+      end.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
+      end.graphics.moveTo(startX-cm, startY);
+      end.graphics.lineTo(startX-cm, startY-10);
+      end.graphics.endStroke();
+      this.scale.addChild(end);
+
+      const text = new createjs.Text(unit);
+      text.scale = 1.5;
+      const bounds = text.getBounds();
+      text.x = startX - bounds.width*text.scale;
+      text.y = startY + bounds.height*text.scale - 5;
+      this.scale.addChild(text);
+    }
+
+    this.stage.removeChild(this.scale);
+    this.stage.addChild(this.scale);
+    this.update();
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  toggleGridMode() {
+    this.gridMode = !this.gridMode;
+    this.updateGrid();
+    return this.gridMode;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  toggleScaleMode() {
+    this.scaleMode = !this.scaleMode;
+    this.updateScale();
+    return this.scaleMode;
   }
 
   /**
@@ -260,6 +370,8 @@ class Stage {
       this._scaleObjects();
 
       this.moveStage(-distX, -distY);
+      this.updateGrid();
+      this.updateScale();
       this.update();
     }
   }

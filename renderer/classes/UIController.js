@@ -176,6 +176,30 @@ class UIController {
 
   /**
    * TODO
+   */
+  toggleGridMode() {
+    const gridMode = this.stage.toggleGridMode();
+    if (gridMode) {
+      $('#grid_box').prop('checked', true);
+    } else {
+      $('#grid_box').prop('checked', false);
+    }
+  }
+
+  /**
+   * TODO
+   */
+  toggleScaleMode() {
+    const scaleMode = this.stage.toggleScaleMode();
+    if (scaleMode) {
+      $('#scale_box').prop('checked', true);
+    } else {
+      $('#scale_box').prop('checked', false);
+    }
+  }
+
+  /**
+   * TODO
    * @return {*}
    */
   getCanvasCenter() {
