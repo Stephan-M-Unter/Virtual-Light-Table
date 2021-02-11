@@ -875,7 +875,7 @@ class Stage {
    * @param {*} thumb
    * @return {*}
    */
-  exportCanvas(fileFormat='png', full=true, thumb=false) {
+  exportCanvas(fileFormat, full=true, thumb=false) {
     const dimensions = this.getMBR();
     const center = this.getCenter();
     const distX = center.x - dimensions.center.x;
@@ -903,7 +903,9 @@ class Stage {
     if (fileFormat == 'jpg' || fileFormat == 'jpeg') {
       extension = 'jpg';
       type = 'image/jpeg';
-      const backgroundColor = '#FF00FF';
+      const backgroundColor = $('.color_button.selected')
+          .css('background-color');
+      console.log(backgroundColor);
 
       // creating a pseudo canvas, filling it with background color
       // then, drawing VLT canvas on top
@@ -916,6 +918,10 @@ class Stage {
           this.stage.canvas.height);
       pseudoContext.drawImage(this.stage.canvas, 0, 0);
       pseudoLink.href = pseudoCanvas.toDataURL();
+    } else if (fileFormat == 'tiff') {
+      extension = 'tif';
+      type = 'image/tiff';
+      pseudoLink.href = document.getElementById('lighttable').toDataURL(type);
     } else if (fileFormat == 'png') {
       extension = 'png';
       type = 'image/png';

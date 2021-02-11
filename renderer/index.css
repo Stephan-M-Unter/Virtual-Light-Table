@@ -927,6 +927,42 @@ body {
   transition: all .2s;
 }
 
+.sidebar_content .sidebar_header_title {
+  display: block;
+}
+
+.color_button {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1px solid black;
+}
+
+.color_button.white {
+  background-color: white;
+}
+
+.color_button.black {
+  background-color: black;
+}
+
+.color_button.darkblue {
+  background-color: darkblue;
+}
+
+.color_button.grey {
+  background-color: grey;
+}
+
+.color_button.pink {
+  background-color: #ff00ff;
+}
+
+.color_button.selected {
+  border: 2px solid var(--cb_orange);
+}
+
 /* .small .wide_button .button_label {
   display: none;
 } */

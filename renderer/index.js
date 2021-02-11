@@ -8,7 +8,40 @@ let uic;
 let lightMode = 'dark';
 let darkBackground;
 
+const konami = [38, 38, 40, 40, 37, 39, 37, 39, 65, 66];
+let konamiDetection = [];
+let konamiActive = false;
+
 let xyz; // TODO: entfernen
+
+/**
+ * TODO
+ * @param {*} keyCode
+ */
+function checkForKonami(keyCode) {
+  const nextKey = konami[konamiDetection.length];
+  if (nextKey == keyCode) {
+    konamiDetection.push(keyCode);
+  } else {
+    konamiDetection = [];
+  }
+  if (konami.length == konamiDetection.length) {
+    activateKonami();
+  }
+}
+
+/**
+ * TODO
+ */
+function activateKonami() {
+  konamiActive = true;
+  $('#color_wrapper').append('<div class="color_button pink"></div>');
+  $('.color_button.pink').click(function(event) {
+    $('.color_button.selected').removeClass('selected');
+    $(event.target).addClass('selected');
+  });
+  uic.showVisualFeedback('Konami activated', '', '#ff00ff', 5000);
+}
 
 /**
  * TODO
@@ -162,11 +195,24 @@ $(document).ready(function() {
   $('#jpg_full').click(function() {
     stage.exportCanvas('jpg', true);
   });
+
+  $('.color_button').click(function(event) {
+    $('.color_button.selected').removeClass('selected');
+    $(event.target).addClass('selected');
+  });
+
   $('#png_snap').click(function() {
     stage.exportCanvas('png', false);
   });
   $('#png_full').click(function() {
     stage.exportCanvas('png', true);
+  });
+
+  $('#tiff_snap').click(function() {
+    stage.exportCanvas('tiff', false);
+  });
+  $('#tiff_full').click(function() {
+    stage.exportCanvas('tiff', true);
   });
 
   $('#undo').click(function() {
@@ -357,6 +403,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 83) {
         // S -> Toggle Scale
         toggleScale();
+      }
+      if (!konamiActive) {
+        checkForKonami(event.keyCode);
       }
     }
   });
