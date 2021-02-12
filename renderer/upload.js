@@ -65,6 +65,7 @@ function deactivateCanvas(wrapper) {
   wrapper.find('.upload_button').css('display', 'block');
   // button_wrapper -> weg
   wrapper.find('.button_wrapper').css('visibility', 'hidden');
+  wrapper.find('.resolution_wrapper').css('visibility', 'hidden');
 }
 
 /**
@@ -78,6 +79,7 @@ function activateCanvas(wrapper) {
   wrapper.find('.upload_button').css('display', 'none');
   // button_wrapper -> her
   wrapper.find('.button_wrapper').css('visibility', 'visible');
+  wrapper.find('.resolution_wrapper').css('visibility', 'visible');
 }
 
 /**
@@ -140,6 +142,8 @@ function drawCanvas(canvas, url) {
     // creating the images
     const imgBack = new createjs.Bitmap(image);
     const img = new createjs.Bitmap(image);
+    
+    console.log(img);
 
     // getting the current sizes of images and canvas
     const imgWidth = img.image.width;

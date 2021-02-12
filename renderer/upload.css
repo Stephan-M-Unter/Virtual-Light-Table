@@ -52,11 +52,11 @@ canvas {
     justify-content: center;
 }
     
-.button_wrapper {
+.button_wrapper, .resolution_wrapper {
     width: 100%;
     display: flex;
     flex-flow: row;
-    /* visibility: hidden; TODO */ 
+    visibility: hidden; 
 }
 
 #right_buttons {
