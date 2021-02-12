@@ -250,7 +250,7 @@ ipcMain.on('server-get-saves-folder', (event) => {
   }
   const path = saveManager.getSaveFolder();
   if (path) {
-    event.sender.webContents.send('return-saves-folder', path[0]);
+    event.sender.send('return-saves-folder', path[0]);
   }
 });
 

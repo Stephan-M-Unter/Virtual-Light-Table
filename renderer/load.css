@@ -111,7 +111,7 @@ body {
     font-size: 1em;
 }
 
-#folder {
+#folder, #fragment_search {
     flex: 1 1 auto;
     width: 90%;
     background-color:#dddddd;
@@ -122,6 +122,10 @@ body {
     color: #555555;
     padding: 0 5px;
     margin: auto;
+}
+
+#search_for_fragment_wrapper {
+    margin-top: 2px;
 }
 
 #save_list {

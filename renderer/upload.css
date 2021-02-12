@@ -22,7 +22,7 @@ body {
 }
 
 #recto_canvas_wrapper, #verso_canvas_wrapper {
-    flex: 0 0 calc(50% - 30px);
+    flex: 0 0 calc(50% - 36px);
     display: flex;
     flex-flow: column;
     position: relative;
@@ -56,7 +56,7 @@ canvas {
     width: 100%;
     display: flex;
     flex-flow: row;
-    visibility: hidden;
+    /* visibility: hidden; TODO */ 
 }
 
 #right_buttons {
@@ -160,4 +160,17 @@ canvas {
     line-height: 50px;
     font-size: 1.5em;
     margin: 10px auto;
+}
+
+.resolution_input {
+    max-width: 60px;
+}
+
+#right_resolution_wrapper {
+    text-align: right;
+    float: right;
+}
+
+.resolution_wrapper {
+    padding: 5px;
 }

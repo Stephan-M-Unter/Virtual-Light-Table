@@ -49,7 +49,7 @@ function activateKonami() {
 function saveTable() {
   dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
     if (editor!='' && editor!=null) {
-      const screenshot = stage.exportCanvas('png', true);
+      const screenshot = uic.exportCanvas('png', true, true);
       const data = {
         'editor': editor,
         'screenshot': screenshot,

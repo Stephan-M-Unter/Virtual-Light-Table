@@ -105,7 +105,7 @@ class SaveManager {
    * @return {*}
    */
   getSaveFolder() {
-    const filepath = dialog.showOpenDialog({
+    const filepath = dialog.showOpenDialogSync({
       title: 'Open VLT Configuration',
       filters: [{
         name: 'Virtual Light Table Save',

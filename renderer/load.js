@@ -3,6 +3,7 @@
 const {ipcRenderer} = require('electron');
 
 let saves;
+let currentSave;
 const defaultFolder = './saves/';
 
 /**
@@ -50,14 +51,76 @@ function deleteSavefile() {
     if (confirmation) {
       ipcRenderer.send('server-delete-save', filename);
     }
-    // [4. Nachricht von Server mit aktuellem Speicherzustand]
+    // 4. aktuellen Detaileintrag löschen
+    $('#thumb_reconstruction').css('display', 'none');
+    $('#load_details').css('display', 'none');
+    $('#thumb_list').empty();
+    // [5. Nachricht von Server mit aktuellem Speicherzustand]
   }
+}
+
+/**
+ * TODO
+ */
+function clearSearch() {
+  $('#fragment_search').val('');
+}
+
+
+/**
+ * TODO
+ * @param {*} searchString
+ */
+function updateSaveList(searchString) {
+  $('#save_list_body').empty();
+  $('#load').addClass('disabled');
+  $('#delete').addClass('disabled');
+
+  let nrHidden = 0;
+
+  for (const [key, value] of Object.entries(saves)) {
+    let valid = false;
+    for (const id in saves[key].fragments) {
+      if (saves[key].fragments[id].name.includes(searchString)) {
+        valid = true;
+      }
+    }
+
+    if (!searchString || valid) {
+      let lastEditor = '';
+      let numberFragments = '';
+      if ('editors' in saves[key]) {
+        lastEditor = saves[key].editors.slice(-1)[0];
+      }
+      if ('fragments' in saves[key]) {
+        numberFragments = Object.keys(saves[key].fragments).length;
+      }
+
+      let tableRow = '<tr class="save_list_item';
+      if (key == currentSave) {
+        tableRow += ' selected';
+        $('#load').removeClass('disabled');
+        $('#delete').removeClass('disabled');
+      }
+      tableRow += '" id="'+key+'">';
+      tableRow += '<td class="td_filename">'+key+'</td>';
+      tableRow += '<td class="td_fragments">'+numberFragments+'</td>';
+      tableRow += '<td class="td_mtime">'+
+        convertTime(saves[key].mtime)+'</td>';
+      tableRow += '<td class="td_editor">'+lastEditor[0]+'</tr>';
+
+      $('#save_list_body').append(tableRow);
+    } else {
+      nrHidden += 1;
+    }
+  }
+  console.log(nrHidden + ' files have been hidden.');
 }
 
 
 /* ##########################################
 #               INPUT/OUTPUT
-###########################################*/
+########################################## */
 
 $('#default_folder').click(selectDefaultFolder);
 
@@ -65,8 +128,12 @@ $('#select_folder').click(function() {
   ipcRenderer.send('server-get-saves-folder');
 });
 
+$('#fragment_search').on('input', function() {
+  updateSaveList($('#fragment_search').val());
+});
+
 $('#save_list').on('click', '.save_list_item', function(event) {
-  const filename = $(this).attr('id');
+  currentSave = $(this).attr('id');
   $('.save_list_item').removeClass('selected');
   $(this).addClass('selected');
   $('#load').removeClass('disabled');
@@ -75,21 +142,21 @@ $('#save_list').on('click', '.save_list_item', function(event) {
   $('#thumb_reconstruction').empty();
 
   const thumbnail = document.createElement('img');
-  thumbnail.src = saves[filename].screenshot;
+  thumbnail.src = saves[currentSave].screenshot;
   document.getElementById('thumb_reconstruction').appendChild(thumbnail);
 
   $('#load_details').css('display', 'inline-block');
 
-  const fragments = saves[filename].fragments;
+  const fragments = saves[currentSave].fragments;
 
   // Create the load_details_section
-  const editors = saves[filename].editors;
+  const editors = saves[currentSave].editors;
   if (editors) {
     editors.sort(function(a, b) {
       return a[1] - b[1];
     });
   }
-  const annots = saves[filename].annots;
+  const annots = saves[currentSave].annots;
   let annotItems;
   if (annots) {
     annotItems = Object.keys(annots).map(function(key) {
@@ -111,7 +178,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
   const filenameTd2 = document.createElement('td');
   filenameTd2.setAttribute('class', 'content');
   filenameTd1.appendChild(document.createTextNode('Filename:'));
-  filenameTd2.appendChild(document.createTextNode(filename));
+  filenameTd2.appendChild(document.createTextNode(currentSave));
   filenameRow.appendChild(filenameTd1);
   filenameRow.appendChild(filenameTd2);
   filenameBody.append(filenameRow);
@@ -185,18 +252,24 @@ $('#save_list').on('click', '.save_list_item', function(event) {
       if (fragments[key].recto ? url = fragments[key].rectoURL :
         url = fragments[key].versoURL);
       if (fragments[key].recto ? rt = 'rt' : rt = 'vs');
-      let newTile = '<div class=\'load_thumb\'>';
-      newTile += '<img class=\'load_thumb_img\' src=\''+url+'\'>';
-      newTile += '<span class=\'load_thumb_text\'>'+
+      let newTile = '<div class="load_thumb" data-name="'+
+        fragments[key].name+'">';
+      newTile += '<img class="load_thumb_img" src="'+url+'">';
+      newTile += '<span class="load_thumb_text">'+
         fragments[key].name+' ('+rt+')</span>';
       newTile += '</div>';
       $('#thumb_list').append(newTile);
+      $('.load_thumb').click(function(event) {
+        const name = $(this).data('name');
+        $('#fragment_search').val(name);
+        updateSaveList(name);
+      });
     }
   } catch (err) {
     console.log(err);
     $('#thumb_reconstruction').css('display', 'none');
     $('#load_details').css('display', 'none');
-    $('#thumb_list').append('<div class=\'error_message\'>'+
+    $('#thumb_list').append('<div class="error_message">'+
         'Save file broken!</div>');
     $('#load').prop('disabled', true);
   }
@@ -226,31 +299,9 @@ $('html').keyup(function(event) {
 
 // return-save-files
 ipcRenderer.on('return-save-files', (event, savefiles) => {
-  $('#save_list_body').empty();
-  $('#thumb_list').empty();
-  $('#load').addClass('disabled');
-  $('#delete').addClass('disabled');
-  $('#thumb_reconstruction').css('display', 'none');
-  $('#load_details').css('display', 'none');
   saves = savefiles;
-  for (const [key, value] of Object.entries(savefiles)) {
-    let lastEditor = '';
-    let numberFragments = '';
-    if ('editors' in saves[key]) {
-      lastEditor = saves[key].editors.slice(-1)[0];
-    }
-    if ('fragments' in saves[key]) {
-      numberFragments = Object.keys(saves[key].fragments).length;
-    }
-
-    let tableRow = '<tr class=\'save_list_item\' id=\''+key+'\'>';
-    tableRow += '<td class=\'td_filename\'>'+key+'</td>';
-    tableRow += '<td class=\'td_fragments\'>'+numberFragments+'</td>';
-    tableRow += '<td class=\'td_mtime\'>'+convertTime(saves[key].mtime)+'</td>';
-    tableRow += '<td class=\'td_editor\'>'+lastEditor[0]+'</tr>';
-
-    $('#save_list_body').append(tableRow);
-  }
+  clearSearch();
+  updateSaveList();
 });
 
 // return-saves-folder

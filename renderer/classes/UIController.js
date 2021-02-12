@@ -291,6 +291,17 @@ class UIController {
     });
   }
 
+  /**
+   * TODO
+   * @param {*} fileFormat
+   * @param {*} full
+   * @param {*} thumb
+   * @return {*}
+   */
+  exportCanvas(fileFormat, full, thumb) {
+    return this.stage.exportCanvas(fileFormat, full, thumb);
+  }
+
   // Getter Methods
 
   /**
