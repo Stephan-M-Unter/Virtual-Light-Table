@@ -118,6 +118,21 @@ function draw() {
 }
 
 /**
+ * @return {*}
+ */
+function mirrorPolygon() {
+  const polyVerso = [];
+  for (const node in polygon) {
+    if (Object.prototype.hasOwnProperty.call(polygon, node)) {
+      const coord = polygon[node];
+      coord[0] = verso.stage.canvas.width - polygon[node][0];
+      polyVerso.push(coord);
+    }
+  }
+  return polyVerso;
+}
+
+/**
  * TODO
  * @param {*} canvas
  * @param {*} url
@@ -142,8 +157,33 @@ function drawCanvas(canvas, url) {
     // creating the images
     const imgBack = new createjs.Bitmap(image);
     const img = new createjs.Bitmap(image);
-    
-    console.log(img);
+
+    try {
+      EXIF.getData(image, function() {
+        const exifs = EXIF.getAllTags(image);
+        if (exifs.XResolution) {
+          const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
+          if (side == 'rt') {
+            $('#left_resolution').val(ppi);
+          } else {
+            $('#right_resolution').val(ppi);
+          }
+        } else {
+          if (side == 'rt') {
+            $('#left_resolution').val('');
+          } else {
+            $('#right_resolution').val('');
+          }
+        }
+      });
+    } catch {
+      console.log('Input image has no EXIF data.');
+      if (side == 'rt') {
+        $('#left_resolution').val('');
+      } else {
+        $('#right_resolution').val('');
+      }
+    }
 
     // getting the current sizes of images and canvas
     const imgWidth = img.image.width;
@@ -651,14 +691,60 @@ $('.www_upload_button').click(function() {
 });
 
 $('#load_button').click(function() {
-  if (!$(this).hasClass('disabled')) {
-    // TODO create masks for recto + verso
+  if (!$('#load_button').hasClass('disabled')) {
+    /*
+    3. alle polygonpunkte müssten umgerechnet werden
+    in relation zum eigentlichen bild
+    */
+    const polygonRecto = [];
+    const polygonVerso = [];
+
+    if (mode == 'crop') {
+      // cropMode is active - infer polygon nodes from vertices
+      const xRecto = cropX - recto.img.x;
+      const yRecto = cropY - recto.img.y;
+      polygonRecto.push([xRecto, yRecto]);
+      polygonRecto.push([xRecto, yRecto+cropH]);
+      polygonRecto.push([xRecto+cropW, yRecto+cropH]);
+      polygonRecto.push([xRecto+cropW, yRecto]);
+      polygonRecto.push([xRecto, yRecto]);
+
+      const xVerso = verso.stage.canvas.width - cropX - cropW - verso.img.x;
+      const yVerso = cropY - verso.img.y;
+      polygonVerso.push([xVerso, yVerso]);
+      polygonVerso.push([xVerso, yVerso+cropH]);
+      polygonVerso.push([xVerso+cropW, yVerso+cropH]);
+      polygonVerso.push([xVerso+cropW, yVerso]);
+      polygonVerso.push([xVerso, yVerso]);
+    } else {
+      // cutMode is active
+      let temp = [...polygon];
+      temp.push(temp[0]);
+      for (const node in temp) {
+        if (Object.prototype.hasOwnProperty.call(temp, node)) {
+          const coord = temp[node];
+          polygonRecto.push([coord[0]-recto.img.x, coord[1]-recto.img.y]);
+        }
+      }
+
+      temp = mirrorPolygon();
+      temp.push(temp[0]);
+      for (const node in temp) {
+        if (Object.prototype.hasOwnProperty.call(temp, node)) {
+          const coord = temp[node];
+          polygonVerso.push([coord[0]-verso.img.x, coord[1]-verso.img.y]);
+        }
+      }
+    }
+
     const fragmentData = {
       'rectoURL': recto.url,
       'versoURL': verso.url,
       'recto': true,
       'name': $('#name').val(),
       'rotation': 0,
+      'rectoMask': polygonRecto,
+      'versoMask': polygonVerso,
     };
     ipcRenderer.send('server-upload-ready', fragmentData);
   }

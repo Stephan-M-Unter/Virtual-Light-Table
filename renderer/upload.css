@@ -22,7 +22,7 @@ body {
 }
 
 #recto_canvas_wrapper, #verso_canvas_wrapper {
-    flex: 0 0 calc(50% - 36px);
+    flex: 0 0 calc(50% - 37px);
     display: flex;
     flex-flow: column;
     position: relative;
@@ -164,11 +164,14 @@ canvas {
 
 .resolution_input {
     max-width: 60px;
+    width: fit-content;
+    text-align: center;
+    margin: 0px 5px;
 }
 
 #right_resolution_wrapper {
     text-align: right;
-    float: right;
+    flex-direction: row-reverse;
 }
 
 .resolution_wrapper {
