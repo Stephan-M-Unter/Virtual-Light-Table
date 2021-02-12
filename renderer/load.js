@@ -114,7 +114,13 @@ function updateSaveList(searchString) {
       nrHidden += 1;
     }
   }
-  console.log(nrHidden + ' files have been hidden.');
+  console.log('Hidden:', nrHidden);
+  if (nrHidden > 0) {
+    $('#clear_filter').css('display', 'block');
+    $('#clear_filter').html('Clear Filter</br>('+nrHidden+' files hidden)');
+  } else {
+    $('#clear_filter').css('display', 'none');
+  }
 }
 
 
@@ -130,6 +136,11 @@ $('#select_folder').click(function() {
 
 $('#fragment_search').on('input', function() {
   updateSaveList($('#fragment_search').val());
+});
+
+$('#clear_filter').click(function() {
+  clearSearch();
+  updateSaveList();
 });
 
 $('#save_list').on('click', '.save_list_item', function(event) {

@@ -69,6 +69,7 @@ body {
     background-color: rgb(230,230,230);
     box-shadow: 1px 1px 4px rgba(0,0,0,0.6);
     border: none;
+    margin: 0px 5px;
     color: #1d1d1b;
 }
 
@@ -88,11 +89,23 @@ body {
     box-shadow: none !important;
 }
 
-#folder_button_wrapper {
+label {
+    text-align: left;
+}
+
+#clear_filter {
+    min-width: 120px;
+    width: auto;
+    display: none;
+    max-height: 50px;
+}
+
+#folder_button_wrapper, #search_for_fragment_wrapper {
     position: relative;
     display: flex;
     flex-flow: row;
     box-sizing: border-box;
+    align-items: center;
     width: 100%;
 }
 
@@ -112,7 +125,7 @@ body {
 }
 
 #folder, #fragment_search {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     width: 90%;
     background-color:#dddddd;
     height: 30px;
@@ -125,7 +138,7 @@ body {
 }
 
 #search_for_fragment_wrapper {
-    margin-top: 2px;
+    margin: 0px 0px 10px 0px;
 }
 
 #save_list {
