@@ -863,6 +863,7 @@ class Stage {
         this._rotateObjects(event);
       });
       this.rotator.on('pressup', (event) => {
+        this._updateBb();
         this._saveToModel();
       });
     }
