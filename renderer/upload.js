@@ -701,16 +701,16 @@ $('#load_button').click(function() {
 
     if (mode == 'crop') {
       // cropMode is active - infer polygon nodes from vertices
-      const xRecto = cropX - recto.img.x;
-      const yRecto = cropY - recto.img.y;
+      const xRecto = cropX - recto.img.x + recto.img.image.width/2;
+      const yRecto = cropY - recto.img.y + recto.img.image.height/2;
       polygonRecto.push([xRecto, yRecto]);
       polygonRecto.push([xRecto, yRecto+cropH]);
       polygonRecto.push([xRecto+cropW, yRecto+cropH]);
       polygonRecto.push([xRecto+cropW, yRecto]);
       polygonRecto.push([xRecto, yRecto]);
 
-      const xVerso = verso.stage.canvas.width - cropX - cropW - verso.img.x;
-      const yVerso = cropY - verso.img.y;
+      const xVerso = verso.stage.canvas.width - cropX - cropW - verso.img.x + verso.img.image.width/2;
+      const yVerso = cropY - verso.img.y + verso.img.image.height/2;
       polygonVerso.push([xVerso, yVerso]);
       polygonVerso.push([xVerso, yVerso+cropH]);
       polygonVerso.push([xVerso+cropW, yVerso+cropH]);
@@ -723,7 +723,7 @@ $('#load_button').click(function() {
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           const coord = temp[node];
-          polygonRecto.push([coord[0]-recto.img.x, coord[1]-recto.img.y]);
+          polygonRecto.push([coord[0]-recto.img.x-recto.img.image.width/2, coord[1]-recto.img.y-recto.img.image.height/2]);
         }
       }
 
@@ -732,7 +732,7 @@ $('#load_button').click(function() {
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           const coord = temp[node];
-          polygonVerso.push([coord[0]-verso.img.x, coord[1]-verso.img.y]);
+          polygonVerso.push([coord[0]-verso.img.x-verso.img.image.width/2, coord[1]-verso.img.y-verso.img.image.height/2]);
         }
       }
     }
@@ -742,9 +742,12 @@ $('#load_button').click(function() {
       'versoURL': verso.url,
       'recto': true,
       'name': $('#name').val(),
-      'rotation': 0,
+      'rotation': recto.rotation,
+      'rotationDistance': recto.rotation + verso.rotation,
       'rectoMask': polygonRecto,
       'versoMask': polygonVerso,
+      'rectoPPI': $('#left_resolution').val(),
+      'versoPPI': $('#right_resolution').val(),
     };
     ipcRenderer.send('server-upload-ready', fragmentData);
   }

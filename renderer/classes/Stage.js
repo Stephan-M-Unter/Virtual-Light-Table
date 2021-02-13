@@ -56,6 +56,7 @@ class Stage {
     });
     this.loadqueue.on('complete', () => {
       this.fitToScreen();
+      this.update();
     });
   }
 
@@ -449,7 +450,6 @@ class Stage {
     this.registerImageEvents(fragmentImage);
 
     this.controller.updateFragmentList();
-    this.stage.update();
   }
 
   /**
@@ -1109,12 +1109,23 @@ class Selector {
         const container = fragment.getContainer();
         // let image = fragment.getImage().image;
 
-        const bounds = container.getTransformedBounds();
-        const xLeft = bounds.x;
-        const yTop = bounds.y;
-        const xRight = bounds.x + bounds.width;
-        const yBottom = bounds.y + bounds.height;
+        let xLeft; let yTop; let xRight; let yBottom;
 
+        if (fragment.getMaskBounds()) {
+          const mask = fragment.getMask();
+          const bounds = fragment.getMaskBounds();
+          xLeft = bounds.l + container.x;
+          yTop = bounds.t + container.y;
+          xRight = bounds.r + container.x;
+          yBottom = bounds.b + container.y;
+        } else {
+          // const bounds = container.getTransformedBounds();
+          const bounds = container.getTransformedBounds();
+          xLeft = bounds.x;
+          yTop = bounds.y;
+          xRight = bounds.x + bounds.width;
+          yBottom = bounds.y + bounds.height;
+        }
         (!left ? left = xLeft : left = Math.min(left, xLeft));
         (!top ? top = yTop : top = Math.min(top, yTop));
         (!right ? right = xRight : right = Math.max(right, xRight));

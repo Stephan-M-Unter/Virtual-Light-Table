@@ -22,6 +22,18 @@ class Fragment {
     this.framework = stageObject;
     this.stage = stageObject.stage; // stage where the fragment will be shown
 
+    this.rotationDistance = 0;
+
+    if (eventData.item.properties.rectoMask) {
+      this.rectoMask = this._createMask(eventData.item.properties.rectoMask);
+    }
+    if (eventData.item.properties.versoMask) {
+      this.versoMask = this._createMask(eventData.item.properties.versoMask);
+    }
+    if (eventData.item.properties.rotationDistance) {
+      this.rotationDistance = eventData.item.properties.rotationDistance;
+    }
+
     if (this.isRecto ? this.imageRecto = this._createImage(eventData, id) :
         this.imageVerso = this._createImage(eventData, id));
 
@@ -62,8 +74,20 @@ class Fragment {
 
     if (this.isRecto) {
       image.name = 'Image - Recto';
+      if (this.rectoMask) {
+        image.mask = this.rectoMask;
+      }
+      if (this.rectoRotation) {
+        image.rotation = this.rectoRotation;
+      }
     } else {
       image.name = 'Image - Verso';
+      if (this.versoMask) {
+        image.mask = this.versoMask;
+      }
+      if (this.versoRotation) {
+        image.rotation = this.versoRotation;
+      }
     }
     image.cursor = 'pointer';
     image.x = 0;
@@ -76,13 +100,47 @@ class Fragment {
 
   /**
    * TODO
+   * @param {*} polygon
+   * @return {*}
+   */
+  _createMask(polygon) {
+    const mask = new createjs.Shape();
+    let started = false;
+
+    let l; let r; let t; let b;
+
+    for (const node in polygon) {
+      if (Object.prototype.hasOwnProperty.call(polygon, node)) {
+        const x = polygon[node][0];
+        const y = polygon[node][1];
+
+        (!l ? l = x : l = Math.min(l, x));
+        (!r ? r = x : r = Math.max(r, x));
+        (!t ? t = y : t = Math.min(t, y));
+        (!b ? b = y : b = Math.max(b, y));
+
+        if (!started) {
+          started = true;
+          mask.graphics.moveTo(x, y);
+        } else {
+          mask.graphics.lineTo(x, y);
+        }
+      }
+    }
+    mask.polygon = polygon;
+
+    return mask;
+  }
+
+  /**
+   * TODO
    * @param {*} imageProperties
    * @param {*} id
    * @return {*}
    */
   _createContainer(imageProperties, id) {
     const container = new createjs.Container();
-    
+
     container.rotation = imageProperties.rotation;
     container.scale = this.stage.scaling / 100;
 
@@ -190,11 +248,26 @@ class Fragment {
       loadqueue.load();
     }
 
+    this.translateRotation();
     this.controller.updateFragmentList();
 
     // Möglichkeit 2: Bild existiert
     // dann einfach bilder austauschen
     // flag umdrehen
+  }
+
+  /**
+   * TODO
+   */
+  translateRotation() {
+    console.log('rotation zunächst:', this.container.rotation);
+    console.log('distRotation:', this.rotationDistance);
+    if (this.isRecto) {
+      this.container.rotation -= this.rotationDistance;
+    } else {
+      this.container.rotation += this.rotationDistance;
+    }
+    console.log('rotation danach:', this.container.rotation);
   }
 
   /**
@@ -304,6 +377,54 @@ class Fragment {
    */
   getRotation() {
     return this.container.rotation;
+  }
+
+  /**
+   * @return {*}
+   */
+  getMask() {
+    if (this.isRecto && this.rectoMask) {
+      return this.rectoMask;
+    } else if (!this.isRecto && this.versoMask) {
+      return this.versoMask;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @return {*}
+   */
+  getMaskBounds() {
+    let l; let r; let t; let b;
+    if (this.getMask()) {
+      const polygon = this.getMask().polygon;
+
+      for (let node in polygon) {
+        if (Object.prototype.hasOwnProperty.call(polygon, node)) {
+          const x = polygon[node][0];
+          const y = polygon[node][1];
+
+          (!l ? l = x : l = Math.min(l, x));
+          (!r ? r = x : r = Math.max(r, x));
+          (!t ? t = y : t = Math.min(t, y));
+          (!b ? b = y : b = Math.max(b, y));
+        }
+      }
+
+      return {
+        l: l,
+        r: r,
+        t: t,
+        b: b,
+        w: r-l,
+        h: b-t,
+        cx: (r-l)/2,
+        cy: (b-t)/2,
+      };
+    } else {
+      return null;
+    }
   }
 }
 
