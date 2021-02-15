@@ -227,6 +227,7 @@ class UIController {
    */
   loadScene(data) {
     this.annotationPopup.loadAnnotations(data.annots);
+    this.sidebar.updateDoButtons(data);
     this.stage.loadScene(data);
     this.updateFragmentList();
   }

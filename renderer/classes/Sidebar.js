@@ -205,6 +205,23 @@ class Sidebar {
     $(wrapper).find('.details_button').addClass('hidden');
     $(wrapper).find('.goto_button').addClass('hidden');
   }
+
+  /**
+   * TODO
+   * @param {*} data
+   */
+  updateDoButtons(data) {
+    if (data.undoSteps) {
+      $('#undo').removeClass('disabled');
+    } else {
+      $('#undo').addClass('disabled');
+    }
+    if (data.redoSteps) {
+      $('#redo').removeClass('disabled');
+    } else {
+      $('#redo').addClass('disabled');
+    }
+  }
 }
 
 module.exports.Sidebar = Sidebar;

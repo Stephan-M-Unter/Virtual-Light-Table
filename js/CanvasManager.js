@@ -108,7 +108,7 @@ class CanvasManager {
     this.annots = {};
     this.IDcounter = 0;
     this.screenshot = null;
-    this.steps = [];
+    this.undoSteps = [];
     this.redoSteps = [];
     this.maxSteps = 30;
   }
@@ -190,14 +190,14 @@ class CanvasManager {
       IDcounter: this.IDcounter,
       screenshot: this.screenshot,
     };
-    this.steps.push(step);
+    this.undoSteps.push(step);
 
     // if maximum step length is reached, remove first undos
-    while (this.steps.length > this.maxSteps) {
-      this.steps.shift();
+    while (this.undoSteps.length > this.maxSteps) {
+      this.undoSteps.shift();
     }
 
-    console.log('Current UndoLog-Size: ', this.steps.length);
+    console.log('Current UndoLog-Size: ', this.undoSteps.length);
     return true;
   }
 
@@ -207,7 +207,7 @@ class CanvasManager {
    */
   undoStep() {
     // return false in case that no undo steps are available
-    if (this.steps.length == 0) {
+    if (this.undoSteps.length == 0) {
       return false;
     }
 
@@ -224,7 +224,7 @@ class CanvasManager {
     console.log('Current RedoLog-Size: ', this.redoSteps.length);
 
     // loading former state
-    const data = this.steps.pop();
+    const data = this.undoSteps.pop();
     if (data.stage) {
       this.stage = data.stage;
     }
@@ -265,7 +265,7 @@ class CanvasManager {
       IDcounter: this.IDcounter,
       screenshot: this.screenshot,
     };
-    this.steps.push(step);
+    this.undoSteps.push(step);
 
     // load first redo step available
     const data = this.redoSteps.pop();
@@ -301,6 +301,8 @@ class CanvasManager {
       'editors': this.editors,
       'annots': this.annots,
       'screenshot': this.screenshot,
+      'undoSteps': this.undoSteps.length,
+      'redoSteps': this.redoSteps.length,
     };
   }
 

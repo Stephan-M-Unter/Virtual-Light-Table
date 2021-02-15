@@ -822,6 +822,11 @@ body {
   background-color: grey;
 }
 
+.button.disabled {
+  box-shadow: none;
+  background-color: #505050;
+}
+
 .annot_hide {
   width: 14px;
   height: 14px;
