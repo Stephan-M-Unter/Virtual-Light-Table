@@ -320,6 +320,29 @@ class UIController {
   getSidebar() {
     return this.sidebar;
   }
+
+  /**
+   * TODO
+   */
+  startMeasure() {
+    if (this.stage.hasMeasureMode()) {
+      // deactivate measure mode
+      this.stage.clearMeasure();
+    } else {
+      // activate measure mode
+      this.stage.startMeasure();
+    }
+    $('#tool_clear_measure').removeClass('hidden');
+  }
+
+  /**
+   * TODO
+   */
+  endMeasure() {
+    this.stage.clearMeasure();
+    this.stage.endMeasure();
+    $('#tool_clear_measure').addClass('hidden');
+  }
 }
 
 module.exports.UIController = UIController;

@@ -48,7 +48,7 @@ function activateKonami() {
  */
 function saveTable() {
   dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
-    if (editor!='' && editor!=null) {
+    if (editor != '' && editor != null) {
       const screenshot = uic.exportCanvas('png', true, true);
       const data = {
         'editor': editor,
@@ -122,8 +122,8 @@ $(document).ready(function() {
   clearTable();
 
   /* ##########################################
-    #               INPUT/OUTPUT
-    ###########################################*/
+        #               INPUT/OUTPUT
+        ###########################################*/
 
   // Clear Table Button
   $('#clear_table').click(function() {
@@ -230,6 +230,13 @@ $(document).ready(function() {
     toggleLight();
   });
 
+  $('#tool_measure').on('click', function(event) {
+    event.stopPropagation();
+    uic.startMeasure();
+  });
+  $('#tool_clear_measure').on('click', function() {
+    uic.endMeasure();
+  });
 
   $('#grid_box').on('change', function() {
     toggleGrid();
@@ -292,7 +299,7 @@ $(document).ready(function() {
   // Zoom Slider
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
-    $('#zoom_factor').html('Zoom<br/>x'+newScaling/100);
+    $('#zoom_factor').html('Zoom<br/>x' + newScaling / 100);
     uic.setScaling(newScaling);
   });
 
@@ -305,20 +312,21 @@ $(document).ready(function() {
   });
 
   /**
-   * Triggered in the case of sidebar resizing. Adds additional event listeners
-   * for mouse movement (resizing the sidebar) and mouseup (stopping resizing).
-   */
+     * Triggered in the case of sidebar resizing. Adds additional
+     * event listeners for mouse movement (resizing the sidebar)
+     * and mouseup (stopping resizing).
+     */
   function startResizingSidebar() {
     window.addEventListener('mousemove', resizeSidebar, false);
     window.addEventListener('mouseup', stopResizingSidebar, false);
   }
 
   /**
-   * Changes width of the sidebar according to the event/cursor position.
-   * If a specific treshold (const thresh) is undershot, the sidebar is
-   * extended with the "small" CSS class.
-   * @param {*} event Contains the current event.pageX position of the cursor.
-   */
+     * Changes width of the sidebar according to the event/cursor position.
+     * If a specific treshold (const thresh) is undershot, the sidebar is
+     * extended with the "small" CSS class.
+     * @param {*} event Contains the current event.pageX position of the cursor.
+     */
   function resizeSidebar(event) {
     $('#left_sidebar').css('width', event.pageX);
 
@@ -331,10 +339,10 @@ $(document).ready(function() {
   }
 
   /**
-   * Triggered during sidebar resizing event. Removes additional event listeners
-   * for mouse movement or mouseup. Only mousedown for restarting resizing
-   * remains in place.
-   */
+     * Triggered during sidebar resizing event. Removes additional event
+     * listeners for mouse movement or mouseup. Only mousedown for
+     * restarting resizing remains in place.
+     */
   function stopResizingSidebar() {
     window.removeEventListener('mousemove', resizeSidebar);
     window.removeEventListener('mouseup', stopResizingSidebar);
@@ -343,7 +351,7 @@ $(document).ready(function() {
   $('.sidebar_header').click(function(event) {
     // only react if the clicked element is not yet expanded
     if (!$(this).parent().hasClass('expanded') &&
-      !$(this).parent().hasClass('disabled')) {
+            !$(this).parent().hasClass('disabled')) {
       // first, retotate down-arrow back and remove expanded label
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
@@ -403,9 +411,13 @@ $(document).ready(function() {
       } else if (event.keyCode == 83) {
         // S -> Toggle Scale
         toggleScale();
-      } else if (event.keyCode = 27) {
+      } else if (event.keyCode == 27) {
         // ESC -> deselct All
         uic.clearSelection();
+        uic.endMeasure();
+      } else if (event.keyCode == 77) {
+        // M -> Start Measure
+        uic.startMeasure();
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);
@@ -414,8 +426,8 @@ $(document).ready(function() {
   });
 
   /* ##########################################
-    #           SERVER/CLIENT COMMUNICATION
-    ###########################################*/
+        #           SERVER/CLIENT COMMUNICATION
+        ###########################################*/
 
   // Client-Load-From-Model
   // Receiving stage and fragment configuration from server.

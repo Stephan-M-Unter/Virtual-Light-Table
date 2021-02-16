@@ -1,4 +1,4 @@
-const {TouchBarScrubber, TouchBarSlider} = require('electron');
+// const {TouchBarScrubber, TouchBarSlider} = require('electron');
 const {Fragment} = require('./Fragment');
 const {Scaler} = require('./Scaler');
 
@@ -45,6 +45,19 @@ class Stage {
     this.stage.addChild(this.scale);
     this.background = this._createBackground();
     this.stage.addChild(this.background);
+
+    this.measureMode = false;
+    this.measurePoints = [];
+    this.measureGroup = new createjs.Container();
+    this.measureLine = new createjs.Shape();
+    this.measureText = new createjs.Text();
+    this.stage.addChild(this.measureGroup);
+
+    window.addEventListener('click', (event) => {
+      if (this.measureMode) {
+        this.measure(event);
+      }
+    });
 
     // selection box
     this.selector = new Selector(this.controller);
@@ -220,6 +233,7 @@ class Stage {
   loadScene(data) {
     // IDEA Ask users if they want to save yet unsaved changes?
     this._clearTable();
+    this.clearMeasure();
 
     if (data && data.fragments) {
       this._loadFragments(data.fragments);
@@ -373,6 +387,7 @@ class Stage {
       this.moveStage(-distX, -distY);
       this.updateGrid();
       this.updateScale();
+      this._updateMeasure();
       this.update();
     }
   }
@@ -399,6 +414,8 @@ class Stage {
    * show potential changes onscreen.
    */
   update() {
+    this.stage.removeChild(this.measureGroup);
+    this.stage.addChild(this.measureGroup);
     this.stage.update();
   }
 
@@ -501,7 +518,10 @@ class Stage {
         this.controller.deselectFragment(clickedId);
       } else {
         // in all other cases, add object to selection
-        this.controller.selectFragment(clickedId);
+        if (!this.measureMode) {
+          // but NOT, if measure mode is currently active
+          this.controller.selectFragment(clickedId);
+        }
       }
       this._moveToTop(this.fragmentList[clickedId]);
 
@@ -519,7 +539,9 @@ class Stage {
 
     image.on('mouseover', (event) => {
       const id = event.target.id;
-      this.controller.highlightFragment(id);
+      if (!this.measureMode) {
+        this.controller.highlightFragment(id);
+      }
     });
 
     image.on('mouseout', (event) => {
@@ -600,6 +622,166 @@ class Stage {
  */
   _clearFragmentList() {
     this.fragmentList = {};
+  }
+
+  /**
+   * TODO
+   */
+  startMeasure() {
+    this.measureMode = true;
+    this.controller.clearSelection();
+    this.clearMeasure();
+  }
+
+  /**
+   * TODO
+   * @param {*} event
+   */
+  measure(event) {
+    let baseX = event.pageX;
+    let baseY = event.pageY;
+    if (this.stage.scaling != 100) {
+      baseX = event.pageX / this.stage.scaling/100;
+      baseY = event.pageY / this.stage.scaling/100;
+    }
+    this.measurePoints.push({
+      x: event.pageX,
+      y: event.pageY,
+      baseX: baseX,
+      baseY: baseY,
+    });
+    this._updateMeasure();
+  }
+
+  /**
+   * TODO
+   */
+  _updateMeasure() {
+    this.measureGroup.removeAllChildren();
+    for (const idx in this.measurePoints) {
+      if (Object.prototype.hasOwnProperty.call(this.measurePoints, idx)) {
+        const node = new createjs.Shape();
+        node.graphics.beginFill('red').drawCircle(0, 0, 5);
+        node.x = this.measurePoints[idx].x;
+        node.y = this.measurePoints[idx].y;
+        node.index = idx;
+        node.addEventListener('pressmove', (event) => {
+          node.x = event.stageX;
+          node.y = event.stageY;
+          this.measurePoints[node.index] = {
+            x: event.stageX,
+            y: event.stageY,
+            baseX: node.baseX,
+            baseY: node.baseY,
+          };
+          this.drawMeasureLine();
+          this.update();
+        });
+        this.measureGroup.addChild(node);
+      }
+    }
+
+    if (this.measurePoints.length == 2) {
+      this.measureMode = false;
+      this.drawMeasureLine();
+    }
+    this.update();
+  }
+
+  /**
+   * TODO
+   * @param {*} point1
+   * @param {*} point2
+   * @return {*}
+   */
+  measureDistance(point1, point2) {
+    const dx = point1[0] - point2[0];
+    const dy = point1[1] - point2[1];
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const CmInPx = 38 * this.stage.scaling / 100;
+    const distInCm = Math.round(dist/CmInPx*100)/100;
+    return distInCm;
+  }
+
+  /**
+   * TODO
+   */
+  drawMeasureLine() {
+    this.measureGroup.removeChild(this.measureLine);
+    this.measureGroup.removeChild(this.measureText);
+
+    const x1 = this.measurePoints[0].x;
+    const y1 = this.measurePoints[0].y;
+    const x2 = this.measurePoints[1].x;
+    const y2 = this.measurePoints[1].y;
+
+    this.measureLine = new createjs.Shape();
+    this.measureLine.graphics.setStrokeStyle(2).beginStroke('rgba(255,0,0,1');
+    this.measureLine.graphics.moveTo(x1, y1);
+    this.measureLine.graphics.lineTo(x2, y2);
+    this.measureLine.graphics.endStroke();
+
+    this.measureLine.on('mousedown', (event) => {
+      this.measureGroup.pressX = event.stageX;
+      this.measureGroup.pressY = event.stageY;
+    });
+    this.measureLine.on('pressmove', (event) => {
+      const deltaX = event.stageX - this.measureGroup.pressX;
+      const deltaY = event.stageY - this.measureGroup.pressY;
+      this.measureGroup.pressX = event.stageX;
+      this.measureGroup.pressY = event.stageY;
+      for (const idx in this.measurePoints) {
+        if (Object.prototype.hasOwnProperty.call(this.measurePoints, idx)) {
+          const node = this.measurePoints[idx];
+          this.measurePoints[idx] = {
+            x: node.x + deltaX,
+            y: node.y + deltaY,
+            baseX: node.baseX + deltaX,
+            baseY: node.baseY + deltaY,
+          };
+          this._updateMeasure();
+        }
+      }
+    });
+    this.measureLine.on('pressup', () => {
+      this.measureGroup.pressX = null;
+      this.measureGroup.pressY = null;
+    });
+
+    this.measureGroup.addChild(this.measureLine);
+
+    const distance = this.measureDistance([x1, y1], [x2, y2]);
+    this.measureText = new createjs.Text(distance + ' cm');
+    this.measureText.scale = 1.7;
+    const textBounds = this.measureText.getBounds();
+    this.measureText.x = (x1+(x2-x1)/2)-
+        textBounds.width*this.measureText.scale/3;
+    this.measureText.y = (y1+(y2-y1)/2)+20;
+    this.measureGroup.addChild(this.measureText);
+  }
+
+  /**
+   * TODO
+   */
+  clearMeasure() {
+    this.measurePoints = [];
+    this.measureGroup.removeAllChildren();
+    this.update();
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  hasMeasureMode() {
+    return this.measureMode;
+  }
+
+  /**
+   * TODO
+   */
+  endMeasure() {
+    this.measureMode = false;
   }
 
   /**
@@ -701,6 +883,21 @@ class Stage {
 
     this._updateBb();
 
+    /*
+    for (const index in this.measurePoints) {
+      if (Object.prototype.hasOwnProperty.call(this.measurePoints, index)) {
+        const node = this.measurePoints[index];
+        this.measurePoints[index] = {
+          x: node.x + deltaX,
+          y: node.y + deltaY,
+          baseX: node.baseX + (deltaX/(this.stage.scaling/100)),
+          baseY: node.baseY + (deltaY/(this.stage.scaling/100)),
+        };
+      }
+    }
+    this._updateMeasure();
+    */
+
     this.stage.update();
   }
 
@@ -719,6 +916,22 @@ class Stage {
       }
     }
 
+    /*
+    for (const idx in this.measurePoints) {
+      if (Object.prototype.hasOwnProperty.call(this.measurePoints, idx)) {
+        const node = this.measurePoints[idx];
+        const xNew = Scaler.x(node.baseX);
+        const yNew = Scaler.y(node.baseY);
+        this.measurePoints[idx] = {
+          x: xNew,
+          y: yNew,
+          baseX: node.baseX,
+          baseY: node.baseY,
+        };
+      }
+    }
+    this._updateMeasure();
+    */
     this._updateBb();
     this._updateRotator();
     this.update();

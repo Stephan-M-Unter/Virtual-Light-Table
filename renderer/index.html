@@ -1,54 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Virtual Light Table v0.1 | Crossing Boundaries</title>
-        <link rel="stylesheet" type="text/css" href="../js/libs/bootstrap.css"/>
-        <link rel="stylesheet" type="text/css" href="./index.css"/>
-        <script src="../js/libs/jquery-3.4.1.min.js"></script>
-        <script>window.$ = window.jQuery = require('../js/libs/jquery-3.4.1.min.js');</script>
-    </head>
-    <body>
-        <!-- Canvas -->
-        <canvas id="lighttable"></canvas>
 
-        
-        <!-- Zoom Elements -->
-        <div id="zoom_wrapper" class="no-select">
-            <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" onkeydown="return false"/>
-            <span class="tooltip" id="zoom_factor">Zoom<br/>x1.0</span>
-        </div> <!-- </zoom_wrapper> -->
+<head>
+    <title>Virtual Light Table v0.1 | Crossing Boundaries</title>
+    <link rel="stylesheet" type="text/css" href="../js/libs/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="./index.css" />
+    <script src="../js/libs/jquery-3.4.1.min.js"></script>
+    <script>
+        window.$ = window.jQuery = require('../js/libs/jquery-3.4.1.min.js');
+    </script>
+</head>
 
-        <div id="fit_to_screen" class="squareButton no-select">
-            <img src="../imgs/symbol_fit.png"/>
-        </div>
+<body>
+    <!-- Canvas -->
+    <canvas id="lighttable"></canvas>
 
-        <div id="hide_hud" class="squareButton no-select">
-            <img src="../imgs/symbol_eye.png"/>
-        </div>
-        
-        <!-- Control Elements -->
-        <div id="table_button_wrapper" class="no-select">
-            <div class="circularButtonWrapper" id="flip_buttons">
-                <div class="subButtonWrapper">
-                    <div class="squareButton no-select subButton" id="hor_flip_table">
-                        <img src="../imgs/symbol_horizontal_flip.svg" class="circularButtonImg">
-                        <span class="tooltip">Flip Table Horizontally</span>
-                    </div>
-                    <div class="squareButton no-select subButton" id="vert_flip_table">
-                        <img src="../imgs/symbol_vertical_flip.svg" class="circularButtonImg">
-                        <span class="tooltip">Flip Table Vertically</span>
-                    </div>
+
+    <!-- Zoom Elements -->
+    <div id="zoom_wrapper" class="no-select">
+        <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" onkeydown="return false" />
+        <span class="tooltip" id="zoom_factor">Zoom<br/>x1.0</span>
+    </div>
+    <!-- </zoom_wrapper> -->
+
+    <div id="fit_to_screen" class="squareButton no-select">
+        <img src="../imgs/symbol_fit.png" />
+    </div>
+
+    <div id="hide_hud" class="squareButton no-select">
+        <img src="../imgs/symbol_eye.png" />
+    </div>
+
+    <!-- Control Elements -->
+    <div id="table_button_wrapper" class="no-select">
+        <div class="circularButtonWrapper" id="flip_buttons">
+            <div class="subButtonWrapper">
+                <div class="squareButton no-select subButton" id="hor_flip_table">
+                    <img src="../imgs/symbol_horizontal_flip.svg" class="circularButtonImg">
+                    <span class="tooltip">Flip Table Horizontally</span>
                 </div>
-                <div class="squareButton no-select" id="flip_table">
-                    <img src="../imgs/symbol_flip.png" class="circularButtonImg">
-                    <span class="tooltip">Flip Table</span>
+                <div class="squareButton no-select subButton" id="vert_flip_table">
+                    <img src="../imgs/symbol_vertical_flip.svg" class="circularButtonImg">
+                    <span class="tooltip">Flip Table Vertically</span>
                 </div>
             </div>
-            <div class="squareButton no-select" id="light_switch">
-                <img src="../imgs/symbol_light.png" class="circularButtonImg">
-                <span class="tooltip">Switch Light On/Off</span>
+            <div class="squareButton no-select" id="flip_table">
+                <img src="../imgs/symbol_flip.png" class="circularButtonImg">
+                <span class="tooltip">Flip Table</span>
             </div>
-            <!--
+        </div>
+        <div class="squareButton no-select" id="light_switch">
+            <img src="../imgs/symbol_light.png" class="circularButtonImg">
+            <span class="tooltip">Switch Light On/Off</span>
+        </div>
+        <!--
             <div class="circularButtonWrapper" id="export_buttons">
                 <div class="subButtonWrapper">
                     <div class="squareButton no-select subButton" id="export_jpg">
@@ -66,185 +71,202 @@
                 </div>
             </div>
             -->
+    </div>
+
+    <div id="annot_button">
+        <div id="annot_button_img_wrapper">
+            <img src="../imgs/symbol_annot.png" />
         </div>
-        
-        <div id="annot_button">
-            <div id="annot_button_img_wrapper">
-                <img src="../imgs/symbol_annot.png"/>
-            </div>
+    </div>
+
+    <div id="annot_window">
+        <div id="annot_title">Annotations</div>
+        <div id="annot_show">
+
         </div>
-        
-        <div id="annot_window">
-            <div id="annot_title">Annotations</div>
-            <div id="annot_show">
-
-            </div>
-            <div id="annot_close">
-                <img src="../imgs/symbol_x.png"/>
-            </div>
-            <div id="annot_view"></div>
-            <div id="annot_write">
-                <div id="annot_editor_label">Editor(s):</div>
-                <input id="annot_editor" type="text"></input>
-                <div id="annot_text_label">Annotation:</div>
-                <textarea id="annot_text" type="text"></textarea>
-                <div class="button disabled" id="annot_submit">Submit New Annotation</div>
-            </div>
+        <div id="annot_close">
+            <img src="../imgs/symbol_x.png" />
         </div>
-
-        <!-- Visual Feedback Popup -->
-        <div id="visual_feedback">
-            <div id="vf_title"></div>
-            <div id="vf_desc"></div>
+        <div id="annot_view"></div>
+        <div id="annot_write">
+            <div id="annot_editor_label">Editor(s):</div>
+            <input id="annot_editor" type="text"></input>
+            <div id="annot_text_label">Annotation:</div>
+            <textarea id="annot_text" type="text"></textarea>
+            <div class="button disabled" id="annot_submit">Submit New Annotation</div>
         </div>
-            
-        <!-- Left Sidebar -->
-        <div id="left_sidebar" class="no-select small">
-            <div id="sidebar_content">
-                <div class="sidebar_content_wrapper expanded" id="control">
-                    <div class="sidebar_header">
-                        <div class="sidebar_header_title">Control Panel</div>
-                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
-                        <div class="arrow down"></div>
+    </div>
+
+    <!-- Visual Feedback Popup -->
+    <div id="visual_feedback">
+        <div id="vf_title"></div>
+        <div id="vf_desc"></div>
+    </div>
+
+    <!-- Left Sidebar -->
+    <div id="left_sidebar" class="no-select small">
+        <div id="sidebar_content">
+            <div class="sidebar_content_wrapper expanded" id="control">
+                <div class="sidebar_header">
+                    <div class="sidebar_header_title">Control Panel</div>
+                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
+                    <div class="arrow down"></div>
+                </div>
+                <div class="sidebar_content" id="control_content">
+
+                    <div id="clear_table" class="wide_button no_select">
+                        <img class="button_img" src="../imgs/symbol_new_table.png" />
+                        <div class="button_label"><u>N</u>ew</div>
                     </div>
-                    <div class="sidebar_content" id="control_content">
 
-                        <div id="clear_table" class="wide_button no_select">
-                            <img class="button_img" src="../imgs/symbol_new_table.png"/>
-                            <div class="button_label">New</div>
-                        </div>
+                    <div id="save_table" class="wide_button no_select">
+                        <img class="button_img" src="../imgs/symbol_save.png" />
+                        <div class="button_label"><u>S</u>ave</div>
+                    </div>
 
-                        <div id="save_table" class="wide_button no_select">
-                            <img class="button_img" src="../imgs/symbol_save.png"/>
-                            <div class="button_label">Save</div>
-                        </div>
+                    <div id="load_table" class="wide_button no_select">
+                        <img class="button_img" src="../imgs/symbol_load.png" />
+                        <div class="button_label"><u>L</u>oad</div>
+                    </div>
 
-                        <div id="load_table" class="wide_button no_select">
-                            <img class="button_img" src="../imgs/symbol_load.png"/>
-                            <div class="button_label">Load</div>
-                        </div>
+                    <div id="export_table" class="wide_button no_select">
+                        <img class="button_img" src="../imgs/symbol_export.png" />
+                        <div class="button_label">Export</div>
+                    </div>
 
-                        <div id="export_table" class="wide_button no_select">
-                            <img class="button_img" src="../imgs/symbol_export.png"/>
-                            <div class="button_label">Export</div>
-                        </div>
-
-                        <div id="export_detail_wrapper">
-                            <div id="jpg_wrapper">
-                                <div id="jpg_snap" class="narrow_button no_select">
-                                    <img class="button_img" src="../imgs/symbol_jpg.png"/>
-                                </div>
-                                <div id="jpg_full" class="narrow_button no_select">
-                                    <img class="button_img" src="../imgs/symbol_jpg.png"/>
-                                </div>
+                    <div id="export_detail_wrapper">
+                        <div id="jpg_wrapper">
+                            <div id="jpg_snap" class="narrow_button no_select">
+                                <img class="button_img" src="../imgs/symbol_jpg.png" />
                             </div>
-                            <div id="color_wrapper">
-                                <div class="sidebar_header_title">Background Color</div>
-                                <div class="color_button white selected"></div>
-                                <div class="color_button grey"></div>
-                                <div class="color_button darkblue"></div>
-                                <div class="color_button black"></div>
-                            </div>
-                            <div id="png_wrapper">
-                                <div id="png_snap" class="narrow_button no_select">
-                                    <img class="button_img" src="../imgs/symbol_png.png"/>
-                                </div>
-                                <div id="png_full" class="narrow_button no_select">
-                                    <img class="button_img" src="../imgs/symbol_png.png"/>
-                                </div>
-                            </div>
-                            <div id="tiff_wrapper">
-                                <div id="tiff_snap" class="narrow_button no_select">
-                                    <img class="button_img" src="../imgs/symbol_tif.png"/>
-                                </div>
-                                <div id="tiff_full" class="narrow_button no_select">
-                                    <img class="button_img" src="../imgs/symbol_tif.png"/>
-                                </div>
+                            <div id="jpg_full" class="narrow_button no_select">
+                                <img class="button_img" src="../imgs/symbol_jpg.png" />
                             </div>
                         </div>
-                        <hr>
-
-                        <div class="sidebar_header_title">Undo/Redo</div>
-                        <div id="stepWrapper">
-                            <div id="undo" class="button narrow_button no_select disabled">
-                                <img class="button_img" src="../imgs/symbol_undo.png"/>
-                                <div class="button_label">Undo</div>
+                        <div id="color_wrapper">
+                            <div class="sidebar_header_title">Background Color</div>
+                            <div class="color_button white selected"></div>
+                            <div class="color_button grey"></div>
+                            <div class="color_button darkblue"></div>
+                            <div class="color_button black"></div>
+                        </div>
+                        <div id="png_wrapper">
+                            <div id="png_snap" class="narrow_button no_select">
+                                <img class="button_img" src="../imgs/symbol_png.png" />
                             </div>
-                            <div id="redo" class="button narrow_button no_select disabled">
-                                <img class="button_img" src="../imgs/symbol_redo.png"/>
-                                <div class="button_label">Redo</div>
+                            <div id="png_full" class="narrow_button no_select">
+                                <img class="button_img" src="../imgs/symbol_png.png" />
                             </div>
                         </div>
+                        <div id="tiff_wrapper">
+                            <div id="tiff_snap" class="narrow_button no_select">
+                                <img class="button_img" src="../imgs/symbol_tif.png" />
+                            </div>
+                            <div id="tiff_full" class="narrow_button no_select">
+                                <img class="button_img" src="../imgs/symbol_tif.png" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
 
-                        <hr>
+                    <div class="sidebar_header_title">Undo/Redo</div>
+                    <div id="stepWrapper">
+                        <div id="undo" class="button narrow_button no_select disabled">
+                            <img class="button_img" src="../imgs/symbol_undo.png" />
+                            <div class="button_label">Undo</div>
+                        </div>
+                        <div id="redo" class="button narrow_button no_select disabled">
+                            <img class="button_img" src="../imgs/symbol_redo.png" />
+                            <div class="button_label">Redo</div>
+                        </div>
+                    </div>
 
-                        <div class="sidebar_header_title">Display</div>
-                        <div class="displayWrapper">
-                            <input type="checkbox" id="light_box"/>
-                            <label>Light [L]</label>
-                        </div>
-                        <div class="displayWrapper">
-                            <input type="checkbox" id="grid_box"/>
-                            <label>Grid [G]</label>
-                        </div>
-                        <div class="displayWrapper">
-                            <input type="checkbox" id="scale_box"/>
-                            <label>Scale [S]</label>
-                        </div>
-                        <div class="displayWrapper">
-                            <input type="checkbox" id="fibre_box"/>
-                            <label><em>Fibres [F]</em></label>
-                        </div>
+                    <hr>
 
+                    <div class="sidebar_header_title">Tools</div>
+                    <div class="button wide_button no_select" id="tool_measure">
+                        <img class="button_img" src="../imgs/pap_dummy.jpg" />
+                        <div class="button_label"><u>M</u>easure</div>
                     </div>
-                </div> <!-- </new_fragments> -->
-                <div class="sidebar_content_wrapper" id="new_fragments">
-                    <div class="sidebar_header">
-                        <div class="sidebar_header_title">Add Fragments</div>
-                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
-                        <div class="arrow"></div>
+                    <div class="button narrow_button no_select hidden" id="tool_clear_measure">
+                        <img class="button_img" src="../imgs/symbol_x.png" />
                     </div>
-                    <div class="sidebar_content" id="new_fragments_content">
-                        <div id="upload_local" class="wide_button">
-                            <img class="button_img" src="../imgs/symbol_upload_local.png"/>
-                            <div class="button_label">Custom Fragment</div>
-                        </div>
-                        <hr>
-                        <div>Space for future TPOP fragment selection.</div>
+
+                    <hr>
+
+                    <div class="sidebar_header_title">Display</div>
+                    <div class="displayWrapper">
+                        <input type="checkbox" id="light_box" />
+                        <label>Light [L]</label>
                     </div>
-                </div> <!-- </new_fragments> -->
-                <div class="sidebar_content_wrapper" id="graphical_filters">
-                    <div class="sidebar_header">
-                        <div class="sidebar_header_title">Graphical Filters</div>
-                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-graphical-filters">
-                        <div class="arrow"></div>
+                    <div class="displayWrapper">
+                        <input type="checkbox" id="grid_box" />
+                        <label>Grid [G]</label>
                     </div>
-                    <div class="sidebar_content" id="graphical_filters_content">
-                        <div>
-                            Under construction.
-                        </div>
+                    <div class="displayWrapper">
+                        <input type="checkbox" id="scale_box" />
+                        <label>Scale [S]</label>
                     </div>
-                </div> <!-- </graphical filters> -->
-                <div class="sidebar_content_wrapper" id="fragment_list">
-                    <div class="sidebar_header">
-                        <div class="sidebar_header_title">Light Table</div>
-                        <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
-                        <div class="arrow"></div>
+                    <div class="displayWrapper">
+                        <input type="checkbox" id="fibre_box" />
+                        <label><em>Fibres [F]</em></label>
                     </div>
-                    <div class="sidebar_content" id="fragment_list_content">
-                        <div id="fragment_list_nocontent">No fragments selected</div>
-                    </div>
-                </div> <!-- </fragment_list> -->
+
+                </div>
             </div>
-            <div id="sidebar_handle">
-                <div id="sidebar_handle_grabber">...</div>
+            <!-- </new_fragments> -->
+            <div class="sidebar_content_wrapper" id="new_fragments">
+                <div class="sidebar_header">
+                    <div class="sidebar_header_title">Add Fragments</div>
+                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
+                    <div class="arrow"></div>
+                </div>
+                <div class="sidebar_content" id="new_fragments_content">
+                    <div id="upload_local" class="wide_button">
+                        <img class="button_img" src="../imgs/symbol_upload_local.png" />
+                        <div class="button_label">Custom Fragment</div>
+                    </div>
+                    <hr>
+                    <div>Space for future TPOP fragment selection.</div>
+                </div>
             </div>
-        </div> <!-- </left_sidebar> -->
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
-        <script src="../js/libs/createjs.min.js"></script>
-        <script src="../js/libs/preloadjs.min.js"></script>
-        <script src="../js/libs/hammer.min.js"></script>
-        <script src="../js/libs/canvastotiff.min.js"></script>
-        <script src="./index.js"></script>
-    </body>
+            <!-- </new_fragments> -->
+            <div class="sidebar_content_wrapper" id="graphical_filters">
+                <div class="sidebar_header">
+                    <div class="sidebar_header_title">Graphical Filters</div>
+                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-graphical-filters">
+                    <div class="arrow"></div>
+                </div>
+                <div class="sidebar_content" id="graphical_filters_content">
+                    <div>
+                        Under construction.
+                    </div>
+                </div>
+            </div>
+            <!-- </graphical filters> -->
+            <div class="sidebar_content_wrapper" id="fragment_list">
+                <div class="sidebar_header">
+                    <div class="sidebar_header_title">Light Table</div>
+                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
+                    <div class="arrow"></div>
+                </div>
+                <div class="sidebar_content" id="fragment_list_content">
+                    <div id="fragment_list_nocontent">No fragments selected</div>
+                </div>
+            </div>
+            <!-- </fragment_list> -->
+        </div>
+        <div id="sidebar_handle">
+            <div id="sidebar_handle_grabber">...</div>
+        </div>
+    </div>
+    <!-- </left_sidebar> -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="../js/libs/createjs.min.js"></script>
+    <script src="../js/libs/preloadjs.min.js"></script>
+    <script src="../js/libs/hammer.min.js"></script>
+    <script src="../js/libs/canvastotiff.min.js"></script>
+    <script src="./index.js"></script>
+</body>
+
 </html>
