@@ -130,7 +130,7 @@ ipcMain.on('server-undo-step', (event) => {
     const feedback = {
       title: 'Undo Impossible',
       desc: 'There are no more undo steps possible.',
-      color: 'red',
+      color: 'rgba(255,0,0,0.6)',
     };
     sendMessage(event.sender, 'client-display-feedback', feedback);
   }
@@ -151,7 +151,7 @@ ipcMain.on('server-redo-step', (event) => {
     const feedback = {
       title: 'Redo Impossible',
       desc: 'There are no more redo steps available.',
-      color: 'red',
+      color: 'rgba(255,0,0,0.6)',
     };
     sendMessage(event.sender, 'client-display-feedback', feedback);
   }
@@ -198,7 +198,7 @@ ipcMain.on('server-load-file', (event, file) => {
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFile(),
-    color: 'lightgreen',
+    color: 'rgba(0,255,0,0.6)',
   };
   sendMessage(mainWindow, 'client-display-feedback', feedback);
 });
@@ -215,7 +215,7 @@ ipcMain.on('server-save-file', (event, data) => {
   const response = {
     title: 'Table Saved',
     desc: 'Lighttable scene has successfully been saved to:\n'+filepath,
-    color: 'lightgreen',
+    color: 'rgba(0,255,0,0.6)',
   };
   if (filepath) {
     sendMessage(mainWindow, 'client-display-feedback', response);
