@@ -143,6 +143,13 @@ $('#clear_filter').click(function() {
   updateSaveList();
 });
 
+$('#save_list').on('dblclick', '.save_list_item', function(event) {
+  console.log("Hallo");
+  currentSave = $(this).attr('id');
+  $(this).addClass('selected');
+  ipcRenderer.send('server-load-file', (saves[$('.selected').attr('id')]));
+});
+
 $('#save_list').on('click', '.save_list_item', function(event) {
   currentSave = $(this).attr('id');
   $('.save_list_item').removeClass('selected');
