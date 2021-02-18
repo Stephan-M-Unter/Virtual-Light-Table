@@ -75,6 +75,7 @@ body {
 
 .sidebar_content {
     text-align: center;
+    overflow-y: auto;
 }
 
 .content_collapsed {
@@ -844,7 +845,9 @@ body {
     background-color: grey;
 }
 
-.button.disabled {
+.button.disabled,
+.button.disabled:hover
+{
     box-shadow: none;
     background-color: #505050;
 }
@@ -896,7 +899,9 @@ body {
     overflow: hidden;
 }
 
-.wide_button:hover {
+.wide_button:hover,
+.narrow_button:hover
+{
     background-color: white;
     color: black;
 }

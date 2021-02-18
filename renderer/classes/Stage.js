@@ -89,6 +89,7 @@ class Stage {
     // Interactions on Background
     background.on('mousedown', (event) => {
       this.controller.clearSelection();
+      this.update();
       this.mouseClickStart = {x: event.stageX, y: event.stageY};
     });
     background.on('pressmove', (event) => {
@@ -128,8 +129,6 @@ class Stage {
         this.grid.addChild(line);
       }
     }
-
-    this.update();
   }
 
   /**
@@ -181,7 +180,6 @@ class Stage {
 
     this.stage.removeChild(this.scale);
     this.stage.addChild(this.scale);
-    this.update();
   }
 
   /**
@@ -191,6 +189,7 @@ class Stage {
   toggleGridMode() {
     this.gridMode = !this.gridMode;
     this.updateGrid();
+    this.update();
     return this.gridMode;
   }
 
@@ -201,6 +200,7 @@ class Stage {
   toggleScaleMode() {
     this.scaleMode = !this.scaleMode;
     this.updateScale();
+    this.update();
     return this.scaleMode;
   }
 
@@ -219,7 +219,6 @@ class Stage {
     }
     this.clearSelection();
     this._clearFragmentList();
-    this.update();
   }
 
   /**
@@ -567,7 +566,9 @@ class Stage {
     this.selectedList[id] = this.fragmentList[id];
     this.fragmentList[id].getImage().shadow = new createjs.Shadow(
         '#f15b40', 0, 0, 10);
+    this._moveToTop(this.fragmentList[id]);
     this._updateBb();
+    this.update();
   }
 
   /**
@@ -748,7 +749,7 @@ class Stage {
       this.measureGroup.pressY = null;
     });
 
-    this.measureGroup.addChild(this.measureLine);
+    this.measureGroup.addChildAt(this.measureLine, 0);
 
     const distance = this.measureDistance([x1, y1], [x2, y2]);
     this.measureText = new createjs.Text(distance + ' cm');
@@ -898,7 +899,7 @@ class Stage {
     this._updateMeasure();
     */
 
-    this.stage.update();
+    this.update();
   }
 
   /**
@@ -950,7 +951,7 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        fragment.flip();
+        fragment.flip(false);
 
         const x = fragment.getX();
         const y = fragment.getY();
@@ -983,7 +984,6 @@ class Stage {
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
     this._updateRotator(this.bb.center.x, this.bb.center.y, this.bb.height);
-    this.update();
   }
 
   /**
@@ -1028,7 +1028,7 @@ class Stage {
         // TODO: oder doch für mehrere auch?
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
-        fragment.flip();
+        fragment.flip(false);
         this._saveToModel();
       });
 
@@ -1077,6 +1077,7 @@ class Stage {
       });
       this.rotator.on('pressup', (event) => {
         this._updateBb();
+        this.update();
         this._saveToModel();
       });
     }

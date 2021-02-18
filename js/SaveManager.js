@@ -107,10 +107,16 @@ class SaveManager {
   getSaveFolder() {
     const filepath = dialog.showOpenDialogSync({
       title: 'Open VLT Configuration',
+      /*
       filters: [{
         name: 'Virtual Light Table Save',
         extensions: ['vlt'],
       }],
+      * TODO Das macht momentan Probleme - wenn ich den VLT auf Produktivbetrieb
+      * stelle, findet er den richtigen "Saves"-Folder nicht mehr, aber solange
+      * ich den Filter nur auf vlt-Dateien lasse, kann die NutzerIn nicht mehr
+      * frei durch die Ordner traversieren.
+      */
       defaultPath: __dirname+'/..',
       properties: [
         'openDirectory',

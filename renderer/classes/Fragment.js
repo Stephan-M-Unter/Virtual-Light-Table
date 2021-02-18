@@ -33,6 +33,12 @@ class Fragment {
     if (eventData.item.properties.rotationDistance) {
       this.rotationDistance = eventData.item.properties.rotationDistance;
     }
+    if (eventData.item.properties.rectoPPI) {
+      this.rectoPPI = eventData.item.properties.rectoPPI;
+    }
+    if (eventData.item.properties.versoPPI) {
+      this.versoPPI = eventData.item.properties.versoPPI;
+    }
 
     if (this.isRecto ? this.imageRecto = this._createImage(eventData, id) :
         this.imageVerso = this._createImage(eventData, id));
@@ -75,18 +81,24 @@ class Fragment {
     if (this.isRecto) {
       image.name = 'Image - Recto';
       if (this.rectoMask) {
-        image.mask = this.rectoMask;
+        // image.mask = this.rectoMask;
       }
       if (this.rectoRotation) {
         image.rotation = this.rectoRotation;
       }
+      if (this.rectoPPI) {
+        image.scale = 96 / this.rectoPPI;
+      }
     } else {
       image.name = 'Image - Verso';
       if (this.versoMask) {
-        image.mask = this.versoMask;
+        // image.mask = this.versoMask;
       }
       if (this.versoRotation) {
         image.rotation = this.versoRotation;
+      }
+      if (this.versoPPI) {
+        image.scale = 96 / this.versoPPI;
       }
     }
     image.cursor = 'pointer';
@@ -211,15 +223,20 @@ class Fragment {
 
   /**
    * TODO
+   * @param {*} inverted
    */
-  flip() {
+  flip(inverted) {
     this.isRecto = !this.isRecto;
     if (this.bothSidesLoaded) {
       // both sides have already been loaded to the application
       this.container.removeChild(this.image);
-      if (this.isRecto ? this.image = this.image_recto :
-            this.image = this.image_verso);
+      if (this.isRecto ? this.image = this.imageRecto :
+            this.image = this.imageVerso);
+      if (inverted) {
+        this.image.scaleX *= -1;
+      }
       this.container.addChild(this.image);
+      this.stage.update();
     } else {
       // second side still to be loaded
       const loadqueue = new createjs.LoadQueue();
@@ -230,15 +247,21 @@ class Fragment {
           this.imageRecto = secondImage;
           this.framework.registerImageEvents(this.imageRecto);
           this.container.removeChild(this.imageVerso);
-          this.container.addChild(this.imageRecto);
+          this.image = this.imageRecto;
+          this.container.addChild(this.image);
         } else {
           this.imageVerso = secondImage;
           this.framework.registerImageEvents(this.imageVerso);
           this.container.removeChild(this.imageRecto);
-          this.container.addChild(this.imageVerso);
+          this.image = this.imageVerso;
+          this.container.addChild(this.image);
         }
         this.container.regX = secondImage.image.width / 2;
         this.container.regY = secondImage.image.height / 2;
+        if (inverted) {
+          this.image.scaleX *= -1;
+        }
+        this.bothSidesLoaded = true;
         this.framework._updateBb();
         this.stage.update();
       });
@@ -260,14 +283,11 @@ class Fragment {
    * TODO
    */
   translateRotation() {
-    console.log('rotation zunächst:', this.container.rotation);
-    console.log('distRotation:', this.rotationDistance);
     if (this.isRecto) {
       this.container.rotation -= this.rotationDistance;
     } else {
       this.container.rotation += this.rotationDistance;
     }
-    console.log('rotation danach:', this.container.rotation);
   }
 
   /**
@@ -400,7 +420,7 @@ class Fragment {
     if (this.getMask()) {
       const polygon = this.getMask().polygon;
 
-      for (let node in polygon) {
+      for (const node in polygon) {
         if (Object.prototype.hasOwnProperty.call(polygon, node)) {
           const x = polygon[node][0];
           const y = polygon[node][1];

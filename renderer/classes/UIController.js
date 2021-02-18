@@ -24,6 +24,7 @@ class UIController {
     this.stage = new Stage(this, DOMElement);
     this.sidebar = new Sidebar(this);
     this.annotationPopup = new AnnotationPopup(this);
+    this.hotkeysOn = true;
   }
 
   /**
@@ -38,6 +39,7 @@ class UIController {
       ipcRenderer.send(message);
     }
   }
+
 
   /**
    * TODO
@@ -136,8 +138,8 @@ class UIController {
    * signal to stage and update sidebar fragment list accordingly
    */
   removeFragments() {
-    const confirmation = confirm('Do you really want to remove this' +
-        'fragment/these fragments from the light table? (the original' +
+    const confirmation = confirm('Do you really want to remove this ' +
+        'fragment/these fragments from the light table? (the original ' +
         'files will not be deleted)');
 
     if (confirmation) {
@@ -196,6 +198,13 @@ class UIController {
     } else {
       $('#scale_box').prop('checked', false);
     }
+  }
+
+  /**
+   * TODO
+   */
+  toggleFibreMode() {
+    // TODO Not yet implemented
   }
 
   /**
@@ -342,6 +351,22 @@ class UIController {
     this.stage.clearMeasure();
     this.stage.endMeasure();
     $('#tool_clear_measure').addClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} hotkeysOn
+   */
+  setHotkeysOn(hotkeysOn) {
+    this.hotkeysOn = hotkeysOn;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getHotkeysOn() {
+    return this.hotkeysOn;
   }
 }
 

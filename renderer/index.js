@@ -1,12 +1,15 @@
 'use strict';
 
 const {UIController} = require('./classes/UIController');
-const {ipcRenderer} = require('electron');
+const {ipcRenderer, NodeEventEmitter} = require('electron');
 const Dialogs = require('dialogs');
 const dialogs = new Dialogs();
 let uic;
 let lightMode = 'dark';
 let darkBackground;
+let sidebarCollapsed = false;
+let sidebarWidth = 200;
+let sidebarClick;
 
 const konami = [38, 38, 40, 40, 37, 39, 37, 39, 65, 66];
 let konamiDetection = [];
@@ -47,6 +50,7 @@ function activateKonami() {
  * TODO
  */
 function saveTable() {
+  uic.setHotkeysOn(false);
   dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
     if (editor != '' && editor != null) {
       const screenshot = uic.exportCanvas('png', true, true);
@@ -56,6 +60,7 @@ function saveTable() {
       };
       uic.sendToServer('server-save-file', data);
     }
+    uic.setHotkeysOn(true);
   });
 }
 
@@ -70,7 +75,29 @@ function loadTable() {
  * TODO
  */
 function clearTable() {
+  uic.endMeasure();
   uic.sendToServer('server-clear-table');
+}
+
+/**
+ * TODO
+ */
+function toggleSidebar() {
+  if (sidebarCollapsed) {
+    $('#left_sidebar').css('width', sidebarWidth);
+    $('#left_sidebar').css('min-width', 180);
+    $('#sidebar_content').css('display', 'block');
+    $('#sidebar_handle_grabber').css('transform',
+        'translateX(-40%) translateY(-50%)');
+  } else {
+    sidebarWidth = $('#left_sidebar').css('width');
+    $('#left_sidebar').css('min-width', 1);
+    $('#left_sidebar').css('width', 0);
+    $('#sidebar_content').css('display', 'none');
+    $('#sidebar_handle_grabber').css('transform',
+        'translateX(-15%) translateY(-50%)');
+  }
+  sidebarCollapsed = !sidebarCollapsed;
 }
 
 /**
@@ -83,38 +110,17 @@ function toggleLight() {
     $('body').css({backgroundColor: 'white'});
     $('#light_switch').addClass('button_active');
     $('#light_box').prop('checked', true);
+    $('#zoom_slider').css('background-color', 'grey');
     lightMode = 'bright';
   } else {
     // current light_mode is "bright" => change to "dark"
     $('body').css({background: darkBackground});
     $('#light_switch').removeClass('button_active');
     $('#light_box').prop('checked', false);
+    $('#zoom_slider').css('background-color', 'white');
     lightMode = 'dark';
   }
 }
-
-/**
- * TODO
- */
-function toggleGrid() {
-  uic.toggleGridMode();
-}
-
-/**
- * TODO
- */
-function toggleFibres() {
-  // TODO
-  console.log('Fibres toggled.');
-}
-
-/**
- * TODO
- */
-function toggleScale() {
-  uic.toggleScaleMode();
-}
-
 
 $(document).ready(function() {
   uic = new UIController('lighttable');
@@ -239,13 +245,13 @@ $(document).ready(function() {
   });
 
   $('#grid_box').on('change', function() {
-    toggleGrid();
+    uic.toggleGridMode();
   });
   $('#scale_box').on('change', function() {
-    toggleScale();
+    uic.toggleScaleMode();
   });
   $('#fibre_box').on('change', function() {
-    toggleFibres();
+    uic.toggleFibreMode();
   });
 
   // Fit to Screen
@@ -277,12 +283,15 @@ $(document).ready(function() {
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
       $('#annot_window').css('display', 'none');
+      uic.setHotkeysOn(true);
     } else {
       $('#annot_window').css('display', 'flex');
+      uic.setHotkeysOn(false);
     }
   });
   $('#annot_close').click(function() {
     $('#annot_window').css('display', 'none');
+    uic.setHotkeysOn(true);
   });
   $('#annot_text').keyup(function(event) {
     uic.toggleAnnotSubmitButton();
@@ -291,7 +300,7 @@ $(document).ready(function() {
     uic.toggleAnnotSubmitButton();
   });
   $('#annot_submit').click(function(event) {
-    if (!$(even.target).hasClass('disabled')) {
+    if (!$(event.target).hasClass('disabled')) {
       uic.sendAnnotation($(event.target).attr('target'));
     }
   });
@@ -306,6 +315,17 @@ $(document).ready(function() {
   /* Sidebar Width Adjustment */
   $('#sidebar_handle').on('mousedown', startResizingSidebar);
 
+  $('#sidebar_handle_grabber').on('mouseup', (event) => {
+    if (event.pageX == sidebarClick) {
+      toggleSidebar();
+    }
+    sidebarClick = null;
+  });
+
+  $('#sidebar_handle_grabber').on('mousedown', (event) => {
+    sidebarClick = event.pageX;
+  });
+
   // Upload Local Image Button
   $('#upload_local').click(function() {
     uic.sendToServer('server-start-upload');
@@ -317,8 +337,10 @@ $(document).ready(function() {
      * and mouseup (stopping resizing).
      */
   function startResizingSidebar() {
-    window.addEventListener('mousemove', resizeSidebar, false);
-    window.addEventListener('mouseup', stopResizingSidebar, false);
+    if (!sidebarCollapsed) {
+      window.addEventListener('mousemove', resizeSidebar, false);
+      window.addEventListener('mouseup', stopResizingSidebar, false);
+    }
   }
 
   /**
@@ -358,6 +380,9 @@ $(document).ready(function() {
       // second, rotate arrow down and expand clicked segment
       $(this).find('.arrow').addClass('down');
       $(this).parent().addClass('expanded');
+    } else {
+      $('.arrow.down').removeClass('down');
+      $('.expanded').removeClass('expanded');
     }
   });
 
@@ -396,28 +421,39 @@ $(document).ready(function() {
         uic.sendToServer('server-redo-step');
       }
     } else {
+      const hotkeysOn = uic.getHotkeysOn();
       if (event.keyCode == 46) {
         // DEL -> Delete Fragment(s)
         uic.removeFragments();
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
-        toggleLight();
+        if (hotkeysOn) {
+          toggleLight();
+        }
       } else if (event.keyCode == 71) {
         // G -> Toggle Grid
-        toggleGrid();
+        if (hotkeysOn) {
+          uic.toggleGridMode();
+        }
       } else if (event.keyCode == 70) {
         // F -> Toggle Fibres
-        toggleFibres();
+        if (hotkeysOn) {
+          uic.toggleFibreMode();
+        }
       } else if (event.keyCode == 83) {
         // S -> Toggle Scale
-        toggleScale();
+        if (hotkeysOn) {
+          uic.toggleScaleMode();
+        }
       } else if (event.keyCode == 27) {
-        // ESC -> deselct All
+        // ESC -> deselect All
         uic.clearSelection();
         uic.endMeasure();
       } else if (event.keyCode == 77) {
         // M -> Start Measure
-        uic.startMeasure();
+        if (hotkeysOn) {
+          uic.startMeasure();
+        }
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

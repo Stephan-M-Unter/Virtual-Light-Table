@@ -47,7 +47,13 @@ let mousestartX; let mousestartY;
  * TODO
  */
 function checkIfReady() {
-  if (recto.url && verso.url && $('#name').val() != '') {
+  if (
+    recto.url &&
+    verso.url &&
+    $('#name').val() != '' &&
+    $('#right_resolution').val() != '' &&
+    $('#left_resolution').val() != ''
+  ) {
     $('#load_button').removeClass('disabled');
   } else {
     $('#load_button').addClass('disabled');
@@ -158,32 +164,7 @@ function drawCanvas(canvas, url) {
     const imgBack = new createjs.Bitmap(image);
     const img = new createjs.Bitmap(image);
 
-    try {
-      EXIF.getData(image, function() {
-        const exifs = EXIF.getAllTags(image);
-        if (exifs.XResolution) {
-          const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-          if (side == 'rt') {
-            $('#left_resolution').val(ppi);
-          } else {
-            $('#right_resolution').val(ppi);
-          }
-        } else {
-          if (side == 'rt') {
-            $('#left_resolution').val('');
-          } else {
-            $('#right_resolution').val('');
-          }
-        }
-      });
-    } catch {
-      console.log('Input image has no EXIF data.');
-      if (side == 'rt') {
-        $('#left_resolution').val('');
-      } else {
-        $('#right_resolution').val('');
-      }
-    }
+    readExifPPI(image, side);
 
     // getting the current sizes of images and canvas
     const imgWidth = img.image.width;
@@ -245,6 +226,8 @@ function drawCanvas(canvas, url) {
     shadow.graphics.endFill();
     shadow.alpha=0.7;
 
+    console.log(recto.img);
+
     // adding eventlisteners
     img.on('mousedown', (event) => {
       handleMouseDown(event);
@@ -294,6 +277,41 @@ function drawCanvas(canvas, url) {
     drawMasks();
     stage.update();
   };
+}
+
+/**
+ * TODO
+ * @param {*} image
+ * @param {*} side
+ */
+function readExifPPI(image, side) {
+  try {
+    EXIF.getData(image, function() {
+      const exifs = EXIF.getAllTags(image);
+      if (exifs.XResolution) {
+        const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
+        if (side == 'rt') {
+          $('#left_resolution').val(ppi);
+        } else {
+          $('#right_resolution').val(ppi);
+        }
+      } else {
+        console.log('Input image has no EXIF data.');
+        if (side == 'rt') {
+          $('#left_resolution').val('');
+        } else {
+          $('#right_resolution').val('');
+        }
+      }
+    });
+  } catch {
+    console.log('Input image has no EXIF data.');
+    if (side == 'rt') {
+      $('#left_resolution').val('');
+    } else {
+      $('#right_resolution').val('');
+    }
+  }
 }
 
 /**
@@ -651,6 +669,9 @@ $('.local_upload_button').click(function() {
   ipcRenderer.send('upload-new-image');
 });
 
+$('#right_resolution').on('change', checkIfReady);
+$('#left_resolution').on('change', checkIfReady);
+
 $('#clear_polygon').click(function() {
   if (mode == 'cut') {
     clearPolygon();
@@ -673,21 +694,25 @@ $('.www_upload_button').click(function() {
     lastUpload = 'verso';
   }
 
-  dialogs.prompt('Enter Image-URL:', function(url) {
-    if (url != '' && url != null) {
-      if (lastUpload == 'recto') {
-        recto.url = url;
-        activateCanvas($('#recto_canvas_wrapper'));
-        drawCanvas('recto_canvas', url);
-      } else {
-        verso.url = url;
-        activateCanvas($('#verso_canvas_wrapper'));
-        drawCanvas('verso_canvas', url);
+  try {
+    dialogs.prompt('Enter Image-URL:', function(url) {
+      if (url != '' && url != null) {
+        if (lastUpload == 'recto') {
+          recto.url = url;
+          activateCanvas($('#recto_canvas_wrapper'));
+          drawCanvas('recto_canvas', url);
+        } else {
+          verso.url = url;
+          activateCanvas($('#verso_canvas_wrapper'));
+          drawCanvas('verso_canvas', url);
+        }
+        lastUpload = null;
+        checkIfReady();
       }
-      lastUpload = null;
-      checkIfReady();
-    }
-  });
+    });
+  } catch {
+    alert('Please make sure your image URL leads to an image file (jpg, png)!');
+  }
 });
 
 $('#load_button').click(function() {
@@ -709,7 +734,8 @@ $('#load_button').click(function() {
       polygonRecto.push([xRecto+cropW, yRecto]);
       polygonRecto.push([xRecto, yRecto]);
 
-      const xVerso = verso.stage.canvas.width - cropX - cropW - verso.img.x + verso.img.image.width/2;
+      const xVerso = verso.stage.canvas.width - cropX - cropW -
+        verso.img.x + verso.img.image.width/2;
       const yVerso = cropY - verso.img.y + verso.img.image.height/2;
       polygonVerso.push([xVerso, yVerso]);
       polygonVerso.push([xVerso, yVerso+cropH]);
@@ -723,7 +749,8 @@ $('#load_button').click(function() {
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           const coord = temp[node];
-          polygonRecto.push([coord[0]-recto.img.x-recto.img.image.width/2, coord[1]-recto.img.y-recto.img.image.height/2]);
+          polygonRecto.push([coord[0]-recto.img.x-recto.img.image.width/2,
+            coord[1]-recto.img.y-recto.img.image.height/2]);
         }
       }
 
@@ -732,7 +759,8 @@ $('#load_button').click(function() {
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           const coord = temp[node];
-          polygonVerso.push([coord[0]-verso.img.x-verso.img.image.width/2, coord[1]-verso.img.y-verso.img.image.height/2]);
+          polygonVerso.push([coord[0]-verso.img.x-verso.img.image.width/2,
+            coord[1]-verso.img.y-verso.img.image.height/2]);
         }
       }
     }
