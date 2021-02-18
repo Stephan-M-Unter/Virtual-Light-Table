@@ -833,6 +833,7 @@ class Stage {
     this.bb.rotation += deltaAngle;
     this.flipper.rotation += deltaAngle;
     this.rotator.rotation += deltaAngle;
+    this.ghoster.rotation += deltaAngle;
 
     this.mouseClickStart = {x: event.stageX, y: event.stageY};
 
@@ -984,6 +985,8 @@ class Stage {
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
     this._updateRotator(this.bb.center.x, this.bb.center.y, this.bb.height);
+    this._updateGhoster(this.bb.center.x, this.bb.center.y,
+        this.bb.width, this.bb.height);
   }
 
   /**
@@ -1033,6 +1036,59 @@ class Stage {
       });
 
       this.stage.addChild(this.flipper);
+    }
+  }
+
+
+  /**
+   * TODO
+   * @param {*} x
+   * @param {*} y
+   * @param {*} width
+   * @param {*} height
+   */
+  _updateGhoster(x, y, width, height) {
+    this.stage.removeChild(this.ghoster);
+
+    if (Object.keys(this.selectedList).length == 1) {
+      this.ghoster = new createjs.Container();
+
+      const circle = new createjs.Shape();
+      circle.graphics
+          .beginFill('grey').drawCircle(0, 0, 20);
+      this.ghoster.addChild(circle);
+
+      const bmp = new createjs.Bitmap('../imgs/symbol_ghost.png');
+      bmp.scale = 1;
+      bmp.x = bmp.y = -15;
+      bmp.onload = function() {
+        this.update();
+      };
+      this.ghoster.addChild(bmp);
+
+      this.ghoster.x = x;
+      this.ghoster.y = y;
+      this.ghoster.regX = -width/2-30;
+      this.ghoster.regY = -height/2+75;
+      this.ghoster.name = 'Flip Button';
+
+      if (this.ghoster.x - this.ghoster.regX > this.stage.canvas.width) {
+        this.ghoster.regX *= -1;
+      }
+
+      this.ghoster.on('mousedown', (event) => {
+        const id = Object.keys(this.selectedList)[0];
+        const fragment = this.selectedList[id];
+        fragment.flip(true);
+      });
+
+      this.ghoster.on('pressup', (event) => {
+        const id = Object.keys(this.selectedList)[0];
+        const fragment = this.selectedList[id];
+        fragment.flip(false);
+      });
+
+      this.stage.addChild(this.ghoster);
     }
   }
 

@@ -228,11 +228,16 @@ class Fragment {
   flip(inverted) {
     this.isRecto = !this.isRecto;
     if (this.bothSidesLoaded) {
+      this.image.x = 0;
+      if (this.image.scale < 0) {
+        this.image.scale *= -1;
+      }
       // both sides have already been loaded to the application
       this.container.removeChild(this.image);
       if (this.isRecto ? this.image = this.imageRecto :
             this.image = this.imageVerso);
       if (inverted) {
+        this.image.x = this.image.image.width;
         this.image.scaleX *= -1;
       }
       this.container.addChild(this.image);
@@ -259,6 +264,7 @@ class Fragment {
         this.container.regX = secondImage.image.width / 2;
         this.container.regY = secondImage.image.height / 2;
         if (inverted) {
+          this.image.x = this.image.image.width;
           this.image.scaleX *= -1;
         }
         this.bothSidesLoaded = true;
