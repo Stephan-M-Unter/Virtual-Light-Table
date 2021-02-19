@@ -221,7 +221,7 @@ class UIController {
    * the zoom slider which should always show the acurate scaling factor.
    *
    * @param {*} scalingValue Value for new scaling ratio; this value
-   * gives is the ratio * 100, e.g. not x1.0 but 100.
+   * is the ratio * 100, e.g. not 1.0 but 100.
    * @param {*} scaleX x position of scaling center if not window center.
    * @param {*} scaleY y position of scaling center if not window center.
    */
@@ -299,6 +299,13 @@ class UIController {
                 .css('left', '50%');
           });
     });
+  }
+
+  /**
+   * TODO
+   */
+  resetZoom() {
+    this.setScaling(100);
   }
 
   /**

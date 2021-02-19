@@ -268,6 +268,7 @@ $(document).ready(function() {
       $('#table_button_wrapper').removeClass('hidden');
       $('#annot_button').removeClass('hidden');
       $('#fit_to_screen').removeClass('hidden');
+      $('#reset_zoom').removeClass('hidden');
       $('#hide_hud').removeClass('hide_active');
     } else {
       $('#left_sidebar').addClass('hidden');
@@ -275,8 +276,13 @@ $(document).ready(function() {
       $('#table_button_wrapper').addClass('hidden');
       $('#annot_button').addClass('hidden');
       $('#fit_to_screen').addClass('hidden');
+      $('#reset_zoom').addClass('hidden');
       $('#hide_hud').addClass('hide_active');
     }
+  });
+
+  $('#reset_zoom').click(function() {
+    uic.resetZoom();
   });
 
   // Annotation Button
