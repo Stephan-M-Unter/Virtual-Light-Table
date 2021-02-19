@@ -1002,6 +1002,7 @@ class Stage {
         fragment.moveToPixel(xNew, ynew);
       }
     }
+    this.update();
     this._saveToModel();
     this.controller.updateFragmentList();
   }
