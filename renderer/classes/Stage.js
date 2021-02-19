@@ -95,9 +95,6 @@ class Stage {
     background.on('pressmove', (event) => {
       this._panScene(event);
     });
-    background.on('pressup', (event) => {
-      this._saveToModel();
-    });
 
     return background;
   }
@@ -1166,7 +1163,7 @@ class Stage {
       this.rotator.x = x;
       this.rotator.y = y;
       this.rotator.regX = 0;
-      this.rotator.regY = height/2;
+      this.rotator.regY = height/2+25;
       if (this.rotator.y - this.rotator.regY < 0) {
         this.rotator.regY *= -1;
       }
