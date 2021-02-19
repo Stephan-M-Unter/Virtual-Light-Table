@@ -55,8 +55,10 @@ function checkIfReady() {
     $('#left_resolution').val() != ''
   ) {
     $('#load_button').removeClass('disabled');
+    console.log("Check correct");
   } else {
     $('#load_button').addClass('disabled');
+    console.log("Check wrong");
   }
 }
 
@@ -295,6 +297,7 @@ function readExifPPI(image, side) {
         } else {
           $('#right_resolution').val(ppi);
         }
+        checkIfReady();
       } else {
         console.log('Input image has no EXIF data.');
         if (side == 'rt') {
@@ -669,8 +672,8 @@ $('.local_upload_button').click(function() {
   ipcRenderer.send('upload-new-image');
 });
 
-$('#right_resolution').on('change', checkIfReady);
-$('#left_resolution').on('change', checkIfReady);
+$('#right_resolution').on('keyup', checkIfReady);
+$('#left_resolution').on('keyup', checkIfReady);
 
 $('#clear_polygon').click(function() {
   if (mode == 'cut') {
