@@ -392,6 +392,12 @@ body {
     border-right: 1px solid rgba(200, 200, 200, 0.7);
 }
 
+.squareButton:hover img {
+    transform: scale(1.3);
+    transition: all .2s;
+}
+
+/*
 .squareButton:before {
     content: "";
     position: absolute;
@@ -406,11 +412,13 @@ body {
 .squareButton:hover:before {
     left: 100%;
 }
+*/
 
 .squareButton img {
     width: 100%;
     height: 100%;
     padding: 10px;
+    transition: all .2s;
     box-sizing: border-box;
 }
 
