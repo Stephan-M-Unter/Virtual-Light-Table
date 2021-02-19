@@ -666,7 +666,7 @@ class Stage {
         node.x = this.measurePoints[idx].x;
         node.y = this.measurePoints[idx].y;
         node.index = idx;
-        node.addEventListener('pressmove', (event) => {
+        node.on('pressmove', (event) => {
           node.x = event.stageX;
           node.y = event.stageY;
           this.measurePoints[node.index] = {
@@ -676,6 +676,26 @@ class Stage {
             baseY: node.baseY,
           };
           this.drawMeasureLine();
+          this.update();
+        });
+        node.on('mouseover', () => {
+          node.graphics.clear()
+              .beginFill('#f5842c').drawCircle(0, 0, 5);
+          this.update();
+        });
+        node.on('mouseout', () => {
+          node.graphics.clear()
+              .beginFill('red').drawCircle(0, 0, 5);
+          this.update();
+        });
+        node.on('mousedown', () => {
+          node.graphics.clear()
+              .beginFill('#1C5A9C').drawCircle(0, 0, 5);
+          this.update();
+        });
+        node.on('pressup', () => {
+          node.graphics.clear()
+              .beginFill('red').drawCircle(0, 0, 5);
           this.update();
         });
         this.measureGroup.addChild(node);
@@ -725,6 +745,18 @@ class Stage {
     this.measureLine.on('mousedown', (event) => {
       this.measureGroup.pressX = event.stageX;
       this.measureGroup.pressY = event.stageY;
+    });
+    this.measureLine.on('mouseover', () => {
+      this.measureLine.graphics.clear()
+          .setStrokeStyle(2).beginStroke('#f5842c')
+          .moveTo(x1, y1).lineTo(x2, y2).endStroke();
+      this.update();
+    });
+    this.measureLine.on('mouseout', () => {
+      this.measureLine.graphics.clear()
+          .setStrokeStyle(2).beginStroke('red')
+          .moveTo(x1, y1).lineTo(x2, y2).endStroke();
+      this.update();
     });
     this.measureLine.on('pressmove', (event) => {
       const deltaX = event.stageX - this.measureGroup.pressX;
@@ -1035,6 +1067,18 @@ class Stage {
         this._saveToModel();
       });
 
+      this.flipper.on('mousedown', () => {
+        this.flipper.getChildAt(0).graphics.clear()
+            .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
+        this.update();
+      });
+
+      this.flipper.on('pressup', () => {
+        this.flipper.getChildAt(0).graphics.clear()
+            .beginFill('white').drawCircle(0, 0, 20).endFill();
+        this.update();
+      });
+
       this.stage.addChild(this.flipper);
     }
   }
@@ -1055,7 +1099,7 @@ class Stage {
 
       const circle = new createjs.Shape();
       circle.graphics
-          .beginFill('grey').drawCircle(0, 0, 20);
+          .beginFill('grey').drawCircle(0, 0, 20).endFill();
       this.ghoster.addChild(circle);
 
       const bmp = new createjs.Bitmap('../imgs/symbol_ghost.png');
@@ -1077,12 +1121,16 @@ class Stage {
       }
 
       this.ghoster.on('mousedown', (event) => {
+        this.ghoster.getChildAt(0).graphics.clear()
+            .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
         fragment.flip(true);
       });
 
       this.ghoster.on('pressup', (event) => {
+        this.ghoster.getChildAt(0).graphics.clear()
+            .beginFill('grey').drawCircle(0, 0, 20).endFill();
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
         fragment.flip(false);
@@ -1126,12 +1174,17 @@ class Stage {
       this.stage.addChild(this.rotator);
 
       this.rotator.on('mousedown', (event) => {
+        this.rotator.getChildAt(0).graphics.clear()
+            .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
         this.mouseClickStart = {x: event.stageX, y: event.stageY};
+        this.update();
       });
       this.rotator.on('pressmove', (event) => {
         this._rotateObjects(event);
       });
       this.rotator.on('pressup', (event) => {
+        this.flipper.getChildAt(0).graphics.clear()
+            .beginFill('#f5842c').drawCircle(0, 0, 20).endFill();
         this._updateBb();
         this.update();
         this._saveToModel();
