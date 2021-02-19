@@ -25,6 +25,7 @@ class UIController {
     this.sidebar = new Sidebar(this);
     this.annotationPopup = new AnnotationPopup(this);
     this.hotkeysOn = true;
+    this.hasUnsaved = false;
   }
 
   /**
@@ -38,6 +39,70 @@ class UIController {
     } else {
       ipcRenderer.send(message);
     }
+  }
+
+  /**
+   * TODO
+   */
+  saveTable() {
+    this.setHotkeysOn(false);
+    dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
+      if (editor != '' && editor != null) {
+        const screenshot = this.exportCanvas('png', true, true);
+        const data = {
+          'editor': editor,
+          'screenshot': screenshot,
+        };
+        this.sendToServer('server-save-file', data);
+        this.hasUnsaved = false;
+      }
+      this.setHotkeysOn(true);
+    });
+  }
+
+  /**
+   * TODO
+   */
+  loadTable() {
+    if (!this.hasUnsaved) {
+      this.sendToServer('server-open-load-window');
+    } else if (this.confirmClearTable()) {
+      this.sendToServer('server-open-load-window');
+    }
+  }
+
+  /**
+   * TODO
+   * @param {*} data
+   */
+  saveToModel(data) {
+    this.hasUnsaved = true;
+    ipcRenderer.send('server-save-to-model', data);
+  }
+
+  /**
+   * TODO
+   */
+  clearTable() {
+    if (!this.hasUnsaved) {
+      this.endMeasure();
+      this.sendToServer('server-clear-table');
+      this.hasUnsaved = false;
+    } else if (this.confirmClearTable()) {
+      this.endMeasure();
+      this.sendToServer('server-clear-table');
+      this.hasUnsaved = false;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  confirmClearTable() {
+    const confirmation = confirm('You still have unsaved changes '+
+    'on your table. Are you sure you want to proceed?');
+    return confirmation;
   }
 
 

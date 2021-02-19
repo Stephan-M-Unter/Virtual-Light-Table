@@ -49,39 +49,6 @@ function activateKonami() {
 /**
  * TODO
  */
-function saveTable() {
-  uic.setHotkeysOn(false);
-  dialogs.prompt('Please enter your name(s)/initials:', function(editor) {
-    if (editor != '' && editor != null) {
-      const screenshot = uic.exportCanvas('png', true, true);
-      const data = {
-        'editor': editor,
-        'screenshot': screenshot,
-      };
-      uic.sendToServer('server-save-file', data);
-    }
-    uic.setHotkeysOn(true);
-  });
-}
-
-/**
- * TODO
- */
-function loadTable() {
-  uic.sendToServer('server-open-load-window');
-}
-
-/**
- * TODO
- */
-function clearTable() {
-  uic.endMeasure();
-  uic.sendToServer('server-clear-table');
-}
-
-/**
- * TODO
- */
 function toggleSidebar() {
   if (sidebarCollapsed) {
     $('#left_sidebar').css('width', sidebarWidth);
@@ -125,7 +92,7 @@ function toggleLight() {
 $(document).ready(function() {
   uic = new UIController('lighttable');
   const stage = uic.getStage();
-  clearTable();
+  uic.clearTable();
 
   /* ##########################################
         #               INPUT/OUTPUT
@@ -133,17 +100,17 @@ $(document).ready(function() {
 
   // Clear Table Button
   $('#clear_table').click(function() {
-    clearTable();
+    uic.clearTable();
   });
 
   // Save Table Button
   $('#save_table').click(function() {
-    saveTable();
+    uic.saveTable();
   });
 
   // Load Table Button
   $('#load_table').click(function() {
-    loadTable();
+    uic.loadTable();
   });
 
   // Flip Buttons
@@ -412,13 +379,13 @@ $(document).ready(function() {
     if (event.ctrlKey) {
       if (event.keyCode == 83) {
         // Ctrl + S -> Save
-        saveTable();
+        uic.saveTable();
       } else if (event.keyCode == 76) {
         // Ctrl + L -> Load
-        loadTable();
+        uic.loadTable();
       } else if (event.keyCode == 78) {
         // Ctrl + N -> Table Clear
-        clearTable();
+        uic.clearTable();
       } else if (event.keyCode == 90) {
         // Ctrl + Z -> Undo Step
         uic.sendToServer('server-undo-step');

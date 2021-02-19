@@ -333,7 +333,7 @@ class Stage {
    */
   _saveToModel() {
     const dataObject = this.getConfiguration();
-    ipcRenderer.send('server-save-to-model', dataObject);
+    this.controller.saveToModel(dataObject);
   }
 
   /**
