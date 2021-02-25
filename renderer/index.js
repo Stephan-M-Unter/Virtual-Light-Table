@@ -1,9 +1,7 @@
 'use strict';
 
 const {UIController} = require('./classes/UIController');
-const {ipcRenderer, NodeEventEmitter} = require('electron');
-const Dialogs = require('dialogs');
-const dialogs = new Dialogs();
+const {ipcRenderer} = require('electron');
 let uic;
 let lightMode = 'dark';
 let darkBackground;
@@ -281,7 +279,6 @@ $(document).ready(function() {
   // Zoom Slider
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
-    $('#zoom_factor').html('Zoom<br/>x' + newScaling / 100);
     uic.setScaling(newScaling);
   });
 

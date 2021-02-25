@@ -337,8 +337,7 @@ class Stage {
   }
 
   /**
-   * Method to set the scaling of a scene. Only allows for a scaling between
-   * (const scaleMin) and (const scaleMax). Updates the scaling value
+   * Method to set the scaling of a scene.  Updates the scaling value
    * accordingly and then invokes the following scaling of all items
    * on stage.
    * @param {int} scaling New scaling value (as given by zoom slider, e.g.
@@ -348,44 +347,39 @@ class Stage {
    * IDEA
    */
   setScaling(scaling, scaleCenterX, scaleCenterY) {
-    const scaleMin = 10;
-    const scaleMax = 300;
+    this.controller.clearSelection();
+    this.clearSelection();
+    let distX = 0;
+    let distY = 0;
+    this.stage.scaling = scaling;
 
-    if (scaling >= scaleMin && scaling <= scaleMax) {
-      this.controller.clearSelection();
-      this.clearSelection();
-      let distX = 0;
-      let distY = 0;
-      this.stage.scaling = scaling;
+    // zoom at screen center
+    const center = this.getCenter();
+    Scaler.zoom.screen.x = Math.floor(center.x);
+    Scaler.zoom.screen.y = Math.floor(center.y);
 
-      // zoom at screen center
-      const center = this.getCenter();
-      Scaler.zoom.screen.x = Math.floor(center.x);
-      Scaler.zoom.screen.y = Math.floor(center.y);
-
-      // overwrite center if specific zoom center is given
-      if (scaleCenterX && scaleCenterY) {
-        // Scaler.zoom.screen.x = Math.floor(scaleCenterX);
-        // Scaler.zoom.screen.y = Math.floor(scaleCenterY);
-        distX = center.x - scaleCenterX;
-        distY = center.y - scaleCenterY;
-        this.moveStage(distX, distY);
-        // distX = (distX * scaling * -1) / oldScaling;
-        // distY = (distY * scaling * -1) / oldScaling;
-      }
-
-      Scaler.zoom.world.x = Scaler.zoom.screen.x;
-      Scaler.zoom.world.y = Scaler.zoom.screen.y;
-
-      Scaler.scaling = scaling/100;
-      this._scaleObjects();
-
-      this.moveStage(-distX, -distY);
-      this.updateGrid();
-      this.updateScale();
-      this._updateMeasure();
-      this.update();
+    // overwrite center if specific zoom center is given
+    if (scaleCenterX && scaleCenterY) {
+      // Scaler.zoom.screen.x = Math.floor(scaleCenterX);
+      // Scaler.zoom.screen.y = Math.floor(scaleCenterY);
+      distX = center.x - scaleCenterX;
+      distY = center.y - scaleCenterY;
+      this.moveStage(distX, distY);
+      // distX = (distX * scaling * -1) / oldScaling;
+      // distY = (distY * scaling * -1) / oldScaling;
     }
+
+    Scaler.zoom.world.x = Scaler.zoom.screen.x;
+    Scaler.zoom.world.y = Scaler.zoom.screen.y;
+
+    Scaler.scaling = scaling/100;
+    this._scaleObjects();
+
+    this.moveStage(-distX, -distY);
+    this.updateGrid();
+    this.updateScale();
+    this._updateMeasure();
+    this.update();
   }
 
   /**
@@ -1434,7 +1428,6 @@ class Selector {
         let xLeft; let yTop; let xRight; let yBottom;
 
         if (fragment.getMaskBounds()) {
-          const mask = fragment.getMask();
           const bounds = fragment.getMaskBounds();
           xLeft = bounds.l + container.x;
           yTop = bounds.t + container.y;

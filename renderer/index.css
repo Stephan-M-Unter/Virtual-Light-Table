@@ -496,7 +496,6 @@ body {
     display: inline-block;
     text-align: center;
     vertical-align: middle;
-    opacity: 0.2;
     -webkit-transition: 0.2s;
     transition: opacity 0.2s;
 }
@@ -512,8 +511,9 @@ body {
     height: 100%;
 }
 
-#zoom_wrapper:hover {
+#zoom_wrapper:hover #zoom_slider{
     opacity: 1;
+    transition: all .2s;
 }
 
 #zoom_slider::-webkit-slider-thumb {
@@ -536,6 +536,7 @@ body {
 #zoom_slider {
     -webkit-appearance: none;
     transform: rotate(270deg);
+    opacity: 0.2;
     outline: none;
     height: 10px;
     width: 200px;
@@ -555,6 +556,13 @@ body {
     max-height: 15px;
     line-height: 36px;
     left: 10px;
+}
+
+#zoom_factor {
+    position: absolute;
+    right: 120px;
+    bottom: -70px;
+    font-weight: 500;
 }
 
 

@@ -11,6 +11,8 @@ const {Sidebar} = require('./Sidebar');
 const {Stage} = require('./Stage');
 const {AnnotationPopup} = require('./AnnotationPopup');
 const {ipcRenderer} = require('electron');
+const Dialogs = require('dialogs');
+const dialogs = new Dialogs();
 
 /**
  * TODO
@@ -284,6 +286,7 @@ class UIController {
    * Function to update the whole table with a new scaling value, i.e.
    * both the stage itself (with the fragments to rescale and move) and
    * the zoom slider which should always show the acurate scaling factor.
+   * Only allows for a scaling between (const scaleMin) and (const scaleMax).
    *
    * @param {*} scalingValue Value for new scaling ratio; this value
    * is the ratio * 100, e.g. not 1.0 but 100.
@@ -291,8 +294,18 @@ class UIController {
    * @param {*} scaleY y position of scaling center if not window center.
    */
   setScaling(scalingValue, scaleX, scaleY) {
+    const scaleMin = 10;
+    const scaleMax = 300;
+
+    if (scalingValue < scaleMin) {
+      scalingValue = scaleMin;
+    } else if (scalingValue > scaleMax) {
+      scalingValue = scaleMax;
+    }
+
     this.stage.setScaling(scalingValue, scaleX, scaleY);
     $('#zoom_slider').val(scalingValue);
+    $('#zoom_factor').text('x'+Math.round((scalingValue/100)*100)/100);
   }
 
   /**
