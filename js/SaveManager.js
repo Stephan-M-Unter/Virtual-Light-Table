@@ -26,7 +26,8 @@ class SaveManager {
      * TODO
      */
   constructor() {
-    this.defaultSaveFolder = './saves';
+    // this.defaultSaveFolder = './saves';
+    this.defaultSaveFolder = __dirname+'/saves';
     this.currentSaveFolder = this.defaultSaveFolder;
     this.filepath = null;
   }
