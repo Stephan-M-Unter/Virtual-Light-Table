@@ -134,8 +134,8 @@ class SaveManager {
   getSaveFiles(folder, callback) {
     this.currentSaveFolder = folder;
     console.log('Reading folder ' + folder + '.');
-    fs.readdir(folder, (err, files) => {
-      callback(null, files);
+    fs.readdirSync(folder, (err, files) => {
+      callback(err, files);
     });
   }
 
