@@ -17,6 +17,9 @@ const recto = {
   'rotation': 0,
   'polygon': new createjs.Shape(),
   'img': null,
+  'scaleActive': false,
+  'scaleGroup': new createjs.Container(),
+  'scalePoints': [],
 };
 
 const verso = {
@@ -32,6 +35,9 @@ const verso = {
   'rotation': 0,
   'polygon': new createjs.Shape(),
   'img': null,
+  'scaleActive': false,
+  'scaleGroup': new createjs.Container(),
+  'scalePoints': [],
 };
 
 let name;
@@ -55,10 +61,8 @@ function checkIfReady() {
     $('#left_resolution').val() != ''
   ) {
     $('#load_button').removeClass('disabled');
-    console.log("Check correct");
   } else {
     $('#load_button').addClass('disabled');
-    console.log("Check wrong");
   }
 }
 
@@ -70,10 +74,15 @@ function deactivateCanvas(wrapper) {
   // background -> grau
   wrapper.find('.canvas').css('backgroundColor', 'rgb(50,50,50)');
   // upload_button -> her
-  wrapper.find('.upload_button').css('display', 'block');
+  wrapper.find('.upload_button').removeClass('hidden');
   // button_wrapper -> weg
-  wrapper.find('.button_wrapper').css('visibility', 'hidden');
-  wrapper.find('.resolution_wrapper').css('visibility', 'hidden');
+  wrapper.find('.button_wrapper').addClass('hidden');
+  wrapper.find('.resolution_wrapper').addClass('hidden');
+
+  if (!recto.url && !verso.url) {
+    $('#mode_wrapper').addClass('hidden');
+    $('#switch_wrapper').addClass('hidden');
+  }
 }
 
 /**
@@ -84,10 +93,15 @@ function activateCanvas(wrapper) {
   // background -> white
   wrapper.find('.canvas').css('backgroundColor', 'white');
   // upload_button -> weg
-  wrapper.find('.upload_button').css('display', 'none');
+  wrapper.find('.upload_button').addClass('hidden');
   // button_wrapper -> her
-  wrapper.find('.button_wrapper').css('visibility', 'visible');
-  wrapper.find('.resolution_wrapper').css('visibility', 'visible');
+  wrapper.find('.button_wrapper').removeClass('hidden');
+  wrapper.find('.resolution_wrapper').removeClass('hidden');
+
+  // activate mode selector
+  $('#mode_wrapper').removeClass('hidden');
+  // activate middle buttons
+  $('#switch_wrapper').removeClass('hidden');
 }
 
 /**
@@ -147,12 +161,15 @@ function mirrorPolygon() {
  */
 function drawCanvas(canvas, url) {
   let stage;
+  let sideWrapper;
   let side;
   if (canvas == 'recto_canvas') {
     stage = recto.stage;
+    sideWrapper = recto;
     side = 'rt';
   } else {
     stage = verso.stage;
+    sideWrapper = verso;
     side = 'vs';
   }
   canvas = $('#'+canvas);
@@ -228,8 +245,6 @@ function drawCanvas(canvas, url) {
     shadow.graphics.endFill();
     shadow.alpha=0.7;
 
-    console.log(recto.img);
-
     // adding eventlisteners
     img.on('mousedown', (event) => {
       handleMouseDown(event);
@@ -255,12 +270,14 @@ function drawCanvas(canvas, url) {
      * @param {*} event
      */
     function handlePressMove(event) {
-      // if mode is rotate, image should be rotated, not moved
-      if (action == 'rotate') {
-        rotateImage(event, imgBack, img, side);
-      } else if (action == 'move') {
-        // if mode is move, move the image
-        moveImage(event, imgBack, img, side);
+      if (!sideWrapper.scaleActive) {
+        // if mode is rotate, image should be rotated, not moved
+        if (action == 'rotate') {
+          rotateImage(event, imgBack, img, side);
+        } else if (action == 'move') {
+          // if mode is move, move the image
+          moveImage(event, imgBack, img, side);
+        }
       }
     }
 
@@ -555,20 +572,92 @@ function drawMasks() {
 
 /**
  * TODO
+ * @param {*} inputSide
+ */
+function handleScaleButton(inputSide) {
+  let side;
+  if (inputSide == 'rt') {
+    side = recto;
+  } else {
+    side = verso;
+  }
+
+  side.scalePoints = [];
+  side.scaleGroup.removeAllChildren();
+  side.stage.update();
+  side.scaleActive = !side.scaleActive;
+}
+
+/**
+ * TODO
  * @param {*} event
  * @param {*} side
  */
 function addPolygonNode(event, side) {
-  if (mode == 'cut' && action == 'cut') {
-    let node;
-    if (side == 'rt') {
-      node = [event.stageX, event.stageY];
-    } else {
-      node = [verso.stage.canvas.width - event.stageX, event.stageY];
-    }
-    polygon.push(node);
-    drawMasks();
+  let node;
+  if (side == 'rt') {
+    node = [event.stageX, event.stageY];
+  } else {
+    node = [verso.stage.canvas.width - event.stageX, event.stageY];
   }
+  polygon.push(node);
+  drawMasks();
+}
+
+/**
+ * TODO
+ * @param {*} event
+ * @param {*} inputSide
+ */
+function addScalePoint(event, inputSide) {
+  const point = [event.stageX, event.stageY];
+  let side;
+
+  if (inputSide == "rt") {
+    side = recto;
+  } else {
+    side = verso;
+  }
+
+  side.scalePoints.push(point);
+
+  if (side.scalePoints.length == 1) {
+    console.log('Drawing first node:');
+    const point1 = side.scalePoints[0];
+    const node = new createjs.Shape();
+    node.graphics.beginFill('red').drawCircle(0, 0, 5);
+    node.x = point1[0];
+    node.y = point1[1];
+    side.scaleGroup.addChild(node);
+    side.stage.addChild(side.scaleGroup);
+    // zeichne einen punkt an der ersten stelle
+    // zeichne eine linie, die dem mauszeiger folgt
+    // zeichne ein 1cm schildchen, das immer an der linie hängt
+    
+  } else if (side.scalePoints.length == 2) {
+    console.log('Drawing second node:');
+    side.scaleActive = false;
+
+    const point1 = side.scalePoints[0];
+    const point2 = side.scalePoints[1];
+    const dx = point1[0] - point2[0];
+    const dy = point1[1] - point2[1];
+    const distance = Math.sqrt((dx*dx + dy*dy));
+    const realDistance = distance / side.img.scale;
+    console.log('distance:', nndistance);
+    console.log('realDistance:', realDistance);
+
+    const node = new createjs.Shape();
+    node.graphics.beginFill('red').drawCircle(0, 0, 5);
+    node.x = point2[0];
+    node.y = point2[1];
+    side.scaleGroup.addChild(node);
+    // zeichen einen punkt an der zweiten Stelle
+    // zeichne linie zwischen beiden punkten
+    // errechne ppi und zeige diese in input-feld an
+
+  }
+  side.stage.update();
 }
 
 /**
@@ -602,10 +691,18 @@ $(document).ready(function() {
   verso.stage = new createjs.Stage('verso_canvas');
 
   recto.stage.on('click', function(event) {
-    addPolygonNode(event, 'rt');
+    if (recto.scaleActive) {
+      addScalePoint(event, 'rt');
+    } else if (mode == 'cut' && action == 'cut') {
+      addPolygonNode(event, 'rt');
+    }
   }, true);
   verso.stage.on('click', function(event) {
-    addPolygonNode(event, 'vs');
+    if (verso.scaleActive) {
+      addScalePoint(event, 'vs');
+    } else if (mode == 'cut' && action == 'cut') {
+      addPolygonNode(event, 'vs');
+    }
   }, true);
 
   recto.crop_nw.on('pressmove', (event)=>{
@@ -642,7 +739,6 @@ $(document).ready(function() {
 
 $('.bin_button').click(function() {
   const wrapper = $(this).parent().parent();
-  deactivateCanvas(wrapper);
 
   if ($(this).attr('id') == 'left_bin_button') {
     recto.url = null;
@@ -659,6 +755,7 @@ $('.bin_button').click(function() {
     verso.rotation = 0;
     clearCanvas(verso.stage);
   }
+  deactivateCanvas(wrapper);
   checkIfReady();
 });
 
@@ -862,6 +959,14 @@ $('#cropcut_button').click(function() {
   drawMasks();
 });
 
+$('.select_button').click(function(event) {
+  $('.select_button.selected').removeClass('selected');
+  $(this).addClass('selected');
+  mode = $(this).attr('mode');
+  updateModeButtons();
+  drawMasks();
+});
+
 $('#move_button').click(function() {
   action = 'move';
   updateModeButtons();
@@ -875,6 +980,13 @@ $('#rotate_button').click(function() {
 $('#undo_button').click(function() {
   polygon.pop();
   drawMasks();
+});
+
+$('#left_scale_button').click(() => {
+  handleScaleButton('rt');
+});
+$('#right_scale_button').click(() => {
+  handleScaleButton('vs');
 });
 
 

@@ -8,6 +8,7 @@
         <script>window.$ = window.jQuery = require('../js/libs/jquery-3.4.1.min.js');</script>
     </head>
     <body>
+        
         <div id="canvas_wrapper">
             <div id="recto_canvas_wrapper">
                 <div class="canvas_label" id="recto_canvas_label">Recto</div>
@@ -20,26 +21,23 @@
                         <img src="../imgs/symbol_www.png"/>
                     </div>
                 </div>
-                <div class="button_wrapper" id="left_buttons">
-                    <div class="button scale_button inactive" id="left_scale_button">
+                <div class="button_wrapper hidden" id="left_buttons">
+                    <div class="button scale_button" id="left_scale_button">
                         <img src="../imgs/symbol_ruler.png"/>
                     </div>
                     <div class="button bin_button" id="left_bin_button">
                         <img src="../imgs/symbol_bin.png"/>
                     </div>
                 </div>
-                <div class="resolution_wrapper" id="left_resolution_wrapper">
+                <div class="resolution_wrapper hidden" id="left_resolution_wrapper">
                     <label>Resolution:</label>
                     <input type="text" class="resolution_input" id="left_resolution"/>
                     <label>ppi</label>
                 </div>
             </div>
-            <div id="switch_wrapper">
+            <div id="switch_wrapper" class="hidden">
                 <div class="button" id="switch_button">
                     <img src="../imgs/symbol_switch.png"/>
-                </div>
-                <div class="button" id="cropcut_button">
-                    <img src="../imgs/symbol_crop.png"/>
                 </div>
                 <div id="mutex_wrapper">
                     <div class="button active" id="move_button">
@@ -70,15 +68,15 @@
                         <img src="../imgs/symbol_www.png"/>
                     </div>
                 </div>
-                <div class="button_wrapper" id="right_buttons">
-                    <div class="button scale_button inactive" id="right_scale_button">
+                <div class="button_wrapper hidden" id="right_buttons">
+                    <div class="button scale_button" id="right_scale_button">
                         <img src="../imgs/symbol_ruler.png"/>
                     </div>
                     <div class="button bin_button" id="right_bin_button">
                         <img src="../imgs/symbol_bin.png"/>
                     </div>
                 </div>
-                <div class="resolution_wrapper" id="right_resolution_wrapper">
+                <div class="resolution_wrapper hidden" id="right_resolution_wrapper">
                     <label>ppi</label>
                     <input type="text" class="resolution_input" id="right_resolution"/>
                     <label>Resolution:</label>
@@ -90,6 +88,23 @@
             <div id="name_label">Fragment Name</div>
         </div>
         <div class="button disabled" id="load_button">Load</div>
+
+        <div id="mode_wrapper" class="hidden">
+            <div id="select_crop" class="button select_button no_select selected" mode="crop">
+                <img src="../imgs/symbol_crop.png">
+                <label>Crop</label>
+            </div>
+            <div id="select_cut" class="button select_button no_select" mode="cut">
+                <img src="../imgs/symbol_cut.png">
+                <label>Cut</label>
+            </div>
+            <div id="select_auto" class="button select_button no_select" mode="auto">
+                <img src="../imgs/symbol_ml.png">
+                <label>Auto</label>
+            </div>
+        </div>
+
+
         <script src="../js/libs/createjs.min.js"></script>
         <script src="../js/libs/preloadjs.min.js"></script>
         <script src="../node_modules/exif-js/exif.js"></script>
