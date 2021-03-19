@@ -49,7 +49,7 @@ function deleteSavefile() {
             'this savefile? This action is irreversible.');
       // 3. Nachricht an Server: Save löschen
     if (confirmation) {
-      ipcRenderer.send('server-delete-save', filename);
+      ipcRenderer.send('server-delete-file', filename);
     }
     // 4. aktuellen Detaileintrag löschen
     $('#thumb_reconstruction').css('display', 'none');
@@ -315,15 +315,15 @@ $('html').keyup(function(event) {
 #           SERVER/CLIENT PROTOCOL
 ###########################################*/
 
-// return-save-files
-ipcRenderer.on('return-save-files', (event, savefiles) => {
+// load-receive-saves
+ipcRenderer.on('load-receive-saves', (event, savefiles) => {
   saves = savefiles;
   clearSearch();
   updateSaveList();
 });
 
-// return-saves-folder
-ipcRenderer.on('return-saves-folder', (event, path) => {
+// load-receive-folder
+ipcRenderer.on('load-receive-folder', (event, path) => {
   $('#folder').val(path);
   ipcRenderer.send('server-list-savefiles', path);
 });

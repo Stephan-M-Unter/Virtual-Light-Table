@@ -103,7 +103,7 @@ class Sidebar {
       controller.centerToFragment(id);
     }, false);
     detailsButton.addEventListener('click', function(event) {
-      controller.sendToServer('server-open-detail-window', id);
+      controller.sendToServer('server-open-details', id);
     }, false);
   }
 

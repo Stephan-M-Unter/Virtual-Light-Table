@@ -766,7 +766,7 @@ $('.local_upload_button').click(function() {
     lastUpload = 'verso';
   }
 
-  ipcRenderer.send('upload-new-image');
+  ipcRenderer.send('server-upload-image');
 });
 
 $('#right_resolution').on('keyup', checkIfReady);
@@ -1002,7 +1002,7 @@ $('#right_scale_button').click(() => {
     }
 });*/
 
-ipcRenderer.on('new-upload-image', (event, filepath) => {
+ipcRenderer.on('upload-receive-image', (event, filepath) => {
   name = filepath.split('\\').pop().split('/').pop();
   name = name.replace(/\.[^/.]+$/, '');
 

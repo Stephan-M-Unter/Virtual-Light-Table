@@ -67,9 +67,9 @@ class UIController {
    */
   loadTable() {
     if (!this.hasUnsaved) {
-      this.sendToServer('server-open-load-window');
+      this.sendToServer('server-open-load');
     } else if (this.confirmClearTable()) {
-      this.sendToServer('server-open-load-window');
+      this.sendToServer('server-open-load');
     }
   }
 

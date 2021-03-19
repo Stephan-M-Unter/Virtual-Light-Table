@@ -125,14 +125,14 @@ ipcMain.on('server-undo-step', (event) => {
   if (undo) {
     const data = canvasManager.getAll();
     data['undo'] = true;
-    sendMessage(event.sender, 'client-load-from-model', data);
+    sendMessage(event.sender, 'client-load-model', data);
   } else {
     const feedback = {
       title: 'Undo Impossible',
       desc: 'There are no more undo steps possible.',
       color: 'rgba(255,0,0,0.6)',
     };
-    sendMessage(event.sender, 'client-display-feedback', feedback);
+    sendMessage(event.sender, 'client-show-feedback', feedback);
   }
 });
 
@@ -146,14 +146,14 @@ ipcMain.on('server-redo-step', (event) => {
   if (redo) {
     const data = canvasManager.getAll();
     data['undo'] = true;
-    sendMessage(event.sender, 'client-load-from-model', data);
+    sendMessage(event.sender, 'client-load-model', data);
   } else {
     const feedback = {
       title: 'Redo Impossible',
       desc: 'There are no more redo steps available.',
       color: 'rgba(255,0,0,0.6)',
     };
-    sendMessage(event.sender, 'client-display-feedback', feedback);
+    sendMessage(event.sender, 'client-show-feedback', feedback);
   }
 });
 
@@ -164,14 +164,14 @@ ipcMain.on('server-clear-table', (event) => {
     'Receiving code [server-clear-table] from client');
   }
   canvasManager.clearAll();
-  sendMessage(event.sender, 'client-load-from-model', canvasManager.getAll());
+  sendMessage(event.sender, 'client-load-model', canvasManager.getAll());
 });
 
-// server-open-detail-window
-ipcMain.on('server-open-detail-window', (event, id) => {
+// server-open-details
+ipcMain.on('server-open-details', (event, id) => {
   if (development) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-open-detail-window] from' +
+    'Receiving code [server-open-details] from' +
     'client for fragment with id ' + id);
   }
   detailWindow = new Window({
@@ -196,13 +196,13 @@ ipcMain.on('server-load-file', (event, file) => {
   canvasManager.loadFile(file);
   const fileData = canvasManager.getAll();
   fileData['loading'] = true;
-  sendMessage(mainWindow, 'client-load-from-model', fileData);
+  sendMessage(mainWindow, 'client-load-model', fileData);
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFile(),
     color: 'rgba(0,255,0,0.6)',
   };
-  sendMessage(mainWindow, 'client-display-feedback', feedback);
+  sendMessage(mainWindow, 'client-show-feedback', feedback);
 });
 
 // server-save-file
@@ -220,7 +220,7 @@ ipcMain.on('server-save-file', (event, data) => {
     color: 'rgba(0,255,0,0.6)',
   };
   if (filepath) {
-    sendMessage(mainWindow, 'client-display-feedback', response);
+    sendMessage(mainWindow, 'client-show-feedback', response);
   }
 });
 
@@ -240,7 +240,7 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
     filesNames.forEach((name) => {
       savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
     });
-    event.sender.send('return-save-files', savefiles);
+    event.sender.send('load-receive-saves', savefiles);
   });
 });
 
@@ -252,15 +252,15 @@ ipcMain.on('server-get-saves-folder', (event) => {
   }
   const path = saveManager.getSaveFolder();
   if (path) {
-    event.sender.send('return-saves-folder', path[0]);
+    event.sender.send('load-receive-folder', path[0]);
   }
 });
 
-// server-open-load-window
-ipcMain.on('server-open-load-window', (event) => {
+// server-open-load
+ipcMain.on('server-open-load', (event) => {
   if (development) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-open-load-window] from client');
+    'Receiving code [server-open-load] from client');
   }
 
   if (loadWindow != null) {
@@ -280,10 +280,10 @@ ipcMain.on('server-open-load-window', (event) => {
   }
 });
 
-ipcMain.on('server-delete-save', (event, filename) => {
+ipcMain.on('server-delete-file', (event, filename) => {
   if (development) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-delete-save] from loadWindow');
+    'Receiving code [server-delete-file] from loadWindow');
   }
   const deleted = saveManager.deleteFile(filename);
   if (deleted) {
@@ -296,7 +296,7 @@ ipcMain.on('server-delete-save', (event, filename) => {
       filesNames.forEach((name) => {
         savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
       });
-      event.sender.send('return-save-files', savefiles);
+      event.sender.send('load-receive-saves', savefiles);
     });
   }
 });
@@ -317,10 +317,10 @@ ipcMain.on('server-remove-annotation', (event, id) => {
   canvasManager.removeAnnotation(id);
 });
 
-ipcMain.on('server-start-upload', (event) => {
+ipcMain.on('server-open-upload', (event) => {
   if (development) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-start-upload] from client');
+    'Receiving code [server-open-upload] from client');
   }
 
   if (!localUploadWindow) {
@@ -345,17 +345,17 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
   localUploadWindow.close();
   localUploadWindow = null;
-  mainWindow.send('client-local-upload', data);
+  mainWindow.send('client-add-upload', data);
 });
 
-ipcMain.on('upload-new-image', (event) => {
+ipcMain.on('server-upload-image', (event) => {
   if (development) {
     console.log(timestamp() + ' ' +
-    'Receiving code [upload-new-image] from client');
+    'Receiving code [server-upload-image] from client');
   }
   const filepath = imageManager.selectImageFromFilesystem();
 
   if (filepath) {
-    sendMessage(localUploadWindow, 'new-upload-image', filepath);
+    sendMessage(localUploadWindow, 'upload-receive-image', filepath);
   }
 });

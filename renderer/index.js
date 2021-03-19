@@ -298,7 +298,7 @@ $(document).ready(function() {
 
   // Upload Local Image Button
   $('#upload_local').click(function() {
-    uic.sendToServer('server-start-upload');
+    uic.sendToServer('server-open-upload');
   });
 
   /**
@@ -435,10 +435,10 @@ $(document).ready(function() {
         #           SERVER/CLIENT COMMUNICATION
         ###########################################*/
 
-  // Client-Load-From-Model
+  // client-load-model
   // Receiving stage and fragment configuration from server.
-  ipcRenderer.on('client-load-from-model', (event, data) => {
-    console.log('Received client-load-from-model');
+  ipcRenderer.on('client-load-model', (event, data) => {
+    console.log('Received client-load-model');
     if ('loading' in data) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
@@ -448,13 +448,13 @@ $(document).ready(function() {
     uic.loadScene(data);
   });
 
-  ipcRenderer.on('client-local-upload', (event, data) => {
-    console.log('Received client-local-upload');
+  ipcRenderer.on('client-add-upload', (event, data) => {
+    console.log('Received client-add-upload');
     uic.addFragment(data);
   });
 
-  ipcRenderer.on('client-display-feedback', (event, data) => {
-    console.log('Received client-display-feedback');
+  ipcRenderer.on('client-show-feedback', (event, data) => {
+    console.log('Received client-show-feedback');
     const title = data.title || '';
     const desc = data.desc || '';
     const duration = data.duration || '';
