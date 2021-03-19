@@ -278,7 +278,10 @@ class Fragment {
     }
 
     this.translateRotation();
-    this.controller.updateFragmentList();
+
+    if (!inverted) {
+      this.controller.updateFragmentList();
+    }
 
     // Möglichkeit 2: Bild existiert
     // dann einfach bilder austauschen

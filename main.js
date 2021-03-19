@@ -194,7 +194,9 @@ ipcMain.on('server-load-file', (event, file) => {
   loadWindow.close();
   canvasManager.clearAll();
   canvasManager.loadFile(file);
-  sendMessage(mainWindow, 'client-load-from-model', canvasManager.getAll());
+  const fileData = canvasManager.getAll();
+  fileData['loading'] = true;
+  sendMessage(mainWindow, 'client-load-from-model', fileData);
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFile(),

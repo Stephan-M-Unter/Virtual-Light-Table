@@ -439,6 +439,12 @@ $(document).ready(function() {
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-from-model', (event, data) => {
     console.log('Received client-load-from-model');
+    if ('loading' in data) {
+      $('.arrow.down').removeClass('down');
+      $('.expanded').removeClass('expanded');
+      $('#fragment_list').find('.arrow').addClass('down');
+      $('#fragment_list').addClass('expanded');
+    }
     uic.loadScene(data);
   });
 
