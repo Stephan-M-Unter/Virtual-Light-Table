@@ -135,7 +135,6 @@ class SaveManager {
   getSaveFiles(folder, callback) {
     this.currentSaveFolder = folder;
     console.log('Reading folder ' + folder + '.');
-    console.log('Process Folder: ' + process.env['INIT_CWD']);
     fs.readdir(folder, (err, files) => {
       callback(err, files);
     });

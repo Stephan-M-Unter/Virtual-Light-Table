@@ -14,6 +14,7 @@
 
 // Loading Requirements
 const {app, ipcMain} = require('electron');
+const path = require('path');
 
 const Window = require('./js/Window');
 const CanvasManager = require('./js/CanvasManager');
@@ -22,6 +23,7 @@ const SaveManager = require('./js/SaveManager');
 
 // Settings
 const development = true;
+const appPath = app.getAppPath();
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
@@ -230,6 +232,14 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
     console.log(timestamp() + ' ' +
     'Received code [server-list-savefiles] for folder '+folder);
   }
+
+  // if the requested folder uses relative pathing, indicated either by
+  // "./" or "../", combine it with the absolute appPath, that is the folder the
+  // application runs from
+  if (folder.startsWith('.')) {
+    folder = path.join(appPath, folder);
+  }
+
   saveManager.getSaveFiles(folder, function(err, content) {
     const filesNames = content.filter(function(item) {
       return item.endsWith('.vlt');
