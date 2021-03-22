@@ -223,6 +223,7 @@ canvas {
 }
 
 .hidden {
+    display: none;
     visibility: hidden;
     opacity: 0;
     transform: all .2s;

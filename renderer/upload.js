@@ -691,6 +691,7 @@ $(document).ready(function() {
   verso.stage = new createjs.Stage('verso_canvas');
 
   recto.stage.on('click', function(event) {
+    console.log(event.target);
     if (recto.scaleActive) {
       addScalePoint(event, 'rt');
     } else if (mode == 'cut' && action == 'cut') {
