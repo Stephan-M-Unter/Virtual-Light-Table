@@ -4,7 +4,7 @@ const {ipcRenderer} = require('electron');
 
 let saves;
 let currentSave;
-const defaultFolder = '.\\saves\\';
+const defaultFolder = './saves/';
 
 /**
  * TODO
