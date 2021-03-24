@@ -487,6 +487,9 @@ body {
     left: 0;
 }
 
+#lighttable.measure {
+    cursor: url('../imgs/symbol_measure_cursor.png'), auto;
+}
 
 /* Zoom Slider */
 

@@ -636,6 +636,7 @@ class Stage {
    */
   startMeasurement(id) {
     this.measureMode = true;
+    $('#lighttable').addClass('measure');
 
     if (id in this.measurements) {
       // redo of existing measurement
@@ -658,6 +659,7 @@ class Stage {
    * TODO
    */
   endMeasurement() {
+    $('#lighttable').removeClass('measure');
     this.measureMode = false;
     this.mColor = null;
     this.activeMeasurement = null;
