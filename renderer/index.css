@@ -471,7 +471,9 @@ body {
     width: 50px;
 }
 
-.button_active {
+.button_active,
+.wide_button.button_active
+{
     background-color: var(--cb_blue);
     box-shadow: inset 1px 1px 5px black;
 }
@@ -1024,3 +1026,56 @@ body {
 /* .small .wide_button .button_label {
   display: none;
 } */
+
+.measurement {
+    display: flex;
+    width: 90%;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.measurement:hover {
+    background-color: black;
+}
+
+.measurement.active {
+    background-color: black;
+}
+
+.small_button {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    background-color: grey;
+    padding: 3px;
+}
+
+.small_button img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.measure-line {
+    flex: 1 0 auto;
+    height: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
+    position: relative;
+    top: 14px;
+    min-width: 20px;
+}
+
+.measure-distance {
+    flex: 0 0 50px;
+    margin: 0px 5px;
+    line-height: 30px;
+    white-space: nowrap;
+}
+
+#clear-measures {
+    background-color: lightsalmon;
+    width: 200px;
+    max-width: 100%;
+    margin: 10px auto;
+    color: black;
+}

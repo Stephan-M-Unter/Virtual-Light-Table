@@ -201,12 +201,12 @@ $(document).ready(function() {
     toggleLight();
   });
 
-  $('#tool_measure').on('click', function(event) {
+  $('#new_measure').on('click', function(event) {
     event.stopPropagation();
-    uic.startMeasure();
+    uic.addMeasurement();
   });
-  $('#tool_clear_measure').on('click', function() {
-    uic.endMeasure();
+  $('#clear-measures').on('click', function() {
+    uic.clearMeasurements();
   });
 
   $('#grid_box').on('change', function() {

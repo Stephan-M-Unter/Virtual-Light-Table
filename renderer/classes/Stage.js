@@ -1,5 +1,6 @@
 // const {TouchBarScrubber, TouchBarSlider} = require('electron');
 const {Fragment} = require('./Fragment');
+const {Measurement} = require('./Measurement');
 const {Scaler} = require('./Scaler');
 
 /**
@@ -47,11 +48,11 @@ class Stage {
     this.stage.addChild(this.background);
 
     this.measureMode = false;
-    this.measurePoints = [];
-    this.measureGroup = new createjs.Container();
-    this.measureLine = new createjs.Shape();
-    this.measureText = new createjs.Text();
-    this.stage.addChild(this.measureGroup);
+    this.activeMeasurement = null;
+    this.mColor = null;
+    this.measurements = {};
+    this.measurementsContainer = new createjs.Container();
+    this.stage.addChild(this.measurementsContainer);
 
     window.addEventListener('click', (event) => {
       if (this.measureMode) {
@@ -229,7 +230,7 @@ class Stage {
   loadScene(data) {
     // IDEA Ask users if they want to save yet unsaved changes?
     this._clearTable();
-    this.clearMeasure();
+    this.clearMeasurements();
 
     if (data && data.fragments) {
       this._loadFragments(data.fragments);
@@ -378,7 +379,7 @@ class Stage {
     this.moveStage(-distX, -distY);
     this.updateGrid();
     this.updateScale();
-    this._updateMeasure();
+    this.updateMeasurements();
     this.update();
   }
 
@@ -404,8 +405,8 @@ class Stage {
    * show potential changes onscreen.
    */
   update() {
-    this.stage.removeChild(this.measureGroup);
-    this.stage.addChild(this.measureGroup);
+    this.stage.removeChild(this.measurementsContainer);
+    this.stage.addChild(this.measurementsContainer);
     this.stage.update();
   }
 
@@ -616,186 +617,70 @@ class Stage {
     this.fragmentList = {};
   }
 
+  /* MEASUREMENT */
+
+  /**
+   * This method removes all measurements and updates the stage.
+   */
+  clearMeasurements() {
+    console.log('Stage: clearMeasurements');
+    this.endMeasurement();
+    this.measurements = {};
+    this.measurementsContainer.removeAllChildren();
+    this.update();
+  }
+
   /**
    * TODO
+   * @param {*} id
    */
-  startMeasure() {
+  startMeasurement(id) {
     this.measureMode = true;
-    this.controller.clearSelection();
-    this.clearMeasure();
-  }
 
-  /**
-   * TODO
-   * @param {*} event
-   */
-  measure(event) {
-    let baseX = event.pageX;
-    let baseY = event.pageY;
-    if (this.stage.scaling != 100) {
-      baseX = event.pageX / this.stage.scaling/100;
-      baseY = event.pageY / this.stage.scaling/100;
-    }
-    this.measurePoints.push({
-      x: event.pageX,
-      y: event.pageY,
-      baseX: baseX,
-      baseY: baseY,
-    });
-    this._updateMeasure();
-  }
-
-  /**
-   * TODO
-   */
-  _updateMeasure() {
-    this.measureGroup.removeAllChildren();
-    for (const idx in this.measurePoints) {
-      if (Object.prototype.hasOwnProperty.call(this.measurePoints, idx)) {
-        const node = new createjs.Shape();
-        node.graphics.beginFill('red').drawCircle(0, 0, 5);
-        node.x = this.measurePoints[idx].x;
-        node.y = this.measurePoints[idx].y;
-        node.index = idx;
-        node.on('pressmove', (event) => {
-          node.x = event.stageX;
-          node.y = event.stageY;
-          this.measurePoints[node.index] = {
-            x: event.stageX,
-            y: event.stageY,
-            baseX: node.baseX,
-            baseY: node.baseY,
-          };
-          this.drawMeasureLine();
-          this.update();
-        });
-        node.on('mouseover', () => {
-          node.graphics.clear()
-              .beginFill('#f5842c').drawCircle(0, 0, 5);
-          this.update();
-        });
-        node.on('mouseout', () => {
-          node.graphics.clear()
-              .beginFill('red').drawCircle(0, 0, 5);
-          this.update();
-        });
-        node.on('mousedown', () => {
-          node.graphics.clear()
-              .beginFill('#1C5A9C').drawCircle(0, 0, 5);
-          this.update();
-        });
-        node.on('pressup', () => {
-          node.graphics.clear()
-              .beginFill('red').drawCircle(0, 0, 5);
-          this.update();
-        });
-        this.measureGroup.addChild(node);
-      }
-    }
-
-    if (this.measurePoints.length == 2) {
-      this.measureMode = false;
-      this.drawMeasureLine();
+    if (id in this.measurements) {
+      // redo of existing measurement
+      const measurement = this.measurements[id];
+      measurement.clearPoints();
+      this.mColor = measurement.getColor();
+      this.activeMeasurement = measurement;
+    } else {
+      // create new measurement
+      this.mColor = this.getRandomColor();
+      const measurement = new Measurement(this, id, this.mColor);
+      this.measurements[id] = measurement;
+      this.measurementsContainer.addChild(measurement.getMeasurement());
+      this.activeMeasurement = measurement;
     }
     this.update();
   }
 
   /**
    * TODO
-   * @param {*} point1
-   * @param {*} point2
-   * @return {*}
    */
-  measureDistance(point1, point2) {
-    const dx = point1[0] - point2[0];
-    const dy = point1[1] - point2[1];
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const CmInPx = 38 * this.stage.scaling / 100;
-    const distInCm = Math.round(dist/CmInPx*100)/100;
-    return distInCm;
-  }
-
-  /**
-   * TODO
-   */
-  drawMeasureLine() {
-    this.measureGroup.removeChild(this.measureLine);
-    this.measureGroup.removeChild(this.measureText);
-
-    const x1 = this.measurePoints[0].x;
-    const y1 = this.measurePoints[0].y;
-    const x2 = this.measurePoints[1].x;
-    const y2 = this.measurePoints[1].y;
-
-    this.measureLine = new createjs.Shape();
-    this.measureLine.graphics.setStrokeStyle(2).beginStroke('rgba(255,0,0,1');
-    this.measureLine.graphics.moveTo(x1, y1);
-    this.measureLine.graphics.lineTo(x2, y2);
-    this.measureLine.graphics.endStroke();
-
-    this.measureLine.on('mousedown', (event) => {
-      this.measureGroup.pressX = event.stageX;
-      this.measureGroup.pressY = event.stageY;
-    });
-    this.measureLine.on('mouseover', () => {
-      this.measureLine.graphics.clear()
-          .setStrokeStyle(2).beginStroke('#f5842c')
-          .moveTo(x1, y1).lineTo(x2, y2).endStroke();
-      this.update();
-    });
-    this.measureLine.on('mouseout', () => {
-      this.measureLine.graphics.clear()
-          .setStrokeStyle(2).beginStroke('red')
-          .moveTo(x1, y1).lineTo(x2, y2).endStroke();
-      this.update();
-    });
-    this.measureLine.on('pressmove', (event) => {
-      const deltaX = event.stageX - this.measureGroup.pressX;
-      const deltaY = event.stageY - this.measureGroup.pressY;
-      this.measureGroup.pressX = event.stageX;
-      this.measureGroup.pressY = event.stageY;
-      for (const idx in this.measurePoints) {
-        if (Object.prototype.hasOwnProperty.call(this.measurePoints, idx)) {
-          const node = this.measurePoints[idx];
-          this.measurePoints[idx] = {
-            x: node.x + deltaX,
-            y: node.y + deltaY,
-            baseX: node.baseX + deltaX,
-            baseY: node.baseY + deltaY,
-          };
-          this._updateMeasure();
-        }
-      }
-    });
-    this.measureLine.on('pressup', () => {
-      this.measureGroup.pressX = null;
-      this.measureGroup.pressY = null;
-    });
-
-    this.measureGroup.addChildAt(this.measureLine, 0);
-
-    const distance = this.measureDistance([x1, y1], [x2, y2]);
-    this.measureText = new createjs.Text(distance + ' cm');
-    this.measureText.scale = 1.7;
-    const textBounds = this.measureText.getBounds();
-    this.measureText.x = (x1+(x2-x1)/2)-
-        textBounds.width*this.measureText.scale/3;
-    this.measureText.y = (y1+(y2-y1)/2)+20;
-    this.measureGroup.addChild(this.measureText);
-  }
-
-  /**
-   * TODO
-   */
-  clearMeasure() {
-    this.measurePoints = [];
-    this.measureGroup.removeAllChildren();
+  endMeasurement() {
+    this.measureMode = false;
+    this.mColor = null;
+    this.activeMeasurement = null;
+    this.updateMeasurements();
     this.update();
   }
 
   /**
    * TODO
-   * @return {*}
+   */
+  updateMeasurements() {
+    this.controller.updateMeasurements(this.measurements);
+    for (const id in this.measurements) {
+      if (Object.prototype.hasOwnProperty.call(this.measurements, id)) {
+        const measurement = this.measurements[id];
+        measurement.drawMeasurement();
+      }
+    }
+  }
+
+  /**
+   * TODO
+   * @return {boolean}
    */
   hasMeasureMode() {
     return this.measureMode;
@@ -803,9 +688,70 @@ class Stage {
 
   /**
    * TODO
+   * @param {*} event
    */
-  endMeasure() {
-    this.measureMode = false;
+  measure(event) {
+    const point = [event.pageX, event.pageY];
+    this.activeMeasurement.setPoint(point);
+
+    if (this.activeMeasurement.getP2()) {
+      const id = this.activeMeasurement.getID();
+      const scalingFactor = this.stage.scaling / 100;
+      const distance = this.activeMeasurement.getDistanceInCm(scalingFactor);
+      this.activeMeasurement.drawMeasurement(scalingFactor);
+      this.endMeasurement();
+    }
+  }
+
+  /**
+   * This method checks for the first empty measurement ID
+   * available in the set of measurements.
+   * @return {int}
+   */
+  getNewMeasurementID() {
+    let emptyIdFound = false;
+    let id = 0;
+    while (!emptyIdFound) {
+      if (id in this.measurements) {
+        id = id + 1;
+      } else {
+        emptyIdFound = true;
+      }
+    }
+    return id;
+  }
+
+  /**
+   * TODO
+   * @return {*} color
+   */
+  getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   * @return {*}
+   */
+  getMeasureColor(id) {
+    return this.measurements[id].getColor();
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  deleteMeasurement(id) {
+    const measurement = this.measurements[id].getMeasurement();
+    this.measurementsContainer.removeChild(measurement);
+    delete this.measurements[id];
+    this.update();
   }
 
   /**

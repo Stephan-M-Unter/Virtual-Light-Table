@@ -10,7 +10,7 @@
 const {Sidebar} = require('./Sidebar');
 const {Stage} = require('./Stage');
 const {AnnotationPopup} = require('./AnnotationPopup');
-const {ipcRenderer} = require('electron');
+const {ipcRenderer, TouchBarSlider} = require('electron');
 const Dialogs = require('dialogs');
 const dialogs = new Dialogs();
 
@@ -87,11 +87,11 @@ class UIController {
    */
   clearTable() {
     if (!this.hasUnsaved) {
-      this.endMeasure();
+      this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
     } else if (this.confirmClearTable()) {
-      this.endMeasure();
+      this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
     }
@@ -418,24 +418,55 @@ class UIController {
   /**
    * TODO
    */
-  startMeasure() {
-    if (this.stage.hasMeasureMode()) {
-      // deactivate measure mode
-      this.stage.clearMeasure();
-    } else {
-      // activate measure mode
-      this.stage.startMeasure();
+  addMeasurement() {
+    console.log('Controller: addMeasurement');
+    // only add new measurement if not already in measure mode
+    if (!this.stage.hasMeasureMode()) {
+      // STAGE
+      const newId = this.stage.getNewMeasurementID();
+      this.stage.startMeasurement(newId);
+      // SIDEBAR
+      const color = this.stage.getMeasureColor(newId);
+      this.sidebar.addMeasurement(newId, color);
     }
-    $('#tool_clear_measure').removeClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  deleteMeasurement(id) {
+    // STAGE
+    this.stage.deleteMeasurement(id);
+    // SIDEBAR
+    this.sidebar.deleteMeasurement(id);
   }
 
   /**
    * TODO
    */
-  endMeasure() {
-    this.stage.clearMeasure();
-    this.stage.endMeasure();
-    $('#tool_clear_measure').addClass('hidden');
+  clearMeasurements() {
+    this.stage.clearMeasurements();
+    // SIDEBAR
+    this.sidebar.clearMeasurements();
+  }
+
+  /**
+   * TODO
+   * @param {int} id
+   */
+  redoMeasurement(id) {
+    // STAGE
+    this.stage.startMeasurement(id);
+    // SIDEBAR
+  }
+
+  /**
+   * TODO
+   * @param {*} measurements
+   */
+  updateMeasurements(measurements) {
+    this.sidebar.updateMeasurements(measurements);
   }
 
   /**

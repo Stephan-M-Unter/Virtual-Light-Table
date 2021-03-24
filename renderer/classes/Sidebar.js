@@ -222,6 +222,84 @@ class Sidebar {
       $('#redo').addClass('disabled');
     }
   }
+
+  /**
+   * TODO
+   * @param {*} id
+   * @param {*} color
+   */
+  addMeasurement(id, color) {
+    const newMeasure = $('#new_measure');
+
+    $('#clear-measures').removeClass('hidden');
+
+    const measurement = $('<div>',
+        {id: 'measurement-'+id, class: 'measurement active'});
+    const line = $('<div>', {class: 'measure-line'});
+    line.css('background', color);
+
+    const distance = $('<div>', {class: 'measure-distance'});
+    distance.text('? cm');
+
+    const del = $('<div>', {class: 'delete small_button no_select'});
+    const delImg = $('<img>',
+        {src: '../imgs/symbol_bin.png'});
+
+    del.click((event) => {
+      const id = $(event.target).parent().attr('id').slice(12);
+      this.controller.deleteMeasurement(id);
+    });
+
+    delImg.click((event) => {
+      const id = $(event.target).parent().parent().attr('id').slice(12);
+      this.controller.deleteMeasurement(id);
+    });
+
+    measurement.append(del);
+    measurement.append(line);
+    measurement.append(distance);
+    del.append(delImg);
+    newMeasure.before(measurement);
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  deleteMeasurement(id) {
+    const measurement = $('#measurement-'+id);
+    measurement.remove();
+    if ($('.measurement').length == 0) {
+      $('#clear-measures').addClass('hidden');
+    }
+  }
+
+  /**
+   * TODO
+   */
+  clearMeasurements() {
+    $.each($('.measurement'), (index, element) => {
+      element.remove();
+    });
+    $('#clear-measures').addClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} measurements
+   */
+  updateMeasurements(measurements) {
+    for (const id in measurements) {
+      if (Object.prototype.hasOwnProperty.call(measurements, id)) {
+        const measurement = measurements[id];
+        const distance = measurement.getDistanceInCm();
+        const wrapper = $('#measurement-'+id);
+        wrapper.removeClass('active');
+        const distanceText = wrapper.find('.measure-distance');
+        distanceText.text(distance + ' cm');
+      }
+    }
+  }
 }
 
 module.exports.Sidebar = Sidebar;
