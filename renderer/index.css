@@ -927,13 +927,17 @@ body {
 }
 
 .wide_button:hover,
-.narrow_button:hover
+.narrow_button:hover,
+.small_button.hover
 {
     background-color: white;
     color: black;
 }
 
-.wide_button:active {
+.wide_button:active,
+.small_button:active,
+.narrow_button:active
+{
     background-color: var(--cb_blue);
 }
 

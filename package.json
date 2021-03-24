@@ -4,7 +4,7 @@
   "description": "Virtual Light Table (VLT)",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . > vlt.log 2>&1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Stephan M. Unter",

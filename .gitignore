@@ -3,3 +3,4 @@ tf_models
 *.ipynb
 *.py
 desktop.ini
+vlt.log
