@@ -419,7 +419,6 @@ class UIController {
    * TODO
    */
   addMeasurement() {
-    console.log('Controller: addMeasurement');
     // only add new measurement if not already in measure mode
     if (!this.stage.hasMeasureMode()) {
       // STAGE

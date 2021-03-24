@@ -623,7 +623,6 @@ class Stage {
    * This method removes all measurements and updates the stage.
    */
   clearMeasurements() {
-    console.log('Stage: clearMeasurements');
     this.endMeasurement();
     this.measurements = {};
     this.measurementsContainer.removeAllChildren();
