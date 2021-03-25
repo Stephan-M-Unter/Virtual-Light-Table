@@ -5,6 +5,7 @@ const Dialogs = require('dialogs');
 const dialogs = new Dialogs();
 
 const recto = {
+  'name': 'recto',
   'stage': null,
   'cropbox': new createjs.Shape(),
   'crop_nw': new createjs.Shape(),
@@ -20,9 +21,11 @@ const recto = {
   'scaleActive': false,
   'scaleGroup': new createjs.Container(),
   'scalePoints': [],
+  'ppi_field': $('#left_resolution'),
 };
 
 const verso = {
+  'name': 'verso',
   'stage': null,
   'cropbox': new createjs.Shape(),
   'crop_nw': new createjs.Shape(),
@@ -38,6 +41,7 @@ const verso = {
   'scaleActive': false,
   'scaleGroup': new createjs.Container(),
   'scalePoints': [],
+  'ppi_field': $('#right_resolution'),
 };
 
 let name;
@@ -74,7 +78,7 @@ function deactivateCanvas(wrapper) {
   // background -> grau
   wrapper.find('.canvas').css('backgroundColor', 'rgb(50,50,50)');
   // upload_button -> her
-  wrapper.find('.upload_button').removeClass('hidden');
+  wrapper.find('.upload_button').removeClass('unrendered');
   // button_wrapper -> weg
   wrapper.find('.button_wrapper').addClass('hidden');
   wrapper.find('.resolution_wrapper').addClass('hidden');
@@ -82,6 +86,8 @@ function deactivateCanvas(wrapper) {
   if (!recto.url && !verso.url) {
     $('#mode_wrapper').addClass('hidden');
     $('#switch_wrapper').addClass('hidden');
+    clearPolygon();
+    resetCropbox();
   }
 }
 
@@ -93,7 +99,7 @@ function activateCanvas(wrapper) {
   // background -> white
   wrapper.find('.canvas').css('backgroundColor', 'white');
   // upload_button -> weg
-  wrapper.find('.upload_button').addClass('hidden');
+  wrapper.find('.upload_button').addClass('unrendered');
   // button_wrapper -> her
   wrapper.find('.button_wrapper').removeClass('hidden');
   wrapper.find('.resolution_wrapper').removeClass('hidden');
@@ -137,6 +143,8 @@ function draw() {
   if (recto.url) drawCanvas('recto_canvas', recto.url);
   if (verso.url) drawCanvas('verso_canvas', verso.url);
   drawMasks();
+  drawScale(recto);
+  drawScale(verso);
 }
 
 /**
@@ -339,6 +347,13 @@ function readExifPPI(image, side) {
  * @param {*} side
  */
 function drawPolygon(side) {
+  let sideObject = recto;
+  if (side == 'vs') {
+    sideObject = verso;
+  }
+  if (!sideObject.url) {
+    return;
+  }
   if (polygon.length == 0) return;
 
   if (side == 'rt') {
@@ -613,7 +628,7 @@ function addScalePoint(event, inputSide) {
   const point = [event.stageX, event.stageY];
   let side;
 
-  if (inputSide == "rt") {
+  if (inputSide == 'rt') {
     side = recto;
   } else {
     side = verso;
@@ -622,41 +637,104 @@ function addScalePoint(event, inputSide) {
   side.scalePoints.push(point);
 
   if (side.scalePoints.length == 1) {
-    console.log('Drawing first node:');
     const point1 = side.scalePoints[0];
     const node = new createjs.Shape();
-    node.graphics.beginFill('red').drawCircle(0, 0, 5);
+    node.graphics.beginFill('blue').drawCircle(0, 0, 5);
     node.x = point1[0];
     node.y = point1[1];
     side.scaleGroup.addChild(node);
     side.stage.addChild(side.scaleGroup);
-    // zeichne einen punkt an der ersten stelle
     // zeichne eine linie, die dem mauszeiger folgt
     // zeichne ein 1cm schildchen, das immer an der linie hängt
-    
+    side.stage.update();
   } else if (side.scalePoints.length == 2) {
-    console.log('Drawing second node:');
     side.scaleActive = false;
-
-    const point1 = side.scalePoints[0];
-    const point2 = side.scalePoints[1];
-    const dx = point1[0] - point2[0];
-    const dy = point1[1] - point2[1];
-    const distance = Math.sqrt((dx*dx + dy*dy));
-    const realDistance = distance / side.img.scale;
-    console.log('distance:', nndistance);
-    console.log('realDistance:', realDistance);
-
-    const node = new createjs.Shape();
-    node.graphics.beginFill('red').drawCircle(0, 0, 5);
-    node.x = point2[0];
-    node.y = point2[1];
-    side.scaleGroup.addChild(node);
-    // zeichen einen punkt an der zweiten Stelle
-    // zeichne linie zwischen beiden punkten
-    // errechne ppi und zeige diese in input-feld an
-
+    drawScale(side);
   }
+}
+
+/**
+ * TODO
+ * @param {*} side
+ */
+function drawScale(side) {
+  console.log(`Side ${side.name}, drawScale`);
+  console.log(`${side.name}, ${side.scalePoints}`);
+  
+  side.scaleGroup.removeAllChildren();
+  
+  if (side.scalePoints.length == 0) {
+    return;
+  }
+
+  const p1 = side.scalePoints[0];
+
+  const sPoint1 = new createjs.Shape();
+  sPoint1.graphics.beginFill('blue').drawCircle(0, 0, 5);
+  sPoint1.x = p1[0];
+  sPoint1.y = p1[1];
+  side.scaleGroup.addChild(sPoint1);
+
+  sPoint1.on('pressmove', (event) => {
+    const point = [event.stageX, event.stageY];
+    side.scalePoints[0] = point;
+    drawScale(side);
+  });
+
+  if (side.scalePoints.length == 1) {
+    side.stage.update();
+    return;
+  }
+
+  const p2 = side.scalePoints[1];
+
+  const sPoint2 = new createjs.Shape();
+  sPoint2.graphics.beginFill('blue').drawCircle(0, 0, 5);
+  sPoint2.x = p2[0];
+  sPoint2.y = p2[1];
+  side.scaleGroup.addChild(sPoint2);
+
+  sPoint2.on('pressmove', (event) => {
+    const point = [event.stageX, event.stageY];
+    side.scalePoints[1] = point;
+    drawScale(side);
+  });
+
+  const line = new createjs.Shape();
+  line.graphics.setStrokeStyle(2)
+      .beginStroke('blue')
+      .moveTo(p1[0], p1[1])
+      .lineTo(p2[0], p2[1])
+      .endStroke();
+
+  side.scaleGroup.addChildAt(line, 0);
+
+  const sText = new createjs.Text('1 cm');
+  sText.scale = 1.5;
+  const sTextBounds = sText.getBounds();
+  sText.x = (p1[0] + (p2[0]-p1[0])/2) - sTextBounds.width * sText.scale/3;
+  sText.y = (p1[1] + (p2[1]-p1[1])/2) + 10;
+
+  const sTextShadow = new createjs.Text('1 cm', '', 'grey');
+  sTextShadow.scale = 1.5;
+  sTextShadow.x = sText.x + 1;
+  sTextShadow.y = sText.y + 1;
+
+  side.scaleGroup.addChild(sTextShadow);
+  side.scaleGroup.addChild(sText);
+
+  console.log(side.name, side.scaleGroup);
+
+  const dx = p1[0] - p2[0];
+  const dy = p1[1] - p2[1];
+  const distance = Math.sqrt((dx*dx + dy*dy));
+  const distanceInCm = distance / side.img.scale;
+  const distanceInInch = distanceInCm * 2.54;
+  side['ppi_field'].val(Math.floor(distanceInInch));
+
+  side.stage.removeChild(side.scaleGroup);
+  side.stage.addChild(side.scaleGroup);
+
   side.stage.update();
 }
 
@@ -665,11 +743,11 @@ function addScalePoint(event, inputSide) {
  */
 function updateModeButtons() {
   // check for mode - if crop, hide cut buttons, if cut, show them
-  if (mode == 'crop') {
+  if (mode == 'crop' || mode == 'auto') {
     $('#cut_button').addClass('hidden');
     $('#clear_polygon').addClass('hidden');
     $('#undo_button').addClass('hidden');
-  } else {
+  } else if (mode == 'cut') {
     $('#cut_button').removeClass('hidden');
     $('#clear_polygon').removeClass('hidden');
     $('#undo_button').removeClass('hidden');
@@ -691,7 +769,6 @@ $(document).ready(function() {
   verso.stage = new createjs.Stage('verso_canvas');
 
   recto.stage.on('click', function(event) {
-    console.log(event.target);
     if (recto.scaleActive) {
       addScalePoint(event, 'rt');
     } else if (mode == 'cut' && action == 'cut') {
@@ -732,11 +809,18 @@ $(document).ready(function() {
     cropSize(event, 'se', 'vs');
   });
 
+  resetCropbox();
+});
+
+/**
+ * TODO
+ */
+function resetCropbox() {
   cropW = Math.floor($('#recto_canvas').width()/2);
   cropH = Math.floor($('#recto_canvas').height()/2);
   cropX = cropW/2;
   cropY = cropH/2;
-});
+}
 
 $('.bin_button').click(function() {
   const wrapper = $(this).parent().parent();
@@ -882,7 +966,11 @@ $('#load_button').click(function() {
   }
 });
 
+
 $('#switch_button').click(function() {
+  if (recto.scaleActive || verso.scaleActive) {
+    return;
+  }
   // switch image URL
   let temp = recto.url;
   recto.url = verso.url;
@@ -912,6 +1000,14 @@ $('#switch_button').click(function() {
   temp = recto.polygon;
   recto.polygon = verso.polygon;
   verso.polygon = temp;
+
+  // switch scaling elements
+  temp = recto.scaleGroup;
+  recto.scaleGroup = verso.scaleGroup;
+  verso.scaleGroup = temp;
+  temp = recto.scalePoints;
+  recto.scalePoints = verso.scalePoints;
+  verso.scalePoints = temp;
 
   // crop_x is the only thing changing when mirroring the
   // canvas horizontally; thus, it must be converted
