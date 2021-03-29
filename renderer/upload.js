@@ -13,11 +13,12 @@ const recto = {
   'crop_sw': new createjs.Shape(),
   'crop_se': new createjs.Shape(),
   'url': null,
-  'offset_x': null,
-  'offset_y': null,
+  'offsetX': 0,
+  'offsetY': 0,
   'rotation': 0,
   'polygon': new createjs.Shape(),
   'img': null,
+  'imgBack': null,
   'scaleActive': false,
   'scaleGroup': new createjs.Container(),
   'scalePoints': [],
@@ -33,11 +34,12 @@ const verso = {
   'crop_sw': new createjs.Shape(),
   'crop_se': new createjs.Shape(),
   'url': null,
-  'offset_x': null,
-  'offset_y': null,
+  'offsetX': null,
+  'offsetY': null,
   'rotation': 0,
   'polygon': new createjs.Shape(),
   'img': null,
+  'imgBack': null,
   'scaleActive': false,
   'scaleGroup': new createjs.Container(),
   'scalePoints': [],
@@ -140,8 +142,8 @@ function clearPolygon() {
 function draw() {
   clearCanvas(recto.stage);
   clearCanvas(verso.stage);
-  if (recto.url) drawCanvas('recto_canvas', recto.url);
-  if (verso.url) drawCanvas('verso_canvas', verso.url);
+  if (recto.url) drawCanvas(recto);
+  if (verso.url) drawCanvas(verso);
   drawMasks();
   drawScale(recto);
   drawScale(verso);
@@ -164,146 +166,128 @@ function mirrorPolygon() {
 
 /**
  * TODO
- * @param {*} canvas
- * @param {*} url
+ * @param {*} side
  */
-function drawCanvas(canvas, url) {
-  let stage;
-  let sideWrapper;
-  let side;
-  if (canvas == 'recto_canvas') {
-    stage = recto.stage;
-    sideWrapper = recto;
-    side = 'rt';
+function drawCanvas(side) {
+  const canvas = $(`#${side.name}_canvas`);
+  side.stage.canvas.width = canvas.width();
+  side.stage.canvas.height = canvas.height();
+
+  if (!side.img) {
+    // images still need to load
+    const newImage = new Image();
+    newImage.src = side.url;
+    newImage.onload = function() {
+      const imgBack = new createjs.Bitmap(newImage);
+      const img = new createjs.Bitmap(newImage);
+      side.img = img;
+      side.imgBack = imgBack;
+      readExifPPI(newImage, side);
+
+      // register event listeners
+      side.img.on('mousedown', (event) => {
+        handleMouseDown(event);
+      });
+      side.imgBack.on('mousedown', (event) => {
+        handleMouseDown(event);
+      });
+      side.img.on('pressmove', (event) => {
+        handlePressMove(event);
+      });
+      side.imgBack.on('pressmove', (event) => {
+        handlePressMove(event);
+      });
+
+      drawCanvas(side);
+    };
   } else {
-    stage = verso.stage;
-    sideWrapper = verso;
-    side = 'vs';
-  }
-  canvas = $('#'+canvas);
-  stage.canvas.width = canvas.width();
-  stage.canvas.height = canvas.height();
+    // images have already been loaded
+    side.img.side = side;
+    side.imgBack.side = side;
 
-  const image = new Image();
-  image.src = url;
-  image.onload = function() {
-    // creating the images
-    const imgBack = new createjs.Bitmap(image);
-    const img = new createjs.Bitmap(image);
+    // get width/height of image and canvas
+    const iWidth = side.img.image.width;
+    const iHeight = side.img.image.height;
+    const cWidth = side.stage.canvas.width;
+    const cHeight = side.stage.canvas.height;
 
-    readExifPPI(image, sideWrapper);
+    // setting regCoordinates for img and imgBack
+    side.imgBack.regX = side.img.regX = iWidth / 2;
+    side.imgBack.regY = side.img.regY = iHeight / 2;
 
-    // getting the current sizes of images and canvas
-    const imgWidth = img.image.width;
-    const imgHeight = img.image.height;
-    const canvasWidth = stage.canvas.width;
-    const canvasHeight = stage.canvas.height;
+    // determining max ratio for width and height
+    const rWidth = iWidth / cWidth;
+    const rHeight = iHeight / cHeight;
+    const ratio = Math.max(rWidth, rHeight);
 
-    imgBack.regX = img.regX = imgWidth / 2;
-    imgBack.regY = img.regY = imgHeight / 2;
+    // set x, y - if there is an offset, take it,
+    // otherwise center image to canvas
+    let x = cWidth / 2;
+    if (side.offsetX) x = side.offsetX;
+    let y = cHeight / 2;
+    if (side.offsetY) y = side.offsetY;
+    side.img.x = side.imgBack.x = x;
+    side.img.y = side.imgBack.y = y;
+    side.img.rotation = side.imgBack.rotation = side.rotation;
 
-    // determining width and height ratio
-    const ratioW = imgWidth / canvasWidth;
-    const ratioH = imgHeight / canvasHeight;
-    const ratio = Math.max(ratioW, ratioH);
 
-    // reading the saved offset
-    let offsetX; let offsetY; let rotation;
-    if (side == 'rt') {
-      offsetX = recto.offset_x;
-      offsetY = recto.offset_y;
-      rotation = recto.rotation;
-    } else {
-      offsetX = verso.offset_x;
-      offsetY = verso.offset_y;
-      rotation = verso.rotation;
+    if (ratio > 1) {
+      // image is too large for the canvas
+      // reduce image scale
+      side.img.scale = 1 / ratio;
+      side.imgBack.scale = 1 / ratio;
     }
 
-    let x = 0;
-    let y = 0;
-    if (ratio <= 1) {
-      x = (canvasWidth/2); // - (img_width/2);
-      y = (canvasHeight/2); // - (img_height/2);
-    } else {
-      x = (canvasWidth/2); // - ((img_width/ratio)/2);
-      y = (canvasHeight/2); // - ((img_height/ratio)/2);
-      img.scale /= ratio;
-      imgBack.scale /= ratio;
-    }
-    if (offsetX && offsetY) {
-      x = offsetX;
-      y = offsetY;
-    }
-    img.x = imgBack.x = x;
-    img.y = imgBack.y = y;
-
-    img.rotation = imgBack.rotation = rotation;
-
-    if (side == 'rt') {
-      // img.mask = recto.cropbox;
-      recto.img = img;
-    } else {
-      // img.mask = verso.cropbox;
-      verso.img = img;
-    }
-
+    // creating white "shadow" layer to visually indicate mask
     const shadow = new createjs.Shape();
-    shadow.graphics.beginFill('white');
-    shadow.graphics.drawRect(0, 0, canvasWidth, canvasHeight);
-    shadow.graphics.endFill();
-    shadow.alpha=0.7;
+    shadow.graphics.beginFill('white')
+        .drawRect(0, 0, cWidth, cHeight)
+        .endFill();
+    shadow.alpha = 0.7;
+    shadow.side = side;
 
-    // adding eventlisteners
-    img.on('mousedown', (event) => {
-      handleMouseDown(event);
-    });
-    imgBack.on('mousedown', (event) => {
-      handleMouseDown(event);
-    });
+    // shadow event listeners
     shadow.on('mousedown', (event) => {
       handleMouseDown(event);
-    });
-    img.on('pressmove', (event) => {
-      handlePressMove(event);
-    });
-    imgBack.on('pressmove', (event) => {
-      handlePressMove(event);
     });
     shadow.on('pressmove', (event) => {
       handlePressMove(event);
     });
 
-    /**
+    side.stage.addChildAt(side.imgBack, shadow, side.img, 0);
+    drawMasks();
+    side.stage.update();
+  }
+
+  /**
      * TODO
      * @param {*} event
      */
-    function handlePressMove(event) {
-      if (!sideWrapper.scaleActive) {
-        // if mode is rotate, image should be rotated, not moved
-        if (action == 'rotate') {
-          rotateImage(event, imgBack, img, side);
-        } else if (action == 'move') {
-          // if mode is move, move the image
-          moveImage(event, imgBack, img, side);
-        }
+  function handlePressMove(event) {
+    const currentSide = event.target.side;
+    // don't react if scaling mode is active
+    if (!currentSide.scaleActive) {
+      // if mode is rotate, image should be rotated, not moved
+      if (action == 'rotate') {
+        rotateImage(event, currentSide);
+      } else if (action == 'move') {
+        // if mode is move, move the image
+        moveImage(event, currentSide);
       }
     }
+  }
 
-    /**
+  /**
      * TODO
      * @param {*} event
      */
-    function handleMouseDown(event) {
-      imgBack.offset_x = event.stageX - imgBack.x;
-      imgBack.offset_y = event.stageY - imgBack.y;
-      mousestartX = event.stageX;
-      mousestartY = event.stageY;
-    }
-
-    stage.addChildAt(imgBack, shadow, img, 0);
-    drawMasks();
-    stage.update();
-  };
+  function handleMouseDown(event) {
+    const target = event.target.side.imgBack;
+    target.offsetX = event.stageX - target.x;
+    target.offsetY = event.stageY - target.y;
+    mousestartX = event.stageX;
+    mousestartY = event.stageY;
+  }
 }
 
 /**
@@ -378,53 +362,37 @@ function drawPolygon(side) {
 /**
  * TODO
  * @param {*} event
- * @param {*} imgBack
- * @param {*} img
  * @param {*} side
  */
-function rotateImage(event, imgBack, img, side) {
-  const radsOld = Math.atan2(mousestartY - recto.stage.canvas.height/2,
-      mousestartX - recto.stage.canvas.width/2);
-  const radsNew = Math.atan2(event.stageY - recto.stage.canvas.height/2,
-      event.stageX - recto.stage.canvas.width/2);
+function rotateImage(event, side) {
+  const radsOld = Math.atan2(mousestartY - side.stage.canvas.height/2,
+      mousestartX - side.stage.canvas.width/2);
+  const radsNew = Math.atan2(event.stageY - side.stage.canvas.height/2,
+      event.stageX - side.stage.canvas.width/2);
   const rads = radsNew - radsOld;
   const deltaAngle = rads * (180 / Math.PI);
 
-  imgBack.rotation = (imgBack.rotation + deltaAngle)%360;
-  img.rotation = (img.rotation + deltaAngle)%360;
+  side.imgBack.rotation = (side.imgBack.rotation + deltaAngle)%360;
+  side.img.rotation = (side.img.rotation + deltaAngle)%360;
 
   mousestartX = event.stageX;
   mousestartY = event.stageY;
 
-  if (side == 'rt') {
-    recto.rotation = img.rotation;
-    recto.stage.update();
-  } else {
-    verso.rotation = img.rotation;
-    verso.stage.update();
-  }
+  side.rotation = side.img.rotation;
+  side.stage.update();
 }
 
 /**
  * TODO
  * @param {*} event
- * @param {*} imgBack
- * @param {*} img
  * @param {*} side
  */
-function moveImage(event, imgBack, img, side) {
-  imgBack.x = img.x = event.stageX - imgBack.offset_x;
-  imgBack.y = img.y = event.stageY - imgBack.offset_y;
-
-  if (side == 'rt') {
-    recto.stage.update();
-    recto.offset_x = imgBack.x;
-    recto.offset_y = imgBack.y;
-  } else {
-    verso.stage.update();
-    verso.offset_x = imgBack.x;
-    verso.offset_y = imgBack.y;
-  }
+function moveImage(event, side) {
+  side.imgBack.x = side.img.x = event.stageX - side.imgBack.offsetX;
+  side.imgBack.y = side.img.y = event.stageY - side.imgBack.offsetY;
+  side.offsetX = side.imgBack.x;
+  side.offsetY = side.imgBack.y;
+  side.stage.update();
 }
 
 /**
@@ -743,7 +711,9 @@ function updateModeButtons() {
 
 $(document).ready(function() {
   recto.stage = new createjs.Stage('recto_canvas');
+  recto.stage.name = 'recto';
   verso.stage = new createjs.Stage('verso_canvas');
+  verso.stage.name = 'verso';
 
   recto.stage.on('click', function(event) {
     if (recto.scaleActive) {
@@ -809,9 +779,10 @@ $('.bin_button').click(function() {
     side = verso;
   }
   side.url = null;
-  side.image = null;
-  side.offset_x = null;
-  side.offset_y = null;
+  side.img = null;
+  side.imgBack = null;
+  side.offsetX = null;
+  side.offsetY = null;
   side.rotation = 0;
   side.ppi_field.val('');
   side.scalePoints = [];
@@ -870,11 +841,11 @@ $('.www_upload_button').click(function() {
         if (lastUpload == 'recto') {
           recto.url = url;
           activateCanvas($('#recto_canvas_wrapper'));
-          drawCanvas('recto_canvas', url);
+          drawCanvas(recto);
         } else {
           verso.url = url;
           activateCanvas($('#verso_canvas_wrapper'));
-          drawCanvas('verso_canvas', url);
+          drawCanvas(verso);
         }
         lastUpload = null;
         checkIfReady();
@@ -963,14 +934,14 @@ $('#switch_button').click(function() {
   verso.url = temp;
 
   // switch offset
-  temp = recto.offset_x;
-  recto.offset_x = verso.offset_x;
-  verso.offset_x = temp;
+  temp = recto.offsetX;
+  recto.offsetX = verso.offsetX;
+  verso.offsetX = temp;
 
   // switch offsets
-  temp = recto.offset_y;
-  recto.offset_y = verso.offset_y;
-  verso.offset_y = temp;
+  temp = recto.offsetY;
+  recto.offsetY = verso.offsetY;
+  verso.offsetY = temp;
 
   // switch rotation of images
   temp = recto.rotation;
@@ -981,6 +952,10 @@ $('#switch_button').click(function() {
   temp = recto.img;
   recto.img = verso.img;
   verso.img = temp;
+
+  temp = recto.imgBack;
+  recto.imgBack = verso.imgBack;
+  verso.imgBack = temp;
 
   // switch polygons
   temp = recto.polygon;
@@ -1101,11 +1076,9 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
   if (lastUpload == 'recto') {
     recto.url = filepath;
     activateCanvas($('#recto_canvas_wrapper'));
-    // drawCanvas('recto_canvas', filepath);
   } else {
     verso.url = filepath;
     activateCanvas($('#verso_canvas_wrapper'));
-    // drawCanvas('verso_canvas', filepath);
   }
   draw();
   lastUpload = null;

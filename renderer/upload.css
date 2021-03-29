@@ -59,7 +59,7 @@ canvas {
     transition: all .2s;
 }
 
-#right_buttons {
+#verso_buttons {
     flex-flow: row-reverse;
 }
 
@@ -164,7 +164,7 @@ canvas {
     margin: 0px 5px;
 }
 
-#right_resolution_wrapper {
+#verso_resolution_wrapper {
     text-align: right;
     flex-direction: row-reverse;
 }
