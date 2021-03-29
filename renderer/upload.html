@@ -31,7 +31,7 @@
                 </div>
                 <div class="resolution_wrapper hidden" id="recto_resolution_wrapper">
                     <label>Resolution:</label>
-                    <input type="text" class="resolution_input" id="recto_resolution"/>
+                    <input type="text" class="resolution_input empty" id="recto_resolution"/>
                     <label>ppi</label>
                 </div>
             </div>
@@ -78,23 +78,23 @@
                 </div>
                 <div class="resolution_wrapper hidden" id="verso_resolution_wrapper">
                     <label>ppi</label>
-                    <input type="text" class="resolution_input" id="verso_resolution"/>
+                    <input type="text" class="resolution_input empty" id="verso_resolution"/>
                     <label>Resolution:</label>
                 </div>
             </div>
         </div>
         <div id="name_wrapper">
-            <input type="text" id="name">
+            <input type="text" class="empty" id="name">
             <div id="name_label">Fragment Name</div>
         </div>
         <div class="button disabled" id="load_button">Load</div>
 
         <div id="mode_wrapper" class="hidden">
-            <div id="no_mask" class="button select_button no_select" mode="none">
-                <img src="../imgs/symbol_none.png">
+            <div id="no_mask" class="button select_button selected no_select" mode="none">
+                <img src="../imgs/symbol_x.png">
                 <label>No Mask</label>
             </div>
-            <div id="select_crop" class="button select_button no_select selected" mode="crop">
+            <div id="select_crop" class="button select_button no_select" mode="crop">
                 <img src="../imgs/symbol_crop.png">
                 <label>Crop</label>
             </div>

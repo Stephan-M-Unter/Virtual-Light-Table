@@ -48,8 +48,8 @@ const verso = {
 
 let name;
 let isNameSuggested = false;
-let mode = 'crop';
-let action = 'move';
+let mode = 'none';
+let action = 'none';
 let lastUpload = null;
 let cropX; let cropY; let cropW; let cropH;
 let polygon = [];
@@ -59,6 +59,22 @@ let mousestartX; let mousestartY;
  * TODO
  */
 function checkIfReady() {
+  if ($('#name').val() == '') $('#name').addClass('empty');
+  else $('#name').removeClass('empty');
+
+  if ($('#recto_resolution').val() == '') $('#recto_resolution').addClass('empty');
+  else $('#recto_resolution').removeClass('empty');
+
+  if ($('#verso_resolution').val() == '') $('#verso_resolution').addClass('empty');
+  else $('#verso_resolution').removeClass('empty');
+
+  if (
+    $('#verso_resolution').val() != '' &&
+    $('#recto_resolution').val() != ''
+  ) {
+    adjustSizes();
+  }
+
   if (
     recto.url &&
     verso.url &&
@@ -69,6 +85,31 @@ function checkIfReady() {
     $('#load_button').removeClass('disabled');
   } else {
     $('#load_button').addClass('disabled');
+  }
+}
+
+/**
+ * TODO
+ */
+function adjustSizes() {
+  const ppiRecto = $('#recto_resolution').val();
+  const ppiVerso = $('#verso_resolution').val();
+  const ratio = ppiRecto / ppiVerso;
+  console.log('PPI recto:', ppiRecto, 'PPI verso:', ppiVerso, 'Ratio:', ppiRecto/ppiVerso);
+  if (ratio < 1) {
+    // ppi of recto are smaller => reduce size of verso
+    recto.img.scale = recto.imgBack.scale = 1;
+    verso.img.scale = ratio;
+    verso.imgBack.scale = ratio;
+    verso.stage.update();
+  } else if (ratio > 1) {
+    // ppi of recto are larger => reduce size of recto
+    verso.img.scale = verso.imgBack.scale = 1;
+    recto.img.scale = 1/ratio;
+    recto.imgBack.scale = 1/ratio;
+    recto.stage.update();
+  } else {
+    // ppi are the same, no need for changes
   }
 }
 
@@ -88,6 +129,7 @@ function deactivateCanvas(wrapper) {
   if (!recto.url && !verso.url) {
     $('#mode_wrapper').addClass('hidden');
     $('#switch_wrapper').addClass('hidden');
+    $('#name').val('');
     clearPolygon();
     resetCropbox();
   }
@@ -140,6 +182,7 @@ function clearPolygon() {
  * TODO
  */
 function draw() {
+  console.log('draw()');
   clearCanvas(recto.stage);
   clearCanvas(verso.stage);
   if (recto.url) drawCanvas(recto);
@@ -147,6 +190,7 @@ function draw() {
   drawMasks();
   drawScale(recto);
   drawScale(verso);
+  checkIfReady();
 }
 
 /**
@@ -526,6 +570,9 @@ function drawMasks() {
     if (recto.img) recto.img.mask = recto.cropbox;
     drawCropBox('vs');
     if (verso.img) verso.img.mask = verso.cropbox;
+  } else {
+    if (recto.img) recto.img.mask = null;
+    if (verso.img) verso.img.mask = null;
   }
   recto.stage.update();
   verso.stage.update();
@@ -533,18 +580,12 @@ function drawMasks() {
 
 /**
  * TODO
- * @param {*} inputSide
+ * @param {*} side
  */
-function handleScaleButton(inputSide) {
-  let side;
-  if (inputSide == 'rt') {
-    side = recto;
-  } else {
-    side = verso;
-  }
-
+function handleScaleButton(side) {
   side.scalePoints = [];
   side.scaleGroup.removeAllChildren();
+  $(side.stage.canvas).addClass('scale');
   side.stage.update();
   side.scaleActive = !side.scaleActive;
 }
@@ -595,6 +636,7 @@ function addScalePoint(event, inputSide) {
     side.stage.update();
   } else if (side.scalePoints.length == 2) {
     side.scaleActive = false;
+    $(side.stage.canvas).removeClass('scale');
     drawScale(side);
     checkIfReady();
   }
@@ -625,6 +667,9 @@ function drawScale(side) {
     side.scalePoints[0] = point;
     drawScale(side);
   });
+  sPoint1.on('pressup', () => {
+    checkIfReady();
+  });
 
   if (side.scalePoints.length == 1) {
     side.stage.update();
@@ -643,6 +688,9 @@ function drawScale(side) {
     const point = [event.stageX, event.stageY];
     side.scalePoints[1] = point;
     drawScale(side);
+  });
+  sPoint2.on('pressup', () => {
+    checkIfReady();
   });
 
   const line = new createjs.Shape();
@@ -668,8 +716,6 @@ function drawScale(side) {
   side.scaleGroup.addChild(sTextShadow);
   side.scaleGroup.addChild(sText);
 
-  console.log(side.name, side.scaleGroup);
-
   const dx = p1[0] - p2[0];
   const dy = p1[1] - p2[1];
   const distance = Math.sqrt((dx*dx + dy*dy));
@@ -688,7 +734,15 @@ function drawScale(side) {
  */
 function updateModeButtons() {
   // check for mode - if crop, hide cut buttons, if cut, show them
-  if (mode == 'crop' || mode == 'auto') {
+  if (mode == 'none') {
+    $('#move_button').addClass('hidden');
+    $('#rotate_button').addClass('hidden');
+    action = 'none';
+  } else {
+    $('#move_button').removeClass('hidden');
+    $('#rotate_button').removeClass('hidden');
+  }
+  if (mode == 'crop' || mode == 'auto' || mode == 'none') {
     $('#cut_button').addClass('hidden');
     $('#clear_polygon').addClass('hidden');
     $('#undo_button').addClass('hidden');
@@ -696,6 +750,20 @@ function updateModeButtons() {
     $('#cut_button').removeClass('hidden');
     $('#clear_polygon').removeClass('hidden');
     $('#undo_button').removeClass('hidden');
+  }
+
+  // add class to canvas for cursor design
+  $(recto.stage.canvas).removeClass('move rotate cut');
+  $(verso.stage.canvas).removeClass('move rotate cut');
+  if (action == 'move') {
+    $(recto.stage.canvas).addClass('move');
+    $(verso.stage.canvas).addClass('move');
+  } else if (action == 'rotate') {
+    $(recto.stage.canvas).addClass('rotate');
+    $(verso.stage.canvas).addClass('rotate');
+  } else if (action == 'cut') {
+    $(recto.stage.canvas).addClass('cut');
+    $(verso.stage.canvas).addClass('cut');
   }
 
   // check for action and color according button
@@ -714,6 +782,9 @@ $(document).ready(function() {
   recto.stage.name = 'recto';
   verso.stage = new createjs.Stage('verso_canvas');
   verso.stage.name = 'verso';
+
+  mode = $('.select_button.selected').attr('mode');
+  updateModeButtons();
 
   recto.stage.on('click', function(event) {
     if (recto.scaleActive) {
@@ -802,12 +873,12 @@ $('.local_upload_button').click(function() {
   ipcRenderer.send('server-upload-image');
 });
 
-$('#verso_resolution').on('keyup', function() {
+$('#verso_resolution').on('focusout', function() {
   verso.scalePoints = [];
   drawScale(verso);
   checkIfReady();
 });
-$('#recto_resolution').on('keyup', function() {
+$('#recto_resolution').on('focusout', function() {
   recto.scalePoints = [];
   drawScale(recto);
   checkIfReady();
@@ -819,8 +890,8 @@ $('#clear_polygon').click(function() {
   }
 });
 
-$('#name').on('keyup', function() {
-  if ($(this).val() == '') {
+$('#name').on('focusout', function() {
+  if ($('#name').val() == '') {
     isNameSuggested = false;
   } else {
     isNameSuggested = true;
@@ -841,12 +912,11 @@ $('.www_upload_button').click(function() {
         if (lastUpload == 'recto') {
           recto.url = url;
           activateCanvas($('#recto_canvas_wrapper'));
-          drawCanvas(recto);
         } else {
           verso.url = url;
           activateCanvas($('#verso_canvas_wrapper'));
-          drawCanvas(verso);
         }
+        draw();
         lastUpload = null;
         checkIfReady();
       }
@@ -855,6 +925,7 @@ $('.www_upload_button').click(function() {
     alert('Please make sure your image URL leads to an image file (jpg, png)!');
   }
 });
+
 
 $('#load_button').click(function() {
   if (!$('#load_button').hasClass('disabled')) {
@@ -899,26 +970,28 @@ $('#load_button').click(function() {
       temp.push(temp[0]);
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
-          const coord = temp[node];
-          polygonVerso.push([coord[0]-verso.img.x-verso.img.image.width/2,
-            coord[1]-verso.img.y-verso.img.image.height/2]);
+          if (Object.prototype.hasOwnProperty.call(temp, node)) {
+            const coord = temp[node];
+            polygonVerso.push([coord[0]-verso.img.x-verso.img.image.width/2,
+              coord[1]-verso.img.y-verso.img.image.height/2]);
+          }
         }
       }
-    }
 
-    const fragmentData = {
-      'rectoURL': recto.url,
-      'versoURL': verso.url,
-      'recto': true,
-      'name': $('#name').val(),
-      'rotation': recto.rotation,
-      'rotationDistance': recto.rotation + verso.rotation,
-      'rectoMask': polygonRecto,
-      'versoMask': polygonVerso,
-      'rectoPPI': $('#recto_resolution').val(),
-      'versoPPI': $('#verso_resolution').val(),
-    };
-    ipcRenderer.send('server-upload-ready', fragmentData);
+      const fragmentData = {
+        'rectoURL': recto.url,
+        'versoURL': verso.url,
+        'recto': true,
+        'name': $('#name').val(),
+        'rotation': recto.rotation,
+        'rotationDistance': recto.rotation + verso.rotation,
+        'rectoMask': polygonRecto,
+        'versoMask': polygonVerso,
+        'rectoPPI': $('#recto_resolution').val(),
+        'versoPPI': $('#verso_resolution').val(),
+      };
+      ipcRenderer.send('server-upload-ready', fragmentData);
+    }
   }
 });
 
@@ -956,6 +1029,11 @@ $('#switch_button').click(function() {
   temp = recto.imgBack;
   recto.imgBack = verso.imgBack;
   verso.imgBack = temp;
+
+  // switch ppi values
+  temp = $('#recto_resolution').val();
+  $('#recto_resolution').val($('#verso_resolution').val());
+  $('#verso_resolution').val(temp);
 
   // switch polygons
   temp = recto.polygon;
@@ -1021,7 +1099,7 @@ $('#cropcut_button').click(function() {
 $('.select_button').click(function(event) {
   $('.select_button.selected').removeClass('selected');
   $(this).addClass('selected');
-  mode = $(this).attr('mode');
+  mode = $('.select_button.selected').attr('mode');
   if (mode == 'cut') {
     action = 'cut';
   }
@@ -1045,10 +1123,10 @@ $('#undo_button').click(function() {
 });
 
 $('#recto_scale_button').click(() => {
-  handleScaleButton('rt');
+  handleScaleButton(recto);
 });
 $('#verso_scale_button').click(() => {
-  handleScaleButton('vs');
+  handleScaleButton(verso);
 });
 
 

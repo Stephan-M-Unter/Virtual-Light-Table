@@ -244,3 +244,23 @@ input[type=text] {
 .bin_button {
     background-color: #ff4040;
 }
+
+input[type=text].empty {
+    background-color: red;
+}
+
+canvas.scale {
+    cursor: url('../imgs/symbol_measure_cursor.png'), auto !important;
+}
+canvas.cut {
+    cursor: url('../imgs/symbol_cut_cursor.png'), auto;
+}
+canvas.move {
+    cursor: move;
+}
+canvas.rotate {
+    cursor: grab;
+}
+canvas.rotate:active {
+    cursor: grabbing;
+}
