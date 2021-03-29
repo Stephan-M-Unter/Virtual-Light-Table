@@ -14,24 +14,24 @@
                 <div class="canvas_label" id="recto_canvas_label">Recto</div>
                 <canvas class="canvas" id="recto_canvas"></canvas>
                 <div class="upload_wrapper">
-                    <div class="button upload_button local_upload_button" id="left_local_upload">
+                    <div class="button upload_button local_upload_button" id="recto_local_upload">
                         <img src="../imgs/symbol_upload_local.png"/>
                     </div>
-                    <div class="button upload_button www_upload_button" id="left_www_upload">
+                    <div class="button upload_button www_upload_button" id="recto_www_upload">
                         <img src="../imgs/symbol_www.png"/>
                     </div>
                 </div>
-                <div class="button_wrapper hidden" id="left_buttons">
-                    <div class="button scale_button" id="left_scale_button">
+                <div class="button_wrapper hidden" id="recto_buttons">
+                    <div class="button scale_button" id="recto_scale_button">
                         <img src="../imgs/symbol_ruler.png"/>
                     </div>
-                    <div class="button bin_button" id="left_bin_button">
+                    <div class="button bin_button" id="recto_bin_button">
                         <img src="../imgs/symbol_bin.png"/>
                     </div>
                 </div>
-                <div class="resolution_wrapper hidden" id="left_resolution_wrapper">
+                <div class="resolution_wrapper hidden" id="recto_resolution_wrapper">
                     <label>Resolution:</label>
-                    <input type="text" class="resolution_input" id="left_resolution"/>
+                    <input type="text" class="resolution_input" id="recto_resolution"/>
                     <label>ppi</label>
                 </div>
             </div>
@@ -61,24 +61,24 @@
                 <div class="canvas_label" id="verso_canvas_label">Verso</div>
                 <canvas class="canvas" id="verso_canvas"></canvas>
                 <div class="upload_wrapper">
-                    <div class="button upload_button local_upload_button" id="right_local_upload">
+                    <div class="button upload_button local_upload_button" id="verso_local_upload">
                         <img src="../imgs/symbol_upload_local.png"/>
                     </div>
-                    <div class="button upload_button www_upload_button" id="right_www_upload">
+                    <div class="button upload_button www_upload_button" id="verso_www_upload">
                         <img src="../imgs/symbol_www.png"/>
                     </div>
                 </div>
-                <div class="button_wrapper hidden" id="right_buttons">
-                    <div class="button scale_button" id="right_scale_button">
+                <div class="button_wrapper hidden" id="verso_buttons">
+                    <div class="button scale_button" id="verso_scale_button">
                         <img src="../imgs/symbol_ruler.png"/>
                     </div>
-                    <div class="button bin_button" id="right_bin_button">
+                    <div class="button bin_button" id="verso_bin_button">
                         <img src="../imgs/symbol_bin.png"/>
                     </div>
                 </div>
-                <div class="resolution_wrapper hidden" id="right_resolution_wrapper">
+                <div class="resolution_wrapper hidden" id="verso_resolution_wrapper">
                     <label>ppi</label>
-                    <input type="text" class="resolution_input" id="right_resolution"/>
+                    <input type="text" class="resolution_input" id="verso_resolution"/>
                     <label>Resolution:</label>
                 </div>
             </div>
@@ -90,6 +90,10 @@
         <div class="button disabled" id="load_button">Load</div>
 
         <div id="mode_wrapper" class="hidden">
+            <div id="no_mask" class="button select_button no_select" mode="none">
+                <img src="../imgs/symbol_none.png">
+                <label>No Mask</label>
+            </div>
             <div id="select_crop" class="button select_button no_select selected" mode="crop">
                 <img src="../imgs/symbol_crop.png">
                 <label>Crop</label>

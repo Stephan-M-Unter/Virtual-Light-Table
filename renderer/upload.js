@@ -21,7 +21,7 @@ const recto = {
   'scaleActive': false,
   'scaleGroup': new createjs.Container(),
   'scalePoints': [],
-  'ppi_field': $('#left_resolution'),
+  'ppi_field': $('#recto_resolution'),
 };
 
 const verso = {
@@ -41,7 +41,7 @@ const verso = {
   'scaleActive': false,
   'scaleGroup': new createjs.Container(),
   'scalePoints': [],
-  'ppi_field': $('#right_resolution'),
+  'ppi_field': $('#verso_resolution'),
 };
 
 let name;
@@ -61,8 +61,8 @@ function checkIfReady() {
     recto.url &&
     verso.url &&
     $('#name').val() != '' &&
-    $('#right_resolution').val() != '' &&
-    $('#left_resolution').val() != ''
+    $('#verso_resolution').val() != '' &&
+    $('#recto_resolution').val() != ''
   ) {
     $('#load_button').removeClass('disabled');
   } else {
@@ -191,7 +191,7 @@ function drawCanvas(canvas, url) {
     const imgBack = new createjs.Bitmap(image);
     const img = new createjs.Bitmap(image);
 
-    readExifPPI(image, side);
+    readExifPPI(image, sideWrapper);
 
     // getting the current sizes of images and canvas
     const imgWidth = img.image.width;
@@ -312,33 +312,24 @@ function drawCanvas(canvas, url) {
  * @param {*} side
  */
 function readExifPPI(image, side) {
+  if (side.ppi_field.val() != '') {
+    // if there is already a value given, don't change anything
+    return;
+  }
+
   try {
     EXIF.getData(image, function() {
       const exifs = EXIF.getAllTags(image);
       if (exifs.XResolution) {
         const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-        if (side == 'rt') {
-          $('#left_resolution').val(ppi);
-        } else {
-          $('#right_resolution').val(ppi);
-        }
+        side.ppi_field.val(ppi);
         checkIfReady();
       } else {
         console.log('Input image has no EXIF data.');
-        if (side == 'rt') {
-          $('#left_resolution').val('');
-        } else {
-          $('#right_resolution').val('');
-        }
       }
     });
   } catch {
     console.log('Input image has no EXIF data.');
-    if (side == 'rt') {
-      $('#left_resolution').val('');
-    } else {
-      $('#right_resolution').val('');
-    }
   }
 }
 
@@ -347,20 +338,12 @@ function readExifPPI(image, side) {
  * @param {*} side
  */
 function drawPolygon(side) {
-  let sideObject = recto;
-  if (side == 'vs') {
-    sideObject = verso;
-  }
-  if (!sideObject.url) {
+  if (!side.url) {
     return;
   }
-  if (polygon.length == 0) return;
+  if (!side.url || polygon.length == 0) return;
 
-  if (side == 'rt') {
-    recto.stage.removeChild(recto.polygon);
-  } else {
-    verso.stage.removeChild(verso.polygon);
-  }
+  side.stage.removeChild(side.polygon);
 
   const poly= new createjs.Shape();
   poly.graphics.beginStroke('green');
@@ -372,7 +355,7 @@ function drawPolygon(side) {
   for (const node in polygon) {
     if (Object.prototype.hasOwnProperty.call(polygon, node)) {
       let x;
-      if (side == 'rt') {
+      if (side.name == 'recto') {
         x = polygon[node][0];
       } else {
         x = verso.stage.canvas.width - polygon[node][0];
@@ -388,13 +371,8 @@ function drawPolygon(side) {
   }
 
   polygon.pop();
-  if (side == 'rt') {
-    recto.polygon = poly;
-    if (recto.img) recto.stage.addChild(recto.polygon);
-  } else {
-    verso.polygon = poly;
-    if (verso.img) verso.stage.addChild(verso.polygon);
-  }
+  side.polygon = poly;
+  if (side.img) side.stage.addChild(side.polygon);
 }
 
 /**
@@ -571,9 +549,9 @@ function drawMasks() {
       verso.crop_se, verso.crop_sw, verso.cropbox);
   verso.stage.removeChild(verso.polygon);
   if (mode == 'cut') {
-    drawPolygon('rt');
+    drawPolygon(recto);
     if (recto.img) recto.img.mask = recto.polygon;
-    drawPolygon('vs');
+    drawPolygon(verso);
     if (verso.img) verso.img.mask = verso.polygon;
   } else if (mode == 'crop') {
     drawCropBox('rt');
@@ -650,6 +628,7 @@ function addScalePoint(event, inputSide) {
   } else if (side.scalePoints.length == 2) {
     side.scaleActive = false;
     drawScale(side);
+    checkIfReady();
   }
 }
 
@@ -658,12 +637,10 @@ function addScalePoint(event, inputSide) {
  * @param {*} side
  */
 function drawScale(side) {
-  console.log(`Side ${side.name}, drawScale`);
-  console.log(`${side.name}, ${side.scalePoints}`);
-  
   side.scaleGroup.removeAllChildren();
-  
+
   if (side.scalePoints.length == 0) {
+    side.stage.update();
     return;
   }
 
@@ -824,28 +801,28 @@ function resetCropbox() {
 
 $('.bin_button').click(function() {
   const wrapper = $(this).parent().parent();
+  let side;
 
-  if ($(this).attr('id') == 'left_bin_button') {
-    recto.url = null;
-    recto.image = null;
-    recto.offset_x = null;
-    recto.offset_y = null;
-    recto.rotation = 0;
-    clearCanvas(recto.stage);
+  if ($(this).attr('id') == 'recto_bin_button') {
+    side = recto;
   } else {
-    verso.url = null;
-    verso.image = null;
-    verso.offset_x = null;
-    verso.offset_y = null;
-    verso.rotation = 0;
-    clearCanvas(verso.stage);
+    side = verso;
   }
+  side.url = null;
+  side.image = null;
+  side.offset_x = null;
+  side.offset_y = null;
+  side.rotation = 0;
+  side.ppi_field.val('');
+  side.scalePoints = [];
+  clearCanvas(side.stage);
+
   deactivateCanvas(wrapper);
   checkIfReady();
 });
 
 $('.local_upload_button').click(function() {
-  if ($(this).attr('id') == 'left_local_upload') {
+  if ($(this).attr('id') == 'recto_local_upload') {
     lastUpload = 'recto';
   } else {
     lastUpload = 'verso';
@@ -854,8 +831,16 @@ $('.local_upload_button').click(function() {
   ipcRenderer.send('server-upload-image');
 });
 
-$('#right_resolution').on('keyup', checkIfReady);
-$('#left_resolution').on('keyup', checkIfReady);
+$('#verso_resolution').on('keyup', function() {
+  verso.scalePoints = [];
+  drawScale(verso);
+  checkIfReady();
+});
+$('#recto_resolution').on('keyup', function() {
+  recto.scalePoints = [];
+  drawScale(recto);
+  checkIfReady();
+});
 
 $('#clear_polygon').click(function() {
   if (mode == 'cut') {
@@ -873,7 +858,7 @@ $('#name').on('keyup', function() {
 });
 
 $('.www_upload_button').click(function() {
-  if ($(this).attr('id') == 'left_www_upload') {
+  if ($(this).attr('id') == 'recto_www_upload') {
     lastUpload = 'recto';
   } else {
     lastUpload = 'verso';
@@ -959,8 +944,8 @@ $('#load_button').click(function() {
       'rotationDistance': recto.rotation + verso.rotation,
       'rectoMask': polygonRecto,
       'versoMask': polygonVerso,
-      'rectoPPI': $('#left_resolution').val(),
-      'versoPPI': $('#right_resolution').val(),
+      'rectoPPI': $('#recto_resolution').val(),
+      'versoPPI': $('#verso_resolution').val(),
     };
     ipcRenderer.send('server-upload-ready', fragmentData);
   }
@@ -968,6 +953,7 @@ $('#load_button').click(function() {
 
 
 $('#switch_button').click(function() {
+  // don't allow a context switch when scaling is active
   if (recto.scaleActive || verso.scaleActive) {
     return;
   }
@@ -1016,7 +1002,8 @@ $('#switch_button').click(function() {
   const newPolygon = [];
   for (const idx in polygon) {
     if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
-      const x = verso.stage.canvas.width - polygon[idx][0];
+      // const x = verso.stage.canvas.width - polygon[idx][0];
+      const x = $('#verso_canvas').width() - polygon[idx][0];
       const y = polygon[idx][1];
       newPolygon.push([x, y]);
     }
@@ -1060,6 +1047,9 @@ $('.select_button').click(function(event) {
   $('.select_button.selected').removeClass('selected');
   $(this).addClass('selected');
   mode = $(this).attr('mode');
+  if (mode == 'cut') {
+    action = 'cut';
+  }
   updateModeButtons();
   drawMasks();
 });
@@ -1079,10 +1069,10 @@ $('#undo_button').click(function() {
   drawMasks();
 });
 
-$('#left_scale_button').click(() => {
+$('#recto_scale_button').click(() => {
   handleScaleButton('rt');
 });
-$('#right_scale_button').click(() => {
+$('#verso_scale_button').click(() => {
   handleScaleButton('vs');
 });
 
