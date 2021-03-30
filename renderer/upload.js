@@ -443,57 +443,48 @@ function moveImage(event, side) {
  * @param {*} side
  */
 function drawCropBox(side) {
-  let overlay;
-
-  if (side == 'rt') {
-    if (!recto.url) {
-      return;
-    }
-    overlay = recto;
-  } else {
-    if (!verso.url) {
-      return;
-    }
-    overlay = verso;
+  if (!side.url) {
+    return;
   }
 
   let cropSideX = cropX;
-  if (side == 'vs') {
+  if (side.name == 'verso') {
     cropSideX = overlay.stage.canvas.width - cropX - cropW;
   }
 
-  overlay.stage.removeChild(overlay.cropbox, overlay.crop_nw,
-      overlay.crop_ne, overlay.crop_sw, overlay.crop_se);
+  side.stage.removeChild(side.cropbox, side.crop_nw,
+      side.crop_ne, side.crop_sw, side.crop_se);
 
-  overlay.cropbox.graphics.clear();
-  overlay.cropbox.graphics.setStrokeStyle(1);
-  overlay.cropbox.graphics.beginStroke('red');
-  overlay.cropbox.graphics.drawRect(cropSideX, cropY, cropW, cropH);
+  side.cropbox.graphics.clear();
+  side.cropbox.graphics.setStrokeStyle(1);
+  side.cropbox.graphics.beginStroke('red');
+  side.cropbox.graphics.drawRect(cropSideX, cropY, cropW, cropH);
 
-  overlay.crop_nw.graphics.clear();
-  overlay.crop_nw.graphics.beginFill('darkred');
-  overlay.crop_nw.graphics.drawRect(cropSideX-5, cropY-5, 10, 10);
-  overlay.crop_nw.graphics.endFill();
+  side.crop_nw.graphics.clear();
+  side.crop_nw.graphics.beginFill('darkred');
+  side.crop_nw.graphics.drawRect(cropSideX-5, cropY-5, 10, 10);
+  side.crop_nw.graphics.endFill();
 
-  overlay.crop_ne.graphics.clear();
-  overlay.crop_ne.graphics.beginFill('darkred');
-  overlay.crop_ne.graphics.drawRect(cropSideX+cropW-5, cropY-5, 10, 10);
-  overlay.crop_ne.graphics.endFill();
+  side.crop_ne.graphics.clear();
+  side.crop_ne.graphics.beginFill('darkred');
+  side.crop_ne.graphics.drawRect(cropSideX+cropW-5, cropY-5, 10, 10);
+  side.crop_ne.graphics.endFill();
 
-  overlay.crop_sw.graphics.clear();
-  overlay.crop_sw.graphics.beginFill('darkred');
-  overlay.crop_sw.graphics.drawRect(cropSideX-5, cropY+cropH-5, 10, 10);
-  overlay.crop_sw.graphics.endFill();
+  side.crop_sw.graphics.clear();
+  side.crop_sw.graphics.beginFill('darkred');
+  side.crop_sw.graphics.drawRect(cropSideX-5, cropY+cropH-5, 10, 10);
+  side.crop_sw.graphics.endFill();
 
-  overlay.crop_se.graphics.clear();
-  overlay.crop_se.graphics.beginFill('darkred');
-  overlay.crop_se.graphics.drawRect(cropSideX+cropW-5, cropY+cropH-5, 10, 10);
-  overlay.crop_se.graphics.endFill();
+  side.crop_se.graphics.clear();
+  side.crop_se.graphics.beginFill('darkred');
+  side.crop_se.graphics.drawRect(cropSideX+cropW-5, cropY+cropH-5, 10, 10);
+  side.crop_se.graphics.endFill();
 
-  overlay.stage.addChild(overlay.cropbox, overlay.crop_nw,
-      overlay.crop_ne, overlay.crop_sw, overlay.crop_se);
-  overlay.stage.update();
+  side.stage.addChild(side.cropbox, side.crop_nw,
+      side.crop_ne, side.crop_sw, side.crop_se);
+  side.stage.update();
 }
+
 
 /**
  * TODO
@@ -588,9 +579,9 @@ function drawMasks() {
     drawPolygon(verso);
     if (verso.img) verso.img.mask = verso.polygon;
   } else if (mode == 'crop') {
-    drawCropBox('rt');
+    drawCropBox(recto);
     if (recto.img) recto.img.mask = recto.cropbox;
-    drawCropBox('vs');
+    drawCropBox(verso);
     if (verso.img) verso.img.mask = verso.cropbox;
   } else {
     if (recto.img) recto.img.mask = null;
