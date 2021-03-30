@@ -2,6 +2,7 @@
 
 const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
+const {SourceCode} = require('eslint');
 const dialogs = new Dialogs();
 
 const recto = {
@@ -95,21 +96,29 @@ function adjustSizes() {
   const ppiRecto = $('#recto_resolution').val();
   const ppiVerso = $('#verso_resolution').val();
   const ratio = ppiRecto / ppiVerso;
-  console.log('PPI recto:', ppiRecto, 'PPI verso:', ppiVerso, 'Ratio:', ppiRecto/ppiVerso);
   if (ratio < 1) {
     // ppi of recto are smaller => reduce size of verso
     recto.img.scale = recto.imgBack.scale = 1;
     verso.img.scale = ratio;
     verso.imgBack.scale = ratio;
+    verso.scalePoints = [];
+    drawScale(verso);
     verso.stage.update();
   } else if (ratio > 1) {
     // ppi of recto are larger => reduce size of recto
     verso.img.scale = verso.imgBack.scale = 1;
     recto.img.scale = 1/ratio;
     recto.imgBack.scale = 1/ratio;
+    recto.scalePoints = [];
+    drawScale(recto);
     recto.stage.update();
   } else {
     // ppi are the same, no need for changes
+    const ratioRecto = getFittingScale(recto);
+    const ratioVerso = getFittingScale(verso);
+    const ratio = Math.min(1, ratioRecto, ratioVerso);
+    recto.img.scale = recto.imgBack.scale = ratio;
+    verso.img.scale = verso.imgBack.scale = ratio;
   }
 }
 
@@ -259,11 +268,6 @@ function drawCanvas(side) {
     side.imgBack.regX = side.img.regX = iWidth / 2;
     side.imgBack.regY = side.img.regY = iHeight / 2;
 
-    // determining max ratio for width and height
-    const rWidth = iWidth / cWidth;
-    const rHeight = iHeight / cHeight;
-    const ratio = Math.max(rWidth, rHeight);
-
     // set x, y - if there is an offset, take it,
     // otherwise center image to canvas
     let x = cWidth / 2;
@@ -274,13 +278,8 @@ function drawCanvas(side) {
     side.img.y = side.imgBack.y = y;
     side.img.rotation = side.imgBack.rotation = side.rotation;
 
-
-    if (ratio > 1) {
-      // image is too large for the canvas
-      // reduce image scale
-      side.img.scale = 1 / ratio;
-      side.imgBack.scale = 1 / ratio;
-    }
+    side.img.scale = getFittingScale(side);
+    side.imgBack.scale = getFittingScale(side);
 
     // creating white "shadow" layer to visually indicate mask
     const shadow = new createjs.Shape();
@@ -551,6 +550,29 @@ function cropSize(event, loc, side) {
 }
 
 /**
+   * TODO
+   * @param {*} side
+   * @return {*}
+   */
+function getFittingScale(side) {
+  const iWidth = side.img.image.width;
+  const iHeight = side.img.image.height;
+  const cWidth = side.stage.canvas.width;
+  const cHeight = side.stage.canvas.height;
+
+  // determining max ratio for width and height
+  const rWidth = iWidth / cWidth;
+  const rHeight = iHeight / cHeight;
+  const ratio = Math.max(rWidth, rHeight);
+
+  if (ratio > 1) {
+    return 1 / ratio;
+  } else {
+    return 1;
+  }
+}
+
+/**
  * TODO
  */
 function drawMasks() {
@@ -585,9 +607,16 @@ function drawMasks() {
 function handleScaleButton(side) {
   side.scalePoints = [];
   side.scaleGroup.removeAllChildren();
-  $(side.stage.canvas).addClass('scale');
+
+  if (side.scaleActive) {
+    side.scaleActive = false;
+    $(side.stage.canvas).removeClass('scale');
+    side.scalePoints = [];
+  } else {
+    side.scaleActive = true;
+    $(side.stage.canvas).addClass('scale');
+  }
   side.stage.update();
-  side.scaleActive = !side.scaleActive;
 }
 
 /**
@@ -662,6 +691,11 @@ function drawScale(side) {
   sPoint1.y = p1[1];
   side.scaleGroup.addChild(sPoint1);
 
+  /*
+
+  // This feature has been currently removed, as this adds
+  // uncertainty to the scene.
+
   sPoint1.on('pressmove', (event) => {
     const point = [event.stageX, event.stageY];
     side.scalePoints[0] = point;
@@ -670,6 +704,7 @@ function drawScale(side) {
   sPoint1.on('pressup', () => {
     checkIfReady();
   });
+  */
 
   if (side.scalePoints.length == 1) {
     side.stage.update();
@@ -684,6 +719,11 @@ function drawScale(side) {
   sPoint2.y = p2[1];
   side.scaleGroup.addChild(sPoint2);
 
+  /*
+
+  // This feature has been currently removed, as this adds
+  // uncertainty to the scene.
+
   sPoint2.on('pressmove', (event) => {
     const point = [event.stageX, event.stageY];
     side.scalePoints[1] = point;
@@ -692,6 +732,7 @@ function drawScale(side) {
   sPoint2.on('pressup', () => {
     checkIfReady();
   });
+  */
 
   const line = new createjs.Shape();
   line.graphics.setStrokeStyle(2)
@@ -727,6 +768,8 @@ function drawScale(side) {
   side.stage.addChild(side.scaleGroup);
 
   side.stage.update();
+
+  $('#'+side.name+'_scale_button').removeClass('active');
 }
 
 /**
@@ -734,14 +777,6 @@ function drawScale(side) {
  */
 function updateModeButtons() {
   // check for mode - if crop, hide cut buttons, if cut, show them
-  if (mode == 'none') {
-    $('#move_button').addClass('hidden');
-    $('#rotate_button').addClass('hidden');
-    action = 'none';
-  } else {
-    $('#move_button').removeClass('hidden');
-    $('#rotate_button').removeClass('hidden');
-  }
   if (mode == 'crop' || mode == 'auto' || mode == 'none') {
     $('#cut_button').addClass('hidden');
     $('#clear_polygon').addClass('hidden');
@@ -1102,6 +1137,12 @@ $('.select_button').click(function(event) {
   mode = $('.select_button.selected').attr('mode');
   if (mode == 'cut') {
     action = 'cut';
+  } else if (mode == 'crop') {
+    action = 'move';
+  } else if (mode == 'auto') {
+    action = 'move';
+  } else if (mode == 'none') {
+    action = 'none';
   }
   updateModeButtons();
   drawMasks();
@@ -1123,9 +1164,11 @@ $('#undo_button').click(function() {
 });
 
 $('#recto_scale_button').click(() => {
+  $('#recto_scale_button').toggleClass('active');
   handleScaleButton(recto);
 });
 $('#verso_scale_button').click(() => {
+  $('#verso_scale_button').toggleClass('active');
   handleScaleButton(verso);
 });
 

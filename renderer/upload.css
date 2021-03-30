@@ -179,6 +179,7 @@ canvas {
     left: 50%;
     transform: translateX(-50%);
     transition: all .2s;
+    font-size: 0.8em;
 }
 
 .select_button {
