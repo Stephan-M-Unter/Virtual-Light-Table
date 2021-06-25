@@ -191,7 +191,6 @@ function clearPolygon() {
  * TODO
  */
 function draw() {
-  console.log('draw()');
   clearCanvas(recto.stage);
   clearCanvas(verso.stage);
   if (recto.url) drawCanvas(recto);
@@ -449,7 +448,7 @@ function drawCropBox(side) {
 
   let cropSideX = cropX;
   if (side.name == 'verso') {
-    cropSideX = overlay.stage.canvas.width - cropX - cropW;
+    cropSideX = side.stage.canvas.width - cropX - cropW;
   }
 
   side.stage.removeChild(side.cropbox, side.crop_nw,
@@ -959,8 +958,8 @@ $('#load_button').click(function() {
     3. alle polygonpunkte müssten umgerechnet werden
     in relation zum eigentlichen bild
     */
-    const polygonRecto = [];
-    const polygonVerso = [];
+    let polygonRecto = [];
+    let polygonVerso = [];
 
     if (mode == 'crop') {
       // cropMode is active - infer polygon nodes from vertices
@@ -980,7 +979,7 @@ $('#load_button').click(function() {
       polygonVerso.push([xVerso+cropW, yVerso+cropH]);
       polygonVerso.push([xVerso+cropW, yVerso]);
       polygonVerso.push([xVerso, yVerso]);
-    } else {
+    } else if (mode == 'cut') {
       // cutMode is active
       let temp = [...polygon];
       temp.push(temp[0]);
@@ -1003,21 +1002,24 @@ $('#load_button').click(function() {
           }
         }
       }
-
-      const fragmentData = {
-        'rectoURL': recto.url,
-        'versoURL': verso.url,
-        'recto': true,
-        'name': $('#name').val(),
-        'rotation': recto.rotation,
-        'rotationDistance': recto.rotation + verso.rotation,
-        'rectoMask': polygonRecto,
-        'versoMask': polygonVerso,
-        'rectoPPI': $('#recto_resolution').val(),
-        'versoPPI': $('#verso_resolution').val(),
-      };
-      ipcRenderer.send('server-upload-ready', fragmentData);
+    } else {
+      polygonRecto = null;
+      polygonVerso = null;
     }
+
+    const fragmentData = {
+      'rectoURL': recto.url,
+      'versoURL': verso.url,
+      'recto': true,
+      'name': $('#name').val(),
+      'rotation': recto.rotation,
+      'rotationDistance': recto.rotation + verso.rotation,
+      'rectoMask': polygonRecto,
+      'versoMask': polygonVerso,
+      'rectoPPI': $('#recto_resolution').val(),
+      'versoPPI': $('#verso_resolution').val(),
+    };
+    ipcRenderer.send('server-upload-ready', fragmentData);
   }
 });
 

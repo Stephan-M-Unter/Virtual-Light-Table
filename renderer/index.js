@@ -424,6 +424,11 @@ $(document).ready(function() {
         if (hotkeysOn) {
           uic.startMeasure();
         }
+      } else if (event.keyCode == 78) {
+        // N -> Add Custom Fragment
+        if (hotkeysOn) {
+          uic.sendToServer('server-open-upload');
+        }
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);
@@ -450,6 +455,7 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-add-upload', (event, data) => {
     console.log('Received client-add-upload');
+    console.log('Local Upload:', data);
     uic.addFragment(data);
   });
 

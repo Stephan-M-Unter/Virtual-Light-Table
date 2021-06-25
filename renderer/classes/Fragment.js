@@ -1,3 +1,5 @@
+const { TouchBarSlider } = require("electron");
+
 /**
  * TODO
  */
@@ -10,39 +12,74 @@ class Fragment {
      * @param {*} eventData
      */
   constructor(controller, stageObject, id, eventData) {
+    /*
+      List of Properties (alphabetical):
+
+      - this.baseX
+      - this.baseY
+      - this.container
+      - this.controller
+      - this.framework
+      - this.id
+      - this.image
+      - this.imageRecto
+      - this.imageVerso
+      - this.isBothSidesLoaded
+      - this.isSelected
+      - this.isRecto
+      - this.maskRecto
+      - this.maskVerso
+      - this.name
+      - this.ppiRecto
+      - this.ppiVerso
+      - this.rectoRotation
+      - this.rotationDistance
+      - this.stage
+      - this.urlRecto
+      - this.urlVerso
+    */
+    // control and framework elements
     this.controller = controller;
+    this.framework = stageObject;
+    this.stage = stageObject.stage;
+
+    // basic fragment data
     this.id = id;
+    this.isBothSidesLoaded = false;
+    this.isSelected = false;
     this.isRecto = eventData.item.properties.recto;
     this.urlRecto = eventData.item.properties.rectoURL;
     this.urlVerso = eventData.item.properties.versoURL;
-    this.isSelected = false;
-    this.bothSidesLoaded = false;
     this.name = eventData.item.properties.name;
-
-    this.framework = stageObject;
-    this.stage = stageObject.stage; // stage where the fragment will be shown
 
     this.rotationDistance = 0;
 
+    // fragment masks (crop boxes, polygons...)
     if (eventData.item.properties.rectoMask) {
-      this.rectoMask = this._createMask(eventData.item.properties.rectoMask);
+      this.maskRecto = this._createMask(eventData.item.properties.rectoMask);
     }
     if (eventData.item.properties.versoMask) {
-      this.versoMask = this._createMask(eventData.item.properties.versoMask);
+      this.maskVerso = this._createMask(eventData.item.properties.versoMask);
     }
+
+    // rotation distance (between recto and verso)
     if (eventData.item.properties.rotationDistance) {
       this.rotationDistance = eventData.item.properties.rotationDistance;
     }
+
+    // ppi information
     if (eventData.item.properties.rectoPPI) {
-      this.rectoPPI = eventData.item.properties.rectoPPI;
+      this.ppiRecto = eventData.item.properties.rectoPPI;
     }
     if (eventData.item.properties.versoPPI) {
-      this.versoPPI = eventData.item.properties.versoPPI;
+      this.ppiVerso = eventData.item.properties.versoPPI;
     }
 
+    // create the image for the displayed side
     if (this.isRecto ? this.imageRecto = this._createImage(eventData, id) :
         this.imageVerso = this._createImage(eventData, id));
 
+    // create the fragment container
     this.container = this._createContainer(eventData.item.properties, id);
     this.container.regX = this.getImage().image.width / 2;
     this.container.regY = this.getImage().image.height / 2;
@@ -80,25 +117,25 @@ class Fragment {
 
     if (this.isRecto) {
       image.name = 'Image - Recto';
-      if (this.rectoMask) {
+      if (this.maskRecto) {
         // image.mask = this.rectoMask;
       }
       if (this.rectoRotation) {
         image.rotation = this.rectoRotation;
       }
-      if (this.rectoPPI) {
-        image.scale = 96 / this.rectoPPI;
+      if (this.ppiRecto) {
+        image.scale = 96 / this.ppiRecto;
       }
     } else {
       image.name = 'Image - Verso';
-      if (this.versoMask) {
+      if (this.maskVerso) {
         // image.mask = this.versoMask;
       }
       if (this.versoRotation) {
         image.rotation = this.versoRotation;
       }
-      if (this.versoPPI) {
-        image.scale = 96 / this.versoPPI;
+      if (this.ppiVerso) {
+        image.scale = 96 / this.ppiVerso;
       }
     }
     image.cursor = 'pointer';
@@ -227,7 +264,7 @@ class Fragment {
    */
   flip(inverted) {
     this.isRecto = !this.isRecto;
-    if (this.bothSidesLoaded) {
+    if (this.isBothSidesLoaded) {
       this.image.x = 0;
       if (this.image.scale < 0) {
         this.image.scale *= -1;
@@ -267,7 +304,7 @@ class Fragment {
           this.image.x = this.image.image.width;
           this.image.scaleX *= -1;
         }
-        this.bothSidesLoaded = true;
+        this.isBothSidesLoaded = true;
         this.framework._updateBb();
         this.stage.update();
       });
@@ -346,6 +383,12 @@ class Fragment {
       'yPos': this.container.y,
       'baseY': this.baseY,
       'rotation': this.container.rotation,
+      'maskRecto': this.maskRecto,
+      'maskVerso': this.maskVerso,
+      'ppiRecto': this.ppiRecto,
+      'ppiVerso': this.ppiVerso,
+      'rectoRotation': this.rectoRotation,
+      'rotationDistance': this.rotationDistance,
     };
   }
 
@@ -412,10 +455,10 @@ class Fragment {
    * @return {*}
    */
   getMask() {
-    if (this.isRecto && this.rectoMask) {
-      return this.rectoMask;
-    } else if (!this.isRecto && this.versoMask) {
-      return this.versoMask;
+    if (this.isRecto && this.maskRecto) {
+      return this.maskRecto;
+    } else if (!this.isRecto && this.maskVerso) {
+      return this.maskVerso;
     } else {
       return null;
     }

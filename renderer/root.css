@@ -21,3 +21,7 @@
     -ms-user-select: none;      
     user-select: none;
 }
+
+.development {
+    display: none !important;
+}
