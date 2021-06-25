@@ -411,15 +411,6 @@ class Stage {
   }
 
   /**
-   * Helper method to control all UI update methods with one method.
-   */
-  _updateUIElements() {
-    this._updateBb();
-    this._updateRotator();
-    this._updateFlipper();
-  }
-
-  /**
    * TODO
    * @param {*} imageList
    */
@@ -1003,6 +994,7 @@ class Stage {
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
         fragment.flip(false);
+        this._updateBb();
         this._saveToModel();
       });
 
@@ -1158,7 +1150,7 @@ class Stage {
 
     // remove UI elements
     this.controller.clearSelection();
-    this._updateUIElements();
+    this._updateBb();
 
     const pseudoLink = document.createElement('a');
     let extension; let type;
