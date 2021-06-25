@@ -278,6 +278,8 @@ class Fragment {
         this.image.scaleX *= -1;
       }
       this.container.addChild(this.image);
+      this.container.regX = this.image.image.width / 2;
+      this.container.regY = this.image.image.height / 2;
       this.stage.update();
     } else {
       // second side still to be loaded
