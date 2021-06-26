@@ -50,12 +50,12 @@ function deleteSavefile() {
       // 3. Nachricht an Server: Save löschen
     if (confirmation) {
       ipcRenderer.send('server-delete-file', filename);
+      // 3.1. aktuellen Detaileintrag löschen
+      $('#thumb_reconstruction').css('display', 'none');
+      $('#load_details').css('display', 'none');
+      $('#thumb_list').empty();
     }
-    // 4. aktuellen Detaileintrag löschen
-    $('#thumb_reconstruction').css('display', 'none');
-    $('#load_details').css('display', 'none');
-    $('#thumb_list').empty();
-    // [5. Nachricht von Server mit aktuellem Speicherzustand]
+    // [4. Nachricht von Server mit aktuellem Speicherzustand]
   }
 }
 
