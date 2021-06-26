@@ -481,6 +481,7 @@ class Stage {
       }
     }
     this.controller.clearSelection();
+    this.update();
   }
 
   /**
