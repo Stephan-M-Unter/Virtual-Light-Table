@@ -316,11 +316,39 @@ class Fragment {
       loadqueue.load();
     }
 
-    this.translateRotation();
+    if (this.isRecto) {
+      if (inverted) {
+        this.inverted = true;
+        this.rotationDistance = -this.rotationDistance;
+        this.container.rotation += this.rotationDistance;
+      } else if (this.inverted) {
+        this.inverted = false;
+        this.container.rotation -= this.rotationDistance;
+        this.rotationDistance = -this.rotationDistance;
+      } else {
+        this.container.rotation -= this.rotationDistance;
+      }
+    } else {
+      if (inverted) {
+        this.inverted = true;
+        this.container.rotation -= this.rotationDistance;
+        this.rotationDistance = -this.rotationDistance;
+      } else if (this.inverted) {
+        this.inverted = false;
+        this.container.rotation -= this.rotationDistance;
+        this.rotationDistance = -this.rotationDistance;
+      } else {
+        this.container.rotation += this.rotationDistance;
+      }
+    }
+
+    console.log(this.getRotation());
 
     if (!inverted) {
       this.controller.updateFragmentList();
     }
+
+    this.framework.update();
 
     // Möglichkeit 2: Bild existiert
     // dann einfach bilder austauschen
@@ -330,11 +358,19 @@ class Fragment {
   /**
    * TODO
    */
-  translateRotation() {
-    if (this.isRecto) {
-      this.container.rotation -= this.rotationDistance;
+  translateRotation(inverted) {
+    if (inverted) {
+      if (this.isRecto) {
+        this.container.rotation += this.rotationDistance;
+      } else {
+        this.container.rotation -= this.rotationDistance;
+      }
     } else {
-      this.container.rotation += this.rotationDistance;
+      if (this.isRecto) {
+        this.container.rotation -= this.rotationDistance;
+      } else {
+        this.container.rotation += this.rotationDistance;
+      }
     }
   }
 
