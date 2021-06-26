@@ -418,7 +418,7 @@ $(document).ready(function() {
       } else if (event.keyCode == 27) {
         // ESC -> deselect All
         uic.clearSelection();
-        uic.endMeasure();
+        // TODO uic.endMeasure();
       } else if (event.keyCode == 77) {
         // M -> Start Measure
         if (hotkeysOn) {

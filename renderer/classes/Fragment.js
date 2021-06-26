@@ -342,8 +342,6 @@ class Fragment {
       }
     }
 
-    console.log(this.getRotation());
-
     if (!inverted) {
       this.controller.updateFragmentList();
     }
