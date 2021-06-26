@@ -914,13 +914,21 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
+        const oldRotation = fragment.getRotation();
         fragment.flip(false);
 
         const x = fragment.getX();
         const y = fragment.getY();
 
         let xNew; let ynew;
-        fragment.rotateToAngle(-fragment.getRotation());
+
+        if (fragment.isRecto) {
+          fragment.rotateByAngle(-2*fragment.getRotation());
+        } else {
+          fragment.rotateByAngle(-2*oldRotation);
+        }
+
+
         if (horizontalFlip) {
           xNew = 2*yAxis - x;
           ynew = y;
