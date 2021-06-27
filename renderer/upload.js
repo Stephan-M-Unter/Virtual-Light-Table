@@ -986,8 +986,8 @@ $('#load_button').click(function() {
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           const coord = temp[node];
-          polygonRecto.push([coord[0]-recto.img.x-recto.img.image.width/2,
-            coord[1]-recto.img.y-recto.img.image.height/2]);
+          polygonRecto.push([coord[0]-recto.img.x+recto.img.image.width/2,
+            coord[1]-recto.img.y+recto.img.image.height/2]);
         }
       }
 
@@ -997,8 +997,8 @@ $('#load_button').click(function() {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           if (Object.prototype.hasOwnProperty.call(temp, node)) {
             const coord = temp[node];
-            polygonVerso.push([coord[0]-verso.img.x-verso.img.image.width/2,
-              coord[1]-verso.img.y-verso.img.image.height/2]);
+            polygonVerso.push([coord[0]-verso.img.x+verso.img.image.width/2,
+              coord[1]-verso.img.y+verso.img.image.height/2]);
           }
         }
       }
@@ -1014,10 +1014,12 @@ $('#load_button').click(function() {
       'name': $('#name').val(),
       'rotation': recto.rotation,
       'rotationDistance': recto.rotation + verso.rotation,
-      'rectoMask': polygonRecto,
-      'versoMask': polygonVerso,
-      'rectoPPI': $('#recto_resolution').val(),
-      'versoPPI': $('#verso_resolution').val(),
+      'maskRecto': polygonRecto,
+      'maskVerso': polygonVerso,
+      'ppiRecto': $('#recto_resolution').val(),
+      'ppiVerso': $('#verso_resolution').val(),
+      'offsetX': recto.offsetX + verso.offsetX,
+      'offsetY': recto.offsetY + verso.offsetY,
     };
     ipcRenderer.send('server-upload-ready', fragmentData);
   }

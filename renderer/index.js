@@ -429,6 +429,9 @@ $(document).ready(function() {
         if (hotkeysOn) {
           uic.sendToServer('server-open-upload');
         }
+      } else if (event.keyCode == 116) {
+        // F5 -> update Stage
+        uic.update();
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

@@ -1376,11 +1376,24 @@ class Selector {
         let xLeft; let yTop; let xRight; let yBottom;
 
         if (fragment.getMaskBounds()) {
-          const bounds = fragment.getMaskBounds();
-          xLeft = bounds.l + container.x;
-          yTop = bounds.t + container.y;
-          xRight = bounds.r + container.x;
-          yBottom = bounds.b + container.y;
+          let maskPolygon = fragment.maskRecto.polygon;
+          if (!fragment.isRecto) {
+            maskPolygon = fragment.maskVerso.polygon;
+          }
+
+          for (const node in maskPolygon) {
+            if (Object.prototype.hasOwnProperty.call(maskPolygon, node)) {
+              const globalPoint = fragment.getContainer()
+                  .localToGlobal(maskPolygon[node][0], maskPolygon[node][1]);
+              const x = globalPoint.x;
+              const y = globalPoint.y;
+
+              (!xLeft ? xLeft = x : xLeft = Math.min(xLeft, x));
+              (!xRight ? xRight = x : xRight = Math.max(xRight, x));
+              (!yTop ? yTop = y : yTop = Math.min(yTop, y));
+              (!yBottom ? yBottom = y : yBottom = Math.max(yBottom, y));
+            }
+          }
         } else {
           // const bounds = container.getTransformedBounds();
           const bounds = container.getTransformedBounds();

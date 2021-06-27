@@ -483,6 +483,13 @@ class UIController {
   getHotkeysOn() {
     return this.hotkeysOn;
   }
+
+  /**
+   * TODO
+   */
+  update() {
+    this.stage.update();
+  }
 }
 
 module.exports.UIController = UIController;
