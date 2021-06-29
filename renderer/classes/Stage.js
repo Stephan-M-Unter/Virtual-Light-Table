@@ -491,6 +491,7 @@ class Stage {
   registerImageEvents(image) {
     image.on('mousedown', (event) => {
       const clickedId = event.target.id;
+      console.log(event.stageX, event.stageY);
       if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
         // if ctrl key is not pressed, old selection will be cleared
         this.controller.clearSelection();
@@ -915,7 +916,7 @@ class Stage {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
         const oldRotation = fragment.getRotation();
-        fragment.flip(false);
+        fragment.flip();
 
         const x = fragment.getX();
         const y = fragment.getY();
@@ -1002,7 +1003,7 @@ class Stage {
         // TODO: oder doch für mehrere auch?
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
-        fragment.flip(false);
+        fragment.flip();
         this._updateBb();
         this._saveToModel();
       });
@@ -1065,7 +1066,7 @@ class Stage {
             .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
-        fragment.flip(true);
+        fragment.ghost(true);
       });
 
       this.ghoster.on('pressup', (event) => {
@@ -1073,7 +1074,7 @@ class Stage {
             .beginFill('grey').drawCircle(0, 0, 20).endFill();
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
-        fragment.flip(false);
+        fragment.ghost(false);
       });
 
       this.stage.addChild(this.ghoster);
@@ -1367,23 +1368,27 @@ class Selector {
    */
   updateBb(selectionList) {
     let left; let top; let right; let bottom;
+    const center_x = [];
+    const center_y = [];
     for (const idx in selectionList) {
       if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
         const fragment = selectionList[idx];
         const container = fragment.getContainer();
+        const innerContainer = fragment.getInnerContainer();
         // let image = fragment.getImage().image;
 
         let xLeft; let yTop; let xRight; let yBottom;
 
         if (fragment.getMaskBounds()) {
-          let maskPolygon = fragment.maskRecto.polygon;
+          let mask = fragment.maskRecto;
           if (!fragment.isRecto) {
-            maskPolygon = fragment.maskVerso.polygon;
+            mask = fragment.maskVerso;
           }
+          const maskPolygon = mask.polygon;
 
           for (const node in maskPolygon) {
             if (Object.prototype.hasOwnProperty.call(maskPolygon, node)) {
-              const globalPoint = fragment.getContainer()
+              const globalPoint = fragment.getInnerContainer()
                   .localToGlobal(maskPolygon[node][0], maskPolygon[node][1]);
               const x = globalPoint.x;
               const y = globalPoint.y;
@@ -1392,15 +1397,19 @@ class Selector {
               (!xRight ? xRight = x : xRight = Math.max(xRight, x));
               (!yTop ? yTop = y : yTop = Math.min(yTop, y));
               (!yBottom ? yBottom = y : yBottom = Math.max(yBottom, y));
+
+              const globalCenter = fragment.getInnerContainer().localToGlobal(0, 0);
+              center_x.push(globalCenter.x);
+              center_y.push(globalCenter.y);
             }
           }
         } else {
           // const bounds = container.getTransformedBounds();
-          const bounds = container.getTransformedBounds();
-          xLeft = bounds.x;
-          yTop = bounds.y;
-          xRight = bounds.x + bounds.width;
-          yBottom = bounds.y + bounds.height;
+          const bounds = innerContainer.getTransformedBounds();
+          xLeft = bounds.x+container.x;
+          yTop = bounds.y+container.y;
+          xRight = bounds.x+container.x + bounds.width;
+          yBottom = bounds.y+container.y + bounds.height;
         }
         (!left ? left = xLeft : left = Math.min(left, xLeft));
         (!top ? top = yTop : top = Math.min(top, yTop));
@@ -1409,10 +1418,30 @@ class Selector {
       }
     }
 
-    this.x = left;
-    this.y = top;
     this.width = right-left;
     this.height = bottom-top;
+
+    if (center_x.length > 0) {
+      let avg_center_x = 0;
+      let avg_center_y = 0;
+
+      for ( let i = 0; i < center_x.length; i++ ) {
+        avg_center_x += parseInt( center_x[i], 10 );
+      }
+      avg_center_x /= center_x.length;
+
+      for ( let i = 0; i < center_y.length; i++ ) {
+        avg_center_y += parseInt( center_y[i], 10 );
+      }
+      avg_center_y /= center_y.length;
+
+      this.x = avg_center_x-this.width/2;
+      this.y = avg_center_y-this.height/2;
+      console.log({left, right, top, bottom});
+    } else {
+      this.x = left;
+      this.y = top;
+    }
   }
 
   /**

@@ -238,6 +238,7 @@ function drawCanvas(side) {
 
       // register event listeners
       side.img.on('mousedown', (event) => {
+        console.log(event.stageX, event.stageY);
         handleMouseDown(event);
       });
       side.imgBack.on('mousedown', (event) => {
@@ -290,6 +291,7 @@ function drawCanvas(side) {
 
     // shadow event listeners
     shadow.on('mousedown', (event) => {
+      console.log(event.stageX, event.stageY);
       handleMouseDown(event);
     });
     shadow.on('pressmove', (event) => {
@@ -960,6 +962,7 @@ $('#load_button').click(function() {
     */
     let polygonRecto = [];
     let polygonVerso = [];
+    let versoLocalCenter = {x: 0, y: 0};
 
     if (mode == 'crop') {
       // cropMode is active - infer polygon nodes from vertices
@@ -979,6 +982,10 @@ $('#load_button').click(function() {
       polygonVerso.push([xVerso+cropW, yVerso+cropH]);
       polygonVerso.push([xVerso+cropW, yVerso]);
       polygonVerso.push([xVerso, yVerso]);
+
+      const versoCenterX = verso.stage.canvas.width - cropX - (cropW / 2);
+      const versoCenterY = cropY + (cropH / 2);
+      versoLocalCenter = verso.img.globalToLocal(versoCenterX, versoCenterY);
     } else if (mode == 'cut') {
       // cutMode is active
       let temp = [...polygon];
@@ -991,17 +998,27 @@ $('#load_button').click(function() {
         }
       }
 
+      let versoCenterX = [];
+      let versoCenterY = [];
+
       temp = mirrorPolygon();
       temp.push(temp[0]);
       for (const node in temp) {
         if (Object.prototype.hasOwnProperty.call(temp, node)) {
           if (Object.prototype.hasOwnProperty.call(temp, node)) {
             const coord = temp[node];
-            polygonVerso.push([coord[0]-verso.img.x+verso.img.image.width/2,
-              coord[1]-verso.img.y+verso.img.image.height/2]);
+            const newX = coord[0]-verso.img.x+verso.img.image.width/2;
+            const newY = coord[1]-verso.img.y+verso.img.image.height/2;
+            polygonVerso.push([newX, newY]);
+            versoCenterX.push(newX + verso.img.image.width/2);
+            versoCenterY.push(newY + verso.img.image.height/2);
           }
         }
       }
+
+      versoCenterX = (Math.max(...versoCenterX) + Math.min(...versoCenterX)) / 2;
+      versoCenterY = (Math.max(...versoCenterY) + Math.min(...versoCenterY)) / 2;
+      versoLocalCenter = {x: versoCenterX, y: versoCenterY};
     } else {
       polygonRecto = null;
       polygonVerso = null;
@@ -1013,15 +1030,17 @@ $('#load_button').click(function() {
       'recto': true,
       'name': $('#name').val(),
       'rotation': recto.rotation,
+      'versoRotation': verso.rotation,
       'rotationDistance': recto.rotation + verso.rotation,
       'maskRecto': polygonRecto,
       'maskVerso': polygonVerso,
       'ppiRecto': $('#recto_resolution').val(),
       'ppiVerso': $('#verso_resolution').val(),
-      'offsetX': recto.offsetX + verso.offsetX,
-      'offsetY': recto.offsetY + verso.offsetY,
+      'offsetX': versoLocalCenter.x,
+      'offsetY': versoLocalCenter.y,
     };
-    ipcRenderer.send('server-upload-ready', fragmentData);
+    console.log(fragmentData.offsetX, fragmentData.offsetY);
+    //ipcRenderer.send('server-upload-ready', fragmentData);
   }
 });
 

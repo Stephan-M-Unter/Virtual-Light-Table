@@ -65,6 +65,7 @@ class Fragment {
 
     // rotation distance (between recto and verso)
     if (eventData.item.properties.rotationDistance) {
+      this.versoRotation = eventData.item.properties.versoRotation;
       this.rotationDistance = eventData.item.properties.rotationDistance;
     }
 
@@ -84,16 +85,27 @@ class Fragment {
       this.alignOffsetY = eventData.item.properties.offsetY;
     }
 
+    // create inner Containers for images
+    this.containerRecto = new createjs.Container();
+    this.containerRecto.name = 'Inner Container - Recto';
+    this.containerVerso = new createjs.Container();
+    this.containerVerso.name = 'Inner Container - Verso';
+
     // create the image for the displayed side
-    if (this.isRecto ? this.imageRecto = this._createImage(eventData, id) :
-        this.imageVerso = this._createImage(eventData, id));
+    const image = this._createImage(eventData, id);
+    if (this.isRecto) {
+      this.imageRecto = image;
+      this.containerRecto.addChild(this.imageRecto);
+    } else {
+      this.imageVerso = image;
+      this.containerVerso.addChild(this.imageVerso);
+    }
 
     // create the fragment container
     this.container = this._createContainer(eventData.item.properties, id);
     this._setContainerRegs();
-
-    if (this.isRecto ? this.container.addChild(this.imageRecto) :
-        this.container.addChild(this.imageVerso));
+    if (this.isRecto) this.container.addChild(this.containerRecto);
+    else this.container.addChild(this.containerVerso);
 
     if (eventData.item.properties.baseX) {
       this.baseX = eventData.item.properties.baseX;
@@ -118,6 +130,7 @@ class Fragment {
    * TODO
    */
   _setContainerRegs() {
+    /*
     if (this.maskRecto && this.isRecto) {
       this.container.regX = this.maskRecto.cx;
       this.container.regY = this.maskRecto.cy;
@@ -128,6 +141,9 @@ class Fragment {
       this.container.regX = this.getImage().image.width / 2;
       this.container.regY = this.getImage().image.height / 2;
     }
+    */
+    this.container.regX = 0;
+    this.container.regY = 0;
   }
 
   /**
@@ -139,10 +155,21 @@ class Fragment {
   _createImage(eventData, id) {
     const image = new createjs.Bitmap(eventData.result);
 
+    image.cursor = 'pointer';
+    image.x = 0;
+    image.y = 0;
+    image.regX = image.image.width / 2;
+    image.regY = image.image.height / 2;
+    image.id = id;
+
     if (this.isRecto) {
       image.name = 'Image - Recto';
       if (this.maskRecto) {
-        image.mask = this.maskRecto;
+        // image.mask = this.maskRecto;
+        this.maskRecto.regX = this.maskRecto.cx;
+        this.maskRecto.regY = this.maskRecto.cy;
+        image.regX = this.maskRecto.cx;
+        image.regY = this.maskRecto.cy;
       }
       if (this.rectoRotation) {
         image.rotation = this.rectoRotation;
@@ -153,7 +180,12 @@ class Fragment {
     } else {
       image.name = 'Image - Verso';
       if (this.maskVerso) {
-        image.mask = this.maskVerso;
+        // image.mask = this.maskVerso;
+        this.maskVerso.regX = this.maskVerso.cx;
+        this.maskVerso.regY = this.maskVerso.cy;
+
+        image.regX = this.alignOffsetX;
+        image.regY = this.alignOffsetY;
       }
       if (this.versoRotation) {
         image.rotation = this.versoRotation;
@@ -162,12 +194,8 @@ class Fragment {
         image.scale = 96 / this.ppiVerso;
       }
     }
-    image.cursor = 'pointer';
-    image.x = 0;
-    image.y = 0;
-    image.id = id;
-    // image.scale = this.stage.scaling / 100;
 
+    // image.scale = this.stage.scaling / 100;
     return image;
   }
 
@@ -201,6 +229,8 @@ class Fragment {
       }
     }
     mask.polygon = polygon;
+    mask.w = r-l,
+    mask.h = b-t,
     mask.cx = (l+r)/2;
     mask.cy = (b+t)/2;
 
@@ -265,7 +295,8 @@ class Fragment {
    * @param {*} targetAngle
    */
   rotateToAngle(targetAngle) {
-    this.container.rotation = targetAngle%360;
+    this.containerRecto.rotation = targetAngle%360;
+    this.containerVerso.rotation = targetAngle%360;
   }
 
   /**
@@ -273,7 +304,14 @@ class Fragment {
    * @param {*} deltaAngle
    */
   rotateByAngle(deltaAngle) {
-    this.rotateToAngle(this.container.rotation + deltaAngle);
+    // this.rotateToAngle(this.container.rotation + deltaAngle);
+    if (this.isRecto) {
+      this.containerRecto.rotation += deltaAngle;
+      this.containerVerso.rotation += deltaAngle;
+    } else {
+      this.containerVerso.rotation += deltaAngle;
+      this.containerRecto.rotation += deltaAngle;
+    }
   }
 
   /**
@@ -289,99 +327,55 @@ class Fragment {
    * @param {*} inverted
    */
   flip(inverted) {
+    // WARNING: The "current" side is changed immediately!
     this.isRecto = !this.isRecto;
-    if (this.isBothSidesLoaded) {
-      this.image.x = 0;
-      if (this.image.scale < 0) {
-        this.image.scale *= -1;
-      }
-      // both sides have already been loaded to the application
-      this.container.removeChild(this.image);
-      if (this.isRecto ? this.image = this.imageRecto :
-            this.image = this.imageVerso);
-      if (inverted) {
-        if (this.getMaskBounds()) {
-          const bounds = this.getMaskBounds();
-          this.image.x = bounds.r+bounds.l;
-        }
-        //this.image.x = this.image.image.width;
-        this.image.scaleX *= -1;
-      }
-      this.container.addChild(this.image);
-      this._setContainerRegs();
-      this.stage.update();
-    } else {
-      // second side still to be loaded
+    // version A: the second side has still to be loaded
+    if (!this.isBothSidesLoaded) {
       const loadqueue = new createjs.LoadQueue();
       loadqueue.addEventListener('fileload', (event) => {
-        const secondImage = this._createImage(event, this.id);
-
+        // once the file is loaded, the following should happen
+        const secondSideImage = this._createImage(event, this.id);
+        this.framework.registerImageEvents(secondSideImage);
+        if (inverted) secondSideImage.scaleX *= -1;
         if (this.isRecto) {
-          this.imageRecto = secondImage;
-          this.framework.registerImageEvents(this.imageRecto);
-          this.container.removeChild(this.imageVerso);
-          this.image = this.imageRecto;
-          this.container.addChild(this.image);
+          // register image as new recto file
+          this.imageRecto = secondSideImage;
+          this.containerRecto.addChild(this.imageRecto);
         } else {
-          this.imageVerso = secondImage;
-          this.framework.registerImageEvents(this.imageVerso);
-          this.container.removeChild(this.imageRecto);
-          this.image = this.imageVerso;
-          this.container.addChild(this.image);
-        }
-        this._setContainerRegs();
-        if (inverted) {
-          if (this.getMaskBounds()) {
-            const bounds = this.getMaskBounds();
-            this.image.x = bounds.r+bounds.l;
-          }
-          this.image.scaleX *= -1;
+          // register image as new verso file
+          this.imageVerso = secondSideImage;
+          this.containerVerso.addChild(this.imageVerso);
         }
         this.isBothSidesLoaded = true;
         this.framework._updateBb();
         this.stage.update();
       });
       let url;
-      if (this.isRecto ? url=this.urlRecto : url=this.urlVerso);
+      if (this.isRecto) url = this.urlRecto;
+      else url = this.urlVerso;
       loadqueue.loadFile(url);
       loadqueue.load();
     }
 
     if (this.isRecto) {
-      if (inverted) {
-        this.inverted = true;
-        this.rotationDistance = -this.rotationDistance;
-        this.container.rotation += this.rotationDistance;
-      } else if (this.inverted) {
-        this.inverted = false;
-        this.container.rotation -= this.rotationDistance;
-        this.rotationDistance = -this.rotationDistance;
-      } else {
-        this.container.rotation -= this.rotationDistance;
-      }
+      this.container.removeChild(this.containerVerso);
+      this.container.addChild(this.containerRecto);
     } else {
-      if (inverted) {
-        this.inverted = true;
-        this.container.rotation -= this.rotationDistance;
-        this.rotationDistance = -this.rotationDistance;
-      } else if (this.inverted) {
-        this.inverted = false;
-        this.container.rotation -= this.rotationDistance;
-        this.rotationDistance = -this.rotationDistance;
-      } else {
-        this.container.rotation += this.rotationDistance;
-      }
+      this.container.removeChild(this.containerRecto);
+      this.container.addChild(this.containerVerso);
     }
+    if (!inverted) this.controller.updateFragmentList();
+  }
 
-    if (!inverted) {
-      this.controller.updateFragmentList();
-    }
-
-    this.framework.update();
-
-    // Möglichkeit 2: Bild existiert
-    // dann einfach bilder austauschen
-    // flag umdrehen
+  /**
+   * TODO
+   * @param {*} start
+   */
+  ghost(start) {
+    if (!start) this.getImage().scaleX *= -1;
+    this.flip(true);
+    if (start) this.getImage().scaleX *= -1;
+    this.stage.update();
   }
 
   /**
@@ -427,6 +421,18 @@ class Fragment {
    * TODO
    * @return {*}
    */
+  getInnerContainer() {
+    if (this.isRecto) {
+      return this.containerRecto;
+    } else {
+      return this.containerVerso;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
   getImageURL() {
     if (this.isRecto) {
       return this.urlRecto;
@@ -442,8 +448,12 @@ class Fragment {
   getData() {
     let rectoPolygon = null;
     let versoPolygon = null;
-    if (this.maskRecto) {rectoPolygon = this.maskRecto.polygon;}
-    if (this.maskVerso) {versoPolygon = this.maskVerso.polygon;}
+    if (this.maskRecto) {
+      rectoPolygon = this.maskRecto.polygon;
+    }
+    if (this.maskVerso) {
+      versoPolygon = this.maskVerso.polygon;
+    }
     return {
       'name': this.name,
       'recto': this.isRecto,
@@ -459,6 +469,7 @@ class Fragment {
       'ppiRecto': this.ppiRecto,
       'ppiVerso': this.ppiVerso,
       'rectoRotation': this.rectoRotation,
+      'versoRotation': this.versoRotation,
       'rotationDistance': this.rotationDistance,
       'offsetX': this.alignOffsetX,
       'offsetY': this.alignOffsetY,
@@ -521,7 +532,7 @@ class Fragment {
    * @return {*}
    */
   getRotation() {
-    return this.container.rotation;
+    return this.containerRecto.rotation;
   }
 
   /**
