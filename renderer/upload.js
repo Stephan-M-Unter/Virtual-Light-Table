@@ -206,10 +206,11 @@ function draw() {
  */
 function mirrorPolygon() {
   const polyVerso = [];
-  for (const node in polygon) {
-    if (Object.prototype.hasOwnProperty.call(polygon, node)) {
-      const coord = polygon[node];
-      coord[0] = verso.stage.canvas.width - polygon[node][0];
+  const temp = [...polygon];
+  for (const node in temp) {
+    if (Object.prototype.hasOwnProperty.call(temp, node)) {
+      const coord = temp[node];
+      coord[0] = verso.stage.canvas.width - temp[node][0];
       polyVerso.push(coord);
     }
   }
@@ -1010,15 +1011,17 @@ $('#load_button').click(function() {
             const newX = coord[0]-verso.img.x+verso.img.image.width/2;
             const newY = coord[1]-verso.img.y+verso.img.image.height/2;
             polygonVerso.push([newX, newY]);
-            versoCenterX.push(newX + verso.img.image.width/2);
-            versoCenterY.push(newY + verso.img.image.height/2);
+            versoCenterX.push(coord[0]);
+            versoCenterY.push(coord[1]);
           }
         }
       }
+      console.log("versoCenterX:", versoCenterX);
+      console.log("versoCenterY:", versoCenterY);
 
       versoCenterX = (Math.max(...versoCenterX) + Math.min(...versoCenterX)) / 2;
       versoCenterY = (Math.max(...versoCenterY) + Math.min(...versoCenterY)) / 2;
-      versoLocalCenter = {x: versoCenterX, y: versoCenterY};
+      versoLocalCenter = verso.img.globalToLocal(versoCenterX, versoCenterY);
     } else {
       polygonRecto = null;
       polygonVerso = null;
@@ -1039,8 +1042,8 @@ $('#load_button').click(function() {
       'offsetX': versoLocalCenter.x,
       'offsetY': versoLocalCenter.y,
     };
-    console.log(fragmentData.offsetX, fragmentData.offsetY);
-    //ipcRenderer.send('server-upload-ready', fragmentData);
+    //console.log(fragmentData.offsetX, fragmentData.offsetY);
+    ipcRenderer.send('server-upload-ready', fragmentData);
   }
 });
 

@@ -54,6 +54,7 @@ class Fragment {
     this.name = eventData.item.properties.name;
 
     this.rotationDistance = 0;
+    this.tempRotation = 0;
 
     // fragment masks (crop boxes, polygons...)
     if (eventData.item.properties.maskRecto) {
@@ -165,7 +166,7 @@ class Fragment {
     if (this.isRecto) {
       image.name = 'Image - Recto';
       if (this.maskRecto) {
-        // image.mask = this.maskRecto;
+        image.mask = this.maskRecto;
         this.maskRecto.regX = this.maskRecto.cx;
         this.maskRecto.regY = this.maskRecto.cy;
         image.regX = this.maskRecto.cx;
@@ -180,7 +181,7 @@ class Fragment {
     } else {
       image.name = 'Image - Verso';
       if (this.maskVerso) {
-        // image.mask = this.maskVerso;
+        image.mask = this.maskVerso;
         this.maskVerso.regX = this.maskVerso.cx;
         this.maskVerso.regY = this.maskVerso.cy;
 
@@ -373,8 +374,12 @@ class Fragment {
    */
   ghost(start) {
     if (!start) this.getImage().scaleX *= -1;
+    if (!start ) this.getImage().rotation = this.tempRotation;
     this.flip(true);
     if (start) this.getImage().scaleX *= -1;
+    if (start) this.tempRotation = this.getImage().rotation;
+    if (start && this.isRecto) this.getImage().rotation -= 2*this.rotation;
+    if (start && !this.isRecto) this.getImage().rotation -= 2*this.rotationDistance;
     this.stage.update();
   }
 
