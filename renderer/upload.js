@@ -1027,22 +1027,29 @@ $('#load_button').click(function() {
       polygonVerso = null;
     }
 
+    let originalScaleRecto = 1;
+    let originalScaleVerso = 1;
+    if (recto.img.scale < 1) originalScaleRecto = recto.img.scale;
+    if (verso.img.scale < 1) originalScaleVerso = verso.img.scale;
+
     const fragmentData = {
       'rectoURL': recto.url,
       'versoURL': verso.url,
       'recto': true,
       'name': $('#name').val(),
-      'rotation': recto.rotation,
+      'rectoRotation': recto.rotation,
       'versoRotation': verso.rotation,
-      'rotationDistance': recto.rotation + verso.rotation,
+      'rotationDistance': recto.rotation - verso.rotation,
       'maskRecto': polygonRecto,
       'maskVerso': polygonVerso,
       'ppiRecto': $('#recto_resolution').val(),
       'ppiVerso': $('#verso_resolution').val(),
       'offsetX': versoLocalCenter.x,
       'offsetY': versoLocalCenter.y,
+      'originalScaleRecto': originalScaleRecto,
+      'originalScaleVerso': originalScaleVerso,
     };
-    //console.log(fragmentData.offsetX, fragmentData.offsetY);
+    // console.log(fragmentData);
     ipcRenderer.send('server-upload-ready', fragmentData);
   }
 });

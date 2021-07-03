@@ -491,7 +491,6 @@ class Stage {
   registerImageEvents(image) {
     image.on('mousedown', (event) => {
       const clickedId = event.target.id;
-      console.log(event.stageX, event.stageY);
       if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
         // if ctrl key is not pressed, old selection will be cleared
         this.controller.clearSelection();
@@ -953,6 +952,7 @@ class Stage {
     this.stage.removeChild(this.bb);
     this.selector.updateBb(this.selectedList);
     this.bb = this.selector.getBb();
+    this.bb.scale = this.stage.scaling / 100;
     this.stage.addChild(this.bb);
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
@@ -1437,7 +1437,6 @@ class Selector {
 
       this.x = avg_center_x-this.width/2;
       this.y = avg_center_y-this.height/2;
-      console.log({left, right, top, bottom});
     } else {
       this.x = left;
       this.y = top;

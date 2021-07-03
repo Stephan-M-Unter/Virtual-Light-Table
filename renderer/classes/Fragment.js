@@ -44,46 +44,54 @@ class Fragment {
     this.framework = stageObject;
     this.stage = stageObject.stage;
 
+    const data = eventData.item.properties;
+
     // basic fragment data
     this.id = id;
     this.isBothSidesLoaded = false;
     this.isSelected = false;
-    this.isRecto = eventData.item.properties.recto;
-    this.urlRecto = eventData.item.properties.rectoURL;
-    this.urlVerso = eventData.item.properties.versoURL;
-    this.name = eventData.item.properties.name;
+    this.isRecto = data.recto;
+    this.urlRecto = data.rectoURL;
+    this.urlVerso = data.versoURL;
+    this.name = data.name;
 
     this.rotationDistance = 0;
     this.tempRotation = 0;
 
     // fragment masks (crop boxes, polygons...)
-    if (eventData.item.properties.maskRecto) {
-      this.maskRecto = this._createMask(eventData.item.properties.maskRecto);
+    if (data.maskRecto) {
+      this.maskRecto = this._createMask(data.maskRecto);
     }
-    if (eventData.item.properties.maskVerso) {
-      this.maskVerso = this._createMask(eventData.item.properties.maskVerso);
+    if (data.maskVerso) {
+      this.maskVerso = this._createMask(data.maskVerso);
     }
 
+    this.originalScaleRecto = 1;
+    this.originalScaleVerso = 1;
+    if (data.originalScaleRecto) this.originalScaleRecto = data.originalScaleRecto;
+    if (data.originalScaleVerso) this.originalScaleVerso = data.originalScaleVerso;
+
     // rotation distance (between recto and verso)
-    if (eventData.item.properties.rotationDistance) {
-      this.versoRotation = eventData.item.properties.versoRotation;
-      this.rotationDistance = eventData.item.properties.rotationDistance;
+    if (data.rotationDistance) {
+      this.rectoRotation = data.rectoRotation;
+      this.versoRotation = data.versoRotation;
+      this.rotationDistance = data.rotationDistance;
     }
 
     // ppi information
-    if (eventData.item.properties.ppiRecto) {
-      this.ppiRecto = eventData.item.properties.ppiRecto;
+    if (data.ppiRecto) {
+      this.ppiRecto = data.ppiRecto;
     }
-    if (eventData.item.properties.ppiVerso) {
-      this.ppiVerso = eventData.item.properties.ppiVerso;
+    if (data.ppiVerso) {
+      this.ppiVerso = data.ppiVerso;
     }
 
     // alignment offsets
     this.alignOffsetX = this.alignOffsetY = 0;
-    if (eventData.item.properties.offsetX &&
-      eventData.item.properties.offsetY) {
-      this.alignOffsetX = eventData.item.properties.offsetX;
-      this.alignOffsetY = eventData.item.properties.offsetY;
+    if (data.offsetX &&
+      data.offsetY) {
+      this.alignOffsetX = data.offsetX;
+      this.alignOffsetY = data.offsetY;
     }
 
     // create inner Containers for images
@@ -103,24 +111,24 @@ class Fragment {
     }
 
     // create the fragment container
-    this.container = this._createContainer(eventData.item.properties, id);
+    this.container = this._createContainer(data, id);
     this._setContainerRegs();
     if (this.isRecto) this.container.addChild(this.containerRecto);
     else this.container.addChild(this.containerVerso);
 
-    if (eventData.item.properties.baseX) {
-      this.baseX = eventData.item.properties.baseX;
+    if (data.baseX) {
+      this.baseX = data.baseX;
     } else {
       this.baseX = this.container.x / this.container.scale;
     }
 
-    if (eventData.item.properties.baseY) {
-      this.baseY = eventData.item.properties.baseY;
+    if (data.baseY) {
+      this.baseY = data.baseY;
     } else {
       this.baseY = this.container.y / this.container.scale;
     }
 
-    if (eventData.item.properties.baseX && eventData.item.properties.baseY) {
+    if (data.baseX && data.baseY) {
       const newX = this.baseX * this.container.scale;
       const newY = this.baseY * this.container.scale;
       this.moveToPixel(newX, newY);
@@ -165,34 +173,38 @@ class Fragment {
 
     if (this.isRecto) {
       image.name = 'Image - Recto';
-      if (this.maskRecto) {
-        image.mask = this.maskRecto;
-        this.maskRecto.regX = this.maskRecto.cx;
-        this.maskRecto.regY = this.maskRecto.cy;
-        image.regX = this.maskRecto.cx;
-        image.regY = this.maskRecto.cy;
-      }
       if (this.rectoRotation) {
         image.rotation = this.rectoRotation;
       }
       if (this.ppiRecto) {
         image.scale = 96 / this.ppiRecto;
       }
+      if (this.maskRecto) {
+        image.mask = this.maskRecto;
+        this.maskRecto.regX = this.maskRecto.cx;
+        this.maskRecto.regY = this.maskRecto.cy;
+        this.maskRecto.scale = image.scale / this.originalScaleRecto;
+        image.x = (image.regX - this.maskRecto.cx) * this.maskRecto.scale;
+        image.y = (image.regY - this.maskRecto.cy) * this.maskRecto.scale;
+        // image.regX = this.maskRecto.cx;
+        // image.regY = this.maskRecto.cy;
+      }
     } else {
       image.name = 'Image - Verso';
-      if (this.maskVerso) {
-        image.mask = this.maskVerso;
-        this.maskVerso.regX = this.maskVerso.cx;
-        this.maskVerso.regY = this.maskVerso.cy;
-
-        image.regX = this.alignOffsetX;
-        image.regY = this.alignOffsetY;
-      }
       if (this.versoRotation) {
         image.rotation = this.versoRotation;
       }
       if (this.ppiVerso) {
         image.scale = 96 / this.ppiVerso;
+      }
+      if (this.maskVerso) {
+        image.mask = this.maskVerso;
+        this.maskVerso.regX = this.maskVerso.cx;
+        this.maskVerso.regY = this.maskVerso.cy;
+        this.maskVerso.scale = image.scale / this.originalScaleVerso;
+
+        image.regX = this.alignOffsetX;
+        image.regY = this.alignOffsetY;
       }
     }
 
@@ -247,7 +259,7 @@ class Fragment {
   _createContainer(imageProperties, id) {
     const container = new createjs.Container();
 
-    container.rotation = imageProperties.rotation;
+    // container.rotation = imageProperties.rotation;
     container.scale = this.stage.scaling / 100;
 
     if (imageProperties.xPos && imageProperties.yPos) {
@@ -340,10 +352,12 @@ class Fragment {
         if (inverted) secondSideImage.scaleX *= -1;
         if (this.isRecto) {
           // register image as new recto file
+          if (inverted) this.maskRecto.scaleX *= -1;
           this.imageRecto = secondSideImage;
           this.containerRecto.addChild(this.imageRecto);
         } else {
           // register image as new verso file
+          if (inverted) this.maskVerso.scaleX *= -1;
           this.imageVerso = secondSideImage;
           this.containerVerso.addChild(this.imageVerso);
         }
@@ -374,12 +388,18 @@ class Fragment {
    */
   ghost(start) {
     if (!start) this.getImage().scaleX *= -1;
+    if (!start && this.getMask()) this.getMask().scaleX *= -1;
+    if (!start && this.isRecto) this.getImage().rotation *= -1;
+    if (!start && this.getMask()) this.getImage().x *= -1;
     if (!start ) this.getImage().rotation = this.tempRotation;
     this.flip(true);
     if (start) this.getImage().scaleX *= -1;
+    if (start && this.getMask()) this.getMask().scaleX *= -1;
+    if (start && this.getMask()) this.getImage().x *= -1;
     if (start) this.tempRotation = this.getImage().rotation;
-    if (start && this.isRecto) this.getImage().rotation -= 2*this.rotation;
-    if (start && !this.isRecto) this.getImage().rotation -= 2*this.rotationDistance;
+    // if (start && this.isRecto) this.imageRecto.x *= -1;
+    // if (start && this.isRecto) this.getImage().rotation -= 2*this.rotation;
+    if (start) this.getImage().rotation *= -1;
     this.stage.update();
   }
 
@@ -419,6 +439,28 @@ class Fragment {
       return this.imageRecto;
     } else {
       return this.imageVerso;
+    }
+  }
+
+  getHiddenImage() {
+    if (this.isRecto) {
+      return this.imageVerso;
+    } else {
+      return this.imageRecto;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getMask() {
+    if (!this.isRecto && this.maskRecto) {
+      return this.maskRecto;
+    } else if (this.isRecto && this.maskVerso) {
+      return this.maskVerso;
+    } else {
+      return null;
     }
   }
 
@@ -471,6 +513,8 @@ class Fragment {
       'rotation': this.container.rotation,
       'maskRecto': rectoPolygon,
       'maskVerso': versoPolygon,
+      'originalScaleRecto': this.originalScaleRecto,
+      'originalScaleVerso': this.originalScaleVerso,
       'ppiRecto': this.ppiRecto,
       'ppiVerso': this.ppiVerso,
       'rectoRotation': this.rectoRotation,
