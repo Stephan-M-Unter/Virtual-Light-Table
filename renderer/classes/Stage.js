@@ -1291,7 +1291,7 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        const container = fragment.getContainer();
+        const container = fragment.getInnerContainer();
 
         const bounds = container.getTransformedBounds();
         const xLeft = bounds.x;
@@ -1375,6 +1375,7 @@ class Selector {
         const fragment = selectionList[idx];
         const container = fragment.getContainer();
         const innerContainer = fragment.getInnerContainer();
+        const image = fragment.getImage();
         // let image = fragment.getImage().image;
 
         let xLeft; let yTop; let xRight; let yBottom;
@@ -1406,6 +1407,7 @@ class Selector {
         } else {
           // const bounds = container.getTransformedBounds();
           const bounds = innerContainer.getTransformedBounds();
+          if (!bounds) return;
           xLeft = bounds.x+container.x;
           yTop = bounds.y+container.y;
           xRight = bounds.x+container.x + bounds.width;

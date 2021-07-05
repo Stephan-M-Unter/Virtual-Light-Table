@@ -101,6 +101,31 @@ class Fragment {
     this.containerVerso.name = 'Inner Container - Verso';
 
     // create the image for the displayed side
+    this.imageRecto = new createjs.Bitmap();
+    this.imageRecto.id = id;
+    this.imageRecto.cursor = 'pointer';
+    this.imageRecto.x = 0;
+    this.imageRecto.y = 0;
+    this.imageRecto.name = 'Image - Recto';
+    this.framework.registerImageEvents(this.imageRecto);
+    this.containerRecto.addChild(this.imageRecto);
+    if (this.rectoRotation) this.imageRecto.rotation = this.rectoRotation;
+    if (this.ppiRecto) this.imageRecto.scale = 96 / this.ppiRecto;
+
+    this.imageVerso = new createjs.Bitmap();
+    this.imageVerso.id = id;
+    this.imageVerso.cursor = 'pointer';
+    this.imageVerso.x = 0;
+    this.imageVerso.y = 0;
+    this.imageVerso.name = 'Image - Verso';
+    this.framework.registerImageEvents(this.imageVerso);
+    this.containerVerso.addChild(this.imageVerso);
+    if (this.versoRotation) this.imageVerso.rotation = this.versoRotation;
+    if (this.ppiVerso) this.imageVerso.scale = 96 / this.ppiVerso;
+
+    this._createImage(eventData, this.isRecto);
+
+    /*
     const image = this._createImage(eventData, id);
     if (this.isRecto) {
       this.imageRecto = image;
@@ -108,7 +133,7 @@ class Fragment {
     } else {
       this.imageVerso = image;
       this.containerVerso.addChild(this.imageVerso);
-    }
+    }*/
 
     // create the fragment container
     this.container = this._createContainer(data, id);
@@ -158,27 +183,22 @@ class Fragment {
   /**
    * TODO
    * @param {*} eventData
-   * @param {*} id
+   * @param {*} isRecto
    * @return {*}
    */
-  _createImage(eventData, id) {
-    const image = new createjs.Bitmap(eventData.result);
-
-    image.cursor = 'pointer';
-    image.x = 0;
-    image.y = 0;
+  _createImage(eventData, isRecto) {
+    let image;
+    if (isRecto) {
+      image = this.imageRecto;
+    } else {
+      image = this.imageVerso;
+    }
+    const loading = new createjs.Bitmap(eventData.result);
+    image.image = loading.image;
     image.regX = image.image.width / 2;
     image.regY = image.image.height / 2;
-    image.id = id;
 
     if (this.isRecto) {
-      image.name = 'Image - Recto';
-      if (this.rectoRotation) {
-        image.rotation = this.rectoRotation;
-      }
-      if (this.ppiRecto) {
-        image.scale = 96 / this.ppiRecto;
-      }
       if (this.maskRecto) {
         image.mask = this.maskRecto;
         this.maskRecto.regX = this.maskRecto.cx;
@@ -186,22 +206,14 @@ class Fragment {
         this.maskRecto.scale = image.scale / this.originalScaleRecto;
         image.x = (image.regX - this.maskRecto.cx) * this.maskRecto.scale;
         image.y = (image.regY - this.maskRecto.cy) * this.maskRecto.scale;
-        // image.regX = this.maskRecto.cx;
-        // image.regY = this.maskRecto.cy;
       }
     } else {
-      image.name = 'Image - Verso';
-      if (this.versoRotation) {
-        image.rotation = this.versoRotation;
-      }
-      if (this.ppiVerso) {
-        image.scale = 96 / this.ppiVerso;
-      }
       if (this.maskVerso) {
         image.mask = this.maskVerso;
         this.maskVerso.regX = this.maskVerso.cx;
         this.maskVerso.regY = this.maskVerso.cy;
-        this.maskVerso.scale = image.scale / this.originalScaleVerso;
+        this.maskVerso.scaleX *= Math.abs(image.scale) / this.originalScaleVerso;
+        this.maskVerso.scaleY = Math.abs(image.scale) / this.originalScaleVerso;
 
         image.regX = this.alignOffsetX;
         image.regY = this.alignOffsetY;
@@ -347,19 +359,18 @@ class Fragment {
       const loadqueue = new createjs.LoadQueue();
       loadqueue.addEventListener('fileload', (event) => {
         // once the file is loaded, the following should happen
-        const secondSideImage = this._createImage(event, this.id);
-        this.framework.registerImageEvents(secondSideImage);
-        if (inverted) secondSideImage.scaleX *= -1;
+        this._createImage(event, this.isRecto);
+        // if (inverted) this.getImage().scaleX *= -1;
         if (this.isRecto) {
           // register image as new recto file
-          if (inverted) this.maskRecto.scaleX *= -1;
-          this.imageRecto = secondSideImage;
-          this.containerRecto.addChild(this.imageRecto);
+          // if (inverted) this.maskRecto.scaleX *= -1;
+          // this.imageRecto = secondSideImage;
+          // this.containerRecto.addChild(this.imageRecto);
         } else {
           // register image as new verso file
-          if (inverted) this.maskVerso.scaleX *= -1;
-          this.imageVerso = secondSideImage;
-          this.containerVerso.addChild(this.imageVerso);
+          // if (inverted) this.maskVerso.scaleX *= -1;
+          // this.imageVerso = secondSideImage;
+          // this.containerVerso.addChild(this.imageVerso);
         }
         this.isBothSidesLoaded = true;
         this.framework._updateBb();
