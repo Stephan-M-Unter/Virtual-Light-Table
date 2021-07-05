@@ -1291,7 +1291,7 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        const container = fragment.getInnerContainer();
+        const container = fragment.getContainer();
 
         const bounds = container.getTransformedBounds();
         const xLeft = bounds.x;
@@ -1341,6 +1341,8 @@ class Stage {
     const center = this.getCenter();
     const distX = center.x - dimensions.center.x + sidebar/2;
     const distY = center.y - dimensions.center.y;
+    console.log("MBR:", this.getMBR());
+    console.log("Moving stage by:", distX, distY);
     this.moveStage(distX, distY);
   }
 }
