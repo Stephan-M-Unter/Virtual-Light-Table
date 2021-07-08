@@ -1,4 +1,5 @@
 // const {TouchBarScrubber, TouchBarSlider} = require('electron');
+const {TouchBarSlider} = require('electron');
 const {Fragment} = require('./Fragment');
 const {Measurement} = require('./Measurement');
 const {Scaler} = require('./Scaler');
@@ -446,7 +447,7 @@ class Stage {
     const fragmentImage = newFragment.getImage();
     this.stage.addChild(fragmentContainer);
 
-    this.registerImageEvents(fragmentImage);
+    // this.registerImageEvents(fragmentImage);
 
     this.controller.updateFragmentList();
   }
@@ -489,6 +490,7 @@ class Stage {
    * @param {*} image
    */
   registerImageEvents(image) {
+    console.log('Register', image.name);
     image.on('mousedown', (event) => {
       const clickedId = event.target.id;
       if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
@@ -508,7 +510,7 @@ class Stage {
       }
       this._moveToTop(this.fragmentList[clickedId]);
 
-      this._updateBb();
+      // this._updateBb();
       this.mouseClickStart = {x: event.stageX, y: event.stageY};
     });
 
@@ -950,9 +952,9 @@ class Stage {
    */
   _updateBb() {
     this.stage.removeChild(this.bb);
-    this.selector.updateBb(this.selectedList);
+    this.selector.updateBb(this.selectedList, this.stage.scaling/100);
     this.bb = this.selector.getBb();
-    this.bb.scale = this.stage.scaling / 100;
+    // this.bb.scale = this.stage.scaling / 100;
     this.stage.addChild(this.bb);
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
@@ -1341,8 +1343,6 @@ class Stage {
     const center = this.getCenter();
     const distX = center.x - dimensions.center.x + sidebar/2;
     const distY = center.y - dimensions.center.y;
-    console.log("MBR:", this.getMBR());
-    console.log("Moving stage by:", distX, distY);
     this.moveStage(distX, distY);
   }
 }
@@ -1358,92 +1358,155 @@ class Selector {
      */
   constructor(controller) {
     this.controller = controller;
+    this.setToDefault();
+  }
+
+  /**
+   * TODO
+   */
+  setToDefault() {
     this.x = 0;
     this.y = 0;
-    this.width = 100;
-    this.height = 100;
+    this.width = 0;
+    this.height = 0;
+    this.cx = 0;
+    this.cy = 0;
   }
 
   /**
    * TODO
    * @param {*} selectionList
+   * @param {*} scale
    */
-  updateBb(selectionList) {
-    let left; let top; let right; let bottom;
-    const center_x = [];
-    const center_y = [];
-    for (const idx in selectionList) {
-      if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
-        const fragment = selectionList[idx];
-        const container = fragment.getContainer();
-        const innerContainer = fragment.getInnerContainer();
-        const image = fragment.getImage();
-        // let image = fragment.getImage().image;
-
-        let xLeft; let yTop; let xRight; let yBottom;
-
-        if (fragment.getMaskBounds()) {
-          let mask = fragment.maskRecto;
-          if (!fragment.isRecto) {
-            mask = fragment.maskVerso;
-          }
-          const maskPolygon = mask.polygon;
-
-          for (const node in maskPolygon) {
-            if (Object.prototype.hasOwnProperty.call(maskPolygon, node)) {
-              const globalPoint = fragment.getInnerContainer()
-                  .localToGlobal(maskPolygon[node][0], maskPolygon[node][1]);
-              const x = globalPoint.x;
-              const y = globalPoint.y;
-
-              (!xLeft ? xLeft = x : xLeft = Math.min(xLeft, x));
-              (!xRight ? xRight = x : xRight = Math.max(xRight, x));
-              (!yTop ? yTop = y : yTop = Math.min(yTop, y));
-              (!yBottom ? yBottom = y : yBottom = Math.max(yBottom, y));
-
-              const globalCenter = fragment.getInnerContainer().localToGlobal(0, 0);
-              center_x.push(globalCenter.x);
-              center_y.push(globalCenter.y);
-            }
-          }
-        } else {
-          // const bounds = container.getTransformedBounds();
-          const bounds = innerContainer.getTransformedBounds();
-          if (!bounds) return;
-          xLeft = bounds.x+container.x;
-          yTop = bounds.y+container.y;
-          xRight = bounds.x+container.x + bounds.width;
-          yBottom = bounds.y+container.y + bounds.height;
-        }
-        (!left ? left = xLeft : left = Math.min(left, xLeft));
-        (!top ? top = yTop : top = Math.min(top, yTop));
-        (!right ? right = xRight : right = Math.max(right, xRight));
-        (!bottom ? bottom = yBottom : bottom = Math.max(bottom, yBottom));
-      }
-    }
-
-    this.width = right-left;
-    this.height = bottom-top;
-
-    if (center_x.length > 0) {
-      let avg_center_x = 0;
-      let avg_center_y = 0;
-
-      for ( let i = 0; i < center_x.length; i++ ) {
-        avg_center_x += parseInt( center_x[i], 10 );
-      }
-      avg_center_x /= center_x.length;
-
-      for ( let i = 0; i < center_y.length; i++ ) {
-        avg_center_y += parseInt( center_y[i], 10 );
-      }
-      avg_center_y /= center_y.length;
-
-      this.x = avg_center_x-this.width/2;
-      this.y = avg_center_y-this.height/2;
+  updateBb(selectionList, scale) {
+    // only update the Bounding Box if there is anything selected at all
+    if (!selectionList || Object.keys(selectionList).length == 0) {
+      this.setToDefault();
     } else {
+      let left = null;
+      let right = null;
+      let top = null;
+      let bottom = null;
+      let width = null;
+      let height = null;
+      // iteration over all selected elements
+      for (const idx in selectionList) {
+        if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
+          const fragment = selectionList[idx];
+          const fragmentBounds = fragment.getGlobalBounds();
+
+          // console.log(fragmentBounds);
+
+          (!left ? left = fragmentBounds.left : left = Math.min(left, fragmentBounds.left));
+          (!right ? right = fragmentBounds.right : right = Math.max(right, fragmentBounds.right));
+          (!top ? top = fragmentBounds.top : top = Math.min(top, fragmentBounds.top));
+          (!bottom ? bottom = fragmentBounds.bottom : bottom = Math.max(bottom, fragmentBounds.bottom));
+        }
+      }
+
+      /*
+      console.log(selectionList);
+      let left; let top; let right; let bottom;
+      const center_x = [];
+      const center_y = [];
+      for (const idx in selectionList) {
+        if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
+          const fragment = selectionList[idx];
+          const container = fragment.getContainer();
+          const innerContainer = fragment.getInnerContainer();
+          const image = fragment.getImage();
+          // let image = fragment.getImage().image;
+
+          let xLeft; let yTop; let xRight; let yBottom;
+
+          if (fragment.getMaskBounds()) {
+            console.log("MASKE");
+            let mask = fragment.maskRecto;
+            if (!fragment.isRecto) {
+              mask = fragment.maskVerso;
+            }
+            const maskPolygon = mask.polygon;
+            const scale = mask.scale;
+
+            for (const node in maskPolygon) {
+              if (Object.prototype.hasOwnProperty.call(maskPolygon, node)) {
+                const x_old = maskPolygon[node][0];
+                const y_old = maskPolygon[node][1];
+                const x_scaled = mask.cx - scale*(mask.cx-x_old);
+                const y_scaled = mask.cy - scale*(mask.cy-y_old);
+
+                const globalPoint = fragment.getInnerContainer()
+                    .localToGlobal(x_scaled, y_scaled);
+                const x = globalPoint.x;
+                const y = globalPoint.y;
+
+                (!xLeft ? xLeft = x : xLeft = Math.min(xLeft, x));
+                (!xRight ? xRight = x : xRight = Math.max(xRight, x));
+                (!yTop ? yTop = y : yTop = Math.min(yTop, y));
+                (!yBottom ? yBottom = y : yBottom = Math.max(yBottom, y));
+
+              }
+            }
+            const globalCenter = fragment.getInnerContainer().localToGlobal(0, 0);
+            center_x.push(globalCenter.x);
+            center_y.push(globalCenter.y);
+          } else {
+            // const bounds = container.getTransformedBounds();
+            const bounds = innerContainer.getTransformedBounds();
+            if (!bounds) return;
+            xLeft = bounds.x*scale+container.x;
+            yTop = bounds.y*scale+container.y;
+            xRight = bounds.x*scale+container.x + bounds.width*scale;
+            yBottom = bounds.y*scale+container.y + bounds.height*scale;
+            center_x.push((xLeft+xRight)/2);
+            center_y.push((yTop+yBottom)/2);
+          }
+          (!left ? left = xLeft : left = Math.min(left, xLeft));
+          (!top ? top = yTop : top = Math.min(top, yTop));
+          (!right ? right = xRight : right = Math.max(right, xRight));
+          (!bottom ? bottom = yBottom : bottom = Math.max(bottom, yBottom));
+        }
+      }
+
+      this.width = right-left;
+      this.height = bottom-top;
+
+      console.log("left", left, "right", right, "width", this.width);
+
+      if (center_x.length > 0) {
+        let avg_center_x = 0;
+        let avg_center_y = 0;
+
+        for ( let i = 0; i < center_x.length; i++ ) {
+          avg_center_x += parseInt( center_x[i], 10 );
+        }
+        avg_center_x /= center_x.length;
+
+        for ( let i = 0; i < center_y.length; i++ ) {
+          avg_center_y += parseInt( center_y[i], 10 );
+        }
+        avg_center_y /= center_y.length;
+
+        this.x = avg_center_x-this.width/2;
+        this.y = avg_center_y-this.height/2;
+      } else {
+        this.x = left;
+        this.y = top;
+      }
+      */
+
+      // this.x = 125;
+      // this.y = 225;
+      // this.width = 400;
+      // this.height = 300;
+      width = right - left;
+      height = bottom - top;
       this.x = left;
       this.y = top;
+      this.width = width;
+      this.height = height;
+      this.cx = width/2;
+      this.cy = height/2;
     }
   }
 
@@ -1462,8 +1525,10 @@ class Selector {
     bb.center = {x: this.x + this.width/2, y: this.y + this.height/2};
     bb.x = bb.center.x;
     bb.y = bb.center.y;
-    bb.regX = this.width/2;
-    bb.regY = this.height/2;
+    // bb.regX = this.width/2;
+    // bb.regY = this.height/2;
+    bb.regX = this.cx;
+    bb.regY = this.cy;
     bb.height = this.height;
     bb.width = this.width;
     return bb;

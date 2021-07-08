@@ -107,6 +107,7 @@ class Fragment {
     this.imageRecto.x = 0;
     this.imageRecto.y = 0;
     this.imageRecto.name = 'Image - Recto';
+    this.imageRecto.originalScale = this.originalScaleRecto;
     this.framework.registerImageEvents(this.imageRecto);
     this.containerRecto.addChild(this.imageRecto);
     if (this.rectoRotation) this.imageRecto.rotation = this.rectoRotation;
@@ -118,6 +119,7 @@ class Fragment {
     this.imageVerso.x = 0;
     this.imageVerso.y = 0;
     this.imageVerso.name = 'Image - Verso';
+    this.imageVerso.originalScale = this.originalScaleVerso;
     this.framework.registerImageEvents(this.imageVerso);
     this.containerVerso.addChild(this.imageVerso);
     if (this.versoRotation) this.imageVerso.rotation = this.versoRotation;
@@ -641,6 +643,121 @@ class Fragment {
     } else {
       return null;
     }
+  }
+
+  /**
+   *
+   * @return {*}
+   */
+  getBounds() {
+    const fragmentBounds = {
+      id: this.id,
+      reference: null,
+      type: null,
+      left: null,
+      right: null,
+      top: null,
+      bottom: null,
+      width: null,
+      height: null,
+      cx: null,
+      cy: null,
+    };
+
+    // case 1: fragment has NO vector mask
+    if (!this.getMask()) {
+      fragmentBounds['type'] = 'no_mask';
+      const bounds = this.getInnerContainer().getTransformedBounds();
+      fragmentBounds['reference'] = this.getContainer();
+      fragmentBounds['left'] = bounds.x;
+      fragmentBounds['right'] = bounds.x + bounds.width;
+      fragmentBounds['top'] = bounds.y;
+      fragmentBounds['bottom'] = bounds.y + bounds.height;
+      fragmentBounds['width'] = bounds.width;
+      fragmentBounds['height'] = bounds.height;
+      fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
+      fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
+    }
+    // case 2: fragment does have vector mask (box or polygon)
+    else {
+      fragmentBounds['type'] = 'vector_mask';
+      const mask = this.getMask();
+      const polygon = mask.polygon;
+      const xs = [];
+      const ys = [];
+
+      for (const idx in polygon) {
+        if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
+          let node = {x: polygon[idx][0], y: polygon[idx][1]};
+          let node_global;
+          if (this.getImage().scale >= 1) {
+            node_global = this.getImage().localToGlobal(node.x, node.y);
+          } else {
+            const scale = this.getImage().scale / this.getImage().originalScale;
+            const c = this.getImage().localToGlobal(this.getImage().regX, this.getImage().regY);
+            const image_cx = c.x;
+            const image_cy = c.y;
+            node_global = this.getImage().localToGlobal(node.x, node.y);
+            console.log("Test", image_cx, scale, node_global.x);
+            const x = image_cx - (scale*(image_cx - node_global.x));
+            const y = image_cy - (scale*(image_cy - node_global.y));
+            node_global = {x: x, y: y};
+          }
+
+
+          xs.push(node_global.x);
+          ys.push(node_global.y);
+        }
+      }
+
+      const tl = this.getImage().globalToLocal(Math.min(...xs), Math.min(...ys));
+      const br = this.getImage().globalToLocal(Math.max(...xs), Math.max(...ys));
+      
+      fragmentBounds['left'] = tl.x;
+      fragmentBounds['right'] = br.x;
+      fragmentBounds['top'] = tl.y;
+      fragmentBounds['bottom'] = br.y;
+      fragmentBounds['reference'] = this.getImage();
+      fragmentBounds['width'] = Math.abs(fragmentBounds['right'] - fragmentBounds['left']);
+      fragmentBounds['height'] = Math.abs(fragmentBounds['bottom'] - fragmentBounds['top']);
+      fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
+      fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
+    }
+    
+    console.log("Local", fragmentBounds);
+
+    return fragmentBounds;
+  }
+
+  /**
+   *
+   * @return {*}
+   */
+  getGlobalBounds() {
+    const fragmentBounds = this.getBounds();
+
+    const reference = fragmentBounds['reference'];
+    const tl = reference.localToGlobal(fragmentBounds.left, fragmentBounds.top);
+    const br = reference.localToGlobal(fragmentBounds.right, fragmentBounds.bottom);
+
+    const left = tl.x;
+    const right = br.x;
+    const top = tl.y;
+    const bottom = br.y;
+
+    fragmentBounds['left'] = Math.min(left, right);
+    fragmentBounds['right'] = Math.max(left, right);
+    fragmentBounds['top'] = Math.min(top, bottom);
+    fragmentBounds['bottom'] = Math.max(top, bottom);
+    // fragmentBounds['width'] = Math.abs(br.x - tl.x);
+    // fragmentBounds['height'] = Math.abs(br.y - tl.y);
+    fragmentBounds['cx'] = fragmentBounds['width'] / 2;
+    fragmentBounds['cy'] = fragmentBounds['height'] / 2;
+    fragmentBounds['reference'] = 'global';
+
+    console.log("Global", fragmentBounds);
+
+    return fragmentBounds;
   }
 }
 
