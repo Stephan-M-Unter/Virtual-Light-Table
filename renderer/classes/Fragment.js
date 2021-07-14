@@ -72,11 +72,10 @@ class Fragment {
     if (data.originalScaleVerso) this.originalScaleVerso = data.originalScaleVerso;
 
     // rotation distance (between recto and verso)
-    if (data.rotationDistance) {
-      this.rectoRotation = data.rectoRotation;
-      this.versoRotation = data.versoRotation;
-      this.rotationDistance = data.rotationDistance;
-    }
+    this.rectoRotation = data.rectoRotation;
+    this.versoRotation = data.versoRotation;
+    this.rotationDistance = data.rotationDistance;
+    if (data.containerRotation) this.containerRotation = data.containerRotation;
 
     // ppi information
     if (data.ppiRecto) {
@@ -97,8 +96,10 @@ class Fragment {
     // create inner Containers for images
     this.containerRecto = new createjs.Container();
     this.containerRecto.name = 'Inner Container - Recto';
+    if (this.containerRotation) this.containerRecto.rotation = this.containerRotation;
     this.containerVerso = new createjs.Container();
     this.containerVerso.name = 'Inner Container - Verso';
+    if (this.containerRotation) this.containerVerso.rotation = this.containerRotation;
 
     // create the image for the displayed side
     this.imageRecto = new createjs.Bitmap();
@@ -331,14 +332,8 @@ class Fragment {
    * @param {*} deltaAngle
    */
   rotateByAngle(deltaAngle) {
-    // this.rotateToAngle(this.container.rotation + deltaAngle);
-    if (this.isRecto) {
-      this.containerRecto.rotation += deltaAngle;
-      this.containerVerso.rotation += deltaAngle;
-    } else {
-      this.containerVerso.rotation += deltaAngle;
-      this.containerRecto.rotation += deltaAngle;
-    }
+    this.containerRecto.rotation += deltaAngle;
+    this.containerVerso.rotation += deltaAngle;
   }
 
   /**
@@ -524,6 +519,7 @@ class Fragment {
       'yPos': this.container.y,
       'baseY': this.baseY,
       'rotation': this.container.rotation,
+      'containerRotation': this.containerRecto.rotation,
       'maskRecto': rectoPolygon,
       'maskVerso': versoPolygon,
       'originalScaleRecto': this.originalScaleRecto,

@@ -1292,13 +1292,19 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        const container = fragment.getContainer();
+        /*const container = fragment.getContainer();
 
         const bounds = container.getTransformedBounds();
         const xLeft = bounds.x;
         const yTop = bounds.y;
         const xRight = bounds.x + bounds.width;
-        const yBottom = bounds.y + bounds.height;
+        const yBottom = bounds.y + bounds.height;*/
+
+        const bounds = fragment.getGlobalBounds();
+        const xLeft = bounds.left;
+        const xRight = bounds.right;
+        const yBottom = bounds.bottom;
+        const yTop = bounds.top;
 
         (!left ? left = xLeft : left = Math.min(left, xLeft));
         (!top ? top = yTop : top = Math.min(top, yTop));
