@@ -921,7 +921,7 @@ class Stage {
         const x = fragment.getX();
         const y = fragment.getY();
 
-        let xNew; let ynew;
+        let xNew; let yNew;
 
         if (fragment.isRecto) {
           fragment.rotateByAngle(-2*fragment.getRotation());
@@ -932,13 +932,15 @@ class Stage {
 
         if (horizontalFlip) {
           xNew = 2*yAxis - x;
-          ynew = y;
+          yNew = y;
         } else {
           xNew = x;
-          ynew = 2*xAxis - y;
+          yNew = 2*xAxis - y;
           fragment.rotateToAngle(180+fragment.getRotation());
         }
-        fragment.moveToPixel(xNew, ynew);
+        // fragment.moveToPixel(xNew, ynew);
+        console.log("x", x, xNew, x-xNew);
+        fragment.moveByDistance(-(x-xNew), -(y-yNew));
       }
     }
     this.update();
@@ -1142,37 +1144,43 @@ class Stage {
    * @return {*}
    */
   exportCanvas(fileFormat, full=true, thumb=false) {
-    const dimensions = this.getMBR();
-    const center = this.getCenter();
-    const distX = center.x - dimensions.center.x;
-    const distY = center.y - dimensions.center.y;
-    const oldScaling = this.stage.scaling;
+    let changeParameters = {
+      x: 0,
+      y: 0,
+      scale: this.stage.scaling,
+    };
+    // const dimensions = this.getMBR();
+    // const center = this.getCenter();
+    // const distX = center.x - dimensions.center.x;
+    // const distY = center.y - dimensions.center.y;
+    // const oldScaling = this.stage.scaling;
     if (full) {
       // change stage such that all fragments are visible
-      this.moveStage(distX, distY);
-      const scalingHeight = this.stage.scaling *
-          this.height / dimensions.height;
-      const scalingWidth = this.stage.scaling * this.width / dimensions.width;
-      const scaling = Math.min(scalingWidth, scalingHeight);
-      if (Math.abs(this.stage.scaling - scaling) > 1) {
-        this.controller.setScaling(scaling);
-      }
+      // this.moveStage(distX, distY);
+      // const scalingHeight = this.stage.scaling *
+          // this.height / dimensions.height;
+      // const scalingWidth = this.stage.scaling * this.width / dimensions.width;
+      // const scaling = Math.min(scalingWidth, scalingHeight);
+      // if (Math.abs(this.stage.scaling - scaling) > 1) {
+        // this.controller.setScaling(scaling);
+      // }
+      changeParameters = this.fitToScreen();
     }
 
     // remove UI elements
     this.controller.clearSelection();
     this._updateBb();
 
+    
     const pseudoLink = document.createElement('a');
     let extension; let type;
-
+    
     if (fileFormat == 'jpg' || fileFormat == 'jpeg') {
       extension = 'jpg';
       type = 'image/jpeg';
       const backgroundColor = $('.color_button.selected')
-          .css('background-color');
-      console.log(backgroundColor);
-
+      .css('background-color');
+      
       // creating a pseudo canvas, filling it with background color
       // then, drawing VLT canvas on top
       const pseudoCanvas = document.createElement('canvas');
@@ -1181,10 +1189,10 @@ class Stage {
       const pseudoContext = pseudoCanvas.getContext('2d');
       pseudoContext.fillStyle = backgroundColor;
       pseudoContext.fillRect(0, 0, this.stage.canvas.width,
-          this.stage.canvas.height);
-      pseudoContext.drawImage(this.stage.canvas, 0, 0);
-      pseudoLink.href = pseudoCanvas.toDataURL();
-    } else if (fileFormat == 'tiff') {
+        this.stage.canvas.height);
+        pseudoContext.drawImage(this.stage.canvas, 0, 0);
+        pseudoLink.href = pseudoCanvas.toDataURL(); // TODO
+      } else if (fileFormat == 'tiff') {
       extension = 'tif';
       type = 'image/tiff';
       pseudoLink.href = document.getElementById('lighttable').toDataURL(type);
@@ -1193,12 +1201,14 @@ class Stage {
       type = 'image/png';
       pseudoLink.href = document.getElementById('lighttable').toDataURL(type);
     }
-
+    
     if (thumb) {
       const screenshot = document.getElementById('lighttable')
-          .toDataURL('image/png');
-      this.controller.setScaling(oldScaling);
-      this.moveStage(-distX, -distY);
+      .toDataURL('image/png');
+      // this.controller.setScaling(oldScaling);
+      // this.moveStage(-distX, -distY);
+      this.moveStage(-changeParameters.x, -changeParameters.y);
+      this.controller.setScaling(changeParameters.scale);
       this.update();
       this._saveToModel();
       return screenshot;
@@ -1207,18 +1217,25 @@ class Stage {
     // creating artificial anchor element for download
     pseudoLink.download = 'reconstruction.' + extension;
     pseudoLink.style.display = 'none';
-
+    
     // temporarily appending the anchor, "clicking" on it, and removing it again
     document.body.appendChild(pseudoLink);
     pseudoLink.click();
     document.body.removeChild(pseudoLink);
 
+    console.log(changeParameters);
+    console.log(this.stage.scaling);
+    
     if (full) {
       // revert stage to original configuration
-      this.controller.setScaling(oldScaling);
-      this.moveStage(-distX, -distY);
-      this.update();
+      // this.controller.setScaling(oldScaling);
+      // this.moveStage(-distX, -distY);
+      this.moveStage(-changeParameters.x, -changeParameters.y);
+      this.controller.setScaling(changeParameters.scale);
     }
+    /*
+    */
+   this.update();
   }
 
   /**
@@ -1332,11 +1349,13 @@ class Stage {
 
   /**
    * TODO
+   * @return {*}
    */
   fitToScreen() {
     let dimensions = this.getMBR();
     const sidebar = $('#left_sidebar').width();
     const width = this.width - sidebar;
+    const oldScaling = this.stage.scaling;
     const scalingHeight = this.stage.scaling * this.height / dimensions.height;
     const scalingWidth = this.stage.scaling * width / dimensions.width;
     const scaling = Math.min(scalingWidth, scalingHeight);
@@ -1349,6 +1368,11 @@ class Stage {
     const distX = center.x - dimensions.center.x + sidebar/2;
     const distY = center.y - dimensions.center.y;
     this.moveStage(distX, distY);
+    return {
+      x: distX,
+      y: distY,
+      scale: oldScaling,
+    };
   }
 }
 

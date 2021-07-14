@@ -446,7 +446,7 @@ $(document).ready(function() {
   // client-load-model
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-model', (event, data) => {
-    console.log('Received client-load-model');
+    console.log('Received client-load-model', data);
     if ('loading' in data) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
