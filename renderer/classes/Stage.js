@@ -490,7 +490,6 @@ class Stage {
    * @param {*} image
    */
   registerImageEvents(image) {
-    console.log('Register', image.name);
     image.on('mousedown', (event) => {
       const clickedId = event.target.id;
       if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
@@ -1394,6 +1393,7 @@ class Selector {
         if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
           const fragment = selectionList[idx];
           const fragmentBounds = fragment.getGlobalBounds();
+          if (!fragmentBounds) return null;
 
           // console.log(fragmentBounds);
 

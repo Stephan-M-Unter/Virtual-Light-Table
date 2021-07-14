@@ -668,6 +668,7 @@ class Fragment {
     if (!this.getMask()) {
       fragmentBounds['type'] = 'no_mask';
       const bounds = this.getInnerContainer().getTransformedBounds();
+      if (!bounds) return null;
       fragmentBounds['reference'] = this.getContainer();
       fragmentBounds['left'] = bounds.x;
       fragmentBounds['right'] = bounds.x + bounds.width;
@@ -689,11 +690,46 @@ class Fragment {
       for (const idx in polygon) {
         if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
           let node = {x: polygon[idx][0], y: polygon[idx][1]};
+          if (this.getImage().rotation != 0) {
+            let mask_center = {x: this.getMask().cx, y: this.getMask().cy};
+
+            if (this.getImage().originalScale/* < 1*/) {
+              const scale = 1/this.getImage().originalScale;
+              const image_cx = this.getImage().image.width / 2;
+              const image_cy = this.getImage().image.height / 2;
+
+              // const image_c = this.getImage().localToGlobal(image_cx, image_cy);
+              // image_cx = image_c.x;
+              // image_cy = image_c.y;
+              
+              
+              const mask_new_x = image_cx - (scale * (image_cx - mask_center.x));
+              const mask_new_y = image_cy - (scale * (image_cy - mask_center.y));
+              mask_center = {x: mask_new_x*this.getImage().scale, y: mask_new_y*this.getImage().scale};
+            }
+
+
+            let p = this.getImage().getMatrix().invert().transformPoint(-mask_center.x, -mask_center.y);
+            // p = {x: p.x+26, y: p.y+103};
+            // p = {x: p.x+5338, y: p.y+5765};
+            let m = new createjs.Matrix2D(); // this.getMask().getMatrix();
+            // m = m.translate(322.5, 345);
+            m = m.translate(p.x, p.y);
+            m = m.rotate(-this.getImage().rotation);
+            node = m.transformPoint(node.x, node.y);
+            /*
+            m = m.invert();
+            br = m.transformPoint(br.x, br.y);
+            */
+          }
+
           let node_global;
-          if (this.getImage().scale >= 1) {
-            node_global = this.getImage().localToGlobal(node.x, node.y);
-          } else {
-            const scale = this.getImage().scale / this.getImage().originalScale;
+          node_global = this.getImage().localToGlobal(node.x, node.y);
+          xs.push(node_global.x);
+          ys.push(node_global.y);
+          /*
+          if (this.getImage().originalScale >= 1) {
+            console.log("case 2.2 - scaling");
             const c = this.getImage().localToGlobal(this.getImage().regX, this.getImage().regY);
             const image_cx = c.x;
             const image_cy = c.y;
@@ -702,17 +738,49 @@ class Fragment {
             const x = image_cx - (scale*(image_cx - node_global.x));
             const y = image_cy - (scale*(image_cy - node_global.y));
             node_global = {x: x, y: y};
-          }
-
-
-          xs.push(node_global.x);
-          ys.push(node_global.y);
+            */
         }
       }
 
-      const tl = this.getImage().globalToLocal(Math.min(...xs), Math.min(...ys));
-      const br = this.getImage().globalToLocal(Math.max(...xs), Math.max(...ys));
-      
+      let x_min = Math.min(...xs);
+      let x_max = Math.max(...xs);
+      let y_min = Math.min(...ys);
+      let y_max = Math.max(...ys);
+
+      const nodes_cx = (x_min+x_max)/2;
+      const nodes_cy = (y_min+y_max)/2;
+      const nodes_w = (x_max-x_min);
+      const nodes_h = (y_max-y_min);
+
+      if (this.getImage().originalScale < 1) {
+        const scale = 1/this.getImage().originalScale;
+        // let image_cx = this.getImage().regX;
+        // let image_cy = this.getImage().regY;
+        let image_cx = this.getImage().image.width / 2;
+        let image_cy = this.getImage().image.height / 2;
+
+        const image_c = this.getImage().localToGlobal(image_cx, image_cy);
+        image_cx = image_c.x;
+        image_cy = image_c.y;
+
+        x_min = image_cx - (scale * (image_cx - x_min));
+        x_max = image_cx - (scale * (image_cx - x_max));
+        y_min = image_cy - (scale * (image_cy - y_min));
+        y_max = image_cy - (scale * (image_cy - y_max));
+      }
+
+      const tl = this.getImage().globalToLocal(x_min, y_min);
+      const br = this.getImage().globalToLocal(x_max, y_max);
+
+      if (this.getImage().rotation != 0) {
+        /*
+        let m = this.getMask().getConcatenatedMatrix();
+        m = m.invert();
+        tl = m.transformPoint(tl.x, tl.y);
+        br = m.transformPoint(br.x, br.y);
+        */
+      }
+
       fragmentBounds['left'] = tl.x;
       fragmentBounds['right'] = br.x;
       fragmentBounds['top'] = tl.y;
@@ -723,8 +791,6 @@ class Fragment {
       fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
       fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
     }
-    
-    console.log("Local", fragmentBounds);
 
     return fragmentBounds;
   }
@@ -735,6 +801,7 @@ class Fragment {
    */
   getGlobalBounds() {
     const fragmentBounds = this.getBounds();
+    if (!fragmentBounds) return null;
 
     const reference = fragmentBounds['reference'];
     const tl = reference.localToGlobal(fragmentBounds.left, fragmentBounds.top);
@@ -754,8 +821,6 @@ class Fragment {
     fragmentBounds['cx'] = fragmentBounds['width'] / 2;
     fragmentBounds['cy'] = fragmentBounds['height'] / 2;
     fragmentBounds['reference'] = 'global';
-
-    console.log("Global", fragmentBounds);
 
     return fragmentBounds;
   }
