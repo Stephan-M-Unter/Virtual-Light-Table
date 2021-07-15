@@ -140,7 +140,7 @@ class AnnotationPopup {
         this.annotationIDs.push(annotId);
 
         const annotation = this._createAnnotationElement(annotId,
-            annot.text, annot.editor, annot.time);
+            annot.text, annot.editor, Util.convertTime(annot.time));
 
         if (annot.hidden) {
           annotation.setAttribute('class', 'annotation hidden_annot');

@@ -1,5 +1,5 @@
-// const {TouchBarScrubber, TouchBarSlider} = require('electron');
-const {TouchBarSlider} = require('electron');
+'use strict';
+
 const {Fragment} = require('./Fragment');
 const {Measurement} = require('./Measurement');
 const {Scaler} = require('./Scaler');
@@ -444,10 +444,7 @@ class Stage {
     const newFragment = new Fragment(this.controller, this, newId, event);
     this.fragmentList[newId] = newFragment;
     const fragmentContainer = newFragment.getContainer();
-    const fragmentImage = newFragment.getImage();
     this.stage.addChild(fragmentContainer);
-
-    // this.registerImageEvents(fragmentImage);
 
     this.controller.updateFragmentList();
   }
@@ -467,6 +464,7 @@ class Stage {
           this.stage.removeChild(fragmentContainer);
           delete this.fragmentList[fragment.id];
           this.stage.update();
+          this._saveToModel();
         }
       }
     }
@@ -483,6 +481,7 @@ class Stage {
     }
     this.controller.clearSelection();
     this.update();
+    this._saveToModel();
   }
 
   /**
@@ -689,9 +688,7 @@ class Stage {
     this.activeMeasurement.setPoint(point);
 
     if (this.activeMeasurement.getP2()) {
-      const id = this.activeMeasurement.getID();
       const scalingFactor = this.stage.scaling / 100;
-      const distance = this.activeMeasurement.getDistanceInCm(scalingFactor);
       this.activeMeasurement.drawMeasurement(scalingFactor);
       this.endMeasurement();
     }
@@ -939,7 +936,7 @@ class Stage {
           fragment.rotateToAngle(180+fragment.getRotation());
         }
         // fragment.moveToPixel(xNew, ynew);
-        console.log("x", x, xNew, x-xNew);
+        console.log('x', x, xNew, x-xNew);
         fragment.moveByDistance(-(x-xNew), -(y-yNew));
       }
     }
@@ -1158,11 +1155,11 @@ class Stage {
       // change stage such that all fragments are visible
       // this.moveStage(distX, distY);
       // const scalingHeight = this.stage.scaling *
-          // this.height / dimensions.height;
+      // this.height / dimensions.height;
       // const scalingWidth = this.stage.scaling * this.width / dimensions.width;
       // const scaling = Math.min(scalingWidth, scalingHeight);
       // if (Math.abs(this.stage.scaling - scaling) > 1) {
-        // this.controller.setScaling(scaling);
+      // this.controller.setScaling(scaling);
       // }
       changeParameters = this.fitToScreen();
     }
@@ -1171,16 +1168,16 @@ class Stage {
     this.controller.clearSelection();
     this._updateBb();
 
-    
+
     const pseudoLink = document.createElement('a');
     let extension; let type;
-    
+
     if (fileFormat == 'jpg' || fileFormat == 'jpeg') {
       extension = 'jpg';
       type = 'image/jpeg';
       const backgroundColor = $('.color_button.selected')
-      .css('background-color');
-      
+          .css('background-color');
+
       // creating a pseudo canvas, filling it with background color
       // then, drawing VLT canvas on top
       const pseudoCanvas = document.createElement('canvas');
@@ -1189,10 +1186,10 @@ class Stage {
       const pseudoContext = pseudoCanvas.getContext('2d');
       pseudoContext.fillStyle = backgroundColor;
       pseudoContext.fillRect(0, 0, this.stage.canvas.width,
-        this.stage.canvas.height);
-        pseudoContext.drawImage(this.stage.canvas, 0, 0);
-        pseudoLink.href = pseudoCanvas.toDataURL(); // TODO
-      } else if (fileFormat == 'tiff') {
+          this.stage.canvas.height);
+      pseudoContext.drawImage(this.stage.canvas, 0, 0);
+      pseudoLink.href = pseudoCanvas.toDataURL(); // TODO
+    } else if (fileFormat == 'tiff') {
       extension = 'tif';
       type = 'image/tiff';
       pseudoLink.href = document.getElementById('lighttable').toDataURL(type);
@@ -1201,10 +1198,10 @@ class Stage {
       type = 'image/png';
       pseudoLink.href = document.getElementById('lighttable').toDataURL(type);
     }
-    
+
     if (thumb) {
       const screenshot = document.getElementById('lighttable')
-      .toDataURL('image/png');
+          .toDataURL('image/png');
       // this.controller.setScaling(oldScaling);
       // this.moveStage(-distX, -distY);
       this.moveStage(-changeParameters.x, -changeParameters.y);
@@ -1217,7 +1214,7 @@ class Stage {
     // creating artificial anchor element for download
     pseudoLink.download = 'reconstruction.' + extension;
     pseudoLink.style.display = 'none';
-    
+
     // temporarily appending the anchor, "clicking" on it, and removing it again
     document.body.appendChild(pseudoLink);
     pseudoLink.click();
@@ -1225,7 +1222,7 @@ class Stage {
 
     console.log(changeParameters);
     console.log(this.stage.scaling);
-    
+
     if (full) {
       // revert stage to original configuration
       // this.controller.setScaling(oldScaling);
@@ -1235,7 +1232,7 @@ class Stage {
     }
     /*
     */
-   this.update();
+    this.update();
   }
 
   /**
@@ -1309,7 +1306,7 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        /*const container = fragment.getContainer();
+        /* const container = fragment.getContainer();
 
         const bounds = container.getTransformedBounds();
         const xLeft = bounds.x;
@@ -1422,113 +1419,16 @@ class Selector {
       for (const idx in selectionList) {
         if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
           const fragment = selectionList[idx];
-          const fragmentBounds = fragment.getGlobalBounds();
-          if (!fragmentBounds) return null;
+          const fBounds = fragment.getGlobalBounds();
+          if (!fBounds) return;
 
-          // console.log(fragmentBounds);
-
-          (!left ? left = fragmentBounds.left : left = Math.min(left, fragmentBounds.left));
-          (!right ? right = fragmentBounds.right : right = Math.max(right, fragmentBounds.right));
-          (!top ? top = fragmentBounds.top : top = Math.min(top, fragmentBounds.top));
-          (!bottom ? bottom = fragmentBounds.bottom : bottom = Math.max(bottom, fragmentBounds.bottom));
+          (!left ? left = fBounds.left : left = Math.min(left, fBounds.left));
+          (!right ? right = fBounds.right : right = Math.max(right, fBounds.right));
+          (!top ? top = fBounds.top : top = Math.min(top, fBounds.top));
+          (!bottom ? bottom = fBounds.bottom : bottom = Math.max(bottom, fBounds.bottom));
         }
       }
 
-      /*
-      console.log(selectionList);
-      let left; let top; let right; let bottom;
-      const center_x = [];
-      const center_y = [];
-      for (const idx in selectionList) {
-        if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
-          const fragment = selectionList[idx];
-          const container = fragment.getContainer();
-          const innerContainer = fragment.getInnerContainer();
-          const image = fragment.getImage();
-          // let image = fragment.getImage().image;
-
-          let xLeft; let yTop; let xRight; let yBottom;
-
-          if (fragment.getMaskBounds()) {
-            console.log("MASKE");
-            let mask = fragment.maskRecto;
-            if (!fragment.isRecto) {
-              mask = fragment.maskVerso;
-            }
-            const maskPolygon = mask.polygon;
-            const scale = mask.scale;
-
-            for (const node in maskPolygon) {
-              if (Object.prototype.hasOwnProperty.call(maskPolygon, node)) {
-                const x_old = maskPolygon[node][0];
-                const y_old = maskPolygon[node][1];
-                const x_scaled = mask.cx - scale*(mask.cx-x_old);
-                const y_scaled = mask.cy - scale*(mask.cy-y_old);
-
-                const globalPoint = fragment.getInnerContainer()
-                    .localToGlobal(x_scaled, y_scaled);
-                const x = globalPoint.x;
-                const y = globalPoint.y;
-
-                (!xLeft ? xLeft = x : xLeft = Math.min(xLeft, x));
-                (!xRight ? xRight = x : xRight = Math.max(xRight, x));
-                (!yTop ? yTop = y : yTop = Math.min(yTop, y));
-                (!yBottom ? yBottom = y : yBottom = Math.max(yBottom, y));
-
-              }
-            }
-            const globalCenter = fragment.getInnerContainer().localToGlobal(0, 0);
-            center_x.push(globalCenter.x);
-            center_y.push(globalCenter.y);
-          } else {
-            // const bounds = container.getTransformedBounds();
-            const bounds = innerContainer.getTransformedBounds();
-            if (!bounds) return;
-            xLeft = bounds.x*scale+container.x;
-            yTop = bounds.y*scale+container.y;
-            xRight = bounds.x*scale+container.x + bounds.width*scale;
-            yBottom = bounds.y*scale+container.y + bounds.height*scale;
-            center_x.push((xLeft+xRight)/2);
-            center_y.push((yTop+yBottom)/2);
-          }
-          (!left ? left = xLeft : left = Math.min(left, xLeft));
-          (!top ? top = yTop : top = Math.min(top, yTop));
-          (!right ? right = xRight : right = Math.max(right, xRight));
-          (!bottom ? bottom = yBottom : bottom = Math.max(bottom, yBottom));
-        }
-      }
-
-      this.width = right-left;
-      this.height = bottom-top;
-
-      console.log("left", left, "right", right, "width", this.width);
-
-      if (center_x.length > 0) {
-        let avg_center_x = 0;
-        let avg_center_y = 0;
-
-        for ( let i = 0; i < center_x.length; i++ ) {
-          avg_center_x += parseInt( center_x[i], 10 );
-        }
-        avg_center_x /= center_x.length;
-
-        for ( let i = 0; i < center_y.length; i++ ) {
-          avg_center_y += parseInt( center_y[i], 10 );
-        }
-        avg_center_y /= center_y.length;
-
-        this.x = avg_center_x-this.width/2;
-        this.y = avg_center_y-this.height/2;
-      } else {
-        this.x = left;
-        this.y = top;
-      }
-      */
-
-      // this.x = 125;
-      // this.y = 225;
-      // this.width = 400;
-      // this.height = 300;
       width = right - left;
       height = bottom - top;
       this.x = left;

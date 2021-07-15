@@ -1,3 +1,5 @@
+'use strict';
+
 /*
     The UI Controller is the controller instance
     for the whole view; it controls all individual
@@ -10,7 +12,7 @@
 const {Sidebar} = require('./Sidebar');
 const {Stage} = require('./Stage');
 const {AnnotationPopup} = require('./AnnotationPopup');
-const {ipcRenderer, TouchBarSlider} = require('electron');
+const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
 const dialogs = new Dialogs();
 
@@ -28,26 +30,35 @@ class UIController {
     this.annotationPopup = new AnnotationPopup(this);
     this.hotkeysOn = true;
     this.hasUnsaved = false;
+
+    this.devMode = false;
   }
 
   /**
-   * TODO
-   * @param {*} message
-   * @param {*} data
+   * Communication method for sending messages back to the server.
+   * @param {*} message - Control sequence according to
+   *                      the server/client protocol.
+   * @param {*} data - Object containing the information needed
+   *                   by the server to proceed with the given action.
    */
   sendToServer(message, data) {
     if (data) {
+      if (this.devMode) console.log('Sending ' + message + '; data:', data);
       ipcRenderer.send(message, data);
     } else {
+      if (this.devMode) console.log('Sending ' + message + '; no data.');
       ipcRenderer.send(message);
     }
   }
 
   /**
-   * TODO
+   * Input function. When triggered, the user is asked to enter a name or initials. This
+   * data will be sent to the server together with a screenshot. During the process, hotkeys
+   * are disabled to avoid interferences between typing and the canvas actions. Data is only
+   * sent if a name is provided.
    */
   saveTable() {
-    this.setHotkeysOn(false);
+    this.disableHotkeys();
     dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
       if (editor != '' && editor != null) {
         const screenshot = this.exportCanvas('png', true, true);
@@ -58,12 +69,13 @@ class UIController {
         this.sendToServer('server-save-file', data);
         this.hasUnsaved = false;
       }
-      this.setHotkeysOn(true);
+      this.enableHotkeys();
     });
   }
 
   /**
-   * TODO
+   * Relay function - triggering load table procedure. Only proceed if there
+   * have been no changes or user confirms.
    */
   loadTable() {
     if (!this.hasUnsaved) {
@@ -74,16 +86,17 @@ class UIController {
   }
 
   /**
-   * TODO
-   * @param {*} data
+   * Relay function - saving table to model.
+   * @param {Object} data - Object containing all information about the stage
+   *                   configuration and the fragments to be saved to the model.
    */
   saveToModel(data) {
     this.hasUnsaved = true;
-    ipcRenderer.send('server-save-to-model', data);
+    this.sendToServer('server-save-to-model', data);
   }
 
   /**
-   * TODO
+   * Relay function - clear table if no unsaved changes or user confirms.
    */
   clearTable() {
     if (!this.hasUnsaved) {
@@ -98,8 +111,9 @@ class UIController {
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Input function - asks user for clarification that unsaved changes can be
+   * overwritten.
+   * @return {Boolean} True if changes can be overwritten, false otherwise.
    */
   confirmClearTable() {
     const confirmation = confirm('You still have unsaved changes '+
@@ -144,8 +158,8 @@ class UIController {
   }
 
   /**
-   * TODO: send selection signal to all view elements necessary
-   * @param {*} fragmentId
+   * Selects fragment with given ID in all responsible UI elements.
+   * @param {String} fragmentId
    */
   selectFragment(fragmentId) {
     this.stage.selectFragment(fragmentId);
@@ -153,8 +167,8 @@ class UIController {
   }
 
   /**
-   * TODO: send deselection signal to all view elements necessary
-   * @param {*} fragmentId
+   * Deselects fragment with given ID in all responsible UI elements.
+   * @param {String} fragmentId
    */
   deselectFragment(fragmentId) {
     this.stage.deselectFragment(fragmentId);
@@ -162,7 +176,7 @@ class UIController {
   }
 
   /**
-   * TODO: inform all necessary view elements to clear their selection lists
+   * Removes all fragment selections in all responsible UI elements.
    */
   clearSelection() {
     this.stage.clearSelection();
@@ -170,8 +184,9 @@ class UIController {
   }
 
   /**
-   * TODO
-   * @param {*} fragmentId
+   * Notifies all responsible UI elements that a fragment with given ID is currently
+   * being highlighted.
+   * @param {String} fragmentId
    */
   highlightFragment(fragmentId) {
     this.stage.highlightFragment(fragmentId);
@@ -179,20 +194,18 @@ class UIController {
   }
 
   /**
-   * TODO
-   * @param {*} fragmentId
+   * Notifies all responsible UI elements that a fragment with a given ID has stopped being
+   * highlighted.
+   * @param {String} fragmentId
    */
   unhighlightFragment(fragmentId) {
-    try {
-      this.stage.unhighlightFragment(fragmentId);
-      this.sidebar.unhighlightFragment(fragmentId);
-    } catch (err) {
-
-    }
+    this.stage.unhighlightFragment(fragmentId);
+    this.sidebar.unhighlightFragment(fragmentId);
   }
 
   /**
-   * TODO: update sidebar fragment list according to fragments on stage
+   * Gathers the current list of fragments on the table (fragmentList) and the list of
+   * actively selected fragments (selectedList) from the stage and updates the sidebar accordingly.
    */
   updateFragmentList() {
     const fragmentList = this.stage.getFragmentList();
@@ -201,8 +214,9 @@ class UIController {
   }
 
   /**
-   * TODO: ask for delete confirmation; if approved, send removal
-   * signal to stage and update sidebar fragment list accordingly
+   * Input method - Asks the user for confirmation that the selected fragments shall be deleted. If so, the
+   * selected items are removed from the table and sidebar is updated. Does NOT notify the server about removal, this has
+   * to happen in stage object after changes.
    */
   removeFragments() {
     const confirmation = confirm('Do you really want to remove this ' +
@@ -216,8 +230,9 @@ class UIController {
   }
 
   /**
-   * TODO
-   * @param {*} id
+   * Input method - Asks the user for confirmation to remove a specific fragment with given ID
+   * from the table. If so, the task is relayed to the stage.
+   * @param {String} id
    */
   removeFragment(id) {
     const confirmation = confirm('Do you really want to remove this fragment' +
@@ -306,6 +321,23 @@ class UIController {
     this.stage.setScaling(scalingValue, scaleX, scaleY);
     $('#zoom_slider').val(scalingValue);
     $('#zoom_factor').text('x'+Math.round((scalingValue/100)*100)/100);
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getScaling() {
+    return this.stage.getScaling();
+  }
+
+  /**
+   * TODO
+   * @param {*} width
+   * @param {*} height
+   */
+  resizeCanvas(width, height) {
+    this.stage.resizeCanvas(width, height);
   }
 
   /**
@@ -469,11 +501,19 @@ class UIController {
   }
 
   /**
-   * TODO
-   * @param {*} hotkeysOn
+   * Functionality of certain hotkeys is provided. (note: "certain"
+   * means that there are hotkeys which cannot break the overall functioning
+   * of the application in any state; they will still work)
    */
-  setHotkeysOn(hotkeysOn) {
-    this.hotkeysOn = hotkeysOn;
+  enableHotkeys() {
+    this.hotkeysOn = true;
+  }
+
+  /**
+   * Functionality of certain hotkeys is not provided anymore.
+   */
+  disableHotkeys() {
+    this.hotkeysOn = false;
   }
 
   /**
@@ -489,6 +529,55 @@ class UIController {
    */
   update() {
     this.stage.update();
+  }
+
+  /**
+   * TODO
+   * @param {*} horizontal
+   */
+  flipTable(horizontal) {
+    this.stage.flipTable(horizontal);
+  }
+
+  /**
+   * TODO
+   * @param {*} horizontal
+   */
+  showFlipLine(horizontal) {
+    this.stage.showFlipLine(horizontal);
+  }
+
+  /**
+   * TODO
+   */
+  hideFlipLines() {
+    this.stage.hideFlipLines();
+  }
+
+  /**
+   * Relay function.
+   */
+  fitToScreen() {
+    this.stage.fitToScreen();
+  }
+
+  /**
+   * Provides a flag for the whole client whether dev mode is activated
+   * or not. Changing the boolean flag on top of the file will activate
+   * or deactivate all dev_mode related functions.
+   * @return {Boolean}
+   */
+  isDevMode() {
+    return this.devMode;
+  }
+
+  /**
+   * Toggles dev_mode flag.
+   */
+  toggleDevMode() {
+    this.devMode = !this.devMode;
+    if (this.devMode) console.log('Dev_Mode activated. Deactivate with [CTRL+ALT+D].');
+    else console.log('Dev_Mode deactivated.');
   }
 }
 

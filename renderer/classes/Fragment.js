@@ -1,4 +1,4 @@
-const {TouchBarSlider, TouchBarOtherItemsProxy} = require('electron');
+'use strict';
 
 /**
  * TODO
@@ -413,6 +413,7 @@ class Fragment {
 
   /**
    * TODO
+   * @param {Boolean} inverted
    */
   translateRotation(inverted) {
     if (inverted) {
@@ -450,6 +451,10 @@ class Fragment {
     }
   }
 
+  /**
+   * TODO
+   * @return {*}
+   */
   getHiddenImage() {
     if (this.isRecto) {
       return this.imageVerso;
@@ -674,9 +679,8 @@ class Fragment {
       fragmentBounds['height'] = bounds.height;
       fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
       fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
-    }
+    } else {
     // case 2: fragment does have vector mask (box or polygon)
-    else {
       fragmentBounds['type'] = 'vector_mask';
       const mask = this.getMask();
       const polygon = mask.polygon;
@@ -687,25 +691,26 @@ class Fragment {
         if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
           let node = {x: polygon[idx][0], y: polygon[idx][1]};
           if (this.getImage().rotation != 0) {
-            let mask_center = {x: this.getMask().cx, y: this.getMask().cy};
+            let maskCenter = {x: this.getMask().cx, y: this.getMask().cy};
 
             if (this.getImage().originalScale/* < 1*/) {
               const scale = 1/this.getImage().originalScale;
-              const image_cx = this.getImage().image.width / 2;
-              const image_cy = this.getImage().image.height / 2;
+              const imageCx = this.getImage().image.width / 2;
+              const imageCy = this.getImage().image.height / 2;
 
               // const image_c = this.getImage().localToGlobal(image_cx, image_cy);
               // image_cx = image_c.x;
               // image_cy = image_c.y;
-              
-              
-              const mask_new_x = image_cx - (scale * (image_cx - mask_center.x));
-              const mask_new_y = image_cy - (scale * (image_cy - mask_center.y));
-              mask_center = {x: mask_new_x*this.getImage().scale, y: mask_new_y*this.getImage().scale};
+
+
+              const maskNewX = imageCx - (scale * (imageCx - maskCenter.x));
+              const maskNewY = imageCy - (scale * (imageCy - maskCenter.y));
+              maskCenter = {x: maskNewX*this.getImage().scale, y: maskNewY*this.getImage().scale};
             }
 
 
-            let p = this.getImage().getMatrix().invert().transformPoint(-mask_center.x, -mask_center.y);
+            const inversionMatrix = this.getImage().getMatrix().invert();
+            const p = inversionMatrix.transformPoint(-maskCenter.x, -maskCenter.y);
             // p = {x: p.x+26, y: p.y+103};
             // p = {x: p.x+5338, y: p.y+5765};
             let m = new createjs.Matrix2D(); // this.getMask().getMatrix();
@@ -719,10 +724,9 @@ class Fragment {
             */
           }
 
-          let node_global;
-          node_global = this.getImage().localToGlobal(node.x, node.y);
-          xs.push(node_global.x);
-          ys.push(node_global.y);
+          const nodeGlobal = this.getImage().localToGlobal(node.x, node.y);
+          xs.push(nodeGlobal.x);
+          ys.push(nodeGlobal.y);
           /*
           if (this.getImage().originalScale >= 1) {
             console.log("case 2.2 - scaling");
@@ -738,35 +742,35 @@ class Fragment {
         }
       }
 
-      let x_min = Math.min(...xs);
-      let x_max = Math.max(...xs);
-      let y_min = Math.min(...ys);
-      let y_max = Math.max(...ys);
+      let xMin = Math.min(...xs);
+      let xMax = Math.max(...xs);
+      let yMin = Math.min(...ys);
+      let yMax = Math.max(...ys);
 
-      const nodes_cx = (x_min+x_max)/2;
-      const nodes_cy = (y_min+y_max)/2;
-      const nodes_w = (x_max-x_min);
-      const nodes_h = (y_max-y_min);
+      // const nodesCx = (xMin+xMax)/2;
+      // const nodesCy = (yMin+yMax)/2;
+      // const nodesW = (xMax-xMin);
+      // const nodesH = (yMax-yMin);
 
       if (this.getImage().originalScale < 1) {
         const scale = 1/this.getImage().originalScale;
         // let image_cx = this.getImage().regX;
         // let image_cy = this.getImage().regY;
-        let image_cx = this.getImage().image.width / 2;
-        let image_cy = this.getImage().image.height / 2;
+        let imageCx = this.getImage().image.width / 2;
+        let imageCy = this.getImage().image.height / 2;
 
-        const image_c = this.getImage().localToGlobal(image_cx, image_cy);
-        image_cx = image_c.x;
-        image_cy = image_c.y;
+        const imageC = this.getImage().localToGlobal(imageCx, imageCy);
+        imageCx = imageC.x;
+        imageCy = imageC.y;
 
-        x_min = image_cx - (scale * (image_cx - x_min));
-        x_max = image_cx - (scale * (image_cx - x_max));
-        y_min = image_cy - (scale * (image_cy - y_min));
-        y_max = image_cy - (scale * (image_cy - y_max));
+        xMin = imageCx - (scale * (imageCx - xMin));
+        xMax = imageCx - (scale * (imageCx - xMax));
+        yMin = imageCy - (scale * (imageCy - yMin));
+        yMax = imageCy - (scale * (imageCy - yMax));
       }
 
-      const tl = this.getImage().globalToLocal(x_min, y_min);
-      const br = this.getImage().globalToLocal(x_max, y_max);
+      const tl = this.getImage().globalToLocal(xMin, yMin);
+      const br = this.getImage().globalToLocal(xMax, yMax);
 
       if (this.getImage().rotation != 0) {
         /*

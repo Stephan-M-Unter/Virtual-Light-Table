@@ -1,8 +1,9 @@
+/* eslint-disable no-invalid-this */
 'use strict';
 
 const {UIController} = require('./classes/UIController');
 const {ipcRenderer} = require('electron');
-let uic;
+let controller;
 let lightMode = 'dark';
 let darkBackground;
 let sidebarCollapsed = false;
@@ -13,11 +14,16 @@ const konami = [38, 38, 40, 40, 37, 39, 37, 39, 65, 66];
 let konamiDetection = [];
 let konamiActive = false;
 
-let xyz; // TODO: entfernen
+let xyz; // REMOVE: entfernen
 
 /**
- * TODO
- * @param {*} keyCode
+ * Checks if the last keystroke aligns with the famous konami code
+ * (up up down down left right left right A B). If so, the sequence of
+ * correctly pressed keys is prolonged. If not, the whole sequence
+ * is reset to zero. If the full code has been entered, the konami
+ * method is activated. There is no way to deactivate the konami mode
+ * in a running session.
+ * @param {*} keyCode - JavaScript code of last pressed key.
  */
 function checkForKonami(keyCode) {
   const nextKey = konami[konamiDetection.length];
@@ -32,7 +38,9 @@ function checkForKonami(keyCode) {
 }
 
 /**
- * TODO
+ * This method activates the "konami mode" for the software, a little easteregg.
+ * It sends feedback that the konami code has been entered successfully
+ * and provides access to a new jpg export background colour: pink.
  */
 function activateKonami() {
   konamiActive = true;
@@ -41,11 +49,11 @@ function activateKonami() {
     $('.color_button.selected').removeClass('selected');
     $(event.target).addClass('selected');
   });
-  uic.showVisualFeedback('Konami activated', '', '#ff00ff', 5000);
+  controller.showVisualFeedback('Konami activated', '', '#ff00ff', 5000);
 }
 
 /**
- * TODO
+ * Collapses or extends the sidebar.
  */
 function toggleSidebar() {
   if (sidebarCollapsed) {
@@ -66,7 +74,7 @@ function toggleSidebar() {
 }
 
 /**
- * TODO
+ * Toggles the background colour between dark and white.
  */
 function toggleLight() {
   if (lightMode == 'dark') {
@@ -88,39 +96,38 @@ function toggleLight() {
 }
 
 $(document).ready(function() {
-  uic = new UIController('lighttable');
-  const stage = uic.getStage();
-  uic.clearTable();
+  controller = new UIController('lighttable');
+  controller.clearTable();
 
   /* ##########################################
         #               INPUT/OUTPUT
-        ###########################################*/
+  ###########################################*/
 
   // Clear Table Button
   $('#clear_table').click(function() {
-    uic.clearTable();
+    controller.clearTable();
   });
 
   // Save Table Button
   $('#save_table').click(function() {
-    uic.saveTable();
+    controller.saveTable();
   });
 
   // Load Table Button
   $('#load_table').click(function() {
-    uic.loadTable();
+    controller.loadTable();
   });
 
-  // Flip Buttons
+  // Flip Buttons - toggles the display of horizontal and vertical flip buttons
   $('#flip_table').click(function() {
     if ($('#hor_flip_table').css('display') == 'none') {
-      // open flipping buttons
+      // open flip buttons
       $('#flip_table').addClass('button_active');
       $('#hor_flip_table').css('display', 'inline-block');
       $('#vert_flip_table').css('display', 'inline-block');
       $('#flip_table>img').attr('src', '../imgs/symbol_x.png');
     } else {
-      // close flipping buttons
+      // close flip buttons
       $('#flip_table').removeClass('button_active');
       $('#vert_flip_table').css('display', 'none');
       $('#hor_flip_table').css('display', 'none');
@@ -130,27 +137,27 @@ $(document).ready(function() {
 
   // Horizontal Flip Button
   $('#hor_flip_table').click(function() {
-    stage.flipTable(true);
+    controller.flipTable(true);
   });
   $('#hor_flip_table').mouseenter(function() {
-    stage.showFlipLine(true);
+    controller.showFlipLine(true);
   });
   $('#hor_flip_table').mouseleave(function() {
-    stage.hideFlipLines();
+    controller.hideFlipLines();
   });
 
   // Vertical Flip Button
   $('#vert_flip_table').click(function() {
-    stage.flipTable(false);
+    controller.flipTable(false);
   });
   $('#vert_flip_table').mouseenter(function() {
-    stage.showFlipLine(false);
+    controller.showFlipLine(false);
   });
   $('#vert_flip_table').mouseleave(function() {
-    stage.hideFlipLines();
+    controller.hideFlipLines();
   });
 
-  // Export Buttons
+  // Export Buttons - toggle display of additional export buttons
   $('#export_table').click(function() {
     if ($('#export_detail_wrapper').hasClass('expanded')) {
       $('#export_table').removeClass('button_active');
@@ -161,10 +168,10 @@ $(document).ready(function() {
     }
   });
   $('#jpg_snap').click(function() {
-    stage.exportCanvas('jpg', false);
+    controller.exportCanvas('jpg', false, false);
   });
   $('#jpg_full').click(function() {
-    stage.exportCanvas('jpg', true);
+    controller.exportCanvas('jpg', true, false);
   });
 
   $('.color_button').click(function(event) {
@@ -173,24 +180,24 @@ $(document).ready(function() {
   });
 
   $('#png_snap').click(function() {
-    stage.exportCanvas('png', false);
+    controller.exportCanvas('png', false, false);
   });
   $('#png_full').click(function() {
-    stage.exportCanvas('png', true);
+    controller.exportCanvas('png', true, false);
   });
 
   $('#tiff_snap').click(function() {
-    stage.exportCanvas('tiff', false);
+    controller.exportCanvas('tiff', false, false);
   });
   $('#tiff_full').click(function() {
-    stage.exportCanvas('tiff', true);
+    controller.exportCanvas('tiff', true, false);
   });
 
   $('#undo').click(function() {
-    uic.sendToServer('server-undo-step');
+    controller.sendToServer('server-undo-step');
   });
   $('#redo').click(function() {
-    uic.sendToServer('server-redo-step');
+    controller.sendToServer('server-redo-step');
   });
 
   // Light Switch Button
@@ -203,28 +210,28 @@ $(document).ready(function() {
 
   $('#new_measure').on('click', function(event) {
     event.stopPropagation();
-    uic.addMeasurement();
+    controller.addMeasurement();
   });
   $('#clear-measures').on('click', function() {
-    uic.clearMeasurements();
+    controller.clearMeasurements();
   });
 
   $('#grid_box').on('change', function() {
-    uic.toggleGridMode();
+    controller.toggleGridMode();
   });
   $('#scale_box').on('change', function() {
-    uic.toggleScaleMode();
+    controller.toggleScaleMode();
   });
   $('#fibre_box').on('change', function() {
-    uic.toggleFibreMode();
+    controller.toggleFibreMode();
   });
 
   // Fit to Screen
   $('#fit_to_screen').click(function(event) {
-    stage.fitToScreen();
+    controller.fitToScreen();
   });
 
-  // Hide HUD button
+  // Hide HUD button - toggle visibility of GUI elements
   $('#hide_hud').click(function(event) {
     if ($('#hide_hud').hasClass('hide_active')) {
       // if the HUD is currently hidden, show it again
@@ -247,39 +254,39 @@ $(document).ready(function() {
   });
 
   $('#reset_zoom').click(function() {
-    uic.resetZoom();
+    controller.resetZoom();
   });
 
   // Annotation Button
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
       $('#annot_window').css('display', 'none');
-      uic.setHotkeysOn(true);
+      controller.enableHotkeys();
     } else {
       $('#annot_window').css('display', 'flex');
-      uic.setHotkeysOn(false);
+      controller.disableHotkeys();
     }
   });
   $('#annot_close').click(function() {
     $('#annot_window').css('display', 'none');
-    uic.setHotkeysOn(true);
+    controller.enableHotkeys();
   });
   $('#annot_text').keyup(function(event) {
-    uic.toggleAnnotSubmitButton();
+    controller.toggleAnnotSubmitButton();
   });
   $('#annot_editor').keyup(function(event) {
-    uic.toggleAnnotSubmitButton();
+    controller.toggleAnnotSubmitButton();
   });
   $('#annot_submit').click(function(event) {
     if (!$(event.target).hasClass('disabled')) {
-      uic.sendAnnotation($(event.target).attr('target'));
+      controller.sendAnnotation($(event.target).attr('target'));
     }
   });
 
   // Zoom Slider
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
-    uic.setScaling(newScaling);
+    controller.setScaling(newScaling);
   });
 
   /* Sidebar Width Adjustment */
@@ -298,7 +305,7 @@ $(document).ready(function() {
 
   // Upload Local Image Button
   $('#upload_local').click(function() {
-    uic.sendToServer('server-open-upload');
+    controller.sendToServer('server-open-upload');
   });
 
   /**
@@ -358,16 +365,16 @@ $(document).ready(function() {
 
   // Window Resizement
   window.addEventListener('resize', () => {
-    stage.resizeCanvas(window.innerWidth, window.innerHeight);
+    controller.resizeCanvas(window.innerWidth, window.innerHeight);
   });
 
   document.getElementById('lighttable')
       .addEventListener('wheel', function(event) {
         const deltaZoom = event.deltaY / 10;
-        const newScaling = stage.getScaling() - deltaZoom;
+        const newScaling = controller.getScaling() - deltaZoom;
         const x = event.pageX;
         const y = event.pageY;
-        uic.setScaling(newScaling, x, y);
+        controller.setScaling(newScaling, x, y);
         $('#zoom_slider').val(newScaling);
       });
 
@@ -376,25 +383,28 @@ $(document).ready(function() {
     if (event.ctrlKey) {
       if (event.keyCode == 83) {
         // Ctrl + S -> Save
-        uic.saveTable();
+        controller.saveTable();
       } else if (event.keyCode == 76) {
         // Ctrl + L -> Load
-        uic.loadTable();
+        controller.loadTable();
       } else if (event.keyCode == 78) {
         // Ctrl + N -> Table Clear
-        uic.clearTable();
+        controller.clearTable();
       } else if (event.keyCode == 90) {
         // Ctrl + Z -> Undo Step
-        uic.sendToServer('server-undo-step');
+        controller.sendToServer('server-undo-step');
       } else if (event.keyCode == 89) {
         // Ctrl + Y -> Redo Step
-        uic.sendToServer('server-redo-step');
+        controller.sendToServer('server-redo-step');
+      } else if (event.altKey && event.keyCode == 68) {
+        // Ctrl + Alt + D -> Toggle DevMode
+        controller.toggleDevMode();
       }
     } else {
-      const hotkeysOn = uic.getHotkeysOn();
+      const hotkeysOn = controller.getHotkeysOn();
       if (event.keyCode == 46) {
         // DEL -> Delete Fragment(s)
-        uic.removeFragments();
+        controller.removeFragments();
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
         if (hotkeysOn) {
@@ -403,35 +413,35 @@ $(document).ready(function() {
       } else if (event.keyCode == 71) {
         // G -> Toggle Grid
         if (hotkeysOn) {
-          uic.toggleGridMode();
+          controller.toggleGridMode();
         }
       } else if (event.keyCode == 70) {
         // F -> Toggle Fibres
         if (hotkeysOn) {
-          uic.toggleFibreMode();
+          controller.toggleFibreMode();
         }
       } else if (event.keyCode == 83) {
         // S -> Toggle Scale
         if (hotkeysOn) {
-          uic.toggleScaleMode();
+          controller.toggleScaleMode();
         }
       } else if (event.keyCode == 27) {
         // ESC -> deselect All
-        uic.clearSelection();
+        controller.clearSelection();
         // TODO uic.endMeasure();
       } else if (event.keyCode == 77) {
         // M -> Start Measure
         if (hotkeysOn) {
-          uic.startMeasure();
+          controller.startMeasure();
         }
       } else if (event.keyCode == 78) {
         // N -> Add Custom Fragment
         if (hotkeysOn) {
-          uic.sendToServer('server-open-upload');
+          controller.sendToServer('server-open-upload');
         }
       } else if (event.keyCode == 116) {
         // F5 -> update Stage
-        uic.update();
+        controller.update();
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);
@@ -440,36 +450,36 @@ $(document).ready(function() {
   });
 
   /* ##########################################
-        #           SERVER/CLIENT COMMUNICATION
-        ###########################################*/
+        #    SERVER/CLIENT COMMUNICATION
+  ###########################################*/
 
   // client-load-model
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-model', (event, data) => {
-    console.log('Received client-load-model', data);
+    if (controller.isDevMode()) console.log('Received client-load-model', data);
     if ('loading' in data) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
       $('#fragment_list').find('.arrow').addClass('down');
       $('#fragment_list').addClass('expanded');
     }
-    uic.loadScene(data);
+    controller.loadScene(data);
   });
 
   ipcRenderer.on('client-add-upload', (event, data) => {
-    console.log('Received client-add-upload');
-    console.log('Local Upload:', data);
-    uic.addFragment(data);
+    if (controller.isDevMode()) console.log('Received client-add-upload');
+    if (controller.isDevMode()) console.log('Local Upload Data:', data);
+    controller.addFragment(data);
   });
 
   ipcRenderer.on('client-show-feedback', (event, data) => {
-    console.log('Received client-show-feedback');
+    if (controller.isDevMode()) console.log('Received client-show-feedback');
     const title = data.title || '';
     const desc = data.desc || '';
     const duration = data.duration || '';
     const color = data.color || '';
-    uic.showVisualFeedback(title, desc, color, duration);
+    controller.showVisualFeedback(title, desc, color, duration);
   });
 
-  xyz = stage;
+  if (controller.isDevMode()) xyz = controller.getStage(); // REMOVE
 });

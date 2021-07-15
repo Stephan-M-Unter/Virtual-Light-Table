@@ -2,7 +2,6 @@
 
 const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
-const {SourceCode} = require('eslint');
 const dialogs = new Dialogs();
 
 const recto = {
@@ -1016,8 +1015,6 @@ $('#load_button').click(function() {
           }
         }
       }
-      console.log("versoCenterX:", versoCenterX);
-      console.log("versoCenterY:", versoCenterY);
 
       versoCenterX = (Math.max(...versoCenterX) + Math.min(...versoCenterX)) / 2;
       versoCenterY = (Math.max(...versoCenterY) + Math.min(...versoCenterY)) / 2;

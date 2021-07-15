@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * TODO
  */
@@ -20,19 +22,6 @@ class Scaler {
     }
 
     static scaling = 100;
-
-    /*static setZoomWorldX(value){
-        this.zoom.world.x = value;
-    }
-    static setZoomWorldY(value){
-        this.zoom.world.y = value;
-    }
-    static setZoomScreenX(value){
-        this.zoom.screen.x = value;
-    }
-    static setZoomScreenY(value){
-        this.zoom.screen.y = value;
-    }*/
 
     static length(number) {
         return Math.round(number * this.scaling/100);
