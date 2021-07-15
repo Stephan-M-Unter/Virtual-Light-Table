@@ -4,7 +4,7 @@ tf_models
 *.py
 desktop.ini
 vlt.log
-saves/*
+saves/old
 imgs/dev_test
 *.db
 test
