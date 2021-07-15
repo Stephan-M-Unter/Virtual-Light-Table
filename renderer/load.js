@@ -114,7 +114,6 @@ function updateSaveList(searchString) {
       nrHidden += 1;
     }
   }
-  console.log('Hidden:', nrHidden);
   if (nrHidden > 0) {
     $('#clear_filter').css('display', 'block');
     $('#clear_filter').html('Clear Filter</br>('+nrHidden+' files hidden)');

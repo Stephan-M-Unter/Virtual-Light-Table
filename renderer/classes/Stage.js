@@ -1163,9 +1163,6 @@ class Stage {
     pseudoLink.click();
     document.body.removeChild(pseudoLink);
 
-    console.log(changeParameters);
-    console.log(this.stage.scaling);
-
     if (full) {
       // revert stage to original configuration
       this.moveStage(-changeParameters.x, -changeParameters.y);

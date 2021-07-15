@@ -6,3 +6,4 @@ desktop.ini
 vlt.log
 saves/*
 imgs/dev_test
+*.db

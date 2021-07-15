@@ -238,7 +238,6 @@ function drawCanvas(side) {
 
       // register event listeners
       side.img.on('mousedown', (event) => {
-        console.log(event.stageX, event.stageY);
         handleMouseDown(event);
       });
       side.imgBack.on('mousedown', (event) => {
@@ -291,7 +290,6 @@ function drawCanvas(side) {
 
     // shadow event listeners
     shadow.on('mousedown', (event) => {
-      console.log(event.stageX, event.stageY);
       handleMouseDown(event);
     });
     shadow.on('pressmove', (event) => {

@@ -12,7 +12,7 @@ class Fragment {
      * @param {*} eventData
      */
   constructor(controller, stageObject, id, eventData) {
-    console.log('New Fragment:', eventData);
+    if (controller.isDevMode()) console.log('New Fragment:', eventData);
     /*
       List of Properties (alphabetical):
 
