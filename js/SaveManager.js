@@ -35,6 +35,7 @@ class SaveManager {
   /**
    * TODO
    * @param {*} tableConfiguration
+   * @return {*}
    */
   saveTable(tableConfiguration) {
     // read current date for some default filename

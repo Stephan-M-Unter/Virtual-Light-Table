@@ -22,7 +22,7 @@ const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 
 // Settings
-const development = true;
+const devMode = false;
 const appPath = app.getAppPath();
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
@@ -51,9 +51,10 @@ function main() {
   mainWindow = new Window({
     file: './renderer/index.html',
     type: 'main',
+    devMode: devMode,
   });
   mainWindow.maximize(); // fullscreen mode
-  if (!development) {
+  if (!devMode) {
     mainWindow.removeMenu();
   }
   mainWindow.on('close', function() {
@@ -98,7 +99,7 @@ function timestamp() {
  * @param {Object} data
  */
 function sendMessage(recipientWindow, message, data=null) {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() +
     ' ' + 'Sending code ['+message+'] to client');
   }
@@ -110,7 +111,7 @@ function sendMessage(recipientWindow, message, data=null) {
 
 // server-save-to-model
 ipcMain.on('server-save-to-model', (event, data) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-to-model] from client');
   }
@@ -119,7 +120,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
 
 // server-undo-step
 ipcMain.on('server-undo-step', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-undo-step] from client');
   }
@@ -140,7 +141,7 @@ ipcMain.on('server-undo-step', (event) => {
 
 // server-redo-step
 ipcMain.on('server-redo-step', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-redo-step] from client');
   }
@@ -161,7 +162,7 @@ ipcMain.on('server-redo-step', (event) => {
 
 // server-clear-table
 ipcMain.on('server-clear-table', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-clear-table] from client');
   }
@@ -171,7 +172,7 @@ ipcMain.on('server-clear-table', (event) => {
 
 // server-open-details
 ipcMain.on('server-open-details', (event, id) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-open-details] from' +
     'client for fragment with id ' + id);
@@ -179,6 +180,7 @@ ipcMain.on('server-open-details', (event, id) => {
   detailWindow = new Window({
     file: './renderer/details.html',
     type: 'detail',
+    devMode: devMode,
   });
   detailWindow.removeMenu();
   detailWindow.maximize();
@@ -189,7 +191,7 @@ ipcMain.on('server-open-details', (event, id) => {
 
 // server-load-file
 ipcMain.on('server-load-file', (event, file) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-load-file] from loadWindow');
   }
@@ -209,7 +211,7 @@ ipcMain.on('server-load-file', (event, file) => {
 
 // server-save-file
 ipcMain.on('server-save-file', (event, data) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-file] from client');
   }
@@ -228,7 +230,7 @@ ipcMain.on('server-save-file', (event, data) => {
 
 // server-list-savefiles
 ipcMain.on('server-list-savefiles', (event, folder) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Received code [server-list-savefiles] for folder '+folder);
   }
@@ -256,7 +258,7 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
 
 // <- server-get-saves-folder
 ipcMain.on('server-get-saves-folder', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-get-saves-folder] from client');
   }
@@ -268,7 +270,7 @@ ipcMain.on('server-get-saves-folder', (event) => {
 
 // server-open-load
 ipcMain.on('server-open-load', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-open-load] from client');
   }
@@ -279,6 +281,7 @@ ipcMain.on('server-open-load', (event) => {
     loadWindow = new Window({
       file: './renderer/load.html',
       type: 'load',
+      devMode: devMode,
     });
     loadWindow.removeMenu();
     loadWindow.once('read-to-show', () => {
@@ -291,7 +294,7 @@ ipcMain.on('server-open-load', (event) => {
 });
 
 ipcMain.on('server-delete-file', (event, filename) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-delete-file] from loadWindow');
   }
@@ -312,7 +315,7 @@ ipcMain.on('server-delete-file', (event, filename) => {
 });
 
 ipcMain.on('server-write-annotation', (event, annotData) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-write-annotation] from client');
   }
@@ -320,7 +323,7 @@ ipcMain.on('server-write-annotation', (event, annotData) => {
 });
 
 ipcMain.on('server-remove-annotation', (event, id) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-remove-annotation] from client');
   }
@@ -328,7 +331,7 @@ ipcMain.on('server-remove-annotation', (event, id) => {
 });
 
 ipcMain.on('server-open-upload', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-open-upload] from client');
   }
@@ -337,6 +340,7 @@ ipcMain.on('server-open-upload', (event) => {
     localUploadWindow = new Window({
       file: './renderer/upload.html',
       type: 'upload',
+      devMode: devMode,
     });
     localUploadWindow.removeMenu();
     localUploadWindow.once('ready-to-show', () => {
@@ -349,7 +353,7 @@ ipcMain.on('server-open-upload', (event) => {
 });
 
 ipcMain.on('server-upload-ready', (event, data) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-upload-ready] from client');
   }
@@ -359,7 +363,7 @@ ipcMain.on('server-upload-ready', (event, data) => {
 });
 
 ipcMain.on('server-upload-image', (event) => {
-  if (development) {
+  if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-upload-image] from client');
   }

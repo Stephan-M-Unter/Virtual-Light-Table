@@ -458,6 +458,7 @@ class Stage {
           const fragmentContainer = fragment.getContainer();
           this.stage.removeChild(fragmentContainer);
           delete this.fragmentList[fragment.id];
+          this.controller.clearSelection();
           this.stage.update();
           this._saveToModel();
         }
@@ -1161,6 +1162,7 @@ class Stage {
     // temporarily appending the anchor, "clicking" on it, and removing it again
     document.body.appendChild(pseudoLink);
     pseudoLink.click();
+    document.body.removeChild(pseudoLink);
     document.body.removeChild(pseudoLink);
 
     if (full) {

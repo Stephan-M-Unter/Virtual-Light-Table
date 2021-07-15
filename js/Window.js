@@ -14,7 +14,6 @@
 'use strict';
 
 const {BrowserWindow} = require('electron');
-const development = true;
 
 const mainProps = {
   width: 1024,
@@ -59,7 +58,7 @@ class Window extends BrowserWindow {
    * TODO
    * @param {*} param0
    */
-  constructor({file, type, ...windowSettings}) {
+  constructor({file, type, devMode, ...windowSettings}) {
     let props = mainProps;
     if (type == 'load') {
       props = loadProps;
@@ -73,7 +72,7 @@ class Window extends BrowserWindow {
     // Load content and open dev tools
     this.loadFile(file);
 
-    if (development) {
+    if (devMode) {
       this.webContents.openDevTools();
     } else {
       this.removeMenu();

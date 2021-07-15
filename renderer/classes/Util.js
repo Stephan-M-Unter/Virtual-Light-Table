@@ -18,7 +18,7 @@ class Util {
     const minute = (time.getMinutes() < 10 ? '0' : '') + time.getMinutes();
     const second = (time.getSeconds() < 10 ? '0' : '') + time.getSeconds();
 
-    return day+'.'+month+'.'+year+', '+hour+':'+minute+':'+second;
+    return day+'.'+month+'.'+year+', '+hour+':'+minute;
   }
 }
 

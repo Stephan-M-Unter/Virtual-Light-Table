@@ -1,6 +1,7 @@
 'use strict';
 
 const {ipcRenderer} = require('electron');
+const {Util} = require('./classes/Util');
 
 let saves;
 let currentSave;
@@ -106,7 +107,7 @@ function updateSaveList(searchString) {
       tableRow += '<td class="td_filename">'+key+'</td>';
       tableRow += '<td class="td_fragments">'+numberFragments+'</td>';
       tableRow += '<td class="td_mtime">'+
-        convertTime(saves[key].mtime)+'</td>';
+        Util.convertTime(saves[key].mtime)+'</td>';
       tableRow += '<td class="td_editor">'+lastEditor[0]+'</tr>';
 
       $('#save_list_body').append(tableRow);
@@ -208,7 +209,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
   for (const idx in editors) {
     if (Object.prototype.hasOwnProperty.call(editors, idx)) {
       const editor = editors[idx][0];
-      const time = convertTime(editors[idx][1]);
+      const time = Util.convertTime(editors[idx][1]);
       const editorRow = document.createElement('tr');
       const editorTd1 = document.createElement('td');
       editorTd1.setAttribute('class', 'label');
@@ -237,7 +238,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
       const annotId = annotItems[idx][0];
       const annot = annots[annotId].text;
       const editor = annots[annotId].editor;
-      const time = convertTime(annots[annotId].time);
+      const time = Util.convertTime(annots[annotId].time);
       const annotRow = document.createElement('tr');
       const annotTd1 = document.createElement('td');
       annotTd1.setAttribute('class', 'label');
