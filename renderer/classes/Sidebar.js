@@ -57,7 +57,7 @@ class Sidebar {
     fragmentWrapper.appendChild(fragmentName);
     fragmentWrapper.appendChild(deleteButton);
     fragmentWrapper.appendChild(gotoButton);
-    fragmentWrapper.appendChild(detailsButton);
+    // fragmentWrapper.appendChild(detailsButton); TODO - temporarily removed
 
     $('#fragment_list_content').append(fragmentWrapper);
 
