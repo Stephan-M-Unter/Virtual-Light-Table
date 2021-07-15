@@ -66,7 +66,6 @@ class Sidebar {
     fragmentWrapper.addEventListener('click', function(event) {
       const isActive = $(event.target).hasClass('fragment_list_item_active');
       const isCtrl = event.ctrlKey;
-      // let id = $(this).attr('id');
 
       if (isCtrl) {
         if (isActive) {
@@ -86,12 +85,10 @@ class Sidebar {
       }
     });
     fragmentWrapper.addEventListener('mouseenter', function(event) {
-      // let id = $(this).attr('id');
       controller.highlightFragment(id);
       sidebar.addFragmentListButtons(id);
     });
     fragmentWrapper.addEventListener('mouseleave', function(event) {
-      // let id = $(this).attr('id');
       controller.unhighlightFragment(id);
       if (!$(event.target).hasClass('fragment_list_item_active')) {
         sidebar.removeFragmentListButtons(id);

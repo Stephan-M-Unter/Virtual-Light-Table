@@ -1046,7 +1046,6 @@ $('#load_button').click(function() {
       'originalScaleRecto': originalScaleRecto,
       'originalScaleVerso': originalScaleVerso,
     };
-    // console.log(fragmentData);
     ipcRenderer.send('server-upload-ready', fragmentData);
   }
 });
@@ -1192,19 +1191,6 @@ $('#verso_scale_button').click(() => {
   $('#verso_scale_button').toggleClass('active');
   handleScaleButton(verso);
 });
-
-
-/* ipcRenderer.on('upload-image-path', (event, filepath) => {
-    if (!recto.url) {
-        recto.url = filepath;
-        activateCanvas($('#recto_canvas_wrapper'));
-        draw('recto_canvas', filepath);
-    } else {
-        verso.url = filepath;
-        activateCanvas($('#verso_canvas_wrapper'));
-        draw('verso_canvas', filepath);
-    }
-});*/
 
 ipcRenderer.on('upload-receive-image', (event, filepath) => {
   name = filepath.split('\\').pop().split('/').pop();

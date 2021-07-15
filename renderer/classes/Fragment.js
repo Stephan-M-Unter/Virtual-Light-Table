@@ -128,19 +128,8 @@ class Fragment {
 
     this._createImage(eventData, this.isRecto);
 
-    /*
-    const image = this._createImage(eventData, id);
-    if (this.isRecto) {
-      this.imageRecto = image;
-      this.containerRecto.addChild(this.imageRecto);
-    } else {
-      this.imageVerso = image;
-      this.containerVerso.addChild(this.imageVerso);
-    }*/
-
     // create the fragment container
     this.container = this._createContainer(data, id);
-    this._setContainerRegs();
     if (this.isRecto) this.container.addChild(this.containerRecto);
     else this.container.addChild(this.containerVerso);
 
@@ -161,26 +150,6 @@ class Fragment {
       const newY = this.baseY * this.container.scale;
       this.moveToPixel(newX, newY);
     }
-  }
-
-  /**
-   * TODO
-   */
-  _setContainerRegs() {
-    /*
-    if (this.maskRecto && this.isRecto) {
-      this.container.regX = this.maskRecto.cx;
-      this.container.regY = this.maskRecto.cy;
-    } else if (this.maskVerso && !this.isRecto) {
-      this.container.regX = this.maskVerso.cx;
-      this.container.regY = this.maskVerso.cy;
-    } else {
-      this.container.regX = this.getImage().image.width / 2;
-      this.container.regY = this.getImage().image.height / 2;
-    }
-    */
-    this.container.regX = 0;
-    this.container.regY = 0;
   }
 
   /**
@@ -223,7 +192,6 @@ class Fragment {
       }
     }
 
-    // image.scale = this.stage.scaling / 100;
     return image;
   }
 
@@ -273,15 +241,11 @@ class Fragment {
    */
   _createContainer(imageProperties, id) {
     const container = new createjs.Container();
-
-    // container.rotation = imageProperties.rotation;
     container.scale = this.stage.scaling / 100;
 
     if (imageProperties.xPos && imageProperties.yPos) {
       container.x = imageProperties.xPos;
-      // * (this.stage.scaling / 100) + this.stage.offset.x;
       container.y = imageProperties.yPos;
-      // * (this.stage.scaling / 100) + this.stage.offset.y;
     } else {
       const canvasCenter = this.controller.getCanvasCenter();
       container.x = canvasCenter.x;
@@ -355,20 +319,7 @@ class Fragment {
     if (!this.isBothSidesLoaded) {
       const loadqueue = new createjs.LoadQueue();
       loadqueue.addEventListener('fileload', (event) => {
-        // once the file is loaded, the following should happen
         this._createImage(event, this.isRecto);
-        // if (inverted) this.getImage().scaleX *= -1;
-        if (this.isRecto) {
-          // register image as new recto file
-          // if (inverted) this.maskRecto.scaleX *= -1;
-          // this.imageRecto = secondSideImage;
-          // this.containerRecto.addChild(this.imageRecto);
-        } else {
-          // register image as new verso file
-          // if (inverted) this.maskVerso.scaleX *= -1;
-          // this.imageVerso = secondSideImage;
-          // this.containerVerso.addChild(this.imageVerso);
-        }
         this.isBothSidesLoaded = true;
         this.framework._updateBb();
         this.stage.update();
@@ -405,8 +356,6 @@ class Fragment {
     if (start && this.getMask()) this.getMask().scaleX *= -1;
     if (start && this.getMask()) this.getImage().x *= -1;
     if (start) this.tempRotation = this.getImage().rotation;
-    // if (start && this.isRecto) this.imageRecto.x *= -1;
-    // if (start && this.isRecto) this.getImage().rotation -= 2*this.rotation;
     if (start) this.getImage().rotation *= -1;
     this.stage.update();
   }
@@ -698,11 +647,6 @@ class Fragment {
               const imageCx = this.getImage().image.width / 2;
               const imageCy = this.getImage().image.height / 2;
 
-              // const image_c = this.getImage().localToGlobal(image_cx, image_cy);
-              // image_cx = image_c.x;
-              // image_cy = image_c.y;
-
-
               const maskNewX = imageCx - (scale * (imageCx - maskCenter.x));
               const maskNewY = imageCy - (scale * (imageCy - maskCenter.y));
               maskCenter = {x: maskNewX*this.getImage().scale, y: maskNewY*this.getImage().scale};
@@ -711,34 +655,15 @@ class Fragment {
 
             const inversionMatrix = this.getImage().getMatrix().invert();
             const p = inversionMatrix.transformPoint(-maskCenter.x, -maskCenter.y);
-            // p = {x: p.x+26, y: p.y+103};
-            // p = {x: p.x+5338, y: p.y+5765};
             let m = new createjs.Matrix2D(); // this.getMask().getMatrix();
-            // m = m.translate(322.5, 345);
             m = m.translate(p.x, p.y);
             m = m.rotate(-this.getImage().rotation);
             node = m.transformPoint(node.x, node.y);
-            /*
-            m = m.invert();
-            br = m.transformPoint(br.x, br.y);
-            */
           }
 
           const nodeGlobal = this.getImage().localToGlobal(node.x, node.y);
           xs.push(nodeGlobal.x);
           ys.push(nodeGlobal.y);
-          /*
-          if (this.getImage().originalScale >= 1) {
-            console.log("case 2.2 - scaling");
-            const c = this.getImage().localToGlobal(this.getImage().regX, this.getImage().regY);
-            const image_cx = c.x;
-            const image_cy = c.y;
-            node_global = this.getImage().localToGlobal(node.x, node.y);
-            console.log("Test", image_cx, scale, node_global.x);
-            const x = image_cx - (scale*(image_cx - node_global.x));
-            const y = image_cy - (scale*(image_cy - node_global.y));
-            node_global = {x: x, y: y};
-            */
         }
       }
 
@@ -747,15 +672,8 @@ class Fragment {
       let yMin = Math.min(...ys);
       let yMax = Math.max(...ys);
 
-      // const nodesCx = (xMin+xMax)/2;
-      // const nodesCy = (yMin+yMax)/2;
-      // const nodesW = (xMax-xMin);
-      // const nodesH = (yMax-yMin);
-
       if (this.getImage().originalScale < 1) {
         const scale = 1/this.getImage().originalScale;
-        // let image_cx = this.getImage().regX;
-        // let image_cy = this.getImage().regY;
         let imageCx = this.getImage().image.width / 2;
         let imageCy = this.getImage().image.height / 2;
 
@@ -771,15 +689,6 @@ class Fragment {
 
       const tl = this.getImage().globalToLocal(xMin, yMin);
       const br = this.getImage().globalToLocal(xMax, yMax);
-
-      if (this.getImage().rotation != 0) {
-        /*
-        let m = this.getMask().getConcatenatedMatrix();
-        m = m.invert();
-        tl = m.transformPoint(tl.x, tl.y);
-        br = m.transformPoint(br.x, br.y);
-        */
-      }
 
       fragmentBounds['left'] = tl.x;
       fragmentBounds['right'] = br.x;
@@ -816,8 +725,6 @@ class Fragment {
     fragmentBounds['right'] = Math.max(left, right);
     fragmentBounds['top'] = Math.min(top, bottom);
     fragmentBounds['bottom'] = Math.max(top, bottom);
-    // fragmentBounds['width'] = Math.abs(br.x - tl.x);
-    // fragmentBounds['height'] = Math.abs(br.y - tl.y);
     fragmentBounds['cx'] = fragmentBounds['width'] / 2;
     fragmentBounds['cy'] = fragmentBounds['height'] / 2;
     fragmentBounds['reference'] = 'global';

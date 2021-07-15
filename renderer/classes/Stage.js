@@ -229,7 +229,6 @@ class Stage {
    * @param {*} data
    */
   loadScene(data) {
-    // IDEA Ask users if they want to save yet unsaved changes?
     this._clearTable();
     this.clearMeasurements();
 
@@ -362,13 +361,9 @@ class Stage {
 
     // overwrite center if specific zoom center is given
     if (scaleCenterX && scaleCenterY) {
-      // Scaler.zoom.screen.x = Math.floor(scaleCenterX);
-      // Scaler.zoom.screen.y = Math.floor(scaleCenterY);
       distX = center.x - scaleCenterX;
       distY = center.y - scaleCenterY;
       this.moveStage(distX, distY);
-      // distX = (distX * scaling * -1) / oldScaling;
-      // distY = (distY * scaling * -1) / oldScaling;
     }
 
     Scaler.zoom.world.x = Scaler.zoom.screen.x;
@@ -508,7 +503,6 @@ class Stage {
       }
       this._moveToTop(this.fragmentList[clickedId]);
 
-      // this._updateBb();
       this.mouseClickStart = {x: event.stageX, y: event.stageY};
     });
 
@@ -844,22 +838,6 @@ class Stage {
     }
 
     this._updateBb();
-
-    /*
-    for (const index in this.measurePoints) {
-      if (Object.prototype.hasOwnProperty.call(this.measurePoints, index)) {
-        const node = this.measurePoints[index];
-        this.measurePoints[index] = {
-          x: node.x + deltaX,
-          y: node.y + deltaY,
-          baseX: node.baseX + (deltaX/(this.stage.scaling/100)),
-          baseY: node.baseY + (deltaY/(this.stage.scaling/100)),
-        };
-      }
-    }
-    this._updateMeasure();
-    */
-
     this.update();
   }
 
@@ -878,22 +856,6 @@ class Stage {
       }
     }
 
-    /*
-    for (const idx in this.measurePoints) {
-      if (Object.prototype.hasOwnProperty.call(this.measurePoints, idx)) {
-        const node = this.measurePoints[idx];
-        const xNew = Scaler.x(node.baseX);
-        const yNew = Scaler.y(node.baseY);
-        this.measurePoints[idx] = {
-          x: xNew,
-          y: yNew,
-          baseX: node.baseX,
-          baseY: node.baseY,
-        };
-      }
-    }
-    this._updateMeasure();
-    */
     this._updateBb();
     this._updateRotator();
     this.update();
@@ -935,8 +897,6 @@ class Stage {
           yNew = 2*xAxis - y;
           fragment.rotateToAngle(180+fragment.getRotation());
         }
-        // fragment.moveToPixel(xNew, ynew);
-        console.log('x', x, xNew, x-xNew);
         fragment.moveByDistance(-(x-xNew), -(y-yNew));
       }
     }
@@ -952,7 +912,6 @@ class Stage {
     this.stage.removeChild(this.bb);
     this.selector.updateBb(this.selectedList, this.stage.scaling/100);
     this.bb = this.selector.getBb();
-    // this.bb.scale = this.stage.scaling / 100;
     this.stage.addChild(this.bb);
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
@@ -1146,21 +1105,7 @@ class Stage {
       y: 0,
       scale: this.stage.scaling,
     };
-    // const dimensions = this.getMBR();
-    // const center = this.getCenter();
-    // const distX = center.x - dimensions.center.x;
-    // const distY = center.y - dimensions.center.y;
-    // const oldScaling = this.stage.scaling;
     if (full) {
-      // change stage such that all fragments are visible
-      // this.moveStage(distX, distY);
-      // const scalingHeight = this.stage.scaling *
-      // this.height / dimensions.height;
-      // const scalingWidth = this.stage.scaling * this.width / dimensions.width;
-      // const scaling = Math.min(scalingWidth, scalingHeight);
-      // if (Math.abs(this.stage.scaling - scaling) > 1) {
-      // this.controller.setScaling(scaling);
-      // }
       changeParameters = this.fitToScreen();
     }
 
@@ -1202,8 +1147,6 @@ class Stage {
     if (thumb) {
       const screenshot = document.getElementById('lighttable')
           .toDataURL('image/png');
-      // this.controller.setScaling(oldScaling);
-      // this.moveStage(-distX, -distY);
       this.moveStage(-changeParameters.x, -changeParameters.y);
       this.controller.setScaling(changeParameters.scale);
       this.update();
@@ -1225,13 +1168,9 @@ class Stage {
 
     if (full) {
       // revert stage to original configuration
-      // this.controller.setScaling(oldScaling);
-      // this.moveStage(-distX, -distY);
       this.moveStage(-changeParameters.x, -changeParameters.y);
       this.controller.setScaling(changeParameters.scale);
     }
-    /*
-    */
     this.update();
   }
 
@@ -1306,14 +1245,6 @@ class Stage {
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
-        /* const container = fragment.getContainer();
-
-        const bounds = container.getTransformedBounds();
-        const xLeft = bounds.x;
-        const yTop = bounds.y;
-        const xRight = bounds.x + bounds.width;
-        const yBottom = bounds.y + bounds.height;*/
-
         const bounds = fragment.getGlobalBounds();
         const xLeft = bounds.left;
         const xRight = bounds.right;
@@ -1449,14 +1380,10 @@ class Selector {
     bb.name = 'Bounding Box';
     bb.graphics
         .beginStroke('#f5842c')
-    // .setStrokeDash([15.5])
-    // .setStrokeStyle(2)
         .drawRect(0, 0, this.width, this.height);
     bb.center = {x: this.x + this.width/2, y: this.y + this.height/2};
     bb.x = bb.center.x;
     bb.y = bb.center.y;
-    // bb.regX = this.width/2;
-    // bb.regY = this.height/2;
     bb.regX = this.cx;
     bb.regY = this.cy;
     bb.height = this.height;
