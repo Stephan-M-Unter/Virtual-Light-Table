@@ -3,217 +3,373 @@
     Author:         Stephan M. Unter
     Start Date:     22/07/19
 
-    Description:    This file contains the "server side" of the virtual light table, created within
-                    the electron framework. It creates and controls the windows and holds managers
-                    for data storage and data processing. 
+    Description:    This file contains the "server side"
+                    of the virtual light table, created within
+                    the electron framework. It creates and
+                    controls the windows and holds managers
+                    for data storage and data processing.
 */
 
-'use strict'
+'use strict';
 
 // Loading Requirements
-const {app, ipcMain, dialog } = require('electron')
-const path = require('path')
-const https = require('https')
+const {app, ipcMain} = require('electron');
+const path = require('path');
 
-const Window = require('./js/Window')
-const CanvasManager = require('./js/CanvasManager')
-const ImageManager = require('./js/ImageManager')
-const SaveManager = require('./js/SaveManager')
-
+const Window = require('./js/Window');
+const CanvasManager = require('./js/CanvasManager');
+const ImageManager = require('./js/ImageManager');
+const SaveManager = require('./js/SaveManager');
 
 // Settings
-const development = true;
-
+const devMode = false;
+const appPath = app.getAppPath();
+app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
 // Managers
-const canvas_manager = new CanvasManager();
+const canvasManager = new CanvasManager();
 const imageManager = new ImageManager();
-const save_manager = new SaveManager();
+const saveManager = new SaveManager();
 // Windows
-var main_window;
-var save_window;
-var load_window;
-var detail_window;
+let mainWindow; // main window containing the light table itself
+let loadWindow; // window for loading configurations
+let detailWindow; // TODO additional window to show fragment details
+// let filterWindow; // TODO additional window to set database filters
+let localUploadWindow;
 
-app.commandLine.appendSwitch('touch-events', 'enabled');
+/* ##############################################################
+###
+###                         MAIN PROCESS
+###
+############################################################## */
 
-
-/*
-    SENDING MESSAGES
-
-    The following functions are designed to send messages to one or multiple controlled windows.
-*/
-/*
-    -> redraw-canvas
-
-    This function should be called whenever not just some minor details on the canvas have changed or the UI
-    requested some update about the items' locations, but when the whole setup changes. Otherwise, information
-    about locations between old and new images might be mixed.
-*/
-function send_redraw_canvas(window){
-    console.log("Sent code 'redraw-canvas' to " + window);
-    window.webContents.send('redraw-canvas', canvas_manager.getStageInformation(), canvas_manager.getItemLocations());
+/**
+ * TODO
+ */
+function main() {
+  mainWindow = new Window({
+    file: './renderer/index.html',
+    type: 'main',
+    devMode: devMode,
+  });
+  mainWindow.maximize(); // fullscreen mode
+  if (!devMode) {
+    mainWindow.removeMenu();
+  }
+  mainWindow.on('close', function() {
+    app.quit();
+  });
 }
 
-
-
-/*
-    RECEIVING MESSAGES
-
-    The following functions listen to the communication with the sub-windows and react to specific code messages.
-
-    So far, the following codes have been agreed upon and implemented:
-    - 'clear-table'
-    - 'save-table'
-    - 'load-table'
-    - 'new-pic'
-    - 'update-location'
-*/
-// <- clear-table
-ipcMain.on('clear-table', (event) => {
-    if (development){console.log("Received code 'clear-table'.")};
-    canvas_manager.clearItems();
-    send_redraw_canvas(event.sender);
-})
-
-// <- duplicate
-ipcMain.on('duplicate', () => {
-    if (development){console.log("Received code 'duplicate'.")};
-    // TODO
-})
-
-// <- save-table
-ipcMain.on('save-table', () => {
-    if (development){console.log("Received code 'save-table'.")};
-    save_window = new Window({
-        file: './renderer/save.html',
-        type: 'save'
-    });
-    save_window.removeMenu();
-    save_window.once('ready-to-show', () => {
-        save_window.show();
-    });
-})
-
-// <- load-table
-ipcMain.on('load-table', (event) => {
-    if (development){console.log("Received code 'load-table'.")};
-
-    load_window = new Window({
-        file: './renderer/load.html',
-        type: 'load'
-    });
-    load_window.removeMenu();
-    load_window.once('read-to-show', () => {
-        load_window.show();
-    });
-    
-    /*
-    let loadedContent = save_manager.loadTable();
-    if (loadedContent) {
-        canvas_manager.setCanvasContent(loadedContent);
-        send_redraw_canvas(event.sender);
-    }
-    */
-})
-
-// <- 'new-pic'
-ipcMain.on('new-pic', (event, data) => {
-    if (development){console.log("Received code 'new-pic'.")};
-    https.get(data, (resp) => {
-        resp.setEncoding('base64');
-        let body = "data:" + resp.headers["content-type"] + ";base64,";
-        resp.on('data', (data) => { body += data});
-        resp.on('end', () => {
-            win.webContents.send('draw-picture', body);
-            //return res.json({result: body, status: 'success'});
-        });
-    }).on('error', (e) => {
-        console.log(`Got error: ${e.message}`);
-    });
-})
-
-// <- update-location
-// update: contains location information of a canvas item
-ipcMain.on('update-location', (event, update) => {
-    if (development){console.log("Received code 'update-location'.")};
-    let id = update.id;
-    let xPos = update.xPos;
-    let yPos = update.yPos;
-    let rotation = update.rotation;
-    canvas_manager.updateItemLocation(id, xPos, yPos, rotation);
-})
-
-// <- update-stage
-// update: contains new information about the stage configuration
-ipcMain.on('update-stage', (event, update) => {
-    if (development){console.log("Received code 'update-stage'.")};
-    canvas_manager.updateStageInformation(update);
-})
-
-// <- get-folder
-ipcMain.on('get-folder', (event) => {
-    if (development){console.log("Received code 'get-folder'.")};
-    let filepath = dialog.showOpenDialog({
-        title: "Select Folder to Save Configuration in",
-        defaultPath: path.join(__dirname+"/.."),
-        properties: ['openDirectory']
-    });
-    event.sender.send('send-folder', filepath);
-})
-
-// <- request-save-files
-ipcMain.on('request-save-files', (event, folder) => {
-    if (development){console.log("Received code 'get-save-files' for folder "+folder+".")};
-    save_manager.getSaveFiles(folder, function(err, content) {
-        let save_files_names = content.filter(function(item){
-            return item.endsWith(".vlt");
-        });
-        
-        let save_files = {};
-
-        save_files_names.forEach(name => {
-            save_files[name] = save_manager.loadSaveFile(folder + "/" + name);
-        });
-
-        event.sender.webContents.send('return-save-files', save_files);
-    });
-})
-
-// <- request-saves-folder
-ipcMain.on('request-saves-folder', (event) => {
-    let path = save_manager.getSaveFolder();
-    if (path) {
-        event.sender.webContents.send('return-saves-folder', path[0]);
-    }
-})
-
-ipcMain.on('load-file', (event, file) => {
-    load_window.close();
-    canvas_manager.clearItems();
-    send_redraw_canvas(main_window);
-    canvas_manager.setCanvasContent(file);
-    send_redraw_canvas(main_window);
+app.on('ready', main);
+app.on('window-all-closed', () => {
+  app.quit();
 });
 
+/**
+ * TODO
+ * @return {String}
+ */
+function timestamp() {
+  const now = new Date();
 
-// This is the main process, the main function which creates the windows and controlls everything else.
-function main() {
-    console.clear();
-    main_window = new Window({
-        file: './renderer/index.html',
-        type: 'main'
-    });
-    main_window.maximize(); // the VLT needs space, so use fullscreen mode
-    //win.removeMenu(); // increase work immersion by removing unnecessary menu
-    main_window.once('ready-to-show', () => {
-        main_window.show();
-        send_redraw_canvas(main_window);
-    });
+  const second = now.getSeconds().toString().padStart(2, '0');
+  const minute = now.getMinutes().toString().padStart(2, '0');
+  const hour = now.getHours().toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  let month = now.getMonth()+1; // zero-based value
+  month = month.toString().padStart(2, '0');
+  const year = now.getFullYear();
+  return '['+day+'/'+month+'/'+year+' '+hour+':'+minute+':'+second+']';
+}
+
+/* ##############################################################
+###
+###                    MESSAGES (SEND/RECEIVE)
+###
+############################################################## */
+
+/* SENDING MESSAGES */
+
+/**
+ * TODO
+ * @param {Window} recipientWindow
+ * @param {String} message
+ * @param {Object} data
+ */
+function sendMessage(recipientWindow, message, data=null) {
+  if (devMode) {
+    console.log(timestamp() +
+    ' ' + 'Sending code ['+message+'] to client');
+  }
+  recipientWindow.send(message, data);
 }
 
 
-app.on('ready', main)
-app.on("window-all-closed", () => {app.quit();});
+/* RECEIVING MESSAGES */
 
+// server-save-to-model
+ipcMain.on('server-save-to-model', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-save-to-model] from client');
+  }
+  canvasManager.updateAll(data);
+});
+
+// server-undo-step
+ipcMain.on('server-undo-step', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-undo-step] from client');
+  }
+  const undo = canvasManager.undoStep();
+  if (undo) {
+    const data = canvasManager.getAll();
+    data['undo'] = true;
+    sendMessage(event.sender, 'client-load-model', data);
+  } else {
+    const feedback = {
+      title: 'Undo Impossible',
+      desc: 'There are no more undo steps possible.',
+      color: 'rgba(255,0,0,0.6)',
+    };
+    sendMessage(event.sender, 'client-show-feedback', feedback);
+  }
+});
+
+// server-redo-step
+ipcMain.on('server-redo-step', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-redo-step] from client');
+  }
+  const redo = canvasManager.redoStep();
+  if (redo) {
+    const data = canvasManager.getAll();
+    data['undo'] = true;
+    sendMessage(event.sender, 'client-load-model', data);
+  } else {
+    const feedback = {
+      title: 'Redo Impossible',
+      desc: 'There are no more redo steps available.',
+      color: 'rgba(255,0,0,0.6)',
+    };
+    sendMessage(event.sender, 'client-show-feedback', feedback);
+  }
+});
+
+// server-clear-table
+ipcMain.on('server-clear-table', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-clear-table] from client');
+  }
+  canvasManager.clearAll();
+  sendMessage(event.sender, 'client-load-model', canvasManager.getAll());
+});
+
+// server-open-details
+ipcMain.on('server-open-details', (event, id) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-details] from' +
+    'client for fragment with id ' + id);
+  }
+  detailWindow = new Window({
+    file: './renderer/details.html',
+    type: 'detail',
+    devMode: devMode,
+  });
+  detailWindow.removeMenu();
+  detailWindow.maximize();
+  detailWindow.once('ready-to-show', () => {
+    detailWindow.show();
+  });
+});
+
+// server-load-file
+ipcMain.on('server-load-file', (event, file) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-load-file] from loadWindow');
+  }
+  loadWindow.close();
+  canvasManager.clearAll();
+  canvasManager.loadFile(file);
+  const fileData = canvasManager.getAll();
+  fileData['loading'] = true;
+  sendMessage(mainWindow, 'client-load-model', fileData);
+  const feedback = {
+    title: 'Table Loaded',
+    desc: 'Successfully loaded file: \n'+saveManager.getCurrentFile(),
+    color: 'rgba(0,255,0,0.6)',
+  };
+  sendMessage(mainWindow, 'client-show-feedback', feedback);
+});
+
+// server-save-file
+ipcMain.on('server-save-file', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-save-file] from client');
+  }
+  canvasManager.addEditor(data.editor);
+  canvasManager.setScreenshot(data.screenshot);
+  const filepath = saveManager.saveTable(canvasManager.getAll());
+  const response = {
+    title: 'Table Saved',
+    desc: 'Lighttable scene has successfully been saved to:\n'+filepath,
+    color: 'rgba(0,255,0,0.6)',
+  };
+  if (filepath) {
+    sendMessage(mainWindow, 'client-show-feedback', response);
+  }
+});
+
+// server-list-savefiles
+ipcMain.on('server-list-savefiles', (event, folder) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Received code [server-list-savefiles] for folder '+folder);
+  }
+
+  // if the requested folder uses relative pathing, indicated either by
+  // "./" or "../", combine it with the absolute appPath, that is the folder the
+  // application runs from
+  if (folder.startsWith('.')) {
+    folder = path.join(appPath, folder);
+  }
+
+  saveManager.getSaveFiles(folder, function(err, content) {
+    const filesNames = content.filter(function(item) {
+      return item.endsWith('.vlt');
+    });
+
+    const savefiles = {};
+
+    filesNames.forEach((name) => {
+      savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
+    });
+    event.sender.send('load-receive-saves', savefiles);
+  });
+});
+
+// <- server-get-saves-folder
+ipcMain.on('server-get-saves-folder', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-get-saves-folder] from client');
+  }
+  const path = saveManager.getSaveFolder();
+  if (path) {
+    event.sender.send('load-receive-folder', path[0]);
+  }
+});
+
+// server-open-load
+ipcMain.on('server-open-load', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-load] from client');
+  }
+
+  if (loadWindow != null) {
+    loadWindow.show();
+  } else {
+    loadWindow = new Window({
+      file: './renderer/load.html',
+      type: 'load',
+      devMode: devMode,
+    });
+    loadWindow.removeMenu();
+    loadWindow.once('read-to-show', () => {
+      loadWindow.show();
+    });
+    loadWindow.on('close', function() {
+      loadWindow = null;
+    });
+  }
+});
+
+ipcMain.on('server-delete-file', (event, filename) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-delete-file] from loadWindow');
+  }
+  const deleted = saveManager.deleteFile(filename);
+  if (deleted) {
+    const folder = saveManager.getCurrentFolder();
+    saveManager.getSaveFiles(folder, function(err, content) {
+      const filesNames = content.filter(function(item) {
+        return item.endsWith('.vlt');
+      });
+      const savefiles = {};
+      filesNames.forEach((name) => {
+        savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
+      });
+      event.sender.send('load-receive-saves', savefiles);
+    });
+  }
+});
+
+ipcMain.on('server-write-annotation', (event, annotData) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-write-annotation] from client');
+  }
+  canvasManager.setAnnotation(annotData);
+});
+
+ipcMain.on('server-remove-annotation', (event, id) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-remove-annotation] from client');
+  }
+  canvasManager.removeAnnotation(id);
+});
+
+ipcMain.on('server-open-upload', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-upload] from client');
+  }
+
+  if (!localUploadWindow) {
+    localUploadWindow = new Window({
+      file: './renderer/upload.html',
+      type: 'upload',
+      devMode: devMode,
+    });
+    localUploadWindow.removeMenu();
+    localUploadWindow.once('ready-to-show', () => {
+      localUploadWindow.show();
+    });
+    localUploadWindow.on('close', function() {
+      localUploadWindow = null;
+    });
+  }
+});
+
+ipcMain.on('server-upload-ready', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-upload-ready] from client');
+  }
+  localUploadWindow.close();
+  localUploadWindow = null;
+  mainWindow.send('client-add-upload', data);
+});
+
+ipcMain.on('server-upload-image', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-upload-image] from client');
+  }
+  const filepath = imageManager.selectImageFromFilesystem();
+
+  if (filepath) {
+    sendMessage(localUploadWindow, 'upload-receive-image', filepath);
+  }
+});

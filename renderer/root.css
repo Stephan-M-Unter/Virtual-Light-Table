@@ -1,0 +1,27 @@
+/* Colour definitions */
+:root {
+    --cb_black: #1d1d1b;
+    --cb_red: #f15b40;
+    --cb_orange: #f5852c;
+    --cb_blue: #1c5a9c;
+    --cb_gray: #d8e0e4;
+    --cb_grey: #d8e0e4;
+    --cb_white: #ffffff;
+    --cb_darkred: #a4042a;
+}
+
+/* Font definitions */
+* {
+    font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
+}
+
+.no-select {
+    -webkit-user-select: none;  
+    -moz-user-select: none;    
+    -ms-user-select: none;      
+    user-select: none;
+}
+
+.development {
+    display: none !important;
+}

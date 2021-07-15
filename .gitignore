@@ -1,0 +1,10 @@
+node_modules
+tf_models
+*.ipynb
+*.py
+desktop.ini
+vlt.log
+saves/*
+imgs/dev_test
+*.db
+test

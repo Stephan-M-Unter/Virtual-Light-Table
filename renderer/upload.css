@@ -1,0 +1,267 @@
+@import 'root.css';
+
+body {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(200, 200, 200);
+    margin: 0;
+    padding: 10px;
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#canvas_wrapper {
+    width: 100%;
+    flex: 1 0 auto;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: row;
+}
+
+#recto_canvas_wrapper, #verso_canvas_wrapper {
+    flex: 0 0 calc(50% - 37px);
+    display: flex;
+    flex-flow: column;
+    position: relative;
+}
+
+.canvas_label {
+    text-align: center;
+    margin: auto;
+    font-size: 1.8em;
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+canvas {
+    width: 100%;
+    flex: 1 0 auto;
+    box-sizing: border-box;
+    background-color: rgb(50,50,50);
+    border: 1px solid rgb(100, 100, 100);
+}
+
+#switch_wrapper {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+}
+    
+.button_wrapper, .resolution_wrapper {
+    width: 100%;
+    display: flex;
+    flex-flow: row;
+    transition: all .2s;
+}
+
+#verso_buttons {
+    flex-flow: row-reverse;
+}
+
+.button {
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    margin: 5px;
+    box-shadow: 1px 1px 4px rgb(0,0,0);
+    transition: .2s all;
+    user-select: none;
+}
+
+.button:hover {
+    box-shadow: 5px 5px 10px rgb(0,0,0);
+    transition: .2s all;
+}
+
+.button.inactive {
+    box-shadow: none;
+    background-color: rgb(100, 100, 100);
+}
+
+.button.active {
+    box-shadow: inset 2px 2px 3px black;
+    background-color: var(--cb_blue);
+}
+
+.button.active img {
+    filter: invert(1);
+}
+
+#mutex_wrapper * {
+    margin: 0;
+}
+
+#switch_wrapper > * {
+    margin: 15px 10px;
+}
+
+.upload_wrapper {
+    position: absolute;
+    display: flex;
+    flex-flow: row;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.upload_button {
+    width: 80px;
+    height: 80px;
+}
+
+.button img {
+    padding: 10px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.upload_button img {
+    padding: 18px;
+}
+
+
+#load_button.disabled {
+    background-color: rgb(50,50,50);
+    box-shadow: none;
+}
+
+#name_wrapper {
+    text-align: center;
+    margin: 10px 0px;
+}
+
+#name_label {
+    font-size: 1.1em;
+}
+
+#name {
+    width: 400px;
+    line-height: 1.5em;
+}
+
+#load_button {
+    width: 200px;
+    max-width: 100%;
+    font-variant: small-caps;
+    height: 50px;
+    background-color: var(--cb_orange);
+    text-align: center;
+    line-height: 50px;
+    font-size: 1.5em;
+    margin: 10px auto;
+}
+
+.resolution_input {
+    max-width: 60px;
+    width: fit-content;
+    text-align: center;
+    margin: 0px 5px;
+}
+
+#verso_resolution_wrapper {
+    text-align: right;
+    flex-direction: row-reverse;
+}
+
+.resolution_wrapper {
+    padding: 5px;
+}
+
+#mode_wrapper {
+    position: absolute;
+    display: flex;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all .2s;
+    font-size: 0.8em;
+}
+
+.select_button {
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    box-shadow: 0px 2px 4px rgb(0,0,0);
+}
+
+.select_button:hover {
+    box-shadow: 0px 5px 10px rgb(0,0,0);
+}
+
+.select_button img {
+    padding: 5px;
+    float: left;
+    height: 40px;
+    width: 40px;
+    box-sizing: border-box;
+}
+
+.select_button label {
+    font-size: 1.2em;
+    line-height: 40px;
+    width: 140px;
+    text-align: center;
+    display: block;
+    box-sizing: border-box;
+}
+
+.select_button.selected {
+    box-shadow: inset 2px 2px 4px rgb(0,0,0);
+    background-color: var(--cb_blue);
+    color: white;
+}
+
+.select_button.selected img {
+    filter: invert(1);
+}
+
+.hidden {
+    visibility: hidden;
+    opacity: 0;
+    transform: all .2s;
+}
+
+.unrendered {
+    display: none;
+}
+
+input[type=text] {
+    background-color: transparent;
+    border-bottom: 1px solid black;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-size: 1.2em;
+}
+
+.bin_button {
+    background-color: #ff4040;
+}
+
+input[type=text].empty {
+    background-color: red;
+}
+
+canvas.scale {
+    cursor: url('../imgs/symbol_measure_cursor.png'), auto !important;
+}
+canvas.cut {
+    cursor: url('../imgs/symbol_cut_cursor.png'), auto;
+}
+canvas.move {
+    cursor: move;
+}
+canvas.rotate {
+    cursor: grab;
+}
+canvas.rotate:active {
+    cursor: grabbing;
+}

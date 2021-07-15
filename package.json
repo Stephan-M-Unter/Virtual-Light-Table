@@ -1,15 +1,22 @@
 {
-  "name": "electron-test",
+  "name": "virtual-light-table",
   "version": "1.0.0",
-  "description": "My First Electron App",
+  "description": "Virtual Light Table (VLT)",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . > vlt.log 2>&1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Stephan M. Unter",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^5.0.7"
+    "electron": "^11.2.1",
+    "eslint": "^7.18.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "dependencies": {
+    "dialogs": "^2.0.1",
+    "exif-js": "^2.3.0",
+    "image-outline": "^0.1.0"
   }
 }
