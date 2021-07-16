@@ -1107,7 +1107,7 @@ class Stage {
       scale: this.stage.scaling,
     };
     if (full) {
-      changeParameters = this.fitToScreen();
+      changeParameters = this.fitToScreen(false);
     }
 
     // remove UI elements
@@ -1162,7 +1162,6 @@ class Stage {
     // temporarily appending the anchor, "clicking" on it, and removing it again
     document.body.appendChild(pseudoLink);
     pseudoLink.click();
-    document.body.removeChild(pseudoLink);
     document.body.removeChild(pseudoLink);
 
     if (full) {
@@ -1276,12 +1275,16 @@ class Stage {
 
   /**
    * TODO
+   * @param {Boolean} includeSidebar
+   *    True: fit screen to visible scene next to sidebar
+   *    False: fit screen to full visible area (e.g. for screenshots)
    * @return {*}
    */
-  fitToScreen() {
+  fitToScreen(includeSidebar=true) {
     let dimensions = this.getMBR();
     const sidebar = $('#left_sidebar').width();
-    const width = this.width - sidebar;
+    let width = this.width - sidebar;
+    if (includeSidebar) width -= sidebar;
     const oldScaling = this.stage.scaling;
     const scalingHeight = this.stage.scaling * this.height / dimensions.height;
     const scalingWidth = this.stage.scaling * width / dimensions.width;
@@ -1292,7 +1295,8 @@ class Stage {
 
     dimensions = this.getMBR();
     const center = this.getCenter();
-    const distX = center.x - dimensions.center.x + sidebar/2;
+    let distX = center.x - dimensions.center.x;
+    if (includeSidebar) distX += sidebar/2;
     const distY = center.y - dimensions.center.y;
     this.moveStage(distX, distY);
     return {
