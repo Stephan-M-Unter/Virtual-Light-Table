@@ -22,7 +22,7 @@ const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 
 // Settings
-const devMode = false;
+const devMode = true;
 const appPath = app.getAppPath();
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
@@ -367,7 +367,8 @@ ipcMain.on('server-upload-image', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-upload-image] from client');
   }
-  const filepath = imageManager.selectImageFromFilesystem();
+  let filepath = imageManager.selectImageFromFilesystem();
+  filepath = path.relative(app.getAppPath().split(path.sep).pop(), filepath);
 
   if (filepath) {
     sendMessage(localUploadWindow, 'upload-receive-image', filepath);
