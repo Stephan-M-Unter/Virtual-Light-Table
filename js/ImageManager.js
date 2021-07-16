@@ -35,7 +35,7 @@ class ImageManager {
         name: 'Image Files',
         extensions: ['jpg', 'png'],
       }],
-      properties: ['openFile'],
+      properties: ['openFile', 'treatPackageAsDirectory'],
     });
     // TODO: man könnte hier auch mit dialog.showOpenDialog
     // arbeiten; die Parameter sind die gleichen, aber der

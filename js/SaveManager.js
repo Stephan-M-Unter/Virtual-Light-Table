@@ -122,6 +122,7 @@ class SaveManager {
       defaultPath: __dirname+'/..',
       properties: [
         'openDirectory',
+        'treatPackageAsDirectory', 
       ],
     });
 
