@@ -1,0 +1,24 @@
+Virtual Light Table - Installation Instructions
+
+
+MacOS (tested on macOS Big Sur 11.4)
+
+Install
+1. Download most recent VLT application archive.
+2. Unpack zip-file into arbitrary directory. In my case, the downloaded archive was automatically unpacked. You can still move the resulting folder.
+3. Visit the directory just created and open the "virtual-light-table" file. The software has not been certified, so macOS might refuse to open the application. In that case, try to open the application by CMD+left click on it and selecting open. macOS informs you that it is still not able to verify the developer, but allows you to open the application anyway.
+
+Deinstall
+1. Search for the folder with the Virtual Light Table in it and remove it.
+
+
+WINDOWS (tested on Windows 10 x64)
+
+Install
+1. Download the most recent VLT application archive.
+2. Unpack zip-file into arbitrary directory.
+3. Visit the newly created directory and start the application by running the "virtual-light-table.exe" file.
+4. Windows might inform you that the application (and its developer) is unknown. By clicking on "more information" it will give you the choice to run the application nonetheless.
+
+Deinstall
+1. Search for the folder with the Virtual Light Table in it and remove it.
