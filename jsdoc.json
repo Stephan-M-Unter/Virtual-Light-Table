@@ -1,0 +1,6 @@
+{
+    "plugins": [],
+    "opts": {
+        "template": "node_modules/tui-jsdoc-template"
+    }
+}

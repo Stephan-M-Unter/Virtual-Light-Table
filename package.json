@@ -2,9 +2,10 @@
   "name": "virtual-light-table",
   "version": "1.0.0",
   "description": "Virtual Light Table (VLT)",
+  "doc": "jsdoc -d doc main.js",
   "main": "main.js",
   "scripts": {
-    "start": "electron . > vlt.log 2>&1",
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Stephan M. Unter",
@@ -12,7 +13,8 @@
   "devDependencies": {
     "electron": "^11.2.1",
     "eslint": "^7.18.0",
-    "eslint-config-google": "^0.14.0"
+    "eslint-config-google": "^0.14.0",
+    "tui-jsdoc-template": "^1.2.2"
   },
   "dependencies": {
     "dialogs": "^2.0.1",
