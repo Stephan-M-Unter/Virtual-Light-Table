@@ -1,0 +1,837 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: classes/Fragment.js | Source: classes/Fragment.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-jsdoc.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/tui-doc.css">
+
+    
+</head>
+<body>
+<nav class="lnb" id="lnb">
+    <div class="logo" style="">
+        
+            <img src="img/toast-ui.png" width="100%" height="100%">
+        
+    </div>
+    <div class="title">
+        <h1><a href="index.html" class="link">Source: classes/Fragment.js</a></h1>
+        
+    </div>
+    <div class="search-container" id="search-container">
+        <input type="text" placeholder="Search">
+        <ul></ul>
+    </div>
+    
+    <div class="lnb-api hidden"><h3>Classes</h3><ul><li><a href="AnnotationPopup.html">AnnotationPopup</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="AnnotationPopup_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="AnnotationPopup.html#.toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="AnnotationPopup.html#_clearAll">_clearAll</a></li><li><a href="AnnotationPopup.html#_clearAnnotationForm">_clearAnnotationForm</a></li><li><a href="AnnotationPopup.html#_clearAnnotationView">_clearAnnotationView</a></li><li><a href="AnnotationPopup.html#_createAnnotationElement">_createAnnotationElement</a></li><li><a href="AnnotationPopup.html#_createAnnotationID">_createAnnotationID</a></li><li><a href="AnnotationPopup.html#_createCollapeButton">_createCollapeButton</a></li><li><a href="AnnotationPopup.html#_createDeleteButton">_createDeleteButton</a></li><li><a href="AnnotationPopup.html#_createEditButton">_createEditButton</a></li><li><a href="AnnotationPopup.html#_createHideButton">_createHideButton</a></li><li><a href="AnnotationPopup.html#_removeFromServer">_removeFromServer</a></li><li><a href="AnnotationPopup.html#_writeToServer">_writeToServer</a></li><li><a href="AnnotationPopup.html#addAnnotation">addAnnotation</a></li><li><a href="AnnotationPopup.html#deleteAnnotation">deleteAnnotation</a></li><li><a href="AnnotationPopup.html#editAnnotation">editAnnotation</a></li><li><a href="AnnotationPopup.html#hideAnnotation">hideAnnotation</a></li><li><a href="AnnotationPopup.html#loadAnnotations">loadAnnotations</a></li><li><a href="AnnotationPopup.html#toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="AnnotationPopup.html#updateAnnotation">updateAnnotation</a></li></ul></div></li><li><a href="Fragment.html">Fragment</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Fragment_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Fragment.html#_createContainer">_createContainer</a></li><li><a href="Fragment.html#_createImage">_createImage</a></li><li><a href="Fragment.html#_createMask">_createMask</a></li><li><a href="Fragment.html#flip">flip</a></li><li><a href="Fragment.html#getBaseX">getBaseX</a></li><li><a href="Fragment.html#getBaseY">getBaseY</a></li><li><a href="Fragment.html#getBounds">getBounds</a></li><li><a href="Fragment.html#getContainer">getContainer</a></li><li><a href="Fragment.html#getData">getData</a></li><li><a href="Fragment.html#getGlobalBounds">getGlobalBounds</a></li><li><a href="Fragment.html#getHiddenImage">getHiddenImage</a></li><li><a href="Fragment.html#getImage">getImage</a></li><li><a href="Fragment.html#getImageURL">getImageURL</a></li><li><a href="Fragment.html#getInnerContainer">getInnerContainer</a></li><li><a href="Fragment.html#getMask">getMask</a></li><li><a href="Fragment.html#getMask">getMask</a></li><li><a href="Fragment.html#getMaskBounds">getMaskBounds</a></li><li><a href="Fragment.html#getName">getName</a></li><li><a href="Fragment.html#getPosition">getPosition</a></li><li><a href="Fragment.html#getRotation">getRotation</a></li><li><a href="Fragment.html#getX">getX</a></li><li><a href="Fragment.html#getY">getY</a></li><li><a href="Fragment.html#ghost">ghost</a></li><li><a href="Fragment.html#moveByDistance">moveByDistance</a></li><li><a href="Fragment.html#moveToPixel">moveToPixel</a></li><li><a href="Fragment.html#rotateByAngle">rotateByAngle</a></li><li><a href="Fragment.html#rotateToAngle">rotateToAngle</a></li><li><a href="Fragment.html#scaleToValue">scaleToValue</a></li><li><a href="Fragment.html#translateRotation">translateRotation</a></li></ul></div></li><li><a href="Measurement.html">Measurement</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Measurement_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="Measurement.html#color">color</a></li><li><a href="Measurement.html#id">id</a></li><li><a href="Measurement.html#measurement">measurement</a></li><li><a href="Measurement.html#p1">p1</a></li><li><a href="Measurement.html#p2">p2</a></li><li><a href="Measurement.html#stage">stage</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="Measurement.html#clearPoints">clearPoints</a></li><li><a href="Measurement.html#drawMeasurement">drawMeasurement</a></li><li><a href="Measurement.html#getColor">getColor</a></li><li><a href="Measurement.html#getDistanceInCm">getDistanceInCm</a></li><li><a href="Measurement.html#getDistanceInPixel">getDistanceInPixel</a></li><li><a href="Measurement.html#getID">getID</a></li><li><a href="Measurement.html#getMeasurement">getMeasurement</a></li><li><a href="Measurement.html#getP1">getP1</a></li><li><a href="Measurement.html#getP2">getP2</a></li><li><a href="Measurement.html#setP1">setP1</a></li><li><a href="Measurement.html#setP2">setP2</a></li><li><a href="Measurement.html#setPoint">setPoint</a></li></ul></div></li><li><a href="Scaler.html">Scaler</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Scaler_sub"></div></li><li><a href="Selector.html">Selector</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Selector_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Selector.html#getBb">getBb</a></li><li><a href="Selector.html#setToDefault">setToDefault</a></li><li><a href="Selector.html#updateBb">updateBb</a></li></ul></div></li><li><a href="Sidebar.html">Sidebar</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Sidebar_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Sidebar.html#_addFragment">_addFragment</a></li><li><a href="Sidebar.html#addFragmentListButtons">addFragmentListButtons</a></li><li><a href="Sidebar.html#addMeasurement">addMeasurement</a></li><li><a href="Sidebar.html#clearMeasurements">clearMeasurements</a></li><li><a href="Sidebar.html#clearSelection">clearSelection</a></li><li><a href="Sidebar.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="Sidebar.html#deselectFragment">deselectFragment</a></li><li><a href="Sidebar.html#highlightFragment">highlightFragment</a></li><li><a href="Sidebar.html#removeFragmentListButtons">removeFragmentListButtons</a></li><li><a href="Sidebar.html#selectFragment">selectFragment</a></li><li><a href="Sidebar.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="Sidebar.html#updateDoButtons">updateDoButtons</a></li><li><a href="Sidebar.html#updateFragmentList">updateFragmentList</a></li><li><a href="Sidebar.html#updateMeasurements">updateMeasurements</a></li></ul></div></li><li><a href="Stage.html">Stage</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Stage_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="Stage.html#activeMeasurement">activeMeasurement</a></li><li><a href="Stage.html#background">background</a></li><li><a href="Stage.html#controller">controller</a></li><li><a href="Stage.html#fragmentLabel">fragmentLabel</a></li><li><a href="Stage.html#fragmentList">fragmentList</a></li><li><a href="Stage.html#grid">grid</a></li><li><a href="Stage.html#gridMode">gridMode</a></li><li><a href="Stage.html#lines">lines</a></li><li><a href="Stage.html#loadqueue">loadqueue</a></li><li><a href="Stage.html#mColor">mColor</a></li><li><a href="Stage.html#measurements">measurements</a></li><li><a href="Stage.html#measurementsContainer">measurementsContainer</a></li><li><a href="Stage.html#measureMode">measureMode</a></li><li><a href="Stage.html#scale">scale</a></li><li><a href="Stage.html#scaleMode">scaleMode</a></li><li><a href="Stage.html#selectedList">selectedList</a></li><li><a href="Stage.html#selector">selector</a></li><li><a href="Stage.html#stage">stage</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="Stage.html#clearMeasurements">clearMeasurements</a></li><li><a href="Stage.html#clearSelection">clearSelection</a></li><li><a href="Stage.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="Stage.html#deleteSelectedFragments">deleteSelectedFragments</a></li><li><a href="Stage.html#deselectFragment">deselectFragment</a></li><li><a href="Stage.html#endMeasurement">endMeasurement</a></li><li><a href="Stage.html#exportCanvas">exportCanvas</a></li><li><a href="Stage.html#fitToScreen">fitToScreen</a></li><li><a href="Stage.html#flipTable">flipTable</a></li><li><a href="Stage.html#getCenter">getCenter</a></li><li><a href="Stage.html#getData">getData</a></li><li><a href="Stage.html#getFragmentList">getFragmentList</a></li><li><a href="Stage.html#getFragmentsData">getFragmentsData</a></li><li><a href="Stage.html#getMBR">getMBR</a></li><li><a href="Stage.html#getMeasureColor">getMeasureColor</a></li><li><a href="Stage.html#getNewFragmentId">getNewFragmentId</a></li><li><a href="Stage.html#getNewMeasurementID">getNewMeasurementID</a></li><li><a href="Stage.html#getRandomColor">getRandomColor</a></li><li><a href="Stage.html#getScaling">getScaling</a></li><li><a href="Stage.html#getSelectedList">getSelectedList</a></li><li><a href="Stage.html#getStageData">getStageData</a></li><li><a href="Stage.html#hasMeasureMode">hasMeasureMode</a></li><li><a href="Stage.html#hideFlipLines">hideFlipLines</a></li><li><a href="Stage.html#highlightFragment">highlightFragment</a></li><li><a href="Stage.html#loadScene">loadScene</a></li><li><a href="Stage.html#measure">measure</a></li><li><a href="Stage.html#moveStage">moveStage</a></li><li><a href="Stage.html#registerImageEvents">registerImageEvents</a></li><li><a href="Stage.html#removeFragment">removeFragment</a></li><li><a href="Stage.html#resizeCanvas">resizeCanvas</a></li><li><a href="Stage.html#selectFragment">selectFragment</a></li><li><a href="Stage.html#setScaling">setScaling</a></li><li><a href="Stage.html#showFlipLine">showFlipLine</a></li><li><a href="Stage.html#startMeasurement">startMeasurement</a></li><li><a href="Stage.html#toggleGridMode">toggleGridMode</a></li><li><a href="Stage.html#toggleScaleMode">toggleScaleMode</a></li><li><a href="Stage.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="Stage.html#update">update</a></li><li><a href="Stage.html#updateGrid">updateGrid</a></li><li><a href="Stage.html#updateMeasurements">updateMeasurements</a></li><li><a href="Stage.html#updateScale">updateScale</a></li></ul></div></li><li><a href="UIController.html">UIController</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="UIController_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="UIController.html#addFragment">addFragment</a></li><li><a href="UIController.html#addMeasurement">addMeasurement</a></li><li><a href="UIController.html#centerToFragment">centerToFragment</a></li><li><a href="UIController.html#clearMeasurements">clearMeasurements</a></li><li><a href="UIController.html#clearSelection">clearSelection</a></li><li><a href="UIController.html#clearTable">clearTable</a></li><li><a href="UIController.html#confirmClearTable">confirmClearTable</a></li><li><a href="UIController.html#deleteAnnotation">deleteAnnotation</a></li><li><a href="UIController.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="UIController.html#deselectFragment">deselectFragment</a></li><li><a href="UIController.html#disableHotkeys">disableHotkeys</a></li><li><a href="UIController.html#enableHotkeys">enableHotkeys</a></li><li><a href="UIController.html#endMeasurement">endMeasurement</a></li><li><a href="UIController.html#exportCanvas">exportCanvas</a></li><li><a href="UIController.html#fitToScreen">fitToScreen</a></li><li><a href="UIController.html#flipTable">flipTable</a></li><li><a href="UIController.html#getCanvasCenter">getCanvasCenter</a></li><li><a href="UIController.html#getHotkeysOn">getHotkeysOn</a></li><li><a href="UIController.html#getScaling">getScaling</a></li><li><a href="UIController.html#getSidebar">getSidebar</a></li><li><a href="UIController.html#getStage">getStage</a></li><li><a href="UIController.html#hideFlipLines">hideFlipLines</a></li><li><a href="UIController.html#highlightFragment">highlightFragment</a></li><li><a href="UIController.html#isDevMode">isDevMode</a></li><li><a href="UIController.html#loadScene">loadScene</a></li><li><a href="UIController.html#loadTable">loadTable</a></li><li><a href="UIController.html#redoMeasurement">redoMeasurement</a></li><li><a href="UIController.html#removeFragment">removeFragment</a></li><li><a href="UIController.html#removeFragments">removeFragments</a></li><li><a href="UIController.html#resetZoom">resetZoom</a></li><li><a href="UIController.html#resizeCanvas">resizeCanvas</a></li><li><a href="UIController.html#saveTable">saveTable</a></li><li><a href="UIController.html#saveToModel">saveToModel</a></li><li><a href="UIController.html#selectFragment">selectFragment</a></li><li><a href="UIController.html#sendAnnotation">sendAnnotation</a></li><li><a href="UIController.html#sendToServer">sendToServer</a></li><li><a href="UIController.html#setScaling">setScaling</a></li><li><a href="UIController.html#showFlipLine">showFlipLine</a></li><li><a href="UIController.html#showVisualFeedback">showVisualFeedback</a></li><li><a href="UIController.html#toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="UIController.html#toggleDevMode">toggleDevMode</a></li><li><a href="UIController.html#toggleGridMode">toggleGridMode</a></li><li><a href="UIController.html#toggleScaleMode">toggleScaleMode</a></li><li><a href="UIController.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="UIController.html#update">update</a></li><li><a href="UIController.html#updateAnnotation">updateAnnotation</a></li><li><a href="UIController.html#updateMeasurements">updateMeasurements</a></li><li><a href="UIController.html#updateSidebarFragmentList">updateSidebarFragmentList</a></li></ul></div></li><li><a href="Util.html">Util</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Util_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Util.html#.convertTime">convertTime</a></li></ul></div></li></ul></div><div class="lnb-api hidden"><h3>Global</h3><ul><li><a href="global.html#activateCanvas">activateCanvas</a></li><li><a href="global.html#activateKonami">activateKonami</a></li><li><a href="global.html#addPolygonNode">addPolygonNode</a></li><li><a href="global.html#addScalePoint">addScalePoint</a></li><li><a href="global.html#adjustSizes">adjustSizes</a></li><li><a href="global.html#checkForKonami">checkForKonami</a></li><li><a href="global.html#checkIfReady">checkIfReady</a></li><li><a href="global.html#clearCanvas">clearCanvas</a></li><li><a href="global.html#clearPolygon">clearPolygon</a></li><li><a href="global.html#clearSearch">clearSearch</a></li><li><a href="global.html#convertTime">convertTime</a></li><li><a href="global.html#cropSize">cropSize</a></li><li><a href="global.html#deactivateCanvas">deactivateCanvas</a></li><li><a href="global.html#deleteSavefile">deleteSavefile</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#drawCanvas">drawCanvas</a></li><li><a href="global.html#drawCropBox">drawCropBox</a></li><li><a href="global.html#drawMasks">drawMasks</a></li><li><a href="global.html#drawPolygon">drawPolygon</a></li><li><a href="global.html#drawScale">drawScale</a></li><li><a href="global.html#getFittingScale">getFittingScale</a></li><li><a href="global.html#handleScaleButton">handleScaleButton</a></li><li><a href="global.html#mirrorPolygon">mirrorPolygon</a></li><li><a href="global.html#moveImage">moveImage</a></li><li><a href="global.html#readExifPPI">readExifPPI</a></li><li><a href="global.html#resetCropbox">resetCropbox</a></li><li><a href="global.html#rotateImage">rotateImage</a></li><li><a href="global.html#selectDefaultFolder">selectDefaultFolder</a></li><li><a href="global.html#toggleLight">toggleLight</a></li><li><a href="global.html#toggleSidebar">toggleSidebar</a></li><li><a href="global.html#updateModeButtons">updateModeButtons</a></li><li><a href="global.html#updateSaveList">updateSaveList</a></li></ul></div>
+</nav>
+<div id="resizer"></div>
+
+<div class="main" id="main">
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+const { TouchBarSlider } = require("electron");
+
+/**
+ * TODO
+ */
+class Fragment {
+  /**
+     * TODO
+     * @param {*} controller
+     * @param {*} stageObject
+     * @param {*} id
+     * @param {*} eventData
+     */
+  constructor(controller, stageObject, id, eventData) {
+    if (controller.isDevMode()) console.log('New Fragment:', eventData);
+    /*
+      List of Properties (alphabetical):
+
+      - this.baseX
+      - this.baseY
+      - this.container
+      - this.controller
+      - this.framework
+      - this.id
+      - this.image
+      - this.imageRecto
+      - this.imageVerso
+      - this.isBothSidesLoaded
+      - this.isSelected
+      - this.isRecto
+      - this.maskRecto
+      - this.maskVerso
+      - this.name
+      - this.ppiRecto
+      - this.ppiVerso
+      - this.rectoRotation
+      - this.rotationDistance
+      - this.stage
+      - this.urlRecto
+      - this.urlVerso
+    */
+    // control and framework elements
+    this.controller = controller;
+    this.framework = stageObject;
+    this.stage = stageObject.stage;
+
+    const data = eventData.item.properties;
+
+    // basic fragment data
+    this.id = id;
+    this.isBothSidesLoaded = false;
+    this.isSelected = false;
+    this.isRecto = data.recto;
+    this.urlRecto = data.rectoURL;
+    this.urlVerso = data.versoURL;
+    this.name = data.name;
+
+    this.rotationDistance = 0;
+    this.tempRotation = 0;
+
+    // fragment masks (crop boxes, polygons...)
+    if (data.maskRecto) {
+      this.maskRecto = this._createMask(data.maskRecto);
+    }
+    if (data.maskVerso) {
+      this.maskVerso = this._createMask(data.maskVerso);
+    }
+
+    this.originalScaleRecto = 1;
+    this.originalScaleVerso = 1;
+    if (data.originalScaleRecto) this.originalScaleRecto = data.originalScaleRecto;
+    if (data.originalScaleVerso) this.originalScaleVerso = data.originalScaleVerso;
+
+    // rotation distance (between recto and verso)
+    this.rectoRotation = data.rectoRotation;
+    this.versoRotation = data.versoRotation;
+    this.rotationDistance = data.rotationDistance;
+    if (data.containerRotation) this.containerRotation = data.containerRotation;
+
+    // ppi information
+    if (data.ppiRecto) {
+      this.ppiRecto = data.ppiRecto;
+    }
+    if (data.ppiVerso) {
+      this.ppiVerso = data.ppiVerso;
+    }
+
+    // alignment offsets
+    this.alignOffsetX = this.alignOffsetY = 0;
+    if (data.offsetX &amp;&amp;
+      data.offsetY) {
+      this.alignOffsetX = data.offsetX;
+      this.alignOffsetY = data.offsetY;
+    }
+
+    // create inner Containers for images
+    this.containerRecto = new createjs.Container();
+    this.containerRecto.name = 'Inner Container - Recto';
+    if (this.containerRotation) this.containerRecto.rotation = this.containerRotation;
+    this.containerVerso = new createjs.Container();
+    this.containerVerso.name = 'Inner Container - Verso';
+    if (this.containerRotation) this.containerVerso.rotation = this.containerRotation;
+
+    if (data.imageWidthRecto) this.containerRecto.imageWidth = data.imageWidthRecto;
+    if (data.imageHeightRecto) this.containerRecto.imageHeight = data.imageHeightRecto;
+    if (data.imageWidthVerso) this.containerVerso.imageWidth = data.imageWidthVerso;
+    if (data.imageHeightVerso) this.containerVerso.imageHeight = data.imageHeightVerso;
+
+    // create the image for the displayed side
+    this.imageRecto = new createjs.Bitmap();
+    this.imageRecto.id = id;
+    this.imageRecto.cursor = 'pointer';
+    this.imageRecto.x = 0;
+    this.imageRecto.y = 0;
+    this.imageRecto.name = 'Image - Recto';
+    this.imageRecto.originalScale = this.originalScaleRecto;
+    this.framework.registerImageEvents(this.imageRecto);
+    this.containerRecto.addChild(this.imageRecto);
+    if (this.rectoRotation) this.imageRecto.rotation = this.rectoRotation;
+    if (this.ppiRecto) this.imageRecto.scale = 96 / this.ppiRecto;
+
+    this.imageVerso = new createjs.Bitmap();
+    this.imageVerso.id = id;
+    this.imageVerso.cursor = 'pointer';
+    this.imageVerso.x = 0;
+    this.imageVerso.y = 0;
+    this.imageVerso.name = 'Image - Verso';
+    this.imageVerso.originalScale = this.originalScaleVerso;
+    this.framework.registerImageEvents(this.imageVerso);
+    this.containerVerso.addChild(this.imageVerso);
+    if (this.versoRotation) this.imageVerso.rotation = this.versoRotation;
+    if (this.ppiVerso) this.imageVerso.scale = 96 / this.ppiVerso;
+
+    this._createImage(eventData, this.isRecto);
+
+    // create the fragment container
+    this.container = this._createContainer(data, id);
+    if (this.isRecto) this.container.addChild(this.containerRecto);
+    else this.container.addChild(this.containerVerso);
+
+    if (data.baseX) {
+      this.baseX = data.baseX;
+    } else {
+      this.baseX = this.container.x / this.container.scale;
+    }
+
+    if (data.baseY) {
+      this.baseY = data.baseY;
+    } else {
+      this.baseY = this.container.y / this.container.scale;
+    }
+
+    if (data.baseX &amp;&amp; data.baseY) {
+      const newX = this.baseX * this.container.scale;
+      const newY = this.baseY * this.container.scale;
+      this.moveToPixel(newX, newY);
+    }
+  }
+
+  /**
+   * TODO
+   * @param {*} eventData
+   * @param {*} isRecto
+   * @return {*}
+   */
+  _createImage(eventData, isRecto) {
+    let image;
+    if (isRecto) {
+      image = this.imageRecto;
+    } else {
+      image = this.imageVerso;
+    }
+    const loading = new createjs.Bitmap(eventData.result);
+    image.image = loading.image;
+    image.regX = image.image.width / 2;
+    image.regY = image.image.height / 2;
+
+    if (this.isRecto) {
+      if (this.maskRecto) {
+        image.mask = this.maskRecto;
+        this.maskRecto.regX = this.maskRecto.cx;
+        this.maskRecto.regY = this.maskRecto.cy;
+        this.maskRecto.scale = image.scale / this.originalScaleRecto;
+        image.x = (image.regX - this.maskRecto.cx) * this.maskRecto.scale;
+        image.y = (image.regY - this.maskRecto.cy) * this.maskRecto.scale;
+      }
+    } else {
+      if (this.maskVerso) {
+        image.mask = this.maskVerso;
+        this.maskVerso.regX = this.maskVerso.cx;
+        this.maskVerso.regY = this.maskVerso.cy;
+        this.maskVerso.scaleX *= Math.abs(image.scale) / this.originalScaleVerso;
+        this.maskVerso.scaleY = Math.abs(image.scale) / this.originalScaleVerso;
+
+        image.regX = this.alignOffsetX;
+        image.regY = this.alignOffsetY;
+      }
+    }
+
+    return image;
+  }
+
+  /**
+   * TODO
+   * @param {*} polygon
+   * @return {*}
+   */
+  _createMask(polygon) {
+    const mask = new createjs.Shape();
+    let started = false;
+
+    let l; let r; let t; let b;
+
+    for (const node in polygon) {
+      if (Object.prototype.hasOwnProperty.call(polygon, node)) {
+        const x = polygon[node][0];
+        const y = polygon[node][1];
+
+        (!l ? l = x : l = Math.min(l, x));
+        (!r ? r = x : r = Math.max(r, x));
+        (!t ? t = y : t = Math.min(t, y));
+        (!b ? b = y : b = Math.max(b, y));
+
+        if (!started) {
+          started = true;
+          mask.graphics.moveTo(x, y);
+        } else {
+          mask.graphics.lineTo(x, y);
+        }
+      }
+    }
+    mask.polygon = polygon;
+    mask.w = r-l,
+    mask.h = b-t,
+    mask.cx = (l+r)/2;
+    mask.cy = (b+t)/2;
+
+    return mask;
+  }
+
+  /**
+   * TODO
+   * @param {*} imageProperties
+   * @param {*} id
+   * @return {*}
+   */
+  _createContainer(imageProperties, id) {
+    const container = new createjs.Container();
+    container.scale = this.stage.scaling / 100;
+
+    if (imageProperties.xPos &amp;&amp; imageProperties.yPos) {
+      container.x = imageProperties.xPos;
+      container.y = imageProperties.yPos;
+    } else {
+      const canvasCenter = this.controller.getCanvasCenter();
+      container.x = canvasCenter.x;
+      container.y = canvasCenter.y;
+    }
+    container.name = 'Container';
+    container.id = id;
+
+    return container;
+  }
+
+  /**
+   * TODO
+   * @param {*} distX Number of pixels in current scaling by which
+   * the image has to be moved in x direction.
+   * @param {*} distY Number of pixels in current scaling by which
+   * the image has to be moved in y direction.
+   */
+  moveByDistance(distX, distY) {
+    this.container.x += distX;
+    this.container.y += distY;
+
+    this.baseX = this.baseX + (distX / this.container.scale);
+    this.baseY = this.baseY + (distY / this.container.scale);
+  }
+
+  /**
+   * TODO
+   * @param {*} x
+   * @param {*} y
+   */
+  moveToPixel(x, y) {
+    this.container.x = x;
+    this.container.y = y;
+  }
+
+  /**
+   * TODO
+   * @param {*} targetAngle
+   */
+  rotateToAngle(targetAngle) {
+    this.containerRecto.rotation = targetAngle%360;
+    this.containerVerso.rotation = targetAngle%360;
+  }
+
+  /**
+   * TODO
+   * @param {*} deltaAngle
+   */
+  rotateByAngle(deltaAngle) {
+    this.containerRecto.rotation += deltaAngle;
+    this.containerVerso.rotation += deltaAngle;
+  }
+
+  /**
+   * TODO
+   * @param {*} scaling
+   */
+  scaleToValue(scaling) {
+    this.container.scale = scaling;
+  }
+
+  /**
+   * TODO
+   * @param {*} inverted
+   */
+  flip(inverted) {
+    // WARNING: The "current" side is changed immediately!
+    this.isRecto = !this.isRecto;
+    // version A: the second side has still to be loaded
+    if (!this.isBothSidesLoaded) {
+      const loadqueue = new createjs.LoadQueue();
+      loadqueue.addEventListener('fileload', (event) => {
+        this._createImage(event, this.isRecto);
+        this.isBothSidesLoaded = true;
+        this.framework._updateBb();
+        this.stage.update();
+      });
+      let url;
+      if (this.isRecto) url = this.urlRecto;
+      else url = this.urlVerso;
+      loadqueue.loadFile(url);
+      loadqueue.load();
+    }
+
+    if (this.isRecto) {
+      this.container.removeChild(this.containerVerso);
+      this.container.addChild(this.containerRecto);
+    } else {
+      this.container.removeChild(this.containerRecto);
+      this.container.addChild(this.containerVerso);
+    }
+    if (!inverted) this.controller.updateFragmentList();
+  }
+
+  /**
+   * TODO
+   * @param {*} start
+   */
+  ghost(start) {
+    if (!start) this.getImage().scaleX *= -1;
+    if (!start &amp;&amp; this.getMask()) this.getMask().scaleX *= -1;
+    if (!start &amp;&amp; this.isRecto) this.getImage().rotation *= -1;
+    if (!start &amp;&amp; this.getMask()) this.getImage().x *= -1;
+    if (!start ) this.getImage().rotation = this.tempRotation;
+    this.flip(true);
+    if (start) this.getImage().scaleX *= -1;
+    if (start &amp;&amp; this.getMask()) this.getMask().scaleX *= -1;
+    if (start &amp;&amp; this.getMask()) this.getImage().x *= -1;
+    if (start) this.tempRotation = this.getImage().rotation;
+    if (start) this.getImage().rotation *= -1;
+    this.stage.update();
+  }
+
+  /**
+   * TODO
+   * @param {Boolean} inverted
+   */
+  translateRotation(inverted) {
+    if (inverted) {
+      if (this.isRecto) {
+        this.container.rotation += this.rotationDistance;
+      } else {
+        this.container.rotation -= this.rotationDistance;
+      }
+    } else {
+      if (this.isRecto) {
+        this.container.rotation -= this.rotationDistance;
+      } else {
+        this.container.rotation += this.rotationDistance;
+      }
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getContainer() {
+    return this.container;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getImage() {
+    if (this.isRecto) {
+      return this.imageRecto;
+    } else {
+      return this.imageVerso;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getHiddenImage() {
+    if (this.isRecto) {
+      return this.imageVerso;
+    } else {
+      return this.imageRecto;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getMask() {
+    if (!this.isRecto &amp;&amp; this.maskRecto) {
+      return this.maskRecto;
+    } else if (this.isRecto &amp;&amp; this.maskVerso) {
+      return this.maskVerso;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getInnerContainer() {
+    if (this.isRecto) {
+      return this.containerRecto;
+    } else {
+      return this.containerVerso;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getImageURL() {
+    if (this.isRecto) {
+      return this.urlRecto;
+    } else {
+      return this.urlVerso;
+    }
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getData() {
+    let rectoPolygon = null;
+    let versoPolygon = null;
+    if (this.maskRecto) {
+      rectoPolygon = this.maskRecto.polygon;
+    }
+    if (this.maskVerso) {
+      versoPolygon = this.maskVerso.polygon;
+    }
+    return {
+      'name': this.name,
+      'recto': this.isRecto,
+      'rectoURL': this.urlRecto,
+      'versoURL': this.urlVerso,
+      'xPos': this.container.x,
+      'baseX': this.baseX,
+      'yPos': this.container.y,
+      'baseY': this.baseY,
+      'rotation': this.container.rotation,
+      'containerRotation': this.containerRecto.rotation,
+      'maskRecto': rectoPolygon,
+      'maskVerso': versoPolygon,
+      'originalScaleRecto': this.originalScaleRecto,
+      'originalScaleVerso': this.originalScaleVerso,
+      'ppiRecto': this.ppiRecto,
+      'ppiVerso': this.ppiVerso,
+      'rectoRotation': this.rectoRotation,
+      'versoRotation': this.versoRotation,
+      'rotationDistance': this.rotationDistance,
+      'offsetX': this.alignOffsetX,
+      'offsetY': this.alignOffsetY,
+      'imageWidthRecto': this.containerRecto.imageWidth,
+      'imageWidthVerso': this.containerRecto.imageHeight,
+      'imageHeightRecto': this.containerVerso.imageWidth,
+      'imageHeightVerso': this.containerVerso.imageHeight,
+    };
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getName() {
+    return this.name;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getPosition() {
+    return {
+      x: this.container.x,
+      y: this.container.y,
+      baseX: this.baseX,
+      baseY: this.baseY,
+    };
+  }
+
+  /**
+   * @return {*}
+   */
+  getBaseX() {
+    return this.baseX;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getX() {
+    return this.container.x;
+  }
+
+  /**
+   * @return {*}
+   */
+  getBaseY() {
+    return this.baseY;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getY() {
+    return this.container.y;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getRotation() {
+    return this.containerRecto.rotation;
+  }
+
+  /**
+   * @return {*}
+   */
+  getMask() {
+    if (this.isRecto &amp;&amp; this.maskRecto) {
+      return this.maskRecto;
+    } else if (!this.isRecto &amp;&amp; this.maskVerso) {
+      return this.maskVerso;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @return {*}
+   */
+  getMaskBounds() {
+    let l; let r; let t; let b;
+    if (this.getMask()) {
+      const polygon = this.getMask().polygon;
+
+      for (const node in polygon) {
+        if (Object.prototype.hasOwnProperty.call(polygon, node)) {
+          const x = polygon[node][0];
+          const y = polygon[node][1];
+
+          (!l ? l = x : l = Math.min(l, x));
+          (!r ? r = x : r = Math.max(r, x));
+          (!t ? t = y : t = Math.min(t, y));
+          (!b ? b = y : b = Math.max(b, y));
+        }
+      }
+
+      return {
+        l: l,
+        r: r,
+        t: t,
+        b: b,
+        w: r-l,
+        h: b-t,
+        cx: (r-l)/2,
+        cy: (b-t)/2,
+      };
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   *
+   * @return {*}
+   */
+  getBounds() {
+    const fragmentBounds = {
+      id: this.id,
+      reference: null,
+      type: null,
+      left: null,
+      right: null,
+      top: null,
+      bottom: null,
+      width: null,
+      height: null,
+      cx: null,
+      cy: null,
+    };
+
+    // case 1: fragment has NO vector mask
+    if (!this.getMask()) {
+      fragmentBounds['type'] = 'no_mask';
+      const bounds = this.getInnerContainer().getTransformedBounds();
+      if (!bounds) return null;
+      fragmentBounds['reference'] = this.getContainer();
+      fragmentBounds['left'] = bounds.x;
+      fragmentBounds['right'] = bounds.x + bounds.width;
+      fragmentBounds['top'] = bounds.y;
+      fragmentBounds['bottom'] = bounds.y + bounds.height;
+      fragmentBounds['width'] = bounds.width;
+      fragmentBounds['height'] = bounds.height;
+      fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
+      fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
+    } else {
+    // case 2: fragment does have vector mask (box or polygon)
+      fragmentBounds['type'] = 'vector_mask';
+      const mask = this.getMask();
+      const polygon = mask.polygon;
+      const xs = [];
+      const ys = [];
+
+      for (const idx in polygon) {
+        if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
+          let node = {x: polygon[idx][0], y: polygon[idx][1]};
+          if (this.getImage().rotation != 0) {
+            let maskCenter = {x: this.getMask().cx, y: this.getMask().cy};
+
+            if (this.getImage().originalScale/* &lt; 1*/) {
+              const scale = 1/this.getImage().originalScale;
+              let imageCx; let imageCy;
+              if (this.getImage().image) {
+                imageCx = this.getImage().image.width / 2;
+                imageCy = this.getImage().image.height / 2;
+              } else {
+                imageCx = this.getInnerContainer().imageWidth / 2;
+                imageCy = this.getInnerContainer().imageHeight / 2;
+              }
+
+              const maskNewX = imageCx - (scale * (imageCx - maskCenter.x));
+              const maskNewY = imageCy - (scale * (imageCy - maskCenter.y));
+              maskCenter = {x: maskNewX*this.getImage().scale, y: maskNewY*this.getImage().scale};
+            }
+
+
+            const inversionMatrix = this.getImage().getMatrix().invert();
+            const p = inversionMatrix.transformPoint(-maskCenter.x, -maskCenter.y);
+            let m = new createjs.Matrix2D(); // this.getMask().getMatrix();
+            m = m.translate(p.x, p.y);
+            m = m.rotate(-this.getImage().rotation);
+            node = m.transformPoint(node.x, node.y);
+          }
+
+          const nodeGlobal = this.getImage().localToGlobal(node.x, node.y);
+          xs.push(nodeGlobal.x);
+          ys.push(nodeGlobal.y);
+        }
+      }
+
+      let xMin = Math.min(...xs);
+      let xMax = Math.max(...xs);
+      let yMin = Math.min(...ys);
+      let yMax = Math.max(...ys);
+
+      if (this.getImage().originalScale &lt; 1) {
+        const scale = 1/this.getImage().originalScale;
+        let imageCx; let imageCy;
+        if (this.getImage().image) {
+          imageCx = this.getImage().image.width / 2;
+          imageCy = this.getImage().image.height / 2;
+        } else {
+          imageCx = this.getInnerContainer().imageWidth / 2;
+          imageCy = this.getInnerContainer().imageHeight / 2;
+        }
+
+        const imageC = this.getImage().localToGlobal(imageCx, imageCy);
+        imageCx = imageC.x;
+        imageCy = imageC.y;
+
+        xMin = imageCx - (scale * (imageCx - xMin));
+        xMax = imageCx - (scale * (imageCx - xMax));
+        yMin = imageCy - (scale * (imageCy - yMin));
+        yMax = imageCy - (scale * (imageCy - yMax));
+      }
+
+      const tl = this.getImage().globalToLocal(xMin, yMin);
+      const br = this.getImage().globalToLocal(xMax, yMax);
+
+      fragmentBounds['left'] = tl.x;
+      fragmentBounds['right'] = br.x;
+      fragmentBounds['top'] = tl.y;
+      fragmentBounds['bottom'] = br.y;
+      fragmentBounds['reference'] = this.getImage();
+      fragmentBounds['width'] = Math.abs(fragmentBounds['right'] - fragmentBounds['left']);
+      fragmentBounds['height'] = Math.abs(fragmentBounds['bottom'] - fragmentBounds['top']);
+      fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
+      fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
+    }
+
+    return fragmentBounds;
+  }
+
+  /**
+   *
+   * @return {*}
+   */
+  getGlobalBounds() {
+    const fragmentBounds = this.getBounds();
+    if (!fragmentBounds) return null;
+
+    const reference = fragmentBounds['reference'];
+    const tl = reference.localToGlobal(fragmentBounds.left, fragmentBounds.top);
+    const br = reference.localToGlobal(fragmentBounds.right, fragmentBounds.bottom);
+
+    const left = tl.x;
+    const right = br.x;
+    const top = tl.y;
+    const bottom = br.y;
+
+    fragmentBounds['left'] = Math.min(left, right);
+    fragmentBounds['right'] = Math.max(left, right);
+    fragmentBounds['top'] = Math.min(top, bottom);
+    fragmentBounds['bottom'] = Math.max(top, bottom);
+    fragmentBounds['cx'] = fragmentBounds['width'] / 2;
+    fragmentBounds['cy'] = fragmentBounds['height'] / 2;
+    fragmentBounds['reference'] = 'global';
+
+    return fragmentBounds;
+  }
+}
+
+module.exports.Fragment = Fragment;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<footer>
+    <img class="logo" src="img/toast-ui.png" style="">
+    <div class="footer-text">NHN Entertainment. Frontend Development Lab</div>
+</footer>
+<script>prettyPrint();</script>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/tui-doc.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+    <script>
+        var id = '_sub'.replace(/"/g, '_');
+        var selectedApi = document.getElementById(id); // do not use jquery selector
+        var $selectedApi = $(selectedApi);
+
+        $selectedApi.removeClass('hidden');
+        $selectedApi.parent().find('.glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        showLnbApi();
+    </script>
+
+</body>
+</html>

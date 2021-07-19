@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: classes/Measurement.js | Source: classes/Measurement.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-jsdoc.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/tui-doc.css">
+
+    
+</head>
+<body>
+<nav class="lnb" id="lnb">
+    <div class="logo" style="">
+        
+            <img src="img/toast-ui.png" width="100%" height="100%">
+        
+    </div>
+    <div class="title">
+        <h1><a href="index.html" class="link">Source: classes/Measurement.js</a></h1>
+        
+    </div>
+    <div class="search-container" id="search-container">
+        <input type="text" placeholder="Search">
+        <ul></ul>
+    </div>
+    
+    <div class="lnb-api hidden"><h3>Classes</h3><ul><li><a href="AnnotationPopup.html">AnnotationPopup</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="AnnotationPopup_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="AnnotationPopup.html#.toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="AnnotationPopup.html#_clearAll">_clearAll</a></li><li><a href="AnnotationPopup.html#_clearAnnotationForm">_clearAnnotationForm</a></li><li><a href="AnnotationPopup.html#_clearAnnotationView">_clearAnnotationView</a></li><li><a href="AnnotationPopup.html#_createAnnotationElement">_createAnnotationElement</a></li><li><a href="AnnotationPopup.html#_createAnnotationID">_createAnnotationID</a></li><li><a href="AnnotationPopup.html#_createCollapeButton">_createCollapeButton</a></li><li><a href="AnnotationPopup.html#_createDeleteButton">_createDeleteButton</a></li><li><a href="AnnotationPopup.html#_createEditButton">_createEditButton</a></li><li><a href="AnnotationPopup.html#_createHideButton">_createHideButton</a></li><li><a href="AnnotationPopup.html#_removeFromServer">_removeFromServer</a></li><li><a href="AnnotationPopup.html#_writeToServer">_writeToServer</a></li><li><a href="AnnotationPopup.html#addAnnotation">addAnnotation</a></li><li><a href="AnnotationPopup.html#deleteAnnotation">deleteAnnotation</a></li><li><a href="AnnotationPopup.html#editAnnotation">editAnnotation</a></li><li><a href="AnnotationPopup.html#hideAnnotation">hideAnnotation</a></li><li><a href="AnnotationPopup.html#loadAnnotations">loadAnnotations</a></li><li><a href="AnnotationPopup.html#toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="AnnotationPopup.html#updateAnnotation">updateAnnotation</a></li></ul></div></li><li><a href="Fragment.html">Fragment</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Fragment_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Fragment.html#_createContainer">_createContainer</a></li><li><a href="Fragment.html#_createImage">_createImage</a></li><li><a href="Fragment.html#_createMask">_createMask</a></li><li><a href="Fragment.html#flip">flip</a></li><li><a href="Fragment.html#getBaseX">getBaseX</a></li><li><a href="Fragment.html#getBaseY">getBaseY</a></li><li><a href="Fragment.html#getBounds">getBounds</a></li><li><a href="Fragment.html#getContainer">getContainer</a></li><li><a href="Fragment.html#getData">getData</a></li><li><a href="Fragment.html#getGlobalBounds">getGlobalBounds</a></li><li><a href="Fragment.html#getHiddenImage">getHiddenImage</a></li><li><a href="Fragment.html#getImage">getImage</a></li><li><a href="Fragment.html#getImageURL">getImageURL</a></li><li><a href="Fragment.html#getInnerContainer">getInnerContainer</a></li><li><a href="Fragment.html#getMask">getMask</a></li><li><a href="Fragment.html#getMask">getMask</a></li><li><a href="Fragment.html#getMaskBounds">getMaskBounds</a></li><li><a href="Fragment.html#getName">getName</a></li><li><a href="Fragment.html#getPosition">getPosition</a></li><li><a href="Fragment.html#getRotation">getRotation</a></li><li><a href="Fragment.html#getX">getX</a></li><li><a href="Fragment.html#getY">getY</a></li><li><a href="Fragment.html#ghost">ghost</a></li><li><a href="Fragment.html#moveByDistance">moveByDistance</a></li><li><a href="Fragment.html#moveToPixel">moveToPixel</a></li><li><a href="Fragment.html#rotateByAngle">rotateByAngle</a></li><li><a href="Fragment.html#rotateToAngle">rotateToAngle</a></li><li><a href="Fragment.html#scaleToValue">scaleToValue</a></li><li><a href="Fragment.html#translateRotation">translateRotation</a></li></ul></div></li><li><a href="Measurement.html">Measurement</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Measurement_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="Measurement.html#color">color</a></li><li><a href="Measurement.html#id">id</a></li><li><a href="Measurement.html#measurement">measurement</a></li><li><a href="Measurement.html#p1">p1</a></li><li><a href="Measurement.html#p2">p2</a></li><li><a href="Measurement.html#stage">stage</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="Measurement.html#clearPoints">clearPoints</a></li><li><a href="Measurement.html#drawMeasurement">drawMeasurement</a></li><li><a href="Measurement.html#getColor">getColor</a></li><li><a href="Measurement.html#getDistanceInCm">getDistanceInCm</a></li><li><a href="Measurement.html#getDistanceInPixel">getDistanceInPixel</a></li><li><a href="Measurement.html#getID">getID</a></li><li><a href="Measurement.html#getMeasurement">getMeasurement</a></li><li><a href="Measurement.html#getP1">getP1</a></li><li><a href="Measurement.html#getP2">getP2</a></li><li><a href="Measurement.html#setP1">setP1</a></li><li><a href="Measurement.html#setP2">setP2</a></li><li><a href="Measurement.html#setPoint">setPoint</a></li></ul></div></li><li><a href="Scaler.html">Scaler</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Scaler_sub"></div></li><li><a href="Selector.html">Selector</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Selector_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Selector.html#getBb">getBb</a></li><li><a href="Selector.html#setToDefault">setToDefault</a></li><li><a href="Selector.html#updateBb">updateBb</a></li></ul></div></li><li><a href="Sidebar.html">Sidebar</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Sidebar_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Sidebar.html#_addFragment">_addFragment</a></li><li><a href="Sidebar.html#addFragmentListButtons">addFragmentListButtons</a></li><li><a href="Sidebar.html#addMeasurement">addMeasurement</a></li><li><a href="Sidebar.html#clearMeasurements">clearMeasurements</a></li><li><a href="Sidebar.html#clearSelection">clearSelection</a></li><li><a href="Sidebar.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="Sidebar.html#deselectFragment">deselectFragment</a></li><li><a href="Sidebar.html#highlightFragment">highlightFragment</a></li><li><a href="Sidebar.html#removeFragmentListButtons">removeFragmentListButtons</a></li><li><a href="Sidebar.html#selectFragment">selectFragment</a></li><li><a href="Sidebar.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="Sidebar.html#updateDoButtons">updateDoButtons</a></li><li><a href="Sidebar.html#updateFragmentList">updateFragmentList</a></li><li><a href="Sidebar.html#updateMeasurements">updateMeasurements</a></li></ul></div></li><li><a href="Stage.html">Stage</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Stage_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="Stage.html#activeMeasurement">activeMeasurement</a></li><li><a href="Stage.html#background">background</a></li><li><a href="Stage.html#controller">controller</a></li><li><a href="Stage.html#fragmentLabel">fragmentLabel</a></li><li><a href="Stage.html#fragmentList">fragmentList</a></li><li><a href="Stage.html#grid">grid</a></li><li><a href="Stage.html#gridMode">gridMode</a></li><li><a href="Stage.html#lines">lines</a></li><li><a href="Stage.html#loadqueue">loadqueue</a></li><li><a href="Stage.html#mColor">mColor</a></li><li><a href="Stage.html#measurements">measurements</a></li><li><a href="Stage.html#measurementsContainer">measurementsContainer</a></li><li><a href="Stage.html#measureMode">measureMode</a></li><li><a href="Stage.html#scale">scale</a></li><li><a href="Stage.html#scaleMode">scaleMode</a></li><li><a href="Stage.html#selectedList">selectedList</a></li><li><a href="Stage.html#selector">selector</a></li><li><a href="Stage.html#stage">stage</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="Stage.html#clearMeasurements">clearMeasurements</a></li><li><a href="Stage.html#clearSelection">clearSelection</a></li><li><a href="Stage.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="Stage.html#deleteSelectedFragments">deleteSelectedFragments</a></li><li><a href="Stage.html#deselectFragment">deselectFragment</a></li><li><a href="Stage.html#endMeasurement">endMeasurement</a></li><li><a href="Stage.html#exportCanvas">exportCanvas</a></li><li><a href="Stage.html#fitToScreen">fitToScreen</a></li><li><a href="Stage.html#flipTable">flipTable</a></li><li><a href="Stage.html#getCenter">getCenter</a></li><li><a href="Stage.html#getData">getData</a></li><li><a href="Stage.html#getFragmentList">getFragmentList</a></li><li><a href="Stage.html#getFragmentsData">getFragmentsData</a></li><li><a href="Stage.html#getMBR">getMBR</a></li><li><a href="Stage.html#getMeasureColor">getMeasureColor</a></li><li><a href="Stage.html#getNewFragmentId">getNewFragmentId</a></li><li><a href="Stage.html#getNewMeasurementID">getNewMeasurementID</a></li><li><a href="Stage.html#getRandomColor">getRandomColor</a></li><li><a href="Stage.html#getScaling">getScaling</a></li><li><a href="Stage.html#getSelectedList">getSelectedList</a></li><li><a href="Stage.html#getStageData">getStageData</a></li><li><a href="Stage.html#hasMeasureMode">hasMeasureMode</a></li><li><a href="Stage.html#hideFlipLines">hideFlipLines</a></li><li><a href="Stage.html#highlightFragment">highlightFragment</a></li><li><a href="Stage.html#loadScene">loadScene</a></li><li><a href="Stage.html#measure">measure</a></li><li><a href="Stage.html#moveStage">moveStage</a></li><li><a href="Stage.html#registerImageEvents">registerImageEvents</a></li><li><a href="Stage.html#removeFragment">removeFragment</a></li><li><a href="Stage.html#resizeCanvas">resizeCanvas</a></li><li><a href="Stage.html#selectFragment">selectFragment</a></li><li><a href="Stage.html#setScaling">setScaling</a></li><li><a href="Stage.html#showFlipLine">showFlipLine</a></li><li><a href="Stage.html#startMeasurement">startMeasurement</a></li><li><a href="Stage.html#toggleGridMode">toggleGridMode</a></li><li><a href="Stage.html#toggleScaleMode">toggleScaleMode</a></li><li><a href="Stage.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="Stage.html#update">update</a></li><li><a href="Stage.html#updateGrid">updateGrid</a></li><li><a href="Stage.html#updateMeasurements">updateMeasurements</a></li><li><a href="Stage.html#updateScale">updateScale</a></li></ul></div></li><li><a href="UIController.html">UIController</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="UIController_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="UIController.html#addFragment">addFragment</a></li><li><a href="UIController.html#addMeasurement">addMeasurement</a></li><li><a href="UIController.html#centerToFragment">centerToFragment</a></li><li><a href="UIController.html#clearMeasurements">clearMeasurements</a></li><li><a href="UIController.html#clearSelection">clearSelection</a></li><li><a href="UIController.html#clearTable">clearTable</a></li><li><a href="UIController.html#confirmClearTable">confirmClearTable</a></li><li><a href="UIController.html#deleteAnnotation">deleteAnnotation</a></li><li><a href="UIController.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="UIController.html#deselectFragment">deselectFragment</a></li><li><a href="UIController.html#disableHotkeys">disableHotkeys</a></li><li><a href="UIController.html#enableHotkeys">enableHotkeys</a></li><li><a href="UIController.html#endMeasurement">endMeasurement</a></li><li><a href="UIController.html#exportCanvas">exportCanvas</a></li><li><a href="UIController.html#fitToScreen">fitToScreen</a></li><li><a href="UIController.html#flipTable">flipTable</a></li><li><a href="UIController.html#getCanvasCenter">getCanvasCenter</a></li><li><a href="UIController.html#getHotkeysOn">getHotkeysOn</a></li><li><a href="UIController.html#getScaling">getScaling</a></li><li><a href="UIController.html#getSidebar">getSidebar</a></li><li><a href="UIController.html#getStage">getStage</a></li><li><a href="UIController.html#hideFlipLines">hideFlipLines</a></li><li><a href="UIController.html#highlightFragment">highlightFragment</a></li><li><a href="UIController.html#isDevMode">isDevMode</a></li><li><a href="UIController.html#loadScene">loadScene</a></li><li><a href="UIController.html#loadTable">loadTable</a></li><li><a href="UIController.html#redoMeasurement">redoMeasurement</a></li><li><a href="UIController.html#removeFragment">removeFragment</a></li><li><a href="UIController.html#removeFragments">removeFragments</a></li><li><a href="UIController.html#resetZoom">resetZoom</a></li><li><a href="UIController.html#resizeCanvas">resizeCanvas</a></li><li><a href="UIController.html#saveTable">saveTable</a></li><li><a href="UIController.html#saveToModel">saveToModel</a></li><li><a href="UIController.html#selectFragment">selectFragment</a></li><li><a href="UIController.html#sendAnnotation">sendAnnotation</a></li><li><a href="UIController.html#sendToServer">sendToServer</a></li><li><a href="UIController.html#setScaling">setScaling</a></li><li><a href="UIController.html#showFlipLine">showFlipLine</a></li><li><a href="UIController.html#showVisualFeedback">showVisualFeedback</a></li><li><a href="UIController.html#toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="UIController.html#toggleDevMode">toggleDevMode</a></li><li><a href="UIController.html#toggleGridMode">toggleGridMode</a></li><li><a href="UIController.html#toggleScaleMode">toggleScaleMode</a></li><li><a href="UIController.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="UIController.html#update">update</a></li><li><a href="UIController.html#updateAnnotation">updateAnnotation</a></li><li><a href="UIController.html#updateMeasurements">updateMeasurements</a></li><li><a href="UIController.html#updateSidebarFragmentList">updateSidebarFragmentList</a></li></ul></div></li><li><a href="Util.html">Util</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Util_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Util.html#.convertTime">convertTime</a></li></ul></div></li></ul></div><div class="lnb-api hidden"><h3>Global</h3><ul><li><a href="global.html#activateCanvas">activateCanvas</a></li><li><a href="global.html#activateKonami">activateKonami</a></li><li><a href="global.html#addPolygonNode">addPolygonNode</a></li><li><a href="global.html#addScalePoint">addScalePoint</a></li><li><a href="global.html#adjustSizes">adjustSizes</a></li><li><a href="global.html#checkForKonami">checkForKonami</a></li><li><a href="global.html#checkIfReady">checkIfReady</a></li><li><a href="global.html#clearCanvas">clearCanvas</a></li><li><a href="global.html#clearPolygon">clearPolygon</a></li><li><a href="global.html#clearSearch">clearSearch</a></li><li><a href="global.html#convertTime">convertTime</a></li><li><a href="global.html#cropSize">cropSize</a></li><li><a href="global.html#deactivateCanvas">deactivateCanvas</a></li><li><a href="global.html#deleteSavefile">deleteSavefile</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#drawCanvas">drawCanvas</a></li><li><a href="global.html#drawCropBox">drawCropBox</a></li><li><a href="global.html#drawMasks">drawMasks</a></li><li><a href="global.html#drawPolygon">drawPolygon</a></li><li><a href="global.html#drawScale">drawScale</a></li><li><a href="global.html#getFittingScale">getFittingScale</a></li><li><a href="global.html#handleScaleButton">handleScaleButton</a></li><li><a href="global.html#mirrorPolygon">mirrorPolygon</a></li><li><a href="global.html#moveImage">moveImage</a></li><li><a href="global.html#readExifPPI">readExifPPI</a></li><li><a href="global.html#resetCropbox">resetCropbox</a></li><li><a href="global.html#rotateImage">rotateImage</a></li><li><a href="global.html#selectDefaultFolder">selectDefaultFolder</a></li><li><a href="global.html#toggleLight">toggleLight</a></li><li><a href="global.html#toggleSidebar">toggleSidebar</a></li><li><a href="global.html#updateModeButtons">updateModeButtons</a></li><li><a href="global.html#updateSaveList">updateSaveList</a></li></ul></div>
+</nav>
+<div id="resizer"></div>
+
+<div class="main" id="main">
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+/**
+ * TODO
+ */
+class Measurement {
+  /**
+   * @constructs
+   * Constructor for new Measurement, setting up variables for both end points and the container
+   * for the final measurement line.
+   * @param {Stage} stage - Stage object where the measurement will be added to.
+   * @param {Int} id - Individual, unique ID for a measurement.
+   * @param {String} color - Color code.
+   */
+  constructor(stage, id, color) {
+    /** @member {Stage} */
+    this.stage = stage;
+    /** @member {Int} */
+    this.id = id;
+    /** @member {String} */
+    this.color = color;
+    /** @member {double[]} */
+    this.p1 = null;
+    /** @member {double[]} */
+    this.p2 = null;
+    /** @member {createjs.Container} */
+    this.measurement = new createjs.Container();
+    this.measurement.id = id;
+  }
+
+  /**
+   * Sets the coordinates of the first point for this measurement.
+   * @param {double[]} point - Coordinate set [x,y].
+   */
+  setP1(point) {
+    this.p1 = point;
+  }
+
+  /**
+   * Sets the coordinates of the second point for this measurement.
+   * @param {double[]} point - Coordinate set [x,y].
+   */
+  setP2(point) {
+    this.p2 = point;
+  }
+
+  /**
+   * TODO
+   * @param {double[]} point - Coordinate set [x,y].
+   */
+  setPoint(point) {
+    if (!this.p1) {
+      this.setP1(point);
+    } else {
+      this.setP2(point);
+    }
+  }
+
+  /**
+   * Remove all previously entered coordinates for end points and the corresponding connection line.
+   */
+  clearPoints() {
+    this.p1 = null;
+    this.p2 = null;
+    this.measurement.removeAllChildren();
+  }
+
+  /**
+   * Returns measurement ID.
+   * @return {Int}
+   */
+  getID() {
+    return this.id;
+  }
+
+  /**
+   * Returns the coordinates of the first point for this measurement.
+   * @return {double[]} Coordinate set [x,y].
+   */
+  getP1() {
+    return this.p1;
+  }
+
+  /**
+   * Returns the coordinates of the second point for this measurement.
+   * @return {double[]} Coordinate set [x,y].
+   */
+  getP2() {
+    return this.p2;
+  }
+
+  /**
+   * Calculates distance between points 1 and 2 based on the given
+   * scaling factor and returns in distance in pixels.
+   * @return {double} Distance between P1 and P2 in pixels.
+   */
+  getDistanceInPixel() {
+    if (this.p1 &amp;&amp; this.p2) {
+      const dx = this.p1[0] - this.p2[0];
+      const dy = this.p1[1] - this.p2[1];
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      return dist;
+    } else {
+      return '?';
+    }
+  }
+
+  /**
+   * Calculates distance between points 1 and 2 based on the given
+   * scaling factor and returns in distance in cm.
+   * @return {double} Distance between P1 and P2 in cm.
+   */
+  getDistanceInCm() {
+    if (this.p1 &amp;&amp; this.p2) {
+      const dist = this.getDistanceInPixel();
+      const CmInPx = 38 * this.stage.getScaling()/100;
+      const distInCm = Math.round(dist/CmInPx*100)/100;
+      return distInCm;
+    } else {
+      return '?';
+    }
+  }
+
+  /**
+   * Takes the currently saved coordinates for end points P1 and P2 and creates all necessary easelJS graphics elements
+   * to draw the measurement line. The output consists of a Container object which encompasses Shapes for the end points,
+   * a Shape for the line, and Text objects for the distance label.
+   * @return {createjs.Container} CreateJS Container containing graphics for end points and measurement line.
+   */
+  drawMeasurement() {
+    if (this.p1 &amp;&amp; this.p2) {
+      this.measurement.removeAllChildren();
+
+      // Measurement Line
+      const mLine = new createjs.Shape();
+      mLine.graphics.setStrokeStyle(2)
+          .beginStroke(this.color)
+          .moveTo(this.p1[0], this.p1[1])
+          .lineTo(this.p2[0], this.p2[1])
+          .endStroke();
+
+      mLine.on('mousedown', (event) => {
+        mLine.mouseX = event.stageX;
+        mLine.mouseY = event.stageY;
+      });
+      mLine.on('pressmove', (event) => {
+        const deltaX = event.stageX - mLine.mouseX;
+        const deltaY = event.stageY - mLine.mouseY;
+        mLine.mouseX = event.stageX;
+        mLine.mouseY = event.stageY;
+        const p1 = this.getP1();
+        const p2 = this.getP2();
+        this.setP1([p1[0]+deltaX, p1[1]+deltaY]);
+        this.setP2([p2[0]+deltaX, p2[1]+deltaY]);
+        this.drawMeasurement();
+        this.stage.update();
+        this.stage.updateMeasurements();
+      });
+
+      // Point 1
+      const mPoint1 = new createjs.Shape();
+      mPoint1.name = 'p1';
+      mPoint1.graphics.beginFill(this.color)
+          .drawCircle(0, 0, 5);
+      mPoint1.x = this.p1[0];
+      mPoint1.y = this.p1[1];
+
+      mPoint1.on('pressmove', (event) => {
+        this.setP1([event.stageX, event.stageY]);
+        this.drawMeasurement();
+        this.stage.update();
+        this.stage.updateMeasurements();
+      });
+
+      // Point 2
+      const mPoint2 = new createjs.Shape();
+      mPoint2.name = 'p2';
+      mPoint2.graphics.beginFill(this.color)
+          .drawCircle(0, 0, 5);
+      mPoint2.x = this.p2[0];
+      mPoint2.y = this.p2[1];
+
+      mPoint2.on('pressmove', (event) => {
+        this.setP2([event.stageX, event.stageY]);
+        this.drawMeasurement();
+        this.stage.update();
+        this.stage.updateMeasurements();
+      });
+
+      // Text and Text Shadow
+      const distInCm = this.getDistanceInCm();
+      const mTextShadow = new createjs.Text(distInCm + ' cm', '', 'grey');
+      const mTextShadow2 = new createjs.Text(distInCm + ' cm', '', 'black');
+      const mText = new createjs.Text(distInCm + ' cm', '', this.color);
+      mText.scale = mTextShadow.scale = mTextShadow2.scale = 1.7;
+      const mTextBounds = mText.getBounds();
+      mText.x = (this.p1[0] + (this.p2[0]-this.p1[0])/2) -
+            mTextBounds.width * mText.scale/3;
+      mText.y = (this.p1[1] + (this.p2[1]-this.p1[1])/2) + 20;
+      mTextShadow.x = mText.x + 1;
+      mTextShadow.y = mText.y + 1;
+      mTextShadow2.x = mText.x - 1;
+      mTextShadow2.y = mText.y - 1;
+
+      this.measurement.addChild(mLine);
+      this.measurement.addChild(mPoint1);
+      this.measurement.addChild(mPoint2);
+      this.measurement.addChild(mTextShadow);
+      this.measurement.addChild(mTextShadow2);
+      this.measurement.addChild(mText);
+    } else {
+      // if not both end points are given, return empty container
+      this.measurement.removeAllChildren();
+    }
+    return this.measurement;
+  }
+
+  /**
+   * TODO
+   * @return {*}
+   */
+  getMeasurement() {
+    return this.measurement;
+  }
+
+  /**
+   * TODO
+   * @return {*} color
+   */
+  getColor() {
+    return this.color;
+  }
+}
+
+module.exports.Measurement = Measurement;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<footer>
+    <img class="logo" src="img/toast-ui.png" style="">
+    <div class="footer-text">NHN Entertainment. Frontend Development Lab</div>
+</footer>
+<script>prettyPrint();</script>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/tui-doc.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+    <script>
+        var id = '_sub'.replace(/"/g, '_');
+        var selectedApi = document.getElementById(id); // do not use jquery selector
+        var $selectedApi = $(selectedApi);
+
+        $selectedApi.removeClass('hidden');
+        $selectedApi.parent().find('.glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        showLnbApi();
+    </script>
+
+</body>
+</html>

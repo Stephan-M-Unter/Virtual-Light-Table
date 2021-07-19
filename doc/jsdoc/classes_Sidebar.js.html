@@ -1,0 +1,383 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: classes/Sidebar.js | Source: classes/Sidebar.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-jsdoc.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/tui-doc.css">
+
+    
+</head>
+<body>
+<nav class="lnb" id="lnb">
+    <div class="logo" style="">
+        
+            <img src="img/toast-ui.png" width="100%" height="100%">
+        
+    </div>
+    <div class="title">
+        <h1><a href="index.html" class="link">Source: classes/Sidebar.js</a></h1>
+        
+    </div>
+    <div class="search-container" id="search-container">
+        <input type="text" placeholder="Search">
+        <ul></ul>
+    </div>
+    
+    <div class="lnb-api hidden"><h3>Classes</h3><ul><li><a href="AnnotationPopup.html">AnnotationPopup</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="AnnotationPopup_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="AnnotationPopup.html#.toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="AnnotationPopup.html#_clearAll">_clearAll</a></li><li><a href="AnnotationPopup.html#_clearAnnotationForm">_clearAnnotationForm</a></li><li><a href="AnnotationPopup.html#_clearAnnotationView">_clearAnnotationView</a></li><li><a href="AnnotationPopup.html#_createAnnotationElement">_createAnnotationElement</a></li><li><a href="AnnotationPopup.html#_createAnnotationID">_createAnnotationID</a></li><li><a href="AnnotationPopup.html#_createCollapeButton">_createCollapeButton</a></li><li><a href="AnnotationPopup.html#_createDeleteButton">_createDeleteButton</a></li><li><a href="AnnotationPopup.html#_createEditButton">_createEditButton</a></li><li><a href="AnnotationPopup.html#_createHideButton">_createHideButton</a></li><li><a href="AnnotationPopup.html#_removeFromServer">_removeFromServer</a></li><li><a href="AnnotationPopup.html#_writeToServer">_writeToServer</a></li><li><a href="AnnotationPopup.html#addAnnotation">addAnnotation</a></li><li><a href="AnnotationPopup.html#deleteAnnotation">deleteAnnotation</a></li><li><a href="AnnotationPopup.html#editAnnotation">editAnnotation</a></li><li><a href="AnnotationPopup.html#hideAnnotation">hideAnnotation</a></li><li><a href="AnnotationPopup.html#loadAnnotations">loadAnnotations</a></li><li><a href="AnnotationPopup.html#toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="AnnotationPopup.html#updateAnnotation">updateAnnotation</a></li></ul></div></li><li><a href="Fragment.html">Fragment</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Fragment_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Fragment.html#_createContainer">_createContainer</a></li><li><a href="Fragment.html#_createImage">_createImage</a></li><li><a href="Fragment.html#_createMask">_createMask</a></li><li><a href="Fragment.html#flip">flip</a></li><li><a href="Fragment.html#getBaseX">getBaseX</a></li><li><a href="Fragment.html#getBaseY">getBaseY</a></li><li><a href="Fragment.html#getBounds">getBounds</a></li><li><a href="Fragment.html#getContainer">getContainer</a></li><li><a href="Fragment.html#getData">getData</a></li><li><a href="Fragment.html#getGlobalBounds">getGlobalBounds</a></li><li><a href="Fragment.html#getHiddenImage">getHiddenImage</a></li><li><a href="Fragment.html#getImage">getImage</a></li><li><a href="Fragment.html#getImageURL">getImageURL</a></li><li><a href="Fragment.html#getInnerContainer">getInnerContainer</a></li><li><a href="Fragment.html#getMask">getMask</a></li><li><a href="Fragment.html#getMask">getMask</a></li><li><a href="Fragment.html#getMaskBounds">getMaskBounds</a></li><li><a href="Fragment.html#getName">getName</a></li><li><a href="Fragment.html#getPosition">getPosition</a></li><li><a href="Fragment.html#getRotation">getRotation</a></li><li><a href="Fragment.html#getX">getX</a></li><li><a href="Fragment.html#getY">getY</a></li><li><a href="Fragment.html#ghost">ghost</a></li><li><a href="Fragment.html#moveByDistance">moveByDistance</a></li><li><a href="Fragment.html#moveToPixel">moveToPixel</a></li><li><a href="Fragment.html#rotateByAngle">rotateByAngle</a></li><li><a href="Fragment.html#rotateToAngle">rotateToAngle</a></li><li><a href="Fragment.html#scaleToValue">scaleToValue</a></li><li><a href="Fragment.html#translateRotation">translateRotation</a></li></ul></div></li><li><a href="Measurement.html">Measurement</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Measurement_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="Measurement.html#color">color</a></li><li><a href="Measurement.html#id">id</a></li><li><a href="Measurement.html#measurement">measurement</a></li><li><a href="Measurement.html#p1">p1</a></li><li><a href="Measurement.html#p2">p2</a></li><li><a href="Measurement.html#stage">stage</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="Measurement.html#clearPoints">clearPoints</a></li><li><a href="Measurement.html#drawMeasurement">drawMeasurement</a></li><li><a href="Measurement.html#getColor">getColor</a></li><li><a href="Measurement.html#getDistanceInCm">getDistanceInCm</a></li><li><a href="Measurement.html#getDistanceInPixel">getDistanceInPixel</a></li><li><a href="Measurement.html#getID">getID</a></li><li><a href="Measurement.html#getMeasurement">getMeasurement</a></li><li><a href="Measurement.html#getP1">getP1</a></li><li><a href="Measurement.html#getP2">getP2</a></li><li><a href="Measurement.html#setP1">setP1</a></li><li><a href="Measurement.html#setP2">setP2</a></li><li><a href="Measurement.html#setPoint">setPoint</a></li></ul></div></li><li><a href="Scaler.html">Scaler</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Scaler_sub"></div></li><li><a href="Selector.html">Selector</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Selector_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Selector.html#getBb">getBb</a></li><li><a href="Selector.html#setToDefault">setToDefault</a></li><li><a href="Selector.html#updateBb">updateBb</a></li></ul></div></li><li><a href="Sidebar.html">Sidebar</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Sidebar_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Sidebar.html#_addFragment">_addFragment</a></li><li><a href="Sidebar.html#addFragmentListButtons">addFragmentListButtons</a></li><li><a href="Sidebar.html#addMeasurement">addMeasurement</a></li><li><a href="Sidebar.html#clearMeasurements">clearMeasurements</a></li><li><a href="Sidebar.html#clearSelection">clearSelection</a></li><li><a href="Sidebar.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="Sidebar.html#deselectFragment">deselectFragment</a></li><li><a href="Sidebar.html#highlightFragment">highlightFragment</a></li><li><a href="Sidebar.html#removeFragmentListButtons">removeFragmentListButtons</a></li><li><a href="Sidebar.html#selectFragment">selectFragment</a></li><li><a href="Sidebar.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="Sidebar.html#updateDoButtons">updateDoButtons</a></li><li><a href="Sidebar.html#updateFragmentList">updateFragmentList</a></li><li><a href="Sidebar.html#updateMeasurements">updateMeasurements</a></li></ul></div></li><li><a href="Stage.html">Stage</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Stage_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="Stage.html#activeMeasurement">activeMeasurement</a></li><li><a href="Stage.html#background">background</a></li><li><a href="Stage.html#controller">controller</a></li><li><a href="Stage.html#fragmentLabel">fragmentLabel</a></li><li><a href="Stage.html#fragmentList">fragmentList</a></li><li><a href="Stage.html#grid">grid</a></li><li><a href="Stage.html#gridMode">gridMode</a></li><li><a href="Stage.html#lines">lines</a></li><li><a href="Stage.html#loadqueue">loadqueue</a></li><li><a href="Stage.html#mColor">mColor</a></li><li><a href="Stage.html#measurements">measurements</a></li><li><a href="Stage.html#measurementsContainer">measurementsContainer</a></li><li><a href="Stage.html#measureMode">measureMode</a></li><li><a href="Stage.html#scale">scale</a></li><li><a href="Stage.html#scaleMode">scaleMode</a></li><li><a href="Stage.html#selectedList">selectedList</a></li><li><a href="Stage.html#selector">selector</a></li><li><a href="Stage.html#stage">stage</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="Stage.html#clearMeasurements">clearMeasurements</a></li><li><a href="Stage.html#clearSelection">clearSelection</a></li><li><a href="Stage.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="Stage.html#deleteSelectedFragments">deleteSelectedFragments</a></li><li><a href="Stage.html#deselectFragment">deselectFragment</a></li><li><a href="Stage.html#endMeasurement">endMeasurement</a></li><li><a href="Stage.html#exportCanvas">exportCanvas</a></li><li><a href="Stage.html#fitToScreen">fitToScreen</a></li><li><a href="Stage.html#flipTable">flipTable</a></li><li><a href="Stage.html#getCenter">getCenter</a></li><li><a href="Stage.html#getData">getData</a></li><li><a href="Stage.html#getFragmentList">getFragmentList</a></li><li><a href="Stage.html#getFragmentsData">getFragmentsData</a></li><li><a href="Stage.html#getMBR">getMBR</a></li><li><a href="Stage.html#getMeasureColor">getMeasureColor</a></li><li><a href="Stage.html#getNewFragmentId">getNewFragmentId</a></li><li><a href="Stage.html#getNewMeasurementID">getNewMeasurementID</a></li><li><a href="Stage.html#getRandomColor">getRandomColor</a></li><li><a href="Stage.html#getScaling">getScaling</a></li><li><a href="Stage.html#getSelectedList">getSelectedList</a></li><li><a href="Stage.html#getStageData">getStageData</a></li><li><a href="Stage.html#hasMeasureMode">hasMeasureMode</a></li><li><a href="Stage.html#hideFlipLines">hideFlipLines</a></li><li><a href="Stage.html#highlightFragment">highlightFragment</a></li><li><a href="Stage.html#loadScene">loadScene</a></li><li><a href="Stage.html#measure">measure</a></li><li><a href="Stage.html#moveStage">moveStage</a></li><li><a href="Stage.html#registerImageEvents">registerImageEvents</a></li><li><a href="Stage.html#removeFragment">removeFragment</a></li><li><a href="Stage.html#resizeCanvas">resizeCanvas</a></li><li><a href="Stage.html#selectFragment">selectFragment</a></li><li><a href="Stage.html#setScaling">setScaling</a></li><li><a href="Stage.html#showFlipLine">showFlipLine</a></li><li><a href="Stage.html#startMeasurement">startMeasurement</a></li><li><a href="Stage.html#toggleGridMode">toggleGridMode</a></li><li><a href="Stage.html#toggleScaleMode">toggleScaleMode</a></li><li><a href="Stage.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="Stage.html#update">update</a></li><li><a href="Stage.html#updateGrid">updateGrid</a></li><li><a href="Stage.html#updateMeasurements">updateMeasurements</a></li><li><a href="Stage.html#updateScale">updateScale</a></li></ul></div></li><li><a href="UIController.html">UIController</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="UIController_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="UIController.html#addFragment">addFragment</a></li><li><a href="UIController.html#addMeasurement">addMeasurement</a></li><li><a href="UIController.html#centerToFragment">centerToFragment</a></li><li><a href="UIController.html#clearMeasurements">clearMeasurements</a></li><li><a href="UIController.html#clearSelection">clearSelection</a></li><li><a href="UIController.html#clearTable">clearTable</a></li><li><a href="UIController.html#confirmClearTable">confirmClearTable</a></li><li><a href="UIController.html#deleteAnnotation">deleteAnnotation</a></li><li><a href="UIController.html#deleteMeasurement">deleteMeasurement</a></li><li><a href="UIController.html#deselectFragment">deselectFragment</a></li><li><a href="UIController.html#disableHotkeys">disableHotkeys</a></li><li><a href="UIController.html#enableHotkeys">enableHotkeys</a></li><li><a href="UIController.html#endMeasurement">endMeasurement</a></li><li><a href="UIController.html#exportCanvas">exportCanvas</a></li><li><a href="UIController.html#fitToScreen">fitToScreen</a></li><li><a href="UIController.html#flipTable">flipTable</a></li><li><a href="UIController.html#getCanvasCenter">getCanvasCenter</a></li><li><a href="UIController.html#getHotkeysOn">getHotkeysOn</a></li><li><a href="UIController.html#getScaling">getScaling</a></li><li><a href="UIController.html#getSidebar">getSidebar</a></li><li><a href="UIController.html#getStage">getStage</a></li><li><a href="UIController.html#hideFlipLines">hideFlipLines</a></li><li><a href="UIController.html#highlightFragment">highlightFragment</a></li><li><a href="UIController.html#isDevMode">isDevMode</a></li><li><a href="UIController.html#loadScene">loadScene</a></li><li><a href="UIController.html#loadTable">loadTable</a></li><li><a href="UIController.html#redoMeasurement">redoMeasurement</a></li><li><a href="UIController.html#removeFragment">removeFragment</a></li><li><a href="UIController.html#removeFragments">removeFragments</a></li><li><a href="UIController.html#resetZoom">resetZoom</a></li><li><a href="UIController.html#resizeCanvas">resizeCanvas</a></li><li><a href="UIController.html#saveTable">saveTable</a></li><li><a href="UIController.html#saveToModel">saveToModel</a></li><li><a href="UIController.html#selectFragment">selectFragment</a></li><li><a href="UIController.html#sendAnnotation">sendAnnotation</a></li><li><a href="UIController.html#sendToServer">sendToServer</a></li><li><a href="UIController.html#setScaling">setScaling</a></li><li><a href="UIController.html#showFlipLine">showFlipLine</a></li><li><a href="UIController.html#showVisualFeedback">showVisualFeedback</a></li><li><a href="UIController.html#toggleAnnotSubmitButton">toggleAnnotSubmitButton</a></li><li><a href="UIController.html#toggleDevMode">toggleDevMode</a></li><li><a href="UIController.html#toggleGridMode">toggleGridMode</a></li><li><a href="UIController.html#toggleScaleMode">toggleScaleMode</a></li><li><a href="UIController.html#unhighlightFragment">unhighlightFragment</a></li><li><a href="UIController.html#update">update</a></li><li><a href="UIController.html#updateAnnotation">updateAnnotation</a></li><li><a href="UIController.html#updateMeasurements">updateMeasurements</a></li><li><a href="UIController.html#updateSidebarFragmentList">updateSidebarFragmentList</a></li></ul></div></li><li><a href="Util.html">Util</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Util_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Util.html#.convertTime">convertTime</a></li></ul></div></li></ul></div><div class="lnb-api hidden"><h3>Global</h3><ul><li><a href="global.html#activateCanvas">activateCanvas</a></li><li><a href="global.html#activateKonami">activateKonami</a></li><li><a href="global.html#addPolygonNode">addPolygonNode</a></li><li><a href="global.html#addScalePoint">addScalePoint</a></li><li><a href="global.html#adjustSizes">adjustSizes</a></li><li><a href="global.html#checkForKonami">checkForKonami</a></li><li><a href="global.html#checkIfReady">checkIfReady</a></li><li><a href="global.html#clearCanvas">clearCanvas</a></li><li><a href="global.html#clearPolygon">clearPolygon</a></li><li><a href="global.html#clearSearch">clearSearch</a></li><li><a href="global.html#convertTime">convertTime</a></li><li><a href="global.html#cropSize">cropSize</a></li><li><a href="global.html#deactivateCanvas">deactivateCanvas</a></li><li><a href="global.html#deleteSavefile">deleteSavefile</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#drawCanvas">drawCanvas</a></li><li><a href="global.html#drawCropBox">drawCropBox</a></li><li><a href="global.html#drawMasks">drawMasks</a></li><li><a href="global.html#drawPolygon">drawPolygon</a></li><li><a href="global.html#drawScale">drawScale</a></li><li><a href="global.html#getFittingScale">getFittingScale</a></li><li><a href="global.html#handleScaleButton">handleScaleButton</a></li><li><a href="global.html#mirrorPolygon">mirrorPolygon</a></li><li><a href="global.html#moveImage">moveImage</a></li><li><a href="global.html#readExifPPI">readExifPPI</a></li><li><a href="global.html#resetCropbox">resetCropbox</a></li><li><a href="global.html#rotateImage">rotateImage</a></li><li><a href="global.html#selectDefaultFolder">selectDefaultFolder</a></li><li><a href="global.html#toggleLight">toggleLight</a></li><li><a href="global.html#toggleSidebar">toggleSidebar</a></li><li><a href="global.html#updateModeButtons">updateModeButtons</a></li><li><a href="global.html#updateSaveList">updateSaveList</a></li></ul></div>
+</nav>
+<div id="resizer"></div>
+
+<div class="main" id="main">
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+/**
+ * TODO
+ */
+class Sidebar {
+  /**
+     * TODO
+     * @param {*} controller
+     */
+  constructor(controller) {
+    this.controller = controller;
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   * @param {*} name
+   * @param {*} imgUrl
+   */
+  _addFragment(id, name, imgUrl) {
+    const sidebar = this;
+    const controller = this.controller;
+    // thumbnail wrapper
+    const fragmentWrapper = document.createElement('div');
+    fragmentWrapper.setAttribute('class', 'fragment_list_item');
+    fragmentWrapper.setAttribute('id', id);
+
+    // thumbnail description
+    const fragmentName = document.createElement('div');
+    fragmentName.setAttribute('class', 'fragment_list_item_name');
+    const text = document.createTextNode(name);
+    fragmentName.append(text);
+
+    // thumbnail itself
+    const fragmentThumbWrapper = document.createElement('div');
+    fragmentThumbWrapper.setAttribute('class',
+        'fragment_list_item_thumbwrapper');
+
+    const fragmentThumb = document.createElement('img');
+    fragmentThumb.setAttribute('class', 'fragment_list_item_img');
+    fragmentThumb.src = imgUrl;
+
+    // interface buttons
+    const deleteButton = document.createElement('div');
+    deleteButton.setAttribute('class',
+        'fragment_list_button delete_button hidden');
+    const gotoButton = document.createElement('div');
+    gotoButton.setAttribute('class', 'fragment_list_button goto_button hidden');
+    const detailsButton = document.createElement('div');
+    detailsButton.setAttribute('class',
+        'fragment_list_button details_button hidden');
+
+    // generating DOM structure
+    fragmentThumbWrapper.appendChild(fragmentThumb);
+    fragmentWrapper.appendChild(fragmentThumbWrapper);
+    fragmentWrapper.appendChild(fragmentName);
+    fragmentWrapper.appendChild(deleteButton);
+    fragmentWrapper.appendChild(gotoButton);
+    // fragmentWrapper.appendChild(detailsButton); TODO - temporarily removed
+
+    $('#fragment_list_content').append(fragmentWrapper);
+
+
+    // Interactions
+    fragmentWrapper.addEventListener('click', function(event) {
+      const isActive = $(event.target).hasClass('fragment_list_item_active');
+      const isCtrl = event.ctrlKey;
+
+      if (isCtrl) {
+        if (isActive) {
+          // ctrl key pressed and item has already been selected -> deselect
+          controller.deselectFragment(id);
+        } else {
+          // ctrl key is pressed and item was not selected -> select
+          controller.selectFragment(id);
+        }
+      } else {
+        // in all cases, clear the selection list first
+        controller.clearSelection();
+        // if element had NOT been selected before, select it now
+        if (!isActive) {
+          controller.selectFragment(id);
+        }
+      }
+    });
+    fragmentWrapper.addEventListener('mouseenter', function(event) {
+      controller.highlightFragment(id);
+      sidebar.addFragmentListButtons(id);
+    });
+    fragmentWrapper.addEventListener('mouseleave', function(event) {
+      controller.unhighlightFragment(id);
+      if (!$(event.target).hasClass('fragment_list_item_active')) {
+        sidebar.removeFragmentListButtons(id);
+      }
+    });
+
+    deleteButton.addEventListener('click', function(event) {
+      controller.removeFragment(id);
+    }, false);
+    gotoButton.addEventListener('click', function(event) {
+      controller.centerToFragment(id);
+    }, false);
+    detailsButton.addEventListener('click', function(event) {
+      controller.sendToServer('server-open-details', id);
+    }, false);
+  }
+
+  /**
+   * TODO
+   * @param {*} fragmentList
+   * @param {*} selectedList
+   */
+  updateFragmentList(fragmentList, selectedList) {
+    $('#fragment_list_content').empty();
+
+    if (!$.isEmptyObject(fragmentList)) {
+      for (const id in fragmentList) {
+        if (Object.prototype.hasOwnProperty.call(fragmentList, id)) {
+          this._addFragment(id, fragmentList[id].getName(),
+              fragmentList[id].getImageURL());
+        }
+      }
+
+      if (!$.isEmptyObject(selectedList)) {
+        for (const sId in selectedList) {
+          if (Object.prototype.hasOwnProperty.call(selectedList, sId)) {
+            this.selectFragment(sId);
+          }
+        }
+      }
+    } else {
+      const noFragmentsText = document.createElement('div');
+      noFragmentsText.setAttribute('id', 'fragment_list_nocontent');
+      const text = document.createTextNode('No fragments selected');
+      noFragmentsText.appendChild(text);
+      $('#fragment_list_content').append(noFragmentsText);
+    }
+  }
+
+  /**
+   * TODO
+   * @param {*} fragmentId
+   */
+  selectFragment(fragmentId) {
+    const wrapper = $('div[id="'+fragmentId+'"]');
+    wrapper.addClass('fragment_list_item_active');
+    this.addFragmentListButtons(fragmentId);
+  }
+
+  /**
+   * TODO
+   * @param {*} fragmentId
+   */
+  deselectFragment(fragmentId) {
+    const wrapper = $('div[id="'+fragmentId+'"]');
+    wrapper.removeClass('fragment_list_item_active');
+  }
+
+  /**
+   * TODO
+   */
+  clearSelection() {
+    $('.fragment_list_item_active').removeClass('fragment_list_item_active');
+    $('.fragment_list_button').addClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  highlightFragment(id) {
+    const wrapper = $('div[id="'+id+'"]');
+    wrapper.addClass('fragment_list_item_highlighted');
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  unhighlightFragment(id) {
+    const wrapper = $('div[id="'+id+'"]');
+    wrapper.removeClass('fragment_list_item_highlighted');
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  addFragmentListButtons(id) {
+    const wrapper = $('div[id="'+id+'"]');
+    $(wrapper).find('.delete_button').removeClass('hidden');
+    $(wrapper).find('.goto_button').removeClass('hidden');
+    $(wrapper).find('.details_button').removeClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  removeFragmentListButtons(id) {
+    const wrapper = $('div[id="'+id+'"]');
+    $(wrapper).find('.delete_button').addClass('hidden');
+    $(wrapper).find('.details_button').addClass('hidden');
+    $(wrapper).find('.goto_button').addClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} data
+   */
+  updateDoButtons(data) {
+    if (data.undoSteps) {
+      $('#undo').removeClass('disabled');
+    } else {
+      $('#undo').addClass('disabled');
+    }
+    if (data.redoSteps) {
+      $('#redo').removeClass('disabled');
+    } else {
+      $('#redo').addClass('disabled');
+    }
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   * @param {*} color
+   */
+  addMeasurement(id, color) {
+    const newMeasure = $('#new_measure');
+
+    $('#clear-measures').removeClass('hidden');
+
+    const measurement = $('&lt;div>',
+        {id: 'measurement-'+id, class: 'measurement active'});
+    const line = $('&lt;div>', {class: 'measure-line'});
+    line.css('background', color);
+
+    const distance = $('&lt;div>', {class: 'measure-distance'});
+    distance.text('? cm');
+
+    const del = $('&lt;div>', {class: 'delete small_button no_select'});
+    const delImg = $('&lt;img>',
+        {src: '../imgs/symbol_bin.png'});
+
+    del.click((event) => {
+      const id = $(event.target).parent().attr('id').slice(12);
+      this.controller.deleteMeasurement(id);
+    });
+
+    delImg.click((event) => {
+      const id = $(event.target).parent().parent().attr('id').slice(12);
+      this.controller.deleteMeasurement(id);
+    });
+
+    measurement.append(del);
+    measurement.append(line);
+    measurement.append(distance);
+    del.append(delImg);
+    newMeasure.before(measurement);
+  }
+
+  /**
+   * TODO
+   * @param {*} id
+   */
+  deleteMeasurement(id) {
+    this.controller.endMeasurement();
+    const measurement = $('#measurement-'+id);
+    measurement.remove();
+    if ($('.measurement').length == 0) {
+      $('#clear-measures').addClass('hidden');
+    }
+  }
+
+  /**
+   * TODO
+   */
+  clearMeasurements() {
+    $.each($('.measurement'), (index, element) => {
+      element.remove();
+    });
+    $('#clear-measures').addClass('hidden');
+  }
+
+  /**
+   * TODO
+   * @param {*} measurements
+   */
+  updateMeasurements(measurements) {
+    for (const id in measurements) {
+      if (Object.prototype.hasOwnProperty.call(measurements, id)) {
+        const measurement = measurements[id];
+        const distance = measurement.getDistanceInCm();
+        const wrapper = $('#measurement-'+id);
+        wrapper.removeClass('active');
+        const distanceText = wrapper.find('.measure-distance');
+        distanceText.text(distance + ' cm');
+      }
+    }
+  }
+}
+
+module.exports.Sidebar = Sidebar;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<footer>
+    <img class="logo" src="img/toast-ui.png" style="">
+    <div class="footer-text">NHN Entertainment. Frontend Development Lab</div>
+</footer>
+<script>prettyPrint();</script>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/tui-doc.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+    <script>
+        var id = '_sub'.replace(/"/g, '_');
+        var selectedApi = document.getElementById(id); // do not use jquery selector
+        var $selectedApi = $(selectedApi);
+
+        $selectedApi.removeClass('hidden');
+        $selectedApi.parent().find('.glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        showLnbApi();
+    </script>
+
+</body>
+</html>
