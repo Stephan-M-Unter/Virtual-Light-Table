@@ -1,5 +1,7 @@
 'use strict';
 
+const { TouchBarSlider } = require("electron");
+
 /**
  * TODO
  */
@@ -100,6 +102,11 @@ class Fragment {
     this.containerVerso = new createjs.Container();
     this.containerVerso.name = 'Inner Container - Verso';
     if (this.containerRotation) this.containerVerso.rotation = this.containerRotation;
+
+    if (data.imageWidthRecto) this.containerRecto.imageWidth = data.imageWidthRecto;
+    if (data.imageHeightRecto) this.containerRecto.imageHeight = data.imageHeightRecto;
+    if (data.imageWidthVerso) this.containerVerso.imageWidth = data.imageWidthVerso;
+    if (data.imageHeightVerso) this.containerVerso.imageHeight = data.imageHeightVerso;
 
     // create the image for the displayed side
     this.imageRecto = new createjs.Bitmap();
@@ -485,6 +492,10 @@ class Fragment {
       'rotationDistance': this.rotationDistance,
       'offsetX': this.alignOffsetX,
       'offsetY': this.alignOffsetY,
+      'imageWidthRecto': this.containerRecto.imageWidth,
+      'imageWidthVerso': this.containerRecto.imageHeight,
+      'imageHeightRecto': this.containerVerso.imageWidth,
+      'imageHeightVerso': this.containerVerso.imageHeight,
     };
   }
 
@@ -644,8 +655,14 @@ class Fragment {
 
             if (this.getImage().originalScale/* < 1*/) {
               const scale = 1/this.getImage().originalScale;
-              const imageCx = this.getImage().image.width / 2;
-              const imageCy = this.getImage().image.height / 2;
+              let imageCx; let imageCy;
+              if (this.getImage().image) {
+                imageCx = this.getImage().image.width / 2;
+                imageCy = this.getImage().image.height / 2;
+              } else {
+                imageCx = this.getInnerContainer().imageWidth / 2;
+                imageCy = this.getInnerContainer().imageHeight / 2;
+              }
 
               const maskNewX = imageCx - (scale * (imageCx - maskCenter.x));
               const maskNewY = imageCy - (scale * (imageCy - maskCenter.y));
@@ -674,8 +691,14 @@ class Fragment {
 
       if (this.getImage().originalScale < 1) {
         const scale = 1/this.getImage().originalScale;
-        let imageCx = this.getImage().image.width / 2;
-        let imageCy = this.getImage().image.height / 2;
+        let imageCx; let imageCy;
+        if (this.getImage().image) {
+          imageCx = this.getImage().image.width / 2;
+          imageCy = this.getImage().image.height / 2;
+        } else {
+          imageCx = this.getInnerContainer().imageWidth / 2;
+          imageCy = this.getInnerContainer().imageHeight / 2;
+        }
 
         const imageC = this.getImage().localToGlobal(imageCx, imageCy);
         imageCx = imageC.x;

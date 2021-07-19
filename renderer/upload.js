@@ -1043,6 +1043,10 @@ $('#load_button').click(function() {
       'offsetY': versoLocalCenter.y,
       'originalScaleRecto': originalScaleRecto,
       'originalScaleVerso': originalScaleVerso,
+      'imageWidthRecto': recto.img.image.width,
+      'imageWidthVerso': verso.img.image.width,
+      'imageHeightRecto': recto.img.image.height,
+      'imageHeightVerso': verso.img.image.height,
     };
     ipcRenderer.send('server-upload-ready', fragmentData);
   }

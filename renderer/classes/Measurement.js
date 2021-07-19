@@ -5,24 +5,32 @@
  */
 class Measurement {
   /**
-     * Constructor for new Measurement.
-     * @param {*} stage
-     * @param {int} id - Individual, unique ID for a measurement.
-     * @param {String} color - Color code.
-     */
+   * @constructs
+   * Constructor for new Measurement, setting up variables for both end points and the container
+   * for the final measurement line.
+   * @param {Stage} stage - Stage object where the measurement will be added to.
+   * @param {Int} id - Individual, unique ID for a measurement.
+   * @param {String} color - Color code.
+   */
   constructor(stage, id, color) {
+    /** @member {Stage} */
     this.stage = stage;
+    /** @member {Int} */
     this.id = id;
+    /** @member {String} */
     this.color = color;
+    /** @member {double[]} */
     this.p1 = null;
+    /** @member {double[]} */
     this.p2 = null;
+    /** @member {createjs.Container} */
     this.measurement = new createjs.Container();
     this.measurement.id = id;
   }
 
   /**
    * Sets the coordinates of the first point for this measurement.
-   * @param {[x, y]} point
+   * @param {double[]} point - Coordinate set [x,y].
    */
   setP1(point) {
     this.p1 = point;
@@ -30,7 +38,7 @@ class Measurement {
 
   /**
    * Sets the coordinates of the second point for this measurement.
-   * @param {[x, y]} point
+   * @param {double[]} point - Coordinate set [x,y].
    */
   setP2(point) {
     this.p2 = point;
@@ -38,18 +46,18 @@ class Measurement {
 
   /**
    * TODO
-   * @param {*} point
+   * @param {double[]} point - Coordinate set [x,y].
    */
   setPoint(point) {
     if (!this.p1) {
-      this.p1 = point;
+      this.setP1(point);
     } else {
-      this.p2 = point;
+      this.setP2(point);
     }
   }
 
   /**
-   * TODO
+   * Remove all previously entered coordinates for end points and the corresponding connection line.
    */
   clearPoints() {
     this.p1 = null;
@@ -59,7 +67,7 @@ class Measurement {
 
   /**
    * Returns measurement ID.
-   * @return {int}
+   * @return {Int}
    */
   getID() {
     return this.id;
@@ -67,7 +75,7 @@ class Measurement {
 
   /**
    * Returns the coordinates of the first point for this measurement.
-   * @return {[x, y]}
+   * @return {double[]} Coordinate set [x,y].
    */
   getP1() {
     return this.p1;
@@ -75,7 +83,7 @@ class Measurement {
 
   /**
    * Returns the coordinates of the second point for this measurement.
-   * @return {[x, y]}
+   * @return {double[]} Coordinate set [x,y].
    */
   getP2() {
     return this.p2;
@@ -84,8 +92,7 @@ class Measurement {
   /**
    * Calculates distance between points 1 and 2 based on the given
    * scaling factor and returns in distance in pixels.
-   * @param {double} scalingFactor
-   * @return {double}
+   * @return {double} Distance between P1 and P2 in pixels.
    */
   getDistanceInPixel() {
     if (this.p1 && this.p2) {
@@ -101,13 +108,12 @@ class Measurement {
   /**
    * Calculates distance between points 1 and 2 based on the given
    * scaling factor and returns in distance in cm.
-   * @param {double} scalingFactor
-   * @return {double}
+   * @return {double} Distance between P1 and P2 in cm.
    */
   getDistanceInCm() {
     if (this.p1 && this.p2) {
       const dist = this.getDistanceInPixel();
-      const CmInPx = 38 * this.stage.stage.scaling/100;
+      const CmInPx = 38 * this.stage.getScaling()/100;
       const distInCm = Math.round(dist/CmInPx*100)/100;
       return distInCm;
     } else {
@@ -116,9 +122,10 @@ class Measurement {
   }
 
   /**
-   * TODO
-   * @param {double} scale
-   * @return {*}
+   * Takes the currently saved coordinates for end points P1 and P2 and creates all necessary easelJS graphics elements
+   * to draw the measurement line. The output consists of a Container object which encompasses Shapes for the end points,
+   * a Shape for the line, and Text objects for the distance label.
+   * @return {createjs.Container} CreateJS Container containing graphics for end points and measurement line.
    */
   drawMeasurement() {
     if (this.p1 && this.p2) {
@@ -181,7 +188,7 @@ class Measurement {
       });
 
       // Text and Text Shadow
-      const distInCm = this.getDistanceInCm(this.stage.stage.scaling/100);
+      const distInCm = this.getDistanceInCm();
       const mTextShadow = new createjs.Text(distInCm + ' cm', '', 'grey');
       const mTextShadow2 = new createjs.Text(distInCm + ' cm', '', 'black');
       const mText = new createjs.Text(distInCm + ' cm', '', this.color);

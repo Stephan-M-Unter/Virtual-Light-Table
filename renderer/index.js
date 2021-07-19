@@ -432,7 +432,7 @@ $(document).ready(function() {
       } else if (event.keyCode == 77) {
         // M -> Start Measure
         if (hotkeysOn) {
-          controller.startMeasure();
+          controller.addMeasurement();
         }
       } else if (event.keyCode == 78) {
         // N -> Add Custom Fragment
@@ -481,5 +481,5 @@ $(document).ready(function() {
     controller.showVisualFeedback(title, desc, color, duration);
   });
 
-  if (controller.isDevMode()) xyz = controller.getStage(); // REMOVE
+  xyz = controller.getStage(); // REMOVE
 });

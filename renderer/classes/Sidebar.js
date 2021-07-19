@@ -266,6 +266,7 @@ class Sidebar {
    * @param {*} id
    */
   deleteMeasurement(id) {
+    this.controller.endMeasurement();
     const measurement = $('#measurement-'+id);
     measurement.remove();
     if ($('.measurement').length == 0) {

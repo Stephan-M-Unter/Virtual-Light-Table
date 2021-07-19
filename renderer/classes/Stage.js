@@ -5,53 +5,75 @@ const {Measurement} = require('./Measurement');
 const {Scaler} = require('./Scaler');
 
 /**
- * TODO The Stage Class holds methods for everyting happening
- * on the (main) stage of the VLT.
+ * This class represents the stage/canvas of the Virtual Light Table. It holds references to the elements
+ * shown on the table, and provides methods for interaction with and display of items.
  */
 class Stage {
   /**
+     * @constructs
      * Stage Constructor. Creates a new stage from scratch and
-     * sets sets default values for necessary settings.
+     * sets sets default values for necessary settings. Default hereby means: values that create an
+     * empty stage without any fragments loaded.
      *
-     * @param {*} controller Instance of the UI Controller class
+     * @param {UIController} controller Instance of the UIController class
      * which is reponsible for the communication between application
-     * components.
-     * @param {*} DOMelement Reference to the HTML canvas element the
-     * new stage will setup upon.
+     * components. Usually, this controller is also the instance creating this
+     * Stage object.
+     * @param {String} DOMelement ID of the HTML canvas element the
+     * new stage will set upon.
      */
   constructor(controller, DOMelement) {
-    // create new stage and set to given DOMelement
+    /** @constant {UIController} */
     this.controller = controller;
+    /** @constant {Stage} */
     this.stage = new createjs.Stage(DOMelement);
+
     this.stage.canvas.width = this.width = window.innerWidth;
     this.stage.canvas.height = this.height = window.innerHeight;
     this.stage.enableMouseOver();
     createjs.Touch.enable(this.stage);
 
+    /** @constant {Object} */
     this.fragmentList = {};
+    /** @constant {Object} */
     this.selectedList = {};
+    /** @member {Int} */
     this.fragmentLabel = 0;
 
+    /** @member {double} */
     this.stage.scaling = 100;
 
+    /** @constant {Object} */
     this.lines = {
       'horizontal': null,
       'vertical': null,
     };
 
+    // adding display elements
+    /** @member {Boolean} */
     this.gridMode = false;
+    /** @member {createjs.Container} */
     this.grid = new createjs.Container();
     this.stage.addChild(this.grid);
+    /** @member {Boolean} */
     this.scaleMode = false;
+    /** @member {createjs.Container} */
     this.scale = new createjs.Container();
     this.stage.addChild(this.scale);
+    /** @member {createjs.Shape} */
     this.background = this._createBackground();
     this.stage.addChild(this.background);
 
+    // setting up measurements
+    /** @member {Boolean} */
     this.measureMode = false;
+    /** @member {Measurement} */
     this.activeMeasurement = null;
+    /** @member {String} */
     this.mColor = null;
+    /** @member {Object} */
     this.measurements = {};
+    /** @member {createjs.Container} */
     this.measurementsContainer = new createjs.Container();
     this.stage.addChild(this.measurementsContainer);
 
@@ -61,10 +83,10 @@ class Stage {
       }
     });
 
-    // selection box
+    /** @constant {Selector} */
     this.selector = new Selector(this.controller);
 
-    // LoadQueue object for the images
+    /** @constant {createjs.LoadQueue} */
     this.loadqueue = new createjs.LoadQueue();
     this.loadqueue.addEventListener('fileload', (event) => {
       this._createFragment(event);
@@ -76,6 +98,7 @@ class Stage {
   }
 
   /**
+   * @private
    * Creates nearly invisible background element necessary for
    * mouse interactions. In order to register mouse events, the
    * background is set to a minimal transparency.
@@ -102,7 +125,11 @@ class Stage {
   }
 
   /**
-   * TODO
+   * If this.gridMode == true, this function creates new grid lines indicating the current scaling of the stage.
+   * This grid size is based on the stage's scaling (which can be gathered via this.stage.scaling) and the constant
+   * resolution of the canvas object, where a factor of 38 seems appropriate to mimic the real world size relations.
+   * If this.gridMode == false, the grid will just be emptied, but not refilled with a new grid.
+   * NOTE: This function does NOT update the stage.
    */
   updateGrid() {
     this.grid.removeAllChildren();
@@ -131,7 +158,11 @@ class Stage {
   }
 
   /**
-   * TODO
+   * If this.scaleMode == true, this function creates a new scale display in the top bottom right corner
+   * of the stage. The scale, which is a createjs.Container by itself, contains three shapes for the scale
+   * distance and two little stoppers at the ends, and the text indicating the size. In general, the unit size
+   * is 1cm. However, if the full viewport is capable of displaying more than 50 units with the current
+   * scaling factor, the unit is changed to 10cm.
    */
   updateScale() {
     this.scale.removeAllChildren();
@@ -182,8 +213,8 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Toggles the grid mode, calls for a grid update, and then refreshes the whole stage.
+   * @return {Boolean} Return value for the new status flag of the gridMode.
    */
   toggleGridMode() {
     this.gridMode = !this.gridMode;
@@ -193,8 +224,8 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @return {*}
+   * Toggles the scale mode, calls for a scale update, and then refreshes the whole stage.
+   * @return {Boolean} Return value for the new status flag of the scaleMode.
    */
   toggleScaleMode() {
     this.scaleMode = !this.scaleMode;
@@ -204,6 +235,7 @@ class Stage {
   }
 
   /**
+   * @private
    * Removes all objects from the table. First, all registered elements in
    * "this.fragmentList" are removed from the stage, then the selection
    * and the fragmentList itself are cleared. Finally, the stage is updated
@@ -226,17 +258,21 @@ class Stage {
    * scalingfactors etc.) are set (or set to default values),
    * followed by adding the saved fragments.
    * Finally, the stage is updated to display changes onscreen.
-   * @param {*} data
+   * @param {Object} data
+   * @param {Object} data.fragments - Contains all information regarding the fragments. Keys: Fragment IDs (e.g. "f_0").
+   * @param {Object} data.stage - Contains all information regarding the stage.
    */
   loadScene(data) {
     this._clearTable();
     this.clearMeasurements();
 
     if (data && data.fragments) {
+      if (this.controller.isDevMode()) console.log('data.fragments:', data.fragments);
       this._loadFragments(data.fragments);
     }
 
     if (data && data.stage) {
+      if (this.controller.isDevMode()) console.log('data.stage:', data.stage);
       this._loadStageConfiguration(data.stage);
     } else {
       this._loadStageConfiguration();
@@ -246,56 +282,67 @@ class Stage {
   }
 
   /**
+   * @private
    * Loads Stage settings from input settings object. If no settings
    * are provided, loads default values.
-   * @param {*} settings
+   * @param {Object} dataStage
+   * @param {double} dataStage.scaling - Scaling value that had been stored in the savefile. This value is not the ratio,
+   * but the ratio * 100. E.g., 100 instead of 1.0.
    */
-  _loadStageConfiguration(settings) {
-    // default values
-    this.stage.scaling = 100;
+  _loadStageConfiguration(dataStage) {
+    this.stage.scaling = 100; // default value
 
-    if (settings) {
-      if (settings.scaling) {
-        this.controller.setScaling(settings.scaling);
+    if (dataStage) {
+      if (dataStage.scaling) {
+        this.controller.setScaling(dataStage.scaling);
       }
     }
   }
 
   /**
-   * Getter Method for stage settings.
+   * Getter method for stage data.
    * @return {Object} Contains '.scaling'.
    */
-  getData() {
+  getStageData() {
     return {
       'scaling': this.stage.scaling,
     };
   }
 
   /**
-   * Getter Method for full stage configuration, i.e. stage settings
-   * and loaded fragments.
-   * @return {Object} Contains '.stage' with stage settings and
-   * '.fragments' with loaded fragments.
+   * Getter method for fragments data.
+   * @return {Object} Contains fragment data, key values are fragment IDs, e.g. "f_0".
    */
-  getConfiguration() {
-    const stageData = this.getData();
-    const itemsData = {};
+  getFragmentsData() {
+    const fragmentData = {};
 
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        itemsData[idx] = this.fragmentList[idx].getData();
+        fragmentData[idx] = this.fragmentList[idx].getData();
       }
     }
 
+    return fragmentData;
+  }
+
+  /**
+   * Getter Method for table data, i.e. stage settings and fragments.
+   * @return {Object} Contains '.stage' with stage settings and
+   * '.fragments' with loaded fragments.
+   */
+  getData() {
+    const stageData = this.getStageData();
+    const fragmentsData = this.getFragmentsData();
+
     return {
       'stage': stageData,
-      'fragments': itemsData,
+      'fragments': fragmentsData,
     };
   }
 
   /**
    * Getter Method for this.fragmentList.
-   * @return {Object} Returns current list of fragments.
+   * @return {Object} Returns current list of fragments. Keys are fragment IDs (e.g. "f_0"), values are fragment objects.
    */
   getFragmentList() {
     return this.fragmentList;
@@ -303,7 +350,7 @@ class Stage {
 
   /**
    * Getter Method for this.selectedList.
-   * @return {Object} Return current list of selected items.
+   * @return {Object} Return current list of selected items. Keys are fragment IDs (e.g. "f_0"), values are fragment objects.
    */
   getSelectedList() {
     return this.selectedList;
@@ -311,8 +358,7 @@ class Stage {
 
   /**
    * Getter Method for stage center.
-   * @return {Object} Returns object with '.x' and '.y' being
-   * the coordinates of the stage's center.
+   * @return {Object} Returns object with '.x' and '.y' being the coordinates of the stage's center.
    */
   getCenter() {
     const cx = this.width / 2;
@@ -329,11 +375,11 @@ class Stage {
   }
 
   /**
-   * Collects the full stage configuration information and sends it
-   * to the server to save it to model.
+   * @private
+   * Collects the full stage configuration information and hands it to the controller to send it to the server.
    */
   _saveToModel() {
-    const dataObject = this.getConfiguration();
+    const dataObject = this.getData();
     this.controller.saveToModel(dataObject);
   }
 
@@ -343,9 +389,8 @@ class Stage {
    * on stage.
    * @param {int} scaling New scaling value (as given by zoom slider, e.g.
    * values between 10 and 300, not 0.1 and 3.0)
-   * @param {int} scaleCenterX
-   * @param {int} scaleCenterY
-   * IDEA
+   * @param {int} [scaleCenterX]
+   * @param {int} [scaleCenterY]
    */
   setScaling(scaling, scaleCenterX, scaleCenterY) {
     this.controller.clearSelection();
@@ -382,8 +427,9 @@ class Stage {
   /**
    * Resizes the stage canvas to a new given size and recreates the
    * necessary background in an according size.
-   * @param {*} width Width of the new canvas in px.
-   * @param {*} height Height of the new canvas in px.
+   * Note: Updates the stage.
+   * @param {*} width - Width of the new canvas in px.
+   * @param {*} height - Height of the new canvas in px.
    */
   resizeCanvas(width, height) {
     this.stage.canvas.width = this.width = width;
@@ -397,6 +443,7 @@ class Stage {
   }
 
   /**
+   * TODO
    * Helper method for visual reasons, simply updates the stage to
    * show potential changes onscreen.
    */
@@ -408,6 +455,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} imageList
    */
   _loadFragments(imageList) {
@@ -427,6 +475,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} event
    */
   _createFragment(event) {
@@ -441,12 +490,12 @@ class Stage {
     const fragmentContainer = newFragment.getContainer();
     this.stage.addChild(fragmentContainer);
 
-    this.controller.updateFragmentList();
+    this.controller.updateSidebarFragmentList();
   }
 
   /**
    * TODO
-   * @param {*} id
+   * @param {String} id - Fragment ID, e.g. "f_0".
    */
   removeFragment(id) {
     // iterate over fragmentList and match items with requested id
@@ -459,15 +508,16 @@ class Stage {
           this.stage.removeChild(fragmentContainer);
           delete this.fragmentList[fragment.id];
           this.controller.clearSelection();
-          this.stage.update();
           this._saveToModel();
+          this.stage.update();
         }
       }
     }
   }
 
   /**
-   * TODO
+   * Takes all fragments registered in this.selectedList and calls the removal function for each of them. As the whole selection
+   * is then deleted, the selection can be cleared, and both model and view are updated accordingly.
    */
   deleteSelectedFragments() {
     for (const id in this.selectedList) {
@@ -475,6 +525,7 @@ class Stage {
         this.removeFragment(id);
       }
     }
+
     this.controller.clearSelection();
     this.update();
     this._saveToModel();
@@ -487,11 +538,11 @@ class Stage {
   registerImageEvents(image) {
     image.on('mousedown', (event) => {
       const clickedId = event.target.id;
-      if (event.nativeEvent.ctrlKey == false && !this._isSelected(clickedId)) {
+      if (event.nativeEvent.ctrlKey == false && !this.selectedList[clickedId]) {
         // if ctrl key is not pressed, old selection will be cleared
         this.controller.clearSelection();
       }
-      if (event.nativeEvent.ctrlKey == true && this._isSelected(clickedId)) {
+      if (event.nativeEvent.ctrlKey == true && this.selectedList[clickedId]) {
         // if ctrl key is pressed AND object is already selected:
         // -> remove selection for this object
         this.controller.deselectFragment(clickedId);
@@ -529,30 +580,27 @@ class Stage {
   }
 
   /**
-   * TODO
-   * @param {*} id
-   * @return {*}
-   */
-  _isSelected(id) {
-    return this.selectedList[id];
-  }
-
-  /**
-   * TODO
-   * @param {*} id
+   * Selects a fragment by adding it to the selection list and creating the shadow background to give a
+   * visual indicator. A newly selected fragment will also be pushed to the top of the canvas stack to make
+   * it fully visible.
+   * @param {String} id - Fragment identifier, e.g. "f_0".
    */
   selectFragment(id) {
-    this.selectedList[id] = this.fragmentList[id];
-    this.fragmentList[id].getImage().shadow = new createjs.Shadow(
-        '#f15b40', 0, 0, 10);
-    this._moveToTop(this.fragmentList[id]);
+    const fragment = this.fragmentList[id];
+    if (fragment) {
+      this.selectedList[id] = this.fragmentList[id];
+      this.fragmentList[id].getImage().shadow = new createjs.Shadow(
+          '#f15b40', 0, 0, 10);
+      this._moveToTop(this.fragmentList[id]);
+    }
     this._updateBb();
     this.update();
   }
 
   /**
-   * TODO
-   * @param {*} id
+   * Deselects a specific fragment with given ID by removing its entry from the selectedList, removing the shadow background
+   * as visual indicator, and by calling for an update of the selection boundin box.
+   * @param {String} id - Fragment identifier, e.g. "f_0".
    */
   deselectFragment(id) {
     delete this.selectedList[id];
@@ -591,7 +639,7 @@ class Stage {
     if (id in this.selectedList) {
       this.fragmentList[id].getImage().shadow = new createjs.Shadow(
           '#f15b40', 0, 0, 10);
-    } else {
+    } else if (id in this.fragmentList) {
       this.fragmentList[id].getImage().shadow = null;
     }
     this.update();
@@ -599,6 +647,7 @@ class Stage {
 
   /**
  * TODO
+ * @private
  */
   _clearFragmentList() {
     this.fragmentList = {};
@@ -742,6 +791,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} event
    */
   _panScene(event) {
@@ -758,6 +808,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} fragment
    */
   _moveToTop(fragment) {
@@ -768,6 +819,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} event
    */
   _rotateObjects(event) {
@@ -797,6 +849,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} event
    */
   _moveObjects(event) {
@@ -845,6 +898,7 @@ class Stage {
   /**
    * TODO
    * IDEA
+   * @private
    */
   _scaleObjects() {
     for (const idx in this.fragmentList) {
@@ -903,11 +957,12 @@ class Stage {
     }
     this.update();
     this._saveToModel();
-    this.controller.updateFragmentList();
+    this.controller.updateSidebarFragmentList();
   }
 
   /**
    * TODO
+   * @private
    */
   _updateBb() {
     this.stage.removeChild(this.bb);
@@ -923,6 +978,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} x
    * @param {*} y
    * @param {*} width
@@ -987,6 +1043,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} x
    * @param {*} y
    * @param {*} width
@@ -1043,6 +1100,7 @@ class Stage {
 
   /**
    * TODO
+   * @private
    * @param {*} x
    * @param {*} y
    * @param {*} height
@@ -1231,10 +1289,10 @@ class Stage {
   }
 
   /**
-   * This function determines the position of the most extreme pixels for
-   * top, bottom, left, right, as well as the width and height of the
-   * resulting box.
-   * @return {Object} Object containing the abovementioned information.
+   * This function iterates over all fragments on stage and determines the most left,
+   * right, bottom, and top pixels within the stage coordinate system. It also calculates
+   * the overall width and height plus the center of all fragments on stage.
+   * @return {Object} Object containing stage bounds: left, right, top, bottom, widht, height, center.x, center.y.
    */
   getMBR() {
     const dimensions = {};
@@ -1261,11 +1319,11 @@ class Stage {
     dimensions.top = top;
     dimensions.bottom = bottom;
     dimensions.center = {};
-    if (left && right) {
+    if (left != null && right != null) {
       dimensions.width = Math.abs(left - right);
       dimensions.center.x = left + dimensions.width / 2;
     }
-    if (top && bottom) {
+    if (top != null && bottom != null) {
       dimensions.height = Math.abs(top - bottom);
       dimensions.center.y = top + dimensions.height / 2;
     }
@@ -1282,8 +1340,8 @@ class Stage {
    */
   fitToScreen(includeSidebar=true) {
     let dimensions = this.getMBR();
-    const sidebar = $('#left_sidebar').width();
-    let width = this.width - sidebar;
+    const sidebar = $('#left_sidebar').width(); // TODO: MOVE INTO CONTROLLER
+    let width = this.width;
     if (includeSidebar) width -= sidebar;
     const oldScaling = this.stage.scaling;
     const scalingHeight = this.stage.scaling * this.height / dimensions.height;
@@ -1314,6 +1372,7 @@ class Stage {
 class Selector {
   /**
      * TODO
+     * @constructs
      * @param {*} controller
      */
   constructor(controller) {
