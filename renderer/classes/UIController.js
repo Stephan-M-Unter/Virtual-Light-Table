@@ -591,6 +591,15 @@ class UIController {
     if (this.devMode) console.log('Dev_Mode activated. Deactivate with [CTRL+ALT+D].');
     else console.log('Dev_Mode deactivated.');
   }
+
+  /**
+   * Triggers when the user wants to change the upload settings for a particular fragment, e.g. replacing one or both images with
+   * other versions, changing the masks or the ppi information. This only works if exactly one fragment is selected (because otherwise
+   * it is unclear which fragment to change). The request together with the necessary fragment data will be sent to the server.
+   */
+  changeFragment() {
+
+  }
 }
 
 module.exports.UIController = UIController;

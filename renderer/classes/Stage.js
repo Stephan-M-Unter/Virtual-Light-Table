@@ -1244,6 +1244,19 @@ class Stage {
   }
 
   /**
+   * Getter method for single fragments by their ID.
+   * @param {String} id - Fragment identifier, e.g. "f_0".
+   * @return {null | Fragment} Either fragment with given ID or null if not available.
+   */
+  getFragment(id) {
+    if (id in this.fragmentList) {
+      return this.fragmentList[id];
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * TODO
    * @param {*} horizontal
    */
