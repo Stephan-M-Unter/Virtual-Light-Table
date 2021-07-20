@@ -870,7 +870,7 @@ class Stage {
     for (const idx in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, idx)) {
         const fragment = this.selectedList[idx];
-        fragment.moveByDistance(deltaX, deltaY);
+        if (fragment) fragment.moveByDistance(deltaX, deltaY);
       }
     }
 

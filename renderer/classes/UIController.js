@@ -222,7 +222,7 @@ class UIController {
 
     if (confirmation) {
       this.stage.deleteSelectedFragments();
-      this.updateFragmentList();
+      this.updateSidebarFragmentList();
     }
   }
 
@@ -237,7 +237,7 @@ class UIController {
 
     if (confirmation) {
       this.stage.removeFragment(id);
-      this.updateFragmentList();
+      this.updateSidebarFragmentList();
     }
   }
 
@@ -247,7 +247,7 @@ class UIController {
    */
   addFragment(fragmentData) {
     this.stage._loadFragments({'upload': fragmentData});
-    this.updateFragmentList();
+    this.updateSidebarFragmentList();
     $('.arrow.down').removeClass('down');
     $('.expanded').removeClass('expanded');
     // second, rotate arrow down and expand clicked segment
