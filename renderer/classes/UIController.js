@@ -124,7 +124,7 @@ class UIController {
    * @param {String} [id] - ID of annotation, e.g. "a_0".
    */
   sendAnnotation(id) {
-    console.log("annotation id", id);
+    console.log('annotation id', id);
     if (id) {
       this.annotationPopup.updateAnnotation(id);
     } else {
@@ -216,13 +216,15 @@ class UIController {
    * is initialised by the stage object itself after removal.
    */
   removeFragments() {
-    const confirmation = confirm('Do you really want to remove this ' +
-        'fragment/these fragments from the light table? (the original ' +
-        'files will not be deleted)');
+    if (Object.keys(this.stage.getSelectedList()).length > 0) {
+      const confirmation = confirm('Do you really want to remove this ' +
+          'fragment/these fragments from the light table? (the original ' +
+          'files will not be deleted)');
 
-    if (confirmation) {
-      this.stage.deleteSelectedFragments();
-      this.updateSidebarFragmentList();
+      if (confirmation) {
+        this.stage.deleteSelectedFragments();
+        this.updateSidebarFragmentList();
+      }
     }
   }
 
