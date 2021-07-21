@@ -1,7 +1,5 @@
 'use strict';
 
-const { TouchBarSlider } = require("electron");
-
 /**
  * TODO
  */
@@ -345,7 +343,7 @@ class Fragment {
       this.container.removeChild(this.containerRecto);
       this.container.addChild(this.containerVerso);
     }
-    if (!inverted) this.controller.updateFragmentList();
+    if (!inverted) this.controller.updateSidebarFragmentList();
   }
 
   /**

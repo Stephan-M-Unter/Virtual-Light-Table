@@ -426,6 +426,17 @@ function rotateImage(event, side) {
 
 /**
  * TODO
+ * @param {*} side
+ */
+function rotate90Degree(side) {
+  side.imgBack.rotation = (side.imgBack.rotation + 90)%360;
+  side.img.rotation = (side.img.rotation + 90)%360;
+  side.rotation = side.img.rotation;
+  side.stage.update();
+}
+
+/**
+ * TODO
  * @param {*} event
  * @param {*} side
  */
@@ -864,6 +875,18 @@ function resetCropbox() {
   cropX = cropW/2;
   cropY = cropH/2;
 }
+
+$('.rotate_button').click(function(event) {
+  let side;
+
+  if ($(this).attr('id') == 'recto_rotate_button') {
+    side = recto;
+  } else {
+    side = verso;
+  }
+
+  rotate90Degree(side);
+});
 
 $('.bin_button').click(function() {
   const wrapper = $(this).parent().parent();
