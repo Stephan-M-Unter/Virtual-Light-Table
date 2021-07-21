@@ -4,8 +4,6 @@
 const {UIController} = require('./classes/UIController');
 const {ipcRenderer} = require('electron');
 let controller;
-let lightMode = 'dark';
-let darkBackground;
 let sidebarCollapsed = false;
 let sidebarWidth = 200;
 let sidebarClick;
@@ -49,6 +47,12 @@ function activateKonami() {
     $('.color_button.selected').removeClass('selected');
     $(event.target).addClass('selected');
   });
+  $('.color_button.pink').on('mouseover', function(event) {
+    controller.previewBackground($(event.target).css('backgroundColor'), true);
+  });
+  $('.color_button.pink').on('mouseout', function(event) {
+    controller.previewBackground($(event.target).css('backgroundColor'), false);
+  });
   controller.showVisualFeedback('Konami activated', '', '#ff00ff', 5000);
 }
 
@@ -71,28 +75,6 @@ function toggleSidebar() {
         'translateX(-15%) translateY(-50%)');
   }
   sidebarCollapsed = !sidebarCollapsed;
-}
-
-/**
- * Toggles the background colour between dark and white.
- */
-function toggleLight() {
-  if (lightMode == 'dark') {
-    // current light_mode is "dark" => change to "bright"
-    darkBackground = $('body').css('background');
-    $('body').css({backgroundColor: 'white'});
-    $('#light_switch').addClass('button_active');
-    $('#light_box').prop('checked', true);
-    $('#zoom_slider').css('background-color', 'grey');
-    lightMode = 'bright';
-  } else {
-    // current light_mode is "bright" => change to "dark"
-    $('body').css({background: darkBackground});
-    $('#light_switch').removeClass('button_active');
-    $('#light_box').prop('checked', false);
-    $('#zoom_slider').css('background-color', 'white');
-    lightMode = 'dark';
-  }
 }
 
 $(document).ready(function() {
@@ -119,6 +101,11 @@ $(document).ready(function() {
   // Load Table Button
   $('#load_table').click(function() {
     controller.loadTable();
+  });
+
+  // Quit Table Button
+  $('#quit').click(function() {
+    controller.quitTable();
   });
 
   // Flip Buttons - toggles the display of horizontal and vertical flip buttons
@@ -181,6 +168,12 @@ $(document).ready(function() {
     $('.color_button.selected').removeClass('selected');
     $(event.target).addClass('selected');
   });
+  $('.color_button').on('mouseover', function(event) {
+    controller.previewBackground($(event.target).css('backgroundColor'), true);
+  });
+  $('.color_button').on('mouseout', function(event) {
+    controller.previewBackground($(event.target).css('backgroundColor'), false);
+  });
 
   $('#png_snap').click(function() {
     controller.exportCanvas('png', false, false);
@@ -205,10 +198,10 @@ $(document).ready(function() {
 
   // Light Switch Button
   $('#light_switch').click(function() {
-    toggleLight();
+    controller.toggleLight();
   });
   $('#light_box').on('change', function() {
-    toggleLight();
+    controller.toggleLight();
   });
 
   $('#new_measure').on('click', function(event) {
@@ -383,7 +376,6 @@ $(document).ready(function() {
 
   // Keystrokes
   $('html').keydown(function(event) {
-    console.log(event);
     if (event.ctrlKey) {
       if (event.keyCode == 83) {
         if (event.shiftKey) {
@@ -417,7 +409,7 @@ $(document).ready(function() {
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
         if (hotkeysOn) {
-          toggleLight();
+          controller.toggleLight();
         }
       } else if (event.keyCode == 71) {
         // G -> Toggle Grid

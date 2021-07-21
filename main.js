@@ -215,8 +215,6 @@ ipcMain.on('server-save-file', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-file] from client');
-    console.log(data.editor);
-    console.log(data.quicksave);
   }
   canvasManager.setScreenshot(data.screenshot);
 
@@ -241,8 +239,8 @@ ipcMain.on('server-save-file', (event, data) => {
     // don't overwrite but ask for new file destination
     filepath = saveManager.saveTable(canvasManager.getAll(), false);
     response = {
-      title: 'Table Saved',
-      desc: 'Lighttable scene has successfully been saved to:\n'+filepath,
+      title: 'Save',
+      desc: 'Lighttable has successfully been saved',
       color: 'rgba(0,255,0,0.6)',
     };
   }
@@ -396,4 +394,13 @@ ipcMain.on('server-upload-image', (event) => {
     filepath = path.relative(__dirname.split(path.sep).pop(), filepath);
     sendMessage(localUploadWindow, 'upload-receive-image', filepath);
   }
+});
+
+ipcMain.on('quit-table', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [quit-table] from client');
+  }
+  // TODO Potential cleaning of temp files?
+  app.quit();
 });

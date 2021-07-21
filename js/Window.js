@@ -18,7 +18,7 @@ const {BrowserWindow} = require('electron');
 const mainProps = {
   width: 1024,
   height: 800,
-  // frame: false, TODO: looks better, but needs other way to close the application
+  frame: false,
   icon: './imgs/icons/png/logo.png',
   show: false,
   webPreferences: {

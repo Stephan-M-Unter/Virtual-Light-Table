@@ -34,6 +34,10 @@ class UIController {
     this.hasUnsaved = false;
     /** @member {Boolean} */
     this.initiallySaved = false;
+    /** @member {'dark' | 'bright'} */
+    this.lightMode = 'dark';
+    /** @member {String} */
+    this.darkBackground;
 
     this.devMode = false;
   }
@@ -626,6 +630,50 @@ class UIController {
       this.sendToServer('quit-table');
     } else if (this.confirmClearTable()) {
       this.sendToServer('quit-table');
+    }
+  }
+
+  /**
+   * TODO
+   */
+  toggleLight() {
+    if (this.lightMode == 'dark') {
+      // current light_mode is "dark" => change to "bright"
+      if (!this.darkBackground) this.darkBackground = $('body').css('background');
+      $('body').css({backgroundColor: 'white'});
+      $('#light_switch').addClass('button_active');
+      $('#light_box').prop('checked', true);
+      $('#zoom_slider').css('background-color', 'grey');
+      this.lightMode = 'bright';
+    } else {
+      // current light_mode is "bright" => change to "dark"
+      $('body').css({background: this.darkBackground});
+      $('#light_switch').removeClass('button_active');
+      $('#light_box').prop('checked', false);
+      $('#zoom_slider').css('background-color', 'white');
+      this.lightMode = 'dark';
+    }
+  }
+  
+  /**
+   * TODO
+   * @param {String} color
+   * @param {Boolean} turnOn
+   */
+  previewBackground(color, turnOn) {
+    if (!this.darkBackground && this.lightMode == 'dark') {
+      this.darkBackground = $('body').css('background');
+    }
+    if (turnOn) {
+      $('body').css({backgroundColor: color});
+    } else {
+      console.log(color, turnOn, this.lightMode, this.darkBackground);
+      if (this.lightMode == 'dark') {
+        $('body').css({background: this.darkBackground});
+      } else {
+        console.log("bright");
+        $('body').css({backgroundColor: 'white'});
+      }
     }
   }
 }
