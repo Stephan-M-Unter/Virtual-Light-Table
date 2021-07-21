@@ -654,7 +654,7 @@ class UIController {
       this.lightMode = 'dark';
     }
   }
-  
+
   /**
    * TODO
    * @param {String} color
@@ -667,11 +667,9 @@ class UIController {
     if (turnOn) {
       $('body').css({backgroundColor: color});
     } else {
-      console.log(color, turnOn, this.lightMode, this.darkBackground);
       if (this.lightMode == 'dark') {
         $('body').css({background: this.darkBackground});
       } else {
-        console.log("bright");
         $('body').css({backgroundColor: 'white'});
       }
     }
