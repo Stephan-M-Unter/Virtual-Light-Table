@@ -491,7 +491,8 @@ class UIController {
    * TODO
    */
   endMeasurement() {
-    this.stage.endMeasurement();
+    const id = this.stage.endMeasurement();
+    this.sidebar.deleteMeasurement(id);
   }
 
   /**
@@ -619,7 +620,11 @@ class UIController {
    * it is unclear which fragment to change). The request together with the necessary fragment data will be sent to the server.
    */
   changeFragment() {
-
+    const selectionList = this.stage.getSelectedList();
+    if (Object.keys(selectionList).length == 1) {
+      const id = Object.keys(selectionList)[0];
+      this.sendToServer('server-change-fragment', id);
+    }
   }
 
   /**
@@ -627,9 +632,9 @@ class UIController {
    */
   quitTable() {
     if (!this.hasUnsaved) {
-      this.sendToServer('quit-table');
+      this.sendToServer('server-quit-table');
     } else if (this.confirmClearTable()) {
-      this.sendToServer('quit-table');
+      this.sendToServer('server-quit-table');
     }
   }
 
