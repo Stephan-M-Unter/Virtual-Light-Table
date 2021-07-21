@@ -396,11 +396,38 @@ ipcMain.on('server-upload-image', (event) => {
   }
 });
 
-ipcMain.on('quit-table', (event) => {
+ipcMain.on('server-quit-table', (event) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [quit-table] from client');
+    'Receiving code [server-quit-table] from client');
   }
   // TODO Potential cleaning of temp files?
   app.quit();
+});
+
+ipcMain.on('server-change-fragment', (event, id) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-change-fragment] from client');
+  }
+
+  const fragment = canvasManager.getFragment(id);
+
+  if (localUploadWindow) {
+    localUploadWindow.close();
+  }
+
+  localUploadWindow = new Window({
+    file: './renderer/upload.html',
+    type: 'upload',
+    devMode: devMode,
+  });
+  localUploadWindow.removeMenu();
+  localUploadWindow.once('ready-to-show', () => {
+    localUploadWindow.show();
+  });
+  localUploadWindow.on('close', function() {
+    localUploadWindow = null;
+  });
+  sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
 });
