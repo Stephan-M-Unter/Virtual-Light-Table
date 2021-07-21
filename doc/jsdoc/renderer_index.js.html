@@ -477,7 +477,7 @@ $(document).ready(function() {
       } else if (event.keyCode == 27) {
         // ESC -> deselect All
         controller.clearSelection();
-        // TODO uic.endMeasure();
+        controller.endMeasurement();
       } else if (event.keyCode == 77) {
         // M -> Start Measure
         if (hotkeysOn) {
@@ -488,6 +488,8 @@ $(document).ready(function() {
         if (hotkeysOn) {
           controller.sendToServer('server-open-upload');
         }
+      } else if (event.keyCode == 79) {
+        controller.changeFragment();
       } else if (event.keyCode == 116) {
         // F5 -> update Stage
         controller.update();

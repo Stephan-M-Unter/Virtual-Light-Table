@@ -1285,6 +1285,21 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
   lastUpload = null;
   checkIfReady();
 });
+
+ipcRenderer.on('upload-change-fragment', (event, fragment) => {
+  console.log('upload-change-fragment', fragment);
+  recto.url = fragment.rectoURL;
+  verso.url = fragment.versoURL;
+  recto.rotation = fragment.rectoRotation;
+  verso.rotation = fragment.versoRotation;
+  polygon = fragment.maskRecto;
+  if ($('#recto_resolution').val() == '') $('#recto_resolution').val(fragment.ppiRecto);
+  if ($('#versoo_resolution').val() == '') $('#verso_resolution').val(fragment.ppiVerso);
+  $('#name').val(fragment.name);
+  activateCanvas($('#recto_canvas_wrapper'));
+  activateCanvas($('#verso_canvas_wrapper'));
+  draw();
+});
 </code></pre>
         </article>
     </section>

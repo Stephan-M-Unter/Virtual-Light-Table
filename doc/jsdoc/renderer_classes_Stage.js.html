@@ -740,14 +740,18 @@ class Stage {
 
   /**
    * TODO
+   * @return {*}
    */
   endMeasurement() {
     $('#lighttable').removeClass('measure');
     this.measureMode = false;
     this.mColor = null;
+    let id = null;
+    if (this.activeMeasurement) id = this.activeMeasurement.id;
     this.activeMeasurement = null;
     this.updateMeasurements();
     this.update();
+    return id;
   }
 
   /**
