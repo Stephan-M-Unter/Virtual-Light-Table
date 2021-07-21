@@ -392,6 +392,15 @@ class CanvasManager {
 
   /**
    * TODO
+   */
+  updateEditor() {
+    const lastEditor = this.editors.pop();
+    const timeMs = new Date().getTime();
+    this.editors.push([lastEditor[0], timeMs]);
+  }
+
+  /**
+   * TODO
    * @param {*} screenshot
    */
   setScreenshot(screenshot) {

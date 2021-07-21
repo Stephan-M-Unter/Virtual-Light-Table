@@ -22,11 +22,18 @@ class UIController {
    * @param {String} DOMElement - ID reference of the HTML canvas object that will hold the stage representation.
    */
   constructor(DOMElement) {
+    /** @constant {Stage} */
     this.stage = new Stage(this, DOMElement);
+    /** @constant {Sidebar} */
     this.sidebar = new Sidebar(this);
+    /** @constant {AnnotationPopup} */
     this.annotationPopup = new AnnotationPopup(this);
+    /** @member {Boolean} */
     this.hotkeysOn = true;
+    /** @member {Boolean} */
     this.hasUnsaved = false;
+    /** @member {Boolean} */
+    this.initiallySaved = false;
 
     this.devMode = false;
   }
@@ -49,24 +56,32 @@ class UIController {
   }
 
   /**
-   * Asks the user to enter a name or initials, which will be sent to the server together with
-   * a screenshot of the current table configuration. During the process, hotkeys are disabled
-   * to avoid interferences between typing and the canvas actions. Data is only sent if a name is provided.
+   * TODO
+   * @param {Boolean} isQuicksave
+   *    if TRUE, the VLT will try to overwrite the pre-existing file
+   *    if FALSE, the VLT will automatically ask for a new savefile
    */
-  saveTable() {
-    this.disableHotkeys();
-    dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
-      if (editor != '' && editor != null) {
-        const screenshot = this.exportCanvas('png', true, true);
-        const data = {
-          'editor': editor,
-          'screenshot': screenshot,
-        };
-        this.sendToServer('server-save-file', data);
-        this.hasUnsaved = false;
-      }
-      this.enableHotkeys();
-    });
+  save(isQuicksave) {
+    const data = {};
+    data.screenshot = this.exportCanvas('png', true, true);
+    data.quicksave = isQuicksave;
+
+    if (isQuicksave && this.initiallySaved) {
+      // not first quicksave, thus editor no longer needed
+      this.sendToServer('server-save-file', data);
+      this.hasUnsaved = false;
+    } else {
+      this.disableHotkeys();
+      dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
+        if (editor != '' && editor != null) {
+          data.editor = editor;
+          this.sendToServer('server-save-file', data);
+          this.hasUnsaved = false;
+          this.initiallySaved = true;
+        }
+        this.enableHotkeys();
+      });
+    }
   }
 
   /**
@@ -100,10 +115,12 @@ class UIController {
       this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
+      this.initiallySaved = false;
     } else if (this.confirmClearTable()) {
       this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
+      this.initiallySaved = false;
     }
   }
 
@@ -599,6 +616,17 @@ class UIController {
    */
   changeFragment() {
 
+  }
+
+  /**
+   * TODO
+   */
+  quitTable() {
+    if (!this.hasUnsaved) {
+      this.sendToServer('quit-table');
+    } else if (this.confirmClearTable()) {
+      this.sendToServer('quit-table');
+    }
   }
 }
 

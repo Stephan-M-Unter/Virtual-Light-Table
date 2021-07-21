@@ -167,6 +167,7 @@ ipcMain.on('server-clear-table', (event) => {
     'Receiving code [server-clear-table] from client');
   }
   canvasManager.clearAll();
+  saveManager.clear();
   sendMessage(event.sender, 'client-load-model', canvasManager.getAll());
 });
 
@@ -203,7 +204,7 @@ ipcMain.on('server-load-file', (event, file) => {
   sendMessage(mainWindow, 'client-load-model', fileData);
   const feedback = {
     title: 'Table Loaded',
-    desc: 'Successfully loaded file: \n'+saveManager.getCurrentFile(),
+    desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
     color: 'rgba(0,255,0,0.6)',
   };
   sendMessage(mainWindow, 'client-show-feedback', feedback);
@@ -214,16 +215,38 @@ ipcMain.on('server-save-file', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-file] from client');
+    console.log(data.editor);
+    console.log(data.quicksave);
   }
-  canvasManager.addEditor(data.editor);
   canvasManager.setScreenshot(data.screenshot);
-  const filepath = saveManager.saveTable(canvasManager.getAll());
-  const response = {
-    title: 'Table Saved',
-    desc: 'Lighttable scene has successfully been saved to:\n'+filepath,
-    color: 'rgba(0,255,0,0.6)',
-  };
-  if (filepath) {
+
+  if (data.quicksave && !data.editor) {
+    // non-initial quicksave, only update editor modified time
+    canvasManager.updateEditor();
+  } else {
+    // add new editor
+    canvasManager.addEditor(data.editor);
+  }
+
+  let filepath; let response;
+  if (data.quicksave && saveManager.getCurrentFilepath()) {
+    // overwrite old file
+    filepath = saveManager.saveTable(canvasManager.getAll(), true);
+    response = {
+      title: 'Quicksave',
+      desc: 'Quicksave successful',
+      color: 'rgba(0,255,0,0.6)',
+    };
+  } else {
+    // don't overwrite but ask for new file destination
+    filepath = saveManager.saveTable(canvasManager.getAll(), false);
+    response = {
+      title: 'Table Saved',
+      desc: 'Lighttable scene has successfully been saved to:\n'+filepath,
+      color: 'rgba(0,255,0,0.6)',
+    };
+  }
+  if (filepath && response) {
     sendMessage(mainWindow, 'client-show-feedback', response);
   }
 });

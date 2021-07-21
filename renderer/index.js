@@ -108,9 +108,12 @@ $(document).ready(function() {
     controller.clearTable();
   });
 
-  // Save Table Button
-  $('#save_table').click(function() {
-    controller.saveTable();
+  // Save Table Buttons
+  $('#save_quick').click(function() {
+    controller.save(true);
+  });
+  $('#save_as').click(function() {
+    controller.save(false);
   });
 
   // Load Table Button
@@ -380,10 +383,16 @@ $(document).ready(function() {
 
   // Keystrokes
   $('html').keydown(function(event) {
+    console.log(event);
     if (event.ctrlKey) {
       if (event.keyCode == 83) {
-        // Ctrl + S -> Save
-        controller.saveTable();
+        if (event.shiftKey) {
+          // Ctrl + Shift + S -> Save As
+          controller.save(false);
+        } else {
+          // Ctrl + S -> Quicksave
+          controller.save(true);
+        }
       } else if (event.keyCode == 76) {
         // Ctrl + L -> Load
         controller.loadTable();

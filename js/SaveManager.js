@@ -35,41 +35,47 @@ class SaveManager {
   /**
    * TODO
    * @param {*} tableConfiguration
+   * @param {Boolean} overwrite
    * @return {*}
    */
-  saveTable(tableConfiguration) {
-    // read current date for some default filename
-    const now = new Date();
+  saveTable(tableConfiguration, overwrite) {
+    let filepath;
+    if (overwrite && this.filepath) {
+      filepath = this.filepath;
+    } else {
+      // read current date for some default filename
+      const now = new Date();
 
-    const year = now.getFullYear();
-    const month = ((now.getMonth()+1) < 10 ? '0' : '') + (now.getMonth()+1);
-    const day = (now.getDate() < 10 ? '0' : '') + now.getDate();
-    const hour = now.getHours();
-    const minute = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-    const second = (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
-    const date = year+'-'+month+'-'+day;
-    const time = hour+'h'+minute+'m'+second+'s';
-    const filename = 'VLT_'+date+'_'+time;
+      const year = now.getFullYear();
+      const month = ((now.getMonth()+1) < 10 ? '0' : '') + (now.getMonth()+1);
+      const day = (now.getDate() < 10 ? '0' : '') + now.getDate();
+      const hour = now.getHours();
+      const minute = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+      const second = (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
+      const date = year+'-'+month+'-'+day;
+      const time = hour+'h'+minute+'m'+second+'s';
+      const filename = 'VLT_'+date+'_'+time;
 
-    // create save dialog
-    const filepath = dialog.showSaveDialogSync({
-      title: 'Save Current Table Configuration',
-      defaultPath: path.join(__dirname+'/../saves/', filename),
-      filters: [{
-        name: 'Virtual Light Table Save',
-        extensions: ['vlt'],
-      }],
-    });
-    // TODO: man könnte hier auch mit dialog.showSaveDialog
-    // arbeiten; die Parameter sind die gleichen, aber der
-    // main process würde nicht durch den save dialog blockiert
-    // werden. Als Ergebnis gibt es ein promise-Object,
-    // das dann vermutlich durch eine callback-Funktion abgefangen
-    // werden müssen. Quelle: https://www.electronjs.org/docs/api/dialog
+      // create save dialog
+      filepath = dialog.showSaveDialogSync({
+        title: 'Save Current Table Configuration',
+        defaultPath: path.join(__dirname+'/../saves/', filename),
+        filters: [{
+          name: 'Virtual Light Table Save',
+          extensions: ['vlt'],
+        }],
+      });
+      // TODO: man könnte hier auch mit dialog.showSaveDialog
+      // arbeiten; die Parameter sind die gleichen, aber der
+      // main process würde nicht durch den save dialog blockiert
+      // werden. Als Ergebnis gibt es ein promise-Object,
+      // das dann vermutlich durch eine callback-Funktion abgefangen
+      // werden müssen. Quelle: https://www.electronjs.org/docs/api/dialog
+    }
 
-    console.log(filepath);
 
     if (filepath) {
+      this.filepath = filepath;
       // save current status of canvasManager to a .vtl-file
       const canvasContent = JSON.stringify(tableConfiguration);
       fs.writeFileSync(filepath, canvasContent, 'utf-8');
@@ -96,6 +102,7 @@ class SaveManager {
     });
 
     if (filepath) {
+      this.filepath = filepath;
       const content = fs.readFileSync(filepath[0]).toString();
       console.log('**SaveManager** - Loading ' + filepath);
       return JSON.parse(content);
@@ -122,7 +129,7 @@ class SaveManager {
       defaultPath: __dirname+'/..',
       properties: [
         'openDirectory',
-        'treatPackageAsDirectory', 
+        'treatPackageAsDirectory',
       ],
     });
 
@@ -197,8 +204,15 @@ class SaveManager {
   /**
    * @return {*}
    */
-  getCurrentFile() {
+  getCurrentFilepath() {
     return this.filepath;
+  }
+
+  /**
+   * TODO
+   */
+  clear() {
+    this.filepath = null;
   }
 }
 
