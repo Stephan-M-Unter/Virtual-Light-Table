@@ -25,11 +25,12 @@ class SaveManager {
   /**
      * TODO
      */
-  constructor() {
+  constructor(appPath) {
     // this.defaultSaveFolder = './saves';
     this.defaultSaveFolder = __dirname+'/saves';
     this.currentSaveFolder = this.defaultSaveFolder;
     this.filepath = null;
+    this.appPath = appPath;
   }
 
   /**
@@ -56,6 +57,7 @@ class SaveManager {
       const time = hour+'h'+minute+'m'+second+'s';
       const filename = 'VLT_'+date+'_'+time;
 
+
       // create save dialog
       filepath = dialog.showSaveDialogSync({
         title: 'Save Current Table Configuration',
@@ -77,6 +79,22 @@ class SaveManager {
     if (filepath) {
       this.filepath = filepath;
       // save current status of canvasManager to a .vtl-file
+
+      /*
+      // TODO: sämtliche imageURLs der Fragmente konvertieren zu relativen Pfaden von filepath zu Bild
+      for (const [key, value] of Object.entries(tableConfiguration.fragments)) {
+        const urlRecto = path.resolve(value.rectoURL);
+        const urlVerso = path.resolve(value.versoURL);
+        const urlRectoRelative = path.relative(filepath, urlRecto);
+        const urlVersoRelative = path.relative(filepath, urlVerso);
+
+        // TODO: copy image into imgs subfolder
+
+        tableConfiguration.fragments[key].rectoURL = urlRectoRelative;
+        tableConfiguration.fragments[key].versoURL = urlVersoRelative;
+      }
+      */
+
       const canvasContent = JSON.stringify(tableConfiguration);
       fs.writeFileSync(filepath, canvasContent, 'utf-8');
       console.log('**SaveManager** - Saved table configuration to ' + filepath);
@@ -162,6 +180,28 @@ class SaveManager {
     const json = JSON.parse(content);
     json.mtime = mtime;
     this.filepath = filepath;
+
+    /*
+    for (const [key, value] of Object.entries(json.fragments)) {
+      const urlRecto = path.resolve(filepath, value.rectoURL);
+      const urlVerso = path.resolve(filepath, value.versoURL);
+      const urlRectoRelative = path.relative(this.appPath, urlRecto);
+      const urlVersoRelative = path.relative(this.appPath, urlVerso);
+
+      console.log(value.rectoURL);
+      console.log(filepath);
+      console.log(urlRecto);
+      console.log(this.appPath);
+      console.log(urlRectoRelative);
+      console.log('------');
+
+      // TODO: copy image into imgs subfolder
+
+      json.fragments[key].rectoURL = urlRectoRelative;
+      json.fragments[key].versoURL = urlVersoRelative;
+    }
+    */
+
     return json;
   }
 

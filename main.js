@@ -30,7 +30,7 @@ app.commandLine.appendSwitch('touch-events', 'enabled');
 // Managers
 const canvasManager = new CanvasManager();
 const imageManager = new ImageManager();
-const saveManager = new SaveManager();
+const saveManager = new SaveManager(__dirname.split(path.sep).pop());
 // Windows
 let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
