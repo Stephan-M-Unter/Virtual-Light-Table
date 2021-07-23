@@ -45,6 +45,31 @@ class ImageManager {
     // müssen. Quelle: https://www.electronjs.org/docs/api/dialog.
 
     if (filepath) {
+      /*
+
+      TODO
+
+      Image Conversion
+
+      WENN es sich bei dem Bild um ein TIF(F) handelt, muss es in ein brauchbares Format
+      verwandelt werden, d.h. JPG oder PNG. An dieser Stelle liegt der korrekte Dateipfad
+      vor und das Bild kann somit geladen, konvertiert und später an anderer Stelle (z.B. im
+      dafür vorzusehenden IMG-Folder) abgelegt werden. Der Filepfad filepath muss entsprechend
+      auf das neue, von Webtechnologien darstellbare Bild abgeändert werden.
+
+      TODO
+
+      Image Reduction
+
+      An dieser Stelle kann auch eine Veränderung des ausgewählten Bildes vorgenommen werden. Wenn
+      die Dateigröße des Bildes einen gewissen Schwellenwert überschreitet (wäre noch zu definieren),
+      dann wird das Bild an dieser Stelle geladen, reduziert und in kleinerer Fassung an anderer
+      Stelle (!) abgespeichert. WICHTIG: Es muss sichergestellt sein, dass das Original durch diesen
+      Prozess NICHT überschrieben wird! Einzige Ausnahme: Es handelt sich bei dem zu reduzierenden Bild
+      um das Ergebnis des Konversionsvorgangs weiter oben. Dann wäre das Original nicht tangiert und
+      eine doppelte Speicherung würde bedeuten, das Bild unnötig zu duplizieren.
+
+      */
       return filepath[0];
     } else {
       return null;
