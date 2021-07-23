@@ -364,6 +364,10 @@ $(document).ready(function() {
     controller.resizeCanvas(window.innerWidth, window.innerHeight);
   });
 
+  window.onbeforeunload = function() {
+    return controller.quitTable();
+  };
+
   document.getElementById('lighttable')
       .addEventListener('wheel', function(event) {
         const deltaZoom = event.deltaY / 10;
@@ -482,6 +486,16 @@ $(document).ready(function() {
     const duration = data.duration || '';
     const color = data.color || '';
     controller.showVisualFeedback(title, desc, color, duration);
+  });
+
+  ipcRenderer.on('client-confirm-autosave', (event) => {
+    if (controller.isDevMode()) console.log('Received client-confirm-autosave');
+    controller.confirmAutosave();
+  });
+
+  ipcRenderer.on('client-confirm-quit', (event) => {
+    if (controller.isDevMode()) console.log('Received client-confirm-quit');
+    controller.quitTable();
   });
 
   xyz = controller.getStage(); // REMOVE

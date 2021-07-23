@@ -24,10 +24,14 @@ const fs = require('fs');
 class SaveManager {
   /**
      * TODO
+     * @param {String} appPath
      */
   constructor(appPath) {
     // this.defaultSaveFolder = './saves';
-    this.defaultSaveFolder = __dirname+'/saves';
+    this.defaultSaveFolder = __dirname+'/saves/';
+    this.tempSaveFolder = __dirname+'/../temp/';
+    if (!fs.existsSync(this.tempSaveFolder)) fs.mkdirSync(this.tempSaveFolder);
+    console.log('Temp Save Folder:', this.tempSaveFolder);
     this.currentSaveFolder = this.defaultSaveFolder;
     this.filepath = null;
     this.appPath = appPath;
@@ -35,13 +39,23 @@ class SaveManager {
 
   /**
    * TODO
-   * @param {*} tableConfiguration
+   * @param {Object} tableConfiguration
+   *    Object containing the full data JSON with table and fragments configuration.
    * @param {Boolean} overwrite
-   * @return {*}
+   *    TRUE: if there is already a savefile, it will be overwritten
+   *    FALSE: the user will be asked for a directory and filename
+   * @param {Boolean} autosave
+   *    TRUE: table will be saved as temp_save in dedicated place and overwrite pre-existing file
+   *    FALSE: regular save, user will potentially be asked for directory and filename
+   * @return {String}
+   *    String with the filepath of the just saved file.
    */
-  saveTable(tableConfiguration, overwrite) {
+  saveTable(tableConfiguration, overwrite, autosave) {
+    console.log('Autosave?:', autosave);
     let filepath;
-    if (overwrite && this.filepath) {
+    if (autosave) {
+      filepath = this.tempSaveFolder + '_temp.vlt';
+    } else if (overwrite && this.filepath) {
       filepath = this.filepath;
     } else {
       // read current date for some default filename
@@ -77,7 +91,7 @@ class SaveManager {
 
 
     if (filepath) {
-      this.filepath = filepath;
+      if (!autosave) this.filepath = filepath;
       // save current status of canvasManager to a .vtl-file
 
       /*
@@ -97,7 +111,8 @@ class SaveManager {
 
       const canvasContent = JSON.stringify(tableConfiguration);
       fs.writeFileSync(filepath, canvasContent, 'utf-8');
-      console.log('**SaveManager** - Saved table configuration to ' + filepath);
+      if (autosave) console.log('**SaveManager** - Table autosaved');
+      else console.log('**SaveManager** - Saved table configuration to ' + filepath);
       return filepath;
     }
   }
@@ -207,6 +222,14 @@ class SaveManager {
 
   /**
    * TODO
+   * @return {Object}
+   */
+  loadAutosave() {
+    return this.loadSaveFile(this.tempSaveFolder+'_temp.vlt');
+  }
+
+  /**
+   * TODO
    * @param {*} filepath
    * @param {*} data
    */
@@ -253,6 +276,44 @@ class SaveManager {
    */
   clear() {
     this.filepath = null;
+  }
+
+  /**
+   * TODO
+   * @return {Boolean}
+   */
+  checkForAutosave() {
+    try {
+      if (fs.existsSync(this.tempSaveFolder+'_temp.vlt')) {
+        return true;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    return false;
+  }
+
+  /**
+   * TODO
+   */
+  removeAutosaveFiles() {
+    const removeDir = function(path) {
+      if (fs.existsSync(path)) {
+        const files = fs.readdirSync(path);
+
+        if (files.length > 0) {
+          files.forEach(function(filename) {
+            if (fs.statSync(path + '/' + filename).isDirectory()) {
+              removeDir(path + '/' + filename);
+            } else {
+              fs.unlinkSync(path + '/' + filename);
+            }
+          });
+        }
+      }
+    };
+
+    removeDir(this.tempSaveFolder);
   }
 }
 

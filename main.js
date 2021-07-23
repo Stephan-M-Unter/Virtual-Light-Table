@@ -57,8 +57,12 @@ function main() {
   if (!devMode) {
     mainWindow.removeMenu();
   }
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
+  });
   mainWindow.on('close', function() {
-    app.quit();
+    sendMessage(mainWindow, 'client-confirm-quit');
   });
 }
 
@@ -116,6 +120,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
     'Receiving code [server-save-to-model] from client');
   }
   canvasManager.updateAll(data);
+  saveManager.saveTable(data, false, true);
 });
 
 // server-undo-step
@@ -401,7 +406,7 @@ ipcMain.on('server-quit-table', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-quit-table] from client');
   }
-  // TODO Potential cleaning of temp files?
+  saveManager.removeAutosaveFiles();
   app.quit();
 });
 
@@ -430,4 +435,27 @@ ipcMain.on('server-change-fragment', (event, id) => {
     localUploadWindow = null;
   });
   sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
+});
+
+ipcMain.on('server-confirm-autosave', (event, confirmation) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-confirm-autosave] from client');
+  }
+  if (confirmation) {
+    canvasManager.clearAll();
+    const autosave = saveManager.loadAutosave();
+    canvasManager.loadFile(autosave);
+    const fileData = canvasManager.getAll();
+    fileData['loading'] = true;
+    sendMessage(mainWindow, 'client-load-model', fileData);
+    const feedback = {
+      title: 'Table Loaded',
+      desc: 'Successfully loaded last autosave',
+      color: 'rgba(0,255,0,0.6)',
+    };
+    sendMessage(mainWindow, 'client-show-feedback', feedback);
+  } else {
+    saveManager.removeAutosaveFiles();
+  }
 });

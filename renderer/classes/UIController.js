@@ -629,13 +629,17 @@ class UIController {
 
   /**
    * TODO
+   * @return {Boolean}
    */
   quitTable() {
     if (!this.hasUnsaved) {
       this.sendToServer('server-quit-table');
+      return true;
     } else if (this.confirmClearTable()) {
       this.sendToServer('server-quit-table');
+      return true;
     }
+    return false;
   }
 
   /**
@@ -678,6 +682,20 @@ class UIController {
         $('body').css({backgroundColor: 'white'});
       }
     }
+  }
+
+  /**
+   * TODO
+   */
+  confirmAutosave() {
+    const confirmMessage = 'A temporary save from your last '+
+    'session is still available. Do you want to load it? '+
+    'Otherwise, it will be removed permanently.';
+
+    dialogs.confirm(confirmMessage, (confirmation) => {
+      if (confirmation) this.sendToServer('server-confirm-autosave', true);
+      else this.sendToServer('server-confirm-autosave', false);
+    });
   }
 }
 
