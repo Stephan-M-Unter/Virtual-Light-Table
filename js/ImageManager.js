@@ -14,6 +14,9 @@
 'use strict';
 
 const {dialog} = require('electron');
+const path = require('path');
+const fs = require('fs');
+const {exec, spawn} = require('child_process');
 
 /**
  * TODO
@@ -22,14 +25,17 @@ class ImageManager {
   /**
    * TODO
    */
-  constructor() {}
+  constructor() {
+    this.tempFolder = path.resolve(__dirname+'/../temp/');
+    if (!fs.existsSync(this.tempFolder)) fs.mkdirSync(this.tempFolder);
+  }
 
   /**
    * TODO
    * @return {String}
    */
   selectImageFromFilesystem() {
-    const filepath = dialog.showOpenDialogSync({
+    let filepath = dialog.showOpenDialogSync({
       title: 'Select Image',
       filters: [{
         name: 'Image Files',
@@ -45,6 +51,24 @@ class ImageManager {
     // müssen. Quelle: https://www.electronjs.org/docs/api/dialog.
 
     if (filepath) {
+      filepath = filepath[0];
+
+      const extension = path.extname(filepath).toLowerCase();
+      const filename = path.basename(filepath, extension);
+      if (extension == '.tif' || extension == '.tiff') {
+        const targetpath = this.tempFolder + "/" + filename + ".png";
+        const execString = 'convert ' + filepath + ' -resize 50% ' + targetpath;
+        const im = spawn('magick '+execString);
+        im.stdout.on('data', function(data) {
+          console.log('stdout:', data.toString());
+        });
+        im.stderr.on('data', function(data) {
+          console.log('stderr:', data.toString());
+        });
+        im.on('exit', function(code) {
+          console.log('child process exited with code', code.toString());
+        });
+      }
       /*
 
       TODO
