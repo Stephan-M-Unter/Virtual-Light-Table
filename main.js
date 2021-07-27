@@ -317,16 +317,8 @@ ipcMain.on('server-delete-file', (event, filename) => {
   const deleted = saveManager.deleteFile(filename);
   if (deleted) {
     const folder = saveManager.getCurrentFolder();
-    saveManager.getSaveFiles(folder, function(err, content) {
-      const filesNames = content.filter(function(item) {
-        return item.endsWith('.vlt');
-      });
-      const savefiles = {};
-      filesNames.forEach((name) => {
-        savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
-      });
-      event.sender.send('load-receive-saves', savefiles);
-    });
+    const savefiles = saveManager.getSaveFiles(folder);
+    event.sender.send('load-receive-saves', savefiles);
   }
 });
 

@@ -50,11 +50,11 @@ function deleteSavefile() {
             'this savefile? This action is irreversible.');
       // 3. Nachricht an Server: Save löschen
     if (confirmation) {
-      ipcRenderer.send('server-delete-file', filename);
       // 3.1. aktuellen Detaileintrag löschen
       $('#thumb_reconstruction').css('display', 'none');
       $('#load_details').css('display', 'none');
       $('#thumb_list').empty();
+      ipcRenderer.send('server-delete-file', filename);
     }
     // [4. Nachricht von Server mit aktuellem Speicherzustand]
   }
@@ -316,6 +316,7 @@ $('html').keyup(function(event) {
 
 // load-receive-saves
 ipcRenderer.on('load-receive-saves', (event, savefiles) => {
+  console.log('[load-receive-saves]', savefiles);
   saves = savefiles;
   clearSearch();
   updateSaveList();
