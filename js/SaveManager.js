@@ -91,22 +91,54 @@ class SaveManager {
 
     if (filepath) {
       if (!autosave) this.filepath = filepath;
-      // save current status of canvasManager to a .vtl-file
 
-      /*
-      // TODO: sämtliche imageURLs der Fragmente konvertieren zu relativen Pfaden von filepath zu Bild
-      for (const [key, value] of Object.entries(tableConfiguration.fragments)) {
-        const urlRecto = path.resolve(value.rectoURL);
-        const urlVerso = path.resolve(value.versoURL);
-        const urlRectoRelative = path.relative(filepath, urlRecto);
-        const urlVersoRelative = path.relative(filepath, urlVerso);
+      const imagepath = path.dirname(filepath) + '/imgs';
+      if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
-        // TODO: copy image into imgs subfolder
+      for (const fID in tableConfiguration.fragments) {
+        if (Object.prototype.hasOwnProperty.call(tableConfigurationy.fragments, fID)) {
+          const fragment = tableConfiguration.fragments[fID];
+          const rectoImageDir = path.dirname(fragment.rectoURL);
+          const rectoImageName = path.basename(fragment.rectoURL);
+          const versoImageDir = path.dirname(fragment.versoURL);
+          const versoImageName = path.basename(fragment.versoURL);
+          const rectoNewPath = path.join(imagepath, rectoImageName);
+          const versoNewPath = path.join(imagepath, versoImageName);
+          const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
 
-        tableConfiguration.fragments[key].rectoURL = urlRectoRelative;
-        tableConfiguration.fragments[key].versoURL = urlVersoRelative;
+          // is image in save_folder?
+          if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
+            // nothing to do, image is already correct
+            continue;
+          } else {
+            // is image in temp folder?
+            if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
+              // move image from temp folder to imagepath
+              fs.rename(fragment.rectoURL, rectoNewPath, (err) => {});
+            } else {
+              // image is somewhere else; copy image to imagepath
+              fs.copyFile(fragment.rectoURL, rectoNewPath, (err) => {});
+            }
+            tableConfiguration.fragments[fID].rectoURL = rectoNewPath;
+          }
+
+          // is image in save_folder?
+          if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
+            // nothing to do, image is already correct
+            continue;
+          } else {
+            // is image in temp folder?
+            if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
+              // move image from temp folder to imagepath
+              fs.rename(fragment.versoURL, versoNewPath, (err) => {});
+            } else {
+              // image is somewhere else; copy image to imagepath
+              fs.copyFile(fragment.versoURL, versoNewPath, (err) => {});
+            }
+            tableConfiguration.fragments[fID].versoURL = versoNewPath;
+          }
+        }
       }
-      */
 
       let content = this.convertToRelativePaths(filepath, tableConfiguration);
       content = JSON.stringify(content);
@@ -197,27 +229,6 @@ class SaveManager {
     this.filepath = filepath;
 
     json = this.convertToAbsolutePaths(filepath, json);
-
-    /*
-    for (const [key, value] of Object.entries(json.fragments)) {
-      const urlRecto = path.resolve(filepath, value.rectoURL);
-      const urlVerso = path.resolve(filepath, value.versoURL);
-      const urlRectoRelative = path.relative(this.appPath, urlRecto);
-      const urlVersoRelative = path.relative(this.appPath, urlVerso);
-
-      console.log(value.rectoURL);
-      console.log(filepath);
-      console.log(urlRecto);
-      console.log(this.appPath);
-      console.log(urlRectoRelative);
-      console.log('------');
-
-      // TODO: copy image into imgs subfolder
-
-      json.fragments[key].rectoURL = urlRectoRelative;
-      json.fragments[key].versoURL = urlVersoRelative;
-    }
-    */
 
     return json;
   }
