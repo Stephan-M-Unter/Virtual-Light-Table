@@ -96,7 +96,7 @@ class SaveManager {
       if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
       for (const fID in tableConfiguration.fragments) {
-        if (Object.prototype.hasOwnProperty.call(tableConfigurationy.fragments, fID)) {
+        if (Object.prototype.hasOwnProperty.call(tableConfiguration.fragments, fID)) {
           const fragment = tableConfiguration.fragments[fID];
           const rectoImageDir = path.dirname(fragment.rectoURL);
           const rectoImageName = path.basename(fragment.rectoURL);
@@ -203,16 +203,76 @@ class SaveManager {
 
   /**
    * TODO
-   * @param {*} folder
-   * @param {*} callback
+   * @param {String} folder
+   * @return {Object}
    */
-  getSaveFiles(folder, callback) {
+  getSaveFiles(folder) {
     this.currentSaveFolder = folder;
     console.log('Reading folder ' + folder + '.');
-    fs.readdir(folder, (err, files) => {
-      callback(err, files);
+    const files = fs.readdirSync(folder).filter(function(item) {
+      return item.endsWith('.vlt');
+    });
+
+    const savefiles = {};
+
+    files.forEach((name) => {
+      savefiles[name] = this.loadSaveFile(folder + '/' + name);
+    });
+
+    this.cleanSavefileImages(folder, savefiles);
+
+    return savefiles;
+  }
+
+  /**
+   * TODO
+   * @param {String} folder - Absolute path to current save folder.
+   * @param {Object} savefiles - Object containing all loaded savefiles.
+   */
+  cleanSavefileImages(folder, savefiles) {
+    let images = fs.readdirSync(folder+'/imgs');
+
+    images = images.map((item) => {
+      return path.resolve(folder+'/imgs/'+item);
+    });
+
+    for (const sID in savefiles) {
+      if (Object.prototype.hasOwnProperty.call(savefiles, sID)) {
+        const savefile = savefiles[sID];
+        for (const fID in savefile.fragments) {
+          if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
+            const fragment = savefile.fragments[fID];
+            const recto = path.resolve(fragment.rectoURL);
+            const verso = path.resolve(fragment.versoURL);
+
+            while (true) {
+              const index = images.indexOf(recto);
+              if (index !== -1) {
+                images.splice(index, 1);
+              } else {
+                break;
+              }
+            }
+
+            while (true) {
+              const index = images.indexOf(verso);
+              if (index !== -1) {
+                images.splice(index, 1);
+              } else {
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    images.forEach((item) => {
+      console.log('**SaveManager** - Unlinking item:', item);
+      fs.unlinkSync(item);
     });
   }
+
 
   /**
    * TODO
