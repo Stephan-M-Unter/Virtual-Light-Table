@@ -393,10 +393,9 @@ ipcMain.on('server-upload-image', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-upload-image] from client');
   }
-  let filepath = imageManager.selectImageFromFilesystem();
+  const filepath = imageManager.selectImageFromFilesystem();
 
   if (filepath) {
-    filepath = path.relative(__dirname.split(path.sep).pop(), filepath);
     sendMessage(localUploadWindow, 'upload-receive-image', filepath);
   }
 });

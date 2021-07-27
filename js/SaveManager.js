@@ -17,6 +17,7 @@
 const {dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { table } = require('console');
 
 /**
  * TODO
@@ -51,7 +52,6 @@ class SaveManager {
    *    String with the filepath of the just saved file.
    */
   saveTable(tableConfiguration, overwrite, autosave) {
-    console.log('Autosave?:', autosave);
     let filepath;
     if (autosave) {
       filepath = this.tempSaveFolder + '_temp.vlt';
@@ -109,8 +109,9 @@ class SaveManager {
       }
       */
 
-      const canvasContent = JSON.stringify(tableConfiguration);
-      fs.writeFileSync(filepath, canvasContent, 'utf-8');
+      let content = this.convertToRelativePaths(filepath, tableConfiguration);
+      content = JSON.stringify(content);
+      fs.writeFileSync(filepath, content, 'utf-8');
       if (autosave) console.log('**SaveManager** - Table autosaved');
       else console.log('**SaveManager** - Saved table configuration to ' + filepath);
       return filepath;
@@ -192,9 +193,11 @@ class SaveManager {
     const stats = fs.statSync(filepath);
     const mtime = stats.mtimeMs;
     console.log('**SaveManager** - Loading ' + filepath);
-    const json = JSON.parse(content);
+    let json = JSON.parse(content);
     json.mtime = mtime;
     this.filepath = filepath;
+
+    json = this.convertToAbsolutePaths(filepath, json);
 
     /*
     for (const [key, value] of Object.entries(json.fragments)) {
@@ -314,6 +317,59 @@ class SaveManager {
     };
 
     removeDir(this.tempSaveFolder);
+  }
+
+  /**
+   * Takes the table configuration object (=data) and converts all image paths from absolute paths to
+   * relative paths with a reference to the new savefile.
+   * @param {String} reference - Absolute path to the current savefile.
+   * @param {Object} tableConfiguration - Table configuration object. The individual fragments are located under
+   * data.fragments, each fragment has data.fragment.rectoURL and data.fragment.versoURL.
+   * @return {Object} Returns the table configuration object with converted relative image paths.
+   */
+  convertToRelativePaths(reference, tableConfiguration) {
+    const data = JSON.parse(JSON.stringify(tableConfiguration));
+    reference = path.dirname(reference);
+    for (const fID in data.fragments) {
+      if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
+        const fragment = data.fragments[fID];
+        const absoluteRectoURL = fragment.rectoURL;
+        const absoluteVersoURL = fragment.versoURL;
+        const relativeRectoURL = path.relative(reference, absoluteRectoURL);
+        const relativeVersoURL = path.relative(reference, absoluteVersoURL);
+        console.log("Reference:", reference);
+        console.log("Old Path:", absoluteRectoURL);
+        console.log("New Path:", relativeRectoURL);
+        data.fragments[fID].rectoURL = relativeRectoURL;
+        data.fragments[fID].versoURL = relativeVersoURL;
+      }
+    }
+    return data;
+  }
+
+  /**
+   * Takes the table configuration object (=data) and converts all image paths from relative paths
+   * (from reference to image) to absolute paths in the given file system.
+   * @param {String} reference - Absolute path to the current savefile.
+   * @param {*} tableConfiguration - Table configuration object. The individual fragments are located under
+   * data.fragments, each fragment has data.fragment.rectoURL and data.fragment.versoURL.
+   * @return {Object} Returns the table configuration object with converted absolute image paths.
+   */
+  convertToAbsolutePaths(reference, tableConfiguration) {
+    const data = JSON.parse(JSON.stringify(tableConfiguration));
+    reference = path.dirname(reference);
+    for (const fID in data.fragments) {
+      if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
+        const fragment = data.fragments[fID];
+        const relativeRectoURL = fragment.rectoURL;
+        const relativeVersoURL = fragment.versoURL;
+        const absoluteRectoURL = path.resolve(reference, relativeRectoURL);
+        const absoluteVersoURL = path.resolve(reference, relativeVersoURL);
+        data.fragments[fID].rectoURL = absoluteRectoURL;
+        data.fragments[fID].versoURL = absoluteVersoURL;
+      }
+    }
+    return data;
   }
 }
 
