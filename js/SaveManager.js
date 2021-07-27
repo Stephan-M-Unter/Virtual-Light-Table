@@ -17,7 +17,6 @@
 const {dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { table } = require('console');
 
 /**
  * TODO
@@ -337,9 +336,6 @@ class SaveManager {
         const absoluteVersoURL = fragment.versoURL;
         const relativeRectoURL = path.relative(reference, absoluteRectoURL);
         const relativeVersoURL = path.relative(reference, absoluteVersoURL);
-        console.log("Reference:", reference);
-        console.log("Old Path:", absoluteRectoURL);
-        console.log("New Path:", relativeRectoURL);
         data.fragments[fID].rectoURL = relativeRectoURL;
         data.fragments[fID].versoURL = relativeVersoURL;
       }
