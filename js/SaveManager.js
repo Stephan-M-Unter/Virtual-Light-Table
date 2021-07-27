@@ -318,6 +318,7 @@ class SaveManager {
    */
   deleteFile(filename) {
     fs.unlinkSync(path.join(this.currentSaveFolder, filename));
+    this.cleanSavefileImages(this.currentSaveFolder, this.getSaveFiles(this.currentSaveFolder));
     return true;
   }
 
