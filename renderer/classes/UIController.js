@@ -629,21 +629,6 @@ class UIController {
 
   /**
    * TODO
-   * @return {Boolean}
-   */
-  quitTable() {
-    if (!this.hasUnsaved) {
-      this.sendToServer('server-quit-table');
-      return true;
-    } else if (this.confirmClearTable()) {
-      this.sendToServer('server-quit-table');
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * TODO
    */
   toggleLight() {
     if (this.lightMode == 'dark') {

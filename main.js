@@ -13,7 +13,7 @@
 'use strict';
 
 // Loading Requirements
-const {app, ipcMain} = require('electron');
+const {app, ipcMain, dialog} = require('electron');
 const path = require('path');
 
 const Window = require('./js/Window');
@@ -61,8 +61,20 @@ function main() {
     mainWindow.show();
     if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
   });
-  mainWindow.on('close', function() {
-    sendMessage(mainWindow, 'client-confirm-quit');
+  mainWindow.on('close', function(event) {
+    const choice = dialog.showMessageBoxSync(this, {
+      type: 'question',
+      buttons: ['Yes', 'No'],
+      title: 'Confirm',
+      message: 'Are you sure you want to quit?'
+    });
+    if (choice == 1) {
+      event.preventDefault();
+    } else {
+      saveManager.removeAutosaveFiles();
+      app.quit();
+    }
+    // sendMessage(mainWindow, 'client-confirm-quit');
   });
 }
 
@@ -395,7 +407,6 @@ ipcMain.on('server-quit-table', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-quit-table] from client');
   }
-  saveManager.removeAutosaveFiles();
   app.quit();
 });
 
