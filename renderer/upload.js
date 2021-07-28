@@ -924,11 +924,23 @@ $('.local_upload_button').click(function() {
 $('#verso_resolution').on('focusout', function() {
   verso.scalePoints = [];
   drawScale(verso);
+  if ($('#recto_resolution').val() == '') {
+    $('#recto_resolution').val($(this).val());
+  }
+  checkIfReady();
+});
+$('#verso_resolution').on('input', function() {
   checkIfReady();
 });
 $('#recto_resolution').on('focusout', function() {
   recto.scalePoints = [];
   drawScale(recto);
+  if ($('#verso_resolution').val() == '') {
+    $('#verso_resolution').val($(this).val());
+  }
+  checkIfReady();
+});
+$('#recto_resolution').on('input', function() {
   checkIfReady();
 });
 
