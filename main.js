@@ -208,12 +208,14 @@ ipcMain.on('server-open-details', (event, id) => {
 });
 
 // server-load-file
-ipcMain.on('server-load-file', (event, file) => {
+ipcMain.on('server-load-file', (event, filename) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-load-file] from loadWindow');
   }
   loadWindow.close();
+  const savefolder = saveManager.getCurrentFolder();
+  const file = saveManager.loadSaveFile(path.join(savefolder, filename));
   canvasManager.clearAll();
   canvasManager.loadFile(file);
   const fileData = canvasManager.getAll();

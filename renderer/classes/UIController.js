@@ -33,7 +33,10 @@ class UIController {
     /** @member {Boolean} */
     this.hasUnsaved = false;
     /** @member {Boolean} */
-    this.initiallySaved = false;
+    this.firstSave = true;
+    /** @member {String} */
+    this.editor = '';
+    this.editor = '';
     /** @member {'dark' | 'bright'} */
     this.lightMode = 'dark';
     /** @member {String} */
@@ -70,21 +73,29 @@ class UIController {
     data.screenshot = this.exportCanvas('png', true, true);
     data.quicksave = isQuicksave;
 
-    if (isQuicksave && this.initiallySaved) {
+    if (isQuicksave && !this.firstSave && this.editor) {
       // not first quicksave, thus editor no longer needed
       this.sendToServer('server-save-file', data);
       this.hasUnsaved = false;
     } else {
-      this.disableHotkeys();
-      dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
-        if (editor != '' && editor != null) {
-          data.editor = editor;
-          this.sendToServer('server-save-file', data);
-          this.hasUnsaved = false;
-          this.initiallySaved = true;
-        }
-        this.enableHotkeys();
-      });
+      if (this.editor) {
+        data.editor = this.editor;
+        this.sendToServer('server-save-file', data);
+        this.hasUnsaved = false;
+        this.firstSave = false;
+      } else {
+        this.disableHotkeys();
+        dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
+          if (editor != '' && editor != null) {
+            this.editor = editor;
+            data.editor = editor;
+            this.sendToServer('server-save-file', data);
+            this.hasUnsaved = false;
+            this.firstSave = false;
+          }
+          this.enableHotkeys();
+        });
+      }
     }
   }
 
@@ -119,12 +130,12 @@ class UIController {
       this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
-      this.initiallySaved = false;
+      this.firstSave = true;
     } else if (this.confirmClearTable()) {
       this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
-      this.initiallySaved = false;
+      this.firstSave = true;
     }
   }
 
@@ -371,6 +382,9 @@ class UIController {
    * @param {*} data
    */
   loadScene(data) {
+    if ('loading' in data) {
+      this.firstSave = true;
+    }
     this.annotationPopup.loadAnnotations(data.annots);
     this.sidebar.updateDoButtons(data);
     this.stage.loadScene(data);

@@ -139,7 +139,7 @@ $('#clear_filter').click(function() {
 $('#save_list').on('dblclick', '.save_list_item', function(event) {
   currentSave = $(event.target).parent().attr('id');
   $(event.target).parent().addClass('selected');
-  ipcRenderer.send('server-load-file', (saves[$('.selected').attr('id')]));
+  ipcRenderer.send('server-load-file', ($('.selected').attr('id')));
 });
 
 $('#save_list').on('click', '.save_list_item', function(event) {
@@ -288,7 +288,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
 
 $('#load').click(function() {
   if (!$('#load').hasClass('disabled')) {
-    ipcRenderer.send('server-load-file', (saves[$('.selected').attr('id')]));
+    ipcRenderer.send('server-load-file', ($('.selected').attr('id')));
   }
 });
 

@@ -52,6 +52,7 @@ class SaveManager {
    *    String with the filepath of the just saved file.
    */
   saveTable(tableConfiguration, overwrite, autosave) {
+    console.log('Saving; filepath:', this.filepath);
     let filepath;
     if (autosave) {
       filepath = this.tempSaveFolder + '_temp.vlt';
@@ -107,18 +108,23 @@ class SaveManager {
           const versoNewPath = path.join(imagepath, versoImageName);
           const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
 
+          const rectoAlreadyMoved = fs.existsSync(rectoNewPath);
+          const versoAlreadyMoved = fs.existsSync(versoNewPath);
+
           // is image in save_folder?
           if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
             // nothing to do, image is already correct
             continue;
           } else {
-            // is image in temp folder?
-            if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
-              // move image from temp folder to imagepath
-              fs.rename(fragment.rectoURL, rectoNewPath, (err) => {});
-            } else {
-              // image is somewhere else; copy image to imagepath
-              fs.copyFile(fragment.rectoURL, rectoNewPath, (err) => {});
+            if (!rectoAlreadyMoved) {
+              // is image in temp folder?
+              if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
+                // move image from temp folder to imagepath
+                fs.renameSync(fragment.rectoURL, rectoNewPath);
+              } else {
+                // image is somewhere else; copy image to imagepath
+                fs.copyFileSync(fragment.rectoURL, rectoNewPath);
+              }
             }
             tableConfiguration.fragments[fID].rectoURL = rectoNewPath;
           }
@@ -128,13 +134,15 @@ class SaveManager {
             // nothing to do, image is already correct
             continue;
           } else {
-            // is image in temp folder?
-            if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
-              // move image from temp folder to imagepath
-              fs.rename(fragment.versoURL, versoNewPath, (err) => {});
-            } else {
-              // image is somewhere else; copy image to imagepath
-              fs.copyFile(fragment.versoURL, versoNewPath, (err) => {});
+            if (!versoAlreadyMoved) {
+              // is image in temp folder?
+              if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
+                // move image from temp folder to imagepath
+                fs.renameSync(fragment.versoURL, versoNewPath);
+              } else {
+                // image is somewhere else; copy image to imagepath
+                fs.copyFileSync(fragment.versoURL, versoNewPath);
+              }
             }
             tableConfiguration.fragments[fID].versoURL = versoNewPath;
           }
@@ -171,6 +179,7 @@ class SaveManager {
       this.filepath = filepath;
       const content = fs.readFileSync(filepath[0]).toString();
       console.log('**SaveManager** - Loading ' + filepath);
+      console.log('Loading; filepath:', this.filepath);
       return JSON.parse(content);
     }
   }
