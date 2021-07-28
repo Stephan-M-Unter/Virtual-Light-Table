@@ -5,6 +5,7 @@ tf_models
 desktop.ini
 vlt.log
 saves/old
+temp/*
 imgs/dev_test
 *.db
 test

@@ -17,6 +17,7 @@
 const {dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const JSZip = require('jszip');
 
 /**
  * TODO
@@ -24,10 +25,14 @@ const fs = require('fs');
 class SaveManager {
   /**
      * TODO
+     * @param {String} appPath
      */
   constructor(appPath) {
     // this.defaultSaveFolder = './saves';
-    this.defaultSaveFolder = __dirname+'/saves';
+    this.defaultSaveFolder = __dirname+'/saves/';
+    this.tempSaveFolder = __dirname+'/../temp/';
+    if (!fs.existsSync(this.tempSaveFolder)) fs.mkdirSync(this.tempSaveFolder);
+    console.log('Temp Save Folder:', this.tempSaveFolder);
     this.currentSaveFolder = this.defaultSaveFolder;
     this.filepath = null;
     this.appPath = appPath;
@@ -35,13 +40,22 @@ class SaveManager {
 
   /**
    * TODO
-   * @param {*} tableConfiguration
+   * @param {Object} tableConfiguration
+   *    Object containing the full data JSON with table and fragments configuration.
    * @param {Boolean} overwrite
-   * @return {*}
+   *    TRUE: if there is already a savefile, it will be overwritten
+   *    FALSE: the user will be asked for a directory and filename
+   * @param {Boolean} autosave
+   *    TRUE: table will be saved as temp_save in dedicated place and overwrite pre-existing file
+   *    FALSE: regular save, user will potentially be asked for directory and filename
+   * @return {String}
+   *    String with the filepath of the just saved file.
    */
-  saveTable(tableConfiguration, overwrite) {
+  saveTable(tableConfiguration, overwrite, autosave) {
     let filepath;
-    if (overwrite && this.filepath) {
+    if (autosave) {
+      filepath = this.tempSaveFolder + '_temp.vlt';
+    } else if (overwrite && this.filepath) {
       filepath = this.filepath;
     } else {
       // read current date for some default filename
@@ -77,27 +91,61 @@ class SaveManager {
 
 
     if (filepath) {
-      this.filepath = filepath;
-      // save current status of canvasManager to a .vtl-file
+      if (!autosave) this.filepath = filepath;
 
-      /*
-      // TODO: sämtliche imageURLs der Fragmente konvertieren zu relativen Pfaden von filepath zu Bild
-      for (const [key, value] of Object.entries(tableConfiguration.fragments)) {
-        const urlRecto = path.resolve(value.rectoURL);
-        const urlVerso = path.resolve(value.versoURL);
-        const urlRectoRelative = path.relative(filepath, urlRecto);
-        const urlVersoRelative = path.relative(filepath, urlVerso);
+      const imagepath = path.dirname(filepath) + '/imgs';
+      if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
-        // TODO: copy image into imgs subfolder
+      for (const fID in tableConfiguration.fragments) {
+        if (Object.prototype.hasOwnProperty.call(tableConfiguration.fragments, fID)) {
+          const fragment = tableConfiguration.fragments[fID];
+          const rectoImageDir = path.dirname(fragment.rectoURL);
+          const rectoImageName = path.basename(fragment.rectoURL);
+          const versoImageDir = path.dirname(fragment.versoURL);
+          const versoImageName = path.basename(fragment.versoURL);
+          const rectoNewPath = path.join(imagepath, rectoImageName);
+          const versoNewPath = path.join(imagepath, versoImageName);
+          const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
 
-        tableConfiguration.fragments[key].rectoURL = urlRectoRelative;
-        tableConfiguration.fragments[key].versoURL = urlVersoRelative;
+          // is image in save_folder?
+          if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
+            // nothing to do, image is already correct
+            continue;
+          } else {
+            // is image in temp folder?
+            if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
+              // move image from temp folder to imagepath
+              fs.rename(fragment.rectoURL, rectoNewPath, (err) => {});
+            } else {
+              // image is somewhere else; copy image to imagepath
+              fs.copyFile(fragment.rectoURL, rectoNewPath, (err) => {});
+            }
+            tableConfiguration.fragments[fID].rectoURL = rectoNewPath;
+          }
+
+          // is image in save_folder?
+          if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
+            // nothing to do, image is already correct
+            continue;
+          } else {
+            // is image in temp folder?
+            if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
+              // move image from temp folder to imagepath
+              fs.rename(fragment.versoURL, versoNewPath, (err) => {});
+            } else {
+              // image is somewhere else; copy image to imagepath
+              fs.copyFile(fragment.versoURL, versoNewPath, (err) => {});
+            }
+            tableConfiguration.fragments[fID].versoURL = versoNewPath;
+          }
+        }
       }
-      */
 
-      const canvasContent = JSON.stringify(tableConfiguration);
-      fs.writeFileSync(filepath, canvasContent, 'utf-8');
-      console.log('**SaveManager** - Saved table configuration to ' + filepath);
+      let content = this.convertToRelativePaths(filepath, tableConfiguration);
+      content = JSON.stringify(content);
+      fs.writeFileSync(filepath, content, 'utf-8');
+      if (autosave) console.log('**SaveManager** - Table autosaved');
+      else console.log('**SaveManager** - Saved table configuration to ' + filepath);
       return filepath;
     }
   }
@@ -156,16 +204,76 @@ class SaveManager {
 
   /**
    * TODO
-   * @param {*} folder
-   * @param {*} callback
+   * @param {String} folder
+   * @return {Object}
    */
-  getSaveFiles(folder, callback) {
+  getSaveFiles(folder) {
     this.currentSaveFolder = folder;
     console.log('Reading folder ' + folder + '.');
-    fs.readdir(folder, (err, files) => {
-      callback(err, files);
+    const files = fs.readdirSync(folder).filter(function(item) {
+      return item.endsWith('.vlt');
+    });
+
+    const savefiles = {};
+
+    files.forEach((name) => {
+      savefiles[name] = this.loadSaveFile(folder + '/' + name);
+    });
+
+    this.cleanSavefileImages(folder, savefiles);
+
+    return savefiles;
+  }
+
+  /**
+   * TODO
+   * @param {String} folder - Absolute path to current save folder.
+   * @param {Object} savefiles - Object containing all loaded savefiles.
+   */
+  cleanSavefileImages(folder, savefiles) {
+    let images = fs.readdirSync(folder+'/imgs');
+
+    images = images.map((item) => {
+      return path.resolve(folder+'/imgs/'+item);
+    });
+
+    for (const sID in savefiles) {
+      if (Object.prototype.hasOwnProperty.call(savefiles, sID)) {
+        const savefile = savefiles[sID];
+        for (const fID in savefile.fragments) {
+          if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
+            const fragment = savefile.fragments[fID];
+            const recto = path.resolve(fragment.rectoURL);
+            const verso = path.resolve(fragment.versoURL);
+
+            while (true) {
+              const index = images.indexOf(recto);
+              if (index !== -1) {
+                images.splice(index, 1);
+              } else {
+                break;
+              }
+            }
+
+            while (true) {
+              const index = images.indexOf(verso);
+              if (index !== -1) {
+                images.splice(index, 1);
+              } else {
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    images.forEach((item) => {
+      console.log('**SaveManager** - Unlinking item:', item);
+      fs.unlinkSync(item);
     });
   }
+
 
   /**
    * TODO
@@ -177,32 +285,21 @@ class SaveManager {
     const stats = fs.statSync(filepath);
     const mtime = stats.mtimeMs;
     console.log('**SaveManager** - Loading ' + filepath);
-    const json = JSON.parse(content);
+    let json = JSON.parse(content);
     json.mtime = mtime;
     this.filepath = filepath;
 
-    /*
-    for (const [key, value] of Object.entries(json.fragments)) {
-      const urlRecto = path.resolve(filepath, value.rectoURL);
-      const urlVerso = path.resolve(filepath, value.versoURL);
-      const urlRectoRelative = path.relative(this.appPath, urlRecto);
-      const urlVersoRelative = path.relative(this.appPath, urlVerso);
-
-      console.log(value.rectoURL);
-      console.log(filepath);
-      console.log(urlRecto);
-      console.log(this.appPath);
-      console.log(urlRectoRelative);
-      console.log('------');
-
-      // TODO: copy image into imgs subfolder
-
-      json.fragments[key].rectoURL = urlRectoRelative;
-      json.fragments[key].versoURL = urlVersoRelative;
-    }
-    */
+    json = this.convertToAbsolutePaths(filepath, json);
 
     return json;
+  }
+
+  /**
+   * TODO
+   * @return {Object}
+   */
+  loadAutosave() {
+    return this.loadSaveFile(this.tempSaveFolder+'_temp.vlt');
   }
 
   /**
@@ -222,7 +319,54 @@ class SaveManager {
    */
   deleteFile(filename) {
     fs.unlinkSync(path.join(this.currentSaveFolder, filename));
+    this.cleanSavefileImages(this.currentSaveFolder, this.getSaveFiles(this.currentSaveFolder));
     return true;
+  }
+
+  /**
+   * TODO
+   * @param {String} filename - Filename of the savefile to export, positioned in the currentSaveFolder
+   */
+  exportFile(filename) {
+    const filepath = path.join(this.currentSaveFolder, filename);
+    const images = [];
+    const savefile = this.loadSaveFile(filepath);
+
+    for (const fID in savefile.fragments) {
+      if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
+        const fragment = savefile.fragments[fID];
+        images.push(fragment.rectoURL);
+        images.push(fragment.versoURL);
+      }
+    }
+
+    const zip = new JSZip();
+
+    zip.file(filename, fs.createReadStream(filepath));
+
+    images.forEach((image) => {
+      const imagename = path.basename(image);
+      console.log(imagename);
+      zip.file('imgs/'+imagename, fs.createReadStream(image));
+    });
+
+    const outputpath = dialog.showSaveDialogSync({
+      title: 'Save Export',
+      // defaultPath: path.join(__dirname+'/../saves/', filename),
+      filters: [{
+        name: 'ZIP-Archive',
+        extensions: ['zip'],
+      }],
+    });
+
+    if (outputpath) {
+      zip
+          .generateNodeStream({type: 'nodebuffer', streamFiles: true})
+          .pipe(fs.createWriteStream(outputpath))
+          .on('finish', function() {
+            console.log(outputpath + ' written');
+          });
+    }
   }
 
   /**
@@ -253,6 +397,94 @@ class SaveManager {
    */
   clear() {
     this.filepath = null;
+  }
+
+  /**
+   * TODO
+   * @return {Boolean}
+   */
+  checkForAutosave() {
+    try {
+      if (fs.existsSync(this.tempSaveFolder+'_temp.vlt')) {
+        return true;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    return false;
+  }
+
+  /**
+   * TODO
+   */
+  removeAutosaveFiles() {
+    const removeDir = function(path) {
+      if (fs.existsSync(path)) {
+        const files = fs.readdirSync(path);
+
+        if (files.length > 0) {
+          files.forEach(function(filename) {
+            if (fs.statSync(path + '/' + filename).isDirectory()) {
+              removeDir(path + '/' + filename);
+            } else {
+              fs.unlinkSync(path + '/' + filename);
+            }
+          });
+        }
+      }
+    };
+
+    removeDir(this.tempSaveFolder);
+  }
+
+  /**
+   * Takes the table configuration object (=data) and converts all image paths from absolute paths to
+   * relative paths with a reference to the new savefile.
+   * @param {String} reference - Absolute path to the current savefile.
+   * @param {Object} tableConfiguration - Table configuration object. The individual fragments are located under
+   * data.fragments, each fragment has data.fragment.rectoURL and data.fragment.versoURL.
+   * @return {Object} Returns the table configuration object with converted relative image paths.
+   */
+  convertToRelativePaths(reference, tableConfiguration) {
+    const data = JSON.parse(JSON.stringify(tableConfiguration));
+    reference = path.dirname(reference);
+    for (const fID in data.fragments) {
+      if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
+        const fragment = data.fragments[fID];
+        const absoluteRectoURL = fragment.rectoURL;
+        const absoluteVersoURL = fragment.versoURL;
+        const relativeRectoURL = path.relative(reference, absoluteRectoURL);
+        const relativeVersoURL = path.relative(reference, absoluteVersoURL);
+        data.fragments[fID].rectoURL = relativeRectoURL;
+        data.fragments[fID].versoURL = relativeVersoURL;
+      }
+    }
+    return data;
+  }
+
+  /**
+   * Takes the table configuration object (=data) and converts all image paths from relative paths
+   * (from reference to image) to absolute paths in the given file system.
+   * @param {String} reference - Absolute path to the current savefile.
+   * @param {*} tableConfiguration - Table configuration object. The individual fragments are located under
+   * data.fragments, each fragment has data.fragment.rectoURL and data.fragment.versoURL.
+   * @return {Object} Returns the table configuration object with converted absolute image paths.
+   */
+  convertToAbsolutePaths(reference, tableConfiguration) {
+    const data = JSON.parse(JSON.stringify(tableConfiguration));
+    reference = path.dirname(reference);
+    for (const fID in data.fragments) {
+      if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
+        const fragment = data.fragments[fID];
+        const relativeRectoURL = fragment.rectoURL;
+        const relativeVersoURL = fragment.versoURL;
+        const absoluteRectoURL = path.resolve(reference, relativeRectoURL);
+        const absoluteVersoURL = path.resolve(reference, relativeVersoURL);
+        data.fragments[fID].rectoURL = absoluteRectoURL;
+        data.fragments[fID].versoURL = absoluteVersoURL;
+      }
+    }
+    return data;
   }
 }
 

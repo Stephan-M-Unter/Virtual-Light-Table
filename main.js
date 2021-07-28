@@ -13,7 +13,7 @@
 'use strict';
 
 // Loading Requirements
-const {app, ipcMain} = require('electron');
+const {app, ipcMain, dialog} = require('electron');
 const path = require('path');
 
 const Window = require('./js/Window');
@@ -57,8 +57,24 @@ function main() {
   if (!devMode) {
     mainWindow.removeMenu();
   }
-  mainWindow.on('close', function() {
-    app.quit();
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
+  });
+  mainWindow.on('close', function(event) {
+    const choice = dialog.showMessageBoxSync(this, {
+      type: 'question',
+      buttons: ['Yes', 'No'],
+      title: 'Confirm',
+      message: 'Are you sure you want to quit?'
+    });
+    if (choice == 1) {
+      event.preventDefault();
+    } else {
+      saveManager.removeAutosaveFiles();
+      app.quit();
+    }
+    // sendMessage(mainWindow, 'client-confirm-quit');
   });
 }
 
@@ -116,6 +132,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
     'Receiving code [server-save-to-model] from client');
   }
   canvasManager.updateAll(data);
+  saveManager.saveTable(data, false, true);
 });
 
 // server-undo-step
@@ -263,18 +280,8 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
     folder = path.join(appPath, folder);
   }
 
-  saveManager.getSaveFiles(folder, function(err, content) {
-    const filesNames = content.filter(function(item) {
-      return item.endsWith('.vlt');
-    });
-
-    const savefiles = {};
-
-    filesNames.forEach((name) => {
-      savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
-    });
-    event.sender.send('load-receive-saves', savefiles);
-  });
+  const savefiles = saveManager.getSaveFiles(folder);
+  event.sender.send('load-receive-saves', savefiles);
 });
 
 // <- server-get-saves-folder
@@ -314,6 +321,14 @@ ipcMain.on('server-open-load', (event) => {
   }
 });
 
+ipcMain.on('server-export-file', (event, filename) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-export-file] from loadWindow');
+  }
+  saveManager.exportFile(filename);
+});
+
 ipcMain.on('server-delete-file', (event, filename) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -322,16 +337,8 @@ ipcMain.on('server-delete-file', (event, filename) => {
   const deleted = saveManager.deleteFile(filename);
   if (deleted) {
     const folder = saveManager.getCurrentFolder();
-    saveManager.getSaveFiles(folder, function(err, content) {
-      const filesNames = content.filter(function(item) {
-        return item.endsWith('.vlt');
-      });
-      const savefiles = {};
-      filesNames.forEach((name) => {
-        savefiles[name] = saveManager.loadSaveFile(folder + '/' + name);
-      });
-      event.sender.send('load-receive-saves', savefiles);
-    });
+    const savefiles = saveManager.getSaveFiles(folder);
+    event.sender.send('load-receive-saves', savefiles);
   }
 });
 
@@ -388,10 +395,9 @@ ipcMain.on('server-upload-image', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-upload-image] from client');
   }
-  let filepath = imageManager.selectImageFromFilesystem();
+  const filepath = imageManager.selectImageFromFilesystem();
 
   if (filepath) {
-    filepath = path.relative(__dirname.split(path.sep).pop(), filepath);
     sendMessage(localUploadWindow, 'upload-receive-image', filepath);
   }
 });
@@ -401,7 +407,6 @@ ipcMain.on('server-quit-table', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-quit-table] from client');
   }
-  // TODO Potential cleaning of temp files?
   app.quit();
 });
 
@@ -430,4 +435,27 @@ ipcMain.on('server-change-fragment', (event, id) => {
     localUploadWindow = null;
   });
   sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
+});
+
+ipcMain.on('server-confirm-autosave', (event, confirmation) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-confirm-autosave] from client');
+  }
+  if (confirmation) {
+    canvasManager.clearAll();
+    const autosave = saveManager.loadAutosave();
+    canvasManager.loadFile(autosave);
+    const fileData = canvasManager.getAll();
+    fileData['loading'] = true;
+    sendMessage(mainWindow, 'client-load-model', fileData);
+    const feedback = {
+      title: 'Table Loaded',
+      desc: 'Successfully loaded last autosave',
+      color: 'rgba(0,255,0,0.6)',
+    };
+    sendMessage(mainWindow, 'client-show-feedback', feedback);
+  } else {
+    saveManager.removeAutosaveFiles();
+  }
 });

@@ -377,8 +377,8 @@ class CanvasManager {
     this.doStep();
     this.stage = file.stage;
     this.fragments = file.fragments;
-    this.editors = file.editors;
-    this.annots = file.annots;
+    if (file.editors) this.editors = file.editors;
+    if (file.annots) this.annots = file.annots;
   }
 
   /**

@@ -19,6 +19,7 @@
   "dependencies": {
     "dialogs": "^2.0.1",
     "exif-js": "^2.3.0",
-    "image-outline": "^0.1.0"
+    "image-outline": "^0.1.0",
+    "jszip": "^3.7.0"
   }
 }

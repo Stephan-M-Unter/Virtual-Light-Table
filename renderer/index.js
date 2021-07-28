@@ -105,7 +105,7 @@ $(document).ready(function() {
 
   // Quit Table Button
   $('#quit').click(function() {
-    controller.quitTable();
+    controller.sendToServer('server-quit-table');
   });
 
   // Flip Buttons - toggles the display of horizontal and vertical flip buttons
@@ -482,6 +482,11 @@ $(document).ready(function() {
     const duration = data.duration || '';
     const color = data.color || '';
     controller.showVisualFeedback(title, desc, color, duration);
+  });
+
+  ipcRenderer.on('client-confirm-autosave', (event) => {
+    if (controller.isDevMode()) console.log('Received client-confirm-autosave');
+    controller.confirmAutosave();
   });
 
   xyz = controller.getStage(); // REMOVE
