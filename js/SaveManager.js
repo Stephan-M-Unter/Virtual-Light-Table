@@ -17,6 +17,7 @@
 const {dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const JSZip = require('jszip');
 
 /**
  * TODO
@@ -320,6 +321,52 @@ class SaveManager {
     fs.unlinkSync(path.join(this.currentSaveFolder, filename));
     this.cleanSavefileImages(this.currentSaveFolder, this.getSaveFiles(this.currentSaveFolder));
     return true;
+  }
+
+  /**
+   * TODO
+   * @param {String} filename - Filename of the savefile to export, positioned in the currentSaveFolder
+   */
+  exportFile(filename) {
+    const filepath = path.join(this.currentSaveFolder, filename);
+    const images = [];
+    const savefile = this.loadSaveFile(filepath);
+
+    for (const fID in savefile.fragments) {
+      if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
+        const fragment = savefile.fragments[fID];
+        images.push(fragment.rectoURL);
+        images.push(fragment.versoURL);
+      }
+    }
+
+    const zip = new JSZip();
+
+    zip.file(filename, fs.createReadStream(filepath));
+
+    images.forEach((image) => {
+      const imagename = path.basename(image);
+      console.log(imagename);
+      zip.file('imgs/'+imagename, fs.createReadStream(image));
+    });
+
+    const outputpath = dialog.showSaveDialogSync({
+      title: 'Save Export',
+      // defaultPath: path.join(__dirname+'/../saves/', filename),
+      filters: [{
+        name: 'ZIP-Archive',
+        extensions: ['zip'],
+      }],
+    });
+
+    if (outputpath) {
+      zip
+          .generateNodeStream({type: 'nodebuffer', streamFiles: true})
+          .pipe(fs.createWriteStream(outputpath))
+          .on('finish', function() {
+            console.log(outputpath + ' written');
+          });
+    }
   }
 
   /**

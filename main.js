@@ -309,6 +309,14 @@ ipcMain.on('server-open-load', (event) => {
   }
 });
 
+ipcMain.on('server-export-file', (event, filename) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-export-file] from loadWindow');
+  }
+  saveManager.exportFile(filename);
+});
+
 ipcMain.on('server-delete-file', (event, filename) => {
   if (devMode) {
     console.log(timestamp() + ' ' +

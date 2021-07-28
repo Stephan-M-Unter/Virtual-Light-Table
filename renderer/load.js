@@ -21,25 +21,6 @@ $(document).ready(function() {
 
 /**
  * TODO
- * @param {*} milliseconds
- * @return {*}
- */
-function convertTime(milliseconds) {
-  const time = new Date(milliseconds);
-
-  const year = time.getFullYear();
-  const month = ((time.getMonth()+1) < 10 ? '0' : '') + (time.getMonth()+1);
-  const day = (time.getDate() < 10 ? '0' : '') + time.getDate();
-
-  const hour = time.getHours();
-  const minute = (time.getMinutes() < 10 ? '0' : '') + time.getMinutes();
-  const second = (time.getSeconds() < 10 ? '0' : '') + time.getSeconds();
-
-  return day+'.'+month+'.'+year+', '+hour+':'+minute+':'+second;
-}
-
-/**
- * TODO
  */
 function deleteSavefile() {
   if ($('.selected').length > 0) {
@@ -67,6 +48,16 @@ function clearSearch() {
   $('#fragment_search').val('');
 }
 
+/**
+ * TODO
+ */
+function exportSavefile() {
+  if ($('.selected').length == 1) {
+    const filename = $('.selected').attr('id');
+    ipcRenderer.send('server-export-file', filename);
+  }
+}
+
 
 /**
  * TODO
@@ -76,6 +67,7 @@ function updateSaveList(searchString) {
   $('#save_list_body').empty();
   $('#load').addClass('disabled');
   $('#delete').addClass('disabled');
+  $('#export').addClass('disabled');
 
   let nrHidden = 0;
 
@@ -102,6 +94,7 @@ function updateSaveList(searchString) {
         tableRow += ' selected';
         $('#load').removeClass('disabled');
         $('#delete').removeClass('disabled');
+        $('#export').removeClass('disabled');
       }
       tableRow += '" id="'+key+'">';
       tableRow += '<td class="td_filename">'+key+'</td>';
@@ -155,6 +148,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
   $(event.target).parent().addClass('selected');
   $('#load').removeClass('disabled');
   $('#delete').removeClass('disabled');
+  $('#export').removeClass('disabled');
   $('#thumb_reconstruction').css('display', 'inline-block');
   $('#thumb_reconstruction').empty();
 
@@ -301,6 +295,12 @@ $('#load').click(function() {
 $('#delete').click(function(event) {
   if (!$(event.target).hasClass('disabled')) {
     deleteSavefile();
+  }
+});
+
+$('#export').click(function(event) {
+  if (!$(event.target).hasClass('disabled')) {
+    exportSavefile();
   }
 });
 
