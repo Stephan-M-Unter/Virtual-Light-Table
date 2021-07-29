@@ -283,7 +283,6 @@ $(document).ready(function() {
   const mouseStart = {};
 
   $('#annot_window').on('mousedown', function(event) {
-    console.log("mousedown", event);
     annotStart.left = parseFloat($('#annot_window').css('left'));
     annotStart.top = parseFloat($('#annot_window').css('top'));
     mouseStart.x = event.pageX;
@@ -291,7 +290,6 @@ $(document).ready(function() {
     $('#annot_window').on('mousemove', moveAnnotationWindow);
   });
   $(window).on('mouseup', function(event) {
-    console.log("mouseup", event);
     $('#annot_window').off('mousemove', moveAnnotationWindow);
   });
 
