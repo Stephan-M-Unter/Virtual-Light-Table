@@ -279,6 +279,36 @@ $(document).ready(function() {
     }
   });
 
+  const annotStart = {};
+  const mouseStart = {};
+
+  $('#annot_window').on('mousedown', function(event) {
+    console.log("mousedown", event);
+    annotStart.left = parseFloat($('#annot_window').css('left'));
+    annotStart.top = parseFloat($('#annot_window').css('top'));
+    mouseStart.x = event.pageX;
+    mouseStart.y = event.pageY;
+    $('#annot_window').on('mousemove', moveAnnotationWindow);
+  });
+  $(window).on('mouseup', function(event) {
+    console.log("mouseup", event);
+    $('#annot_window').off('mousemove', moveAnnotationWindow);
+  });
+
+  /**
+   * TODO
+   * @param {*} event 
+   */
+  function moveAnnotationWindow(event) {
+    const distance = {};
+    distance.x = mouseStart.x - event.pageX;
+    distance.y = mouseStart.y - event.pageY;
+    const newLeft = annotStart.left - distance.x;
+    const newTop = annotStart.top - distance.y;
+    $('#annot_window').css('left', newLeft);
+    $('#annot_window').css('top', newTop);
+  }
+
   // Zoom Slider
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
