@@ -1,7 +1,7 @@
 const io = require('socket.io-client');
 const {v4: uuidv4} = require('uuid');
 
-const socket = io('ws://localhost:8080');
+const socket = io('ws://localhost:8000');
 const tasks = {};
 let counter = 0;
 
