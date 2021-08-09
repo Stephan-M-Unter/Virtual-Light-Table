@@ -8,13 +8,15 @@ class Measurement {
    * @constructs
    * Constructor for new Measurement, setting up variables for both end points and the container
    * for the final measurement line.
-   * @param {Stage} stage - Stage object where the measurement will be added to.
+   * @param {UIController} controller - Stage object where the measurement will be added to.
    * @param {Int} id - Individual, unique ID for a measurement.
    * @param {String} color - Color code.
    */
-  constructor(stage, id, color) {
+  constructor(controller, id, color) {
+    /** @member {UIController} */
+    this.controller = controller;
     /** @member {Stage} */
-    this.stage = stage;
+    this.stage = controller.getStage();
     /** @member {Int} */
     this.id = id;
     /** @member {String} */
@@ -125,14 +127,60 @@ class Measurement {
    * Takes the currently saved coordinates for end points P1 and P2 and creates all necessary easelJS graphics elements
    * to draw the measurement line. The output consists of a Container object which encompasses Shapes for the end points,
    * a Shape for the line, and Text objects for the distance label.
+   * @param {Object} mouse - mouse.x: current x position of mouse; mouse.y: current y position of mouse
    * @return {createjs.Container} CreateJS Container containing graphics for end points and measurement line.
    */
-  drawMeasurement() {
-    if (this.p1 && this.p2) {
-      this.measurement.removeAllChildren();
+  drawMeasurement(mouse) {
+    this.measurement.removeAllChildren();
 
-      // Measurement Line
-      const mLine = new createjs.Shape();
+    // Point 1
+    if (this.p1) {
+      const mPoint1 = new createjs.Shape();
+      mPoint1.name = 'p1';
+      mPoint1.graphics.beginFill(this.color)
+          .drawCircle(0, 0, 5);
+      mPoint1.x = this.p1[0];
+      mPoint1.y = this.p1[1];
+
+      mPoint1.on('pressmove', (event) => {
+        this.setP1([event.stageX, event.stageY]);
+        this.drawMeasurement();
+        this.controller.update();
+      });
+
+      this.measurement.addChild(mPoint1);
+    }
+
+    // Point 2
+    if (this.p2) {
+      const mPoint2 = new createjs.Shape();
+      mPoint2.name = 'p2';
+      mPoint2.graphics.beginFill(this.color)
+          .drawCircle(0, 0, 5);
+      mPoint2.x = this.p2[0];
+      mPoint2.y = this.p2[1];
+
+      mPoint2.on('pressmove', (event) => {
+        this.setP2([event.stageX, event.stageY]);
+        this.drawMeasurement();
+        this.controller.update();
+      });
+
+      this.measurement.addChild(mPoint2);
+    }
+
+    const mLine = new createjs.Shape();
+    if (this.p1 && !this.p2 && mouse) {
+      // Line from P1 to Mouse if P2 not yet decided
+      mLine.graphics.setStrokeStyle(2)
+          .beginStroke(this.color)
+          .moveTo(this.p1[0], this.p1[1])
+          .lineTo(mouse.x, mouse.y)
+          .endStroke();
+      this.measurement.addChildAt(mLine, 0);
+      this.stage.update();
+    } else if (this.p1 && this.p2) {
+      // Line from P1 to P2, now movable
       mLine.graphics.setStrokeStyle(2)
           .beginStroke(this.color)
           .moveTo(this.p1[0], this.p1[1])
@@ -153,40 +201,14 @@ class Measurement {
         this.setP1([p1[0]+deltaX, p1[1]+deltaY]);
         this.setP2([p2[0]+deltaX, p2[1]+deltaY]);
         this.drawMeasurement();
-        this.stage.update();
-        this.stage.updateMeasurements();
+        this.controller.update();
       });
 
-      // Point 1
-      const mPoint1 = new createjs.Shape();
-      mPoint1.name = 'p1';
-      mPoint1.graphics.beginFill(this.color)
-          .drawCircle(0, 0, 5);
-      mPoint1.x = this.p1[0];
-      mPoint1.y = this.p1[1];
+      this.measurement.addChildAt(mLine, 0);
+    }
 
-      mPoint1.on('pressmove', (event) => {
-        this.setP1([event.stageX, event.stageY]);
-        this.drawMeasurement();
-        this.stage.update();
-        this.stage.updateMeasurements();
-      });
 
-      // Point 2
-      const mPoint2 = new createjs.Shape();
-      mPoint2.name = 'p2';
-      mPoint2.graphics.beginFill(this.color)
-          .drawCircle(0, 0, 5);
-      mPoint2.x = this.p2[0];
-      mPoint2.y = this.p2[1];
-
-      mPoint2.on('pressmove', (event) => {
-        this.setP2([event.stageX, event.stageY]);
-        this.drawMeasurement();
-        this.stage.update();
-        this.stage.updateMeasurements();
-      });
-
+    if (this.p1 && this.p2) {
       // Text and Text Shadow
       const distInCm = this.getDistanceInCm();
       const mTextShadow = new createjs.Text(distInCm + ' cm', '', 'grey');
@@ -202,15 +224,9 @@ class Measurement {
       mTextShadow2.x = mText.x - 1;
       mTextShadow2.y = mText.y - 1;
 
-      this.measurement.addChild(mLine);
-      this.measurement.addChild(mPoint1);
-      this.measurement.addChild(mPoint2);
       this.measurement.addChild(mTextShadow);
       this.measurement.addChild(mTextShadow2);
       this.measurement.addChild(mText);
-    } else {
-      // if not both end points are given, return empty container
-      this.measurement.removeAllChildren();
     }
     return this.measurement;
   }
@@ -229,6 +245,18 @@ class Measurement {
    */
   getColor() {
     return this.color;
+  }
+
+  /**
+   * TODO
+   * @return {Boolean}
+   */
+  isComplete() {
+    if (this.p1 && this.p2) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 

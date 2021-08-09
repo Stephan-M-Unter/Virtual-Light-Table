@@ -1,7 +1,6 @@
 'use strict';
 
 const {Fragment} = require('./Fragment');
-const {Measurement} = require('./Measurement');
 const {Scaler} = require('./Scaler');
 
 /**
@@ -63,19 +62,6 @@ class Stage {
     /** @member {createjs.Shape} */
     this.background = this._createBackground();
     this.stage.addChild(this.background);
-
-    // setting up measurements
-    /** @member {Boolean} */
-    this.measureMode = false;
-    /** @member {Measurement} */
-    this.activeMeasurement = null;
-    /** @member {String} */
-    this.mColor = null;
-    /** @member {Object} */
-    this.measurements = {};
-    /** @member {createjs.Container} */
-    this.measurementsContainer = new createjs.Container();
-    this.stage.addChild(this.measurementsContainer);
 
     window.addEventListener('click', (event) => {
       if (this.measureMode) {
@@ -264,7 +250,7 @@ class Stage {
    */
   loadScene(data) {
     this._clearTable();
-    this.clearMeasurements();
+    this.controller.clearMeasurements();
 
     if (data && data.fragments) {
       if (this.controller.isDevMode()) console.log('data.fragments:', data.fragments);
@@ -420,8 +406,7 @@ class Stage {
     this.moveStage(-distX, -distY);
     this.updateGrid();
     this.updateScale();
-    this.updateMeasurements();
-    this.update();
+    this.controller.update();
   }
 
   /**
@@ -651,146 +636,6 @@ class Stage {
  */
   _clearFragmentList() {
     this.fragmentList = {};
-  }
-
-  /* MEASUREMENT */
-
-  /**
-   * This method removes all measurements and updates the stage.
-   */
-  clearMeasurements() {
-    this.endMeasurement();
-    this.measurements = {};
-    this.measurementsContainer.removeAllChildren();
-    this.update();
-  }
-
-  /**
-   * TODO
-   * @param {*} id
-   */
-  startMeasurement(id) {
-    this.measureMode = true;
-    $('#lighttable').addClass('measure');
-
-    if (id in this.measurements) {
-      // redo of existing measurement
-      const measurement = this.measurements[id];
-      measurement.clearPoints();
-      this.mColor = measurement.getColor();
-      this.activeMeasurement = measurement;
-    } else {
-      // create new measurement
-      this.mColor = this.getRandomColor();
-      const measurement = new Measurement(this, id, this.mColor);
-      this.measurements[id] = measurement;
-      this.measurementsContainer.addChild(measurement.getMeasurement());
-      this.activeMeasurement = measurement;
-    }
-    this.update();
-  }
-
-  /**
-   * TODO
-   * @return {*}
-   */
-  endMeasurement() {
-    $('#lighttable').removeClass('measure');
-    this.measureMode = false;
-    this.mColor = null;
-    let id = null;
-    if (this.activeMeasurement) id = this.activeMeasurement.id;
-    this.activeMeasurement = null;
-    this.updateMeasurements();
-    this.update();
-    return id;
-  }
-
-  /**
-   * TODO
-   */
-  updateMeasurements() {
-    this.controller.updateMeasurements(this.measurements);
-    for (const id in this.measurements) {
-      if (Object.prototype.hasOwnProperty.call(this.measurements, id)) {
-        const measurement = this.measurements[id];
-        measurement.drawMeasurement();
-      }
-    }
-  }
-
-  /**
-   * TODO
-   * @return {boolean}
-   */
-  hasMeasureMode() {
-    return this.measureMode;
-  }
-
-  /**
-   * TODO
-   * @param {*} event
-   */
-  measure(event) {
-    const point = [event.pageX, event.pageY];
-    this.activeMeasurement.setPoint(point);
-
-    if (this.activeMeasurement.getP2()) {
-      const scalingFactor = this.stage.scaling / 100;
-      this.activeMeasurement.drawMeasurement(scalingFactor);
-      this.endMeasurement();
-    }
-  }
-
-  /**
-   * This method checks for the first empty measurement ID
-   * available in the set of measurements.
-   * @return {int}
-   */
-  getNewMeasurementID() {
-    let emptyIdFound = false;
-    let id = 0;
-    while (!emptyIdFound) {
-      if (id in this.measurements) {
-        id = id + 1;
-      } else {
-        emptyIdFound = true;
-      }
-    }
-    return id;
-  }
-
-  /**
-   * TODO
-   * @return {*} color
-   */
-  getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
-
-  /**
-   * TODO
-   * @param {*} id
-   * @return {*}
-   */
-  getMeasureColor(id) {
-    return this.measurements[id].getColor();
-  }
-
-  /**
-   * TODO
-   * @param {*} id
-   */
-  deleteMeasurement(id) {
-    const measurement = this.measurements[id].getMeasurement();
-    this.measurementsContainer.removeChild(measurement);
-    delete this.measurements[id];
-    this.update();
   }
 
   /**

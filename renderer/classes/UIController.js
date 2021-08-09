@@ -5,6 +5,7 @@ const {Stage} = require('./Stage');
 const {AnnotationPopup} = require('./AnnotationPopup');
 const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
+const {MeasurementTool} = require('./MeasurementTool');
 const dialogs = new Dialogs();
 
 /**
@@ -28,6 +29,8 @@ class UIController {
     this.sidebar = new Sidebar(this);
     /** @constant {AnnotationPopup} */
     this.annotationPopup = new AnnotationPopup(this);
+    /** @constant {MeasurementTool} */
+    this.measurementTool = new MeasurementTool(this, this.stage.stage, 'lighttable');
     /** @member {Boolean} */
     this.hotkeysOn = true;
     /** @member {Boolean} */
@@ -127,12 +130,12 @@ class UIController {
    */
   clearTable() {
     if (!this.hasUnsaved) {
-      this.clearMeasurements();
+      // this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
       this.firstSave = true;
     } else if (this.confirmClearTable()) {
-      this.clearMeasurements();
+      // this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
       this.firstSave = true;
@@ -491,13 +494,13 @@ class UIController {
    */
   addMeasurement() {
     // only add new measurement if not already in measure mode
-    if (!this.stage.hasMeasureMode()) {
+    if (!this.measurementTool.isMeasuring()) {
       // STAGE
-      const newId = this.stage.getNewMeasurementID();
-      this.stage.startMeasurement(newId);
+      const measurement = this.measurementTool.startMeasuring();
+      const id = measurement.getID();
+      const color = measurement.getColor();
       // SIDEBAR
-      const color = this.stage.getMeasureColor(newId);
-      this.sidebar.addMeasurement(newId, color);
+      this.sidebar.addMeasurement(id, color);
     }
   }
 
@@ -505,7 +508,7 @@ class UIController {
    * TODO
    */
   endMeasurement() {
-    const id = this.stage.endMeasurement();
+    const id = this.measurementTool.stopMeasuring();
     this.sidebar.deleteMeasurement(id);
   }
 
@@ -515,7 +518,7 @@ class UIController {
    */
   deleteMeasurement(id) {
     // STAGE
-    this.stage.deleteMeasurement(id);
+    this.measurementTool.delete(id);
     // SIDEBAR
     this.sidebar.deleteMeasurement(id);
   }
@@ -524,7 +527,7 @@ class UIController {
    * TODO
    */
   clearMeasurements() {
-    this.stage.clearMeasurements();
+    this.measurementTool.deleteAll();
     // SIDEBAR
     this.sidebar.clearMeasurements();
   }
@@ -535,7 +538,7 @@ class UIController {
    */
   redoMeasurement(id) {
     // STAGE
-    this.stage.startMeasurement(id);
+    this.measurementTool.startMeasuring(id);
     // SIDEBAR
   }
 
@@ -543,7 +546,7 @@ class UIController {
    * TODO
    * @param {*} measurements
    */
-  updateMeasurements(measurements) {
+  updateSidebarMeasurements(measurements) {
     this.sidebar.updateMeasurements(measurements);
   }
 
@@ -575,6 +578,7 @@ class UIController {
    * Triggers the update function of the Stage object and thus a complete redraw of the canvas.
    */
   update() {
+    this.measurementTool.update();
     this.stage.update();
   }
 
