@@ -395,6 +395,17 @@ class UIController {
   }
 
   /**
+   * TODO
+   * @param {Object} data
+   */
+  redoScene(data) {
+    this.annotationPopup.loadAnnotations(data.annots);
+    this.sidebar.updateDoButtons(data);
+    this.stage.redoScene(data);
+    this.updateSidebarFragmentList();
+  }
+
+  /**
    * Requests stage to perform a transformation such that the fragment with given id is centered in
    * the viewport.
    * @param {String} id - Fragment identifier, e.g. "f_0".

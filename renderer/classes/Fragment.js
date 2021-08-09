@@ -1,5 +1,7 @@
 'use strict';
 
+const { TouchBarSlider } = require("electron");
+
 /**
  * TODO
  */
@@ -206,6 +208,7 @@ class Fragment {
    * @return {*}
    */
   _createMask(polygon) {
+    if (!polygon) return null;
     const mask = new createjs.Shape();
     let started = false;
 
@@ -491,10 +494,43 @@ class Fragment {
       'offsetX': this.alignOffsetX,
       'offsetY': this.alignOffsetY,
       'imageWidthRecto': this.containerRecto.imageWidth,
-      'imageWidthVerso': this.containerRecto.imageHeight,
-      'imageHeightRecto': this.containerVerso.imageWidth,
+      'imageHeightRecto': this.containerRecto.imageHeight,
+      'imageWidthVerso': this.containerVerso.imageWidth,
       'imageHeightVerso': this.containerVerso.imageHeight,
     };
+  }
+
+  /**
+   * TODO
+   * @param {Object} data
+   */
+  setData(data) {
+    this.name = data['name'];
+    this.isRecto = data['recto'];
+    this.urlRecto = data['rectoURL'];
+    this.urlVerso = data['versoURL'];
+    this.container.x = data['xPos'];
+    this.baseX = data['baseX'];
+    this.container.y = data['yPos'];
+    this.baseY = data['baseY'];
+    this.container.rotation = data['rotation'];
+    this.containerRecto.rotation = data['containerRotation'];
+    this.originalScaleRecto = data['originalScaleRecto'];
+    this.originaScaleVerso = data['originalScaleVerso'];
+    this.ppiRecto = data['ppiRecto'];
+    this.ppiVersio = data['ppiVerso'];
+    this.rectoRotation = data['rectoRotation'];
+    this.versoRotation = data['versoRotation'];
+    this.rotationDistance = data['rotationDistance'];
+    this.alignOffsetX = data['offsetX'];
+    this.alignOffsetY = data['offsetY'];
+    this.containerRecto.imageWidth = data['imageWidthRecto'];
+    this.containerRecto.imageHeight = data['imageHeightRecto'];
+    this.containerVerso.imageWidth = data['imageWidthVerso'];
+    this.containerVerso.imageHeight = data['imageHeightVerso'];
+
+    this.maskRecto = this._createMask(data['maskRecto']);
+    this.maskVerso = this._createMask(data['maskVerso']);
   }
 
   /**

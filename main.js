@@ -145,7 +145,7 @@ ipcMain.on('server-undo-step', (event) => {
   if (undo) {
     const data = canvasManager.getAll();
     data['undo'] = true;
-    sendMessage(event.sender, 'client-load-model', data);
+    sendMessage(event.sender, 'client-redo-model', data);
   } else {
     const feedback = {
       title: 'Undo Impossible',
@@ -166,7 +166,7 @@ ipcMain.on('server-redo-step', (event) => {
   if (redo) {
     const data = canvasManager.getAll();
     data['undo'] = true;
-    sendMessage(event.sender, 'client-load-model', data);
+    sendMessage(event.sender, 'client-redo-model', data);
   } else {
     const feedback = {
       title: 'Redo Impossible',

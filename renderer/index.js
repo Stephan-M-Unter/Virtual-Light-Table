@@ -295,7 +295,7 @@ $(document).ready(function() {
 
   /**
    * TODO
-   * @param {*} event 
+   * @param {*} event
    */
   function moveAnnotationWindow(event) {
     const distance = {};
@@ -495,6 +495,11 @@ $(document).ready(function() {
       $('#fragment_list').addClass('expanded');
     }
     controller.loadScene(data);
+  });
+
+  ipcRenderer.on('client-redo-model', (event, data) => {
+    if (controller.isDevMode()) console.log('Received client-redo-model', data);
+    controller.redoScene(data);
   });
 
   ipcRenderer.on('client-add-upload', (event, data) => {

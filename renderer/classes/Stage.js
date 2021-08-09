@@ -1,7 +1,9 @@
 'use strict';
 
+const { TouchBarSlider } = require('electron');
 const {Fragment} = require('./Fragment');
 const {Scaler} = require('./Scaler');
+const {Util} = require('./Util');
 
 /**
  * This class represents the stage/canvas of the Virtual Light Table. It holds references to the elements
@@ -268,6 +270,17 @@ class Stage {
   }
 
   /**
+   * TODO
+   * @param {*} data
+   */
+  redoScene(data) {
+    if (data && data.fragments) {
+      if (this.controller.isDevMode()) console.log('data.fragments:', data.fragments);
+      this._redoFragments(data.fragments);
+    }
+  }
+
+  /**
    * @private
    * Loads Stage settings from input settings object. If no settings
    * are provided, loads default values.
@@ -456,6 +469,34 @@ class Stage {
     }
     // TODO: necessary to check that image can only be added once?
     this.loadqueue.load();
+  }
+
+  /**
+   * 
+   * @param {*} fragmentData 
+   */
+  _redoFragments(fragmentData) {
+    const fragmentLists = Util.compareDicts(fragmentData, this.fragmentList);
+    const newFragments = fragmentLists.l1;
+    const deletedFragments = fragmentLists.l2;
+    const updatedFragments = fragmentLists.intersection;
+
+    // update those fragments which have been there and are still there
+    updatedFragments.forEach((id) => {
+      this.fragmentList[id].setData(fragmentData[id]);
+    });
+    // create fragments which you deleted in the last step
+    newFragments.forEach((id) => {
+      this.controller.addFragment(fragmentData[id]);
+      // TODO This should only create a fragment, but at a later point i would have to fill in the new data!
+    });
+    // remove fragments which you created in the last step
+    deletedFragments.forEach((id) => {
+      this.controller.removeFragment(id);
+    });
+
+    this._updateBb();
+    this.update();
   }
 
   /**
