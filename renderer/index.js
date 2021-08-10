@@ -404,6 +404,7 @@ $(document).ready(function() {
 
   // Keystrokes
   $('html').keydown(function(event) {
+    const hotkeysOn = controller.getPermission('hotkeys');
     if (event.ctrlKey) {
       if (event.keyCode == 83) {
         if (event.shiftKey) {
@@ -430,7 +431,6 @@ $(document).ready(function() {
         controller.toggleDevMode();
       }
     } else {
-      const hotkeysOn = controller.getHotkeysOn();
       if (event.keyCode == 46) {
         // DEL -> Delete Fragment(s)
         controller.removeFragments();

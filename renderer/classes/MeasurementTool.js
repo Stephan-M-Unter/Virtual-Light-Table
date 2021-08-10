@@ -9,13 +9,12 @@ class MeasurementTool {
   /**
      * TODO
      * @param {UIController} controller
-     * @param {stage} stage
      * @param {String} lighttable String ID of the lighttable DOM element (=canvas).
      * @constructs
      */
-  constructor(controller, stage, lighttable) {
+  constructor(controller, lighttable) {
     this.controller = controller;
-    this.stage = stage;
+    this.stage = this.controller.getStage();
     this.lighttable = $('#'+lighttable);
     this.runningID = 0;
     this.measureMode = false;
@@ -24,7 +23,7 @@ class MeasurementTool {
     this.measurements = {};
     this.measurementsContainer = new createjs.Container();
     this.measurementsContainer.name = 'measurementsContainer';
-    this.stage.addChild(this.measurementsContainer);
+    this.stage.addToOverlay(this.measurementsContainer);
 
     $(window).on('mousedown', (event) => this.handleMouseDown(event));
     $(window).on('mouseup', (event) => this.handleMouseUp(event));
@@ -104,6 +103,9 @@ class MeasurementTool {
     this.measureMode = true;
     this.lighttable.addClass('measure');
 
+    this.controller.setPermission('move_scene', false);
+    this.controller.setPermission('move_fragment', false);
+
     if (id && id in this.measurements) {
       // IF there is an ID and it is already registered, update the existing measurement
       this.activeMeasurement = this.measurements[id];
@@ -128,6 +130,10 @@ class MeasurementTool {
   stopMeasuring() {
     this.measureMode = false;
     this.lighttable.removeClass('measure');
+
+    this.controller.setPermission('move_scene', true);
+    this.controller.setPermission('move_fragment', true);
+
     let id = null;
     if (this.activeMeasurement) id = this.activeMeasurement.getID();
     this.activeColor = null;

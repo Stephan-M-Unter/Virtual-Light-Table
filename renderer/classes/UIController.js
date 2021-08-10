@@ -30,9 +30,7 @@ class UIController {
     /** @constant {AnnotationPopup} */
     this.annotationPopup = new AnnotationPopup(this);
     /** @constant {MeasurementTool} */
-    this.measurementTool = new MeasurementTool(this, this.stage.stage, 'lighttable');
-    /** @member {Boolean} */
-    this.hotkeysOn = true;
+    this.measurementTool = new MeasurementTool(this, 'lighttable');
     /** @member {Boolean} */
     this.hasUnsaved = false;
     /** @member {Boolean} */
@@ -44,6 +42,11 @@ class UIController {
     this.lightMode = 'dark';
     /** @member {String} */
     this.darkBackground;
+    /** @member {Object} */
+    this.permissions = {};
+    /** @member {String[]} */
+    this.permissionList = ['move_fragment', 'move_scene', 'hotkeys'];
+    this.resetPermissions();
 
     this.devMode = false;
   }
@@ -134,11 +137,13 @@ class UIController {
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
       this.firstSave = true;
+      this.resetPermissions();
     } else if (this.confirmClearTable()) {
       // this.clearMeasurements();
       this.sendToServer('server-clear-table');
       this.hasUnsaved = false;
       this.firstSave = true;
+      this.resetPermissions();
     }
   }
 
@@ -562,30 +567,6 @@ class UIController {
   }
 
   /**
-   * Functionality of certain hotkeys is provided. (note: "certain"
-   * means that there are hotkeys which cannot break the overall functioning
-   * of the application in any state; they will still work)
-   */
-  enableHotkeys() {
-    this.hotkeysOn = true;
-  }
-
-  /**
-   * Sets a flag that disables specific hotkeys that might interfere with the input of custom text.
-   */
-  disableHotkeys() {
-    this.hotkeysOn = false;
-  }
-
-  /**
-   * Returns the current state of hotkey activation.
-   * @return {Boolean} True: all hotkeys are available; false: hotkeys that might interfere with custom text input are disabled.
-   */
-  getHotkeysOn() {
-    return this.hotkeysOn;
-  }
-
-  /**
    * Triggers the update function of the Stage object and thus a complete redraw of the canvas.
    */
   update() {
@@ -710,6 +691,42 @@ class UIController {
       if (confirmation) this.sendToServer('server-confirm-autosave', true);
       else this.sendToServer('server-confirm-autosave', false);
     });
+  }
+
+  /**
+   *
+   */
+  resetPermissions() {
+    this.permissionList.forEach((permission) => {
+      this.permissions[permission] = true;
+    });
+  }
+
+  /**
+   *
+   * @param {'move_fragment'|'move_scene'|'hotkeys'} permissionHandle
+   * @param {Boolean} permissionStatus
+   * @return {[null]}
+   */
+  setPermission(permissionHandle, permissionStatus) {
+    if (permissionHandle in this.permissions) {
+      this.permissions[permissionHandle] = permissionStatus;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   *
+   * @param {'move_fragment'|'move_scene'|'hotkeys'} permissionHandle
+   * @return {Boolean|null}
+   */
+  getPermission(permissionHandle) {
+    if (permissionHandle in this.permissions) {
+      return this.permissions[permissionHandle];
+    } else {
+      return null;
+    }
   }
 }
 

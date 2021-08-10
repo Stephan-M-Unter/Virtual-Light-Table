@@ -1,6 +1,5 @@
 'use strict';
 
-const { TouchBarSlider } = require('electron');
 const {Fragment} = require('./Fragment');
 const {Scaler} = require('./Scaler');
 const {Util} = require('./Util');
@@ -51,25 +50,26 @@ class Stage {
     };
 
     // adding display elements
+    /** @member {createjs.Container} */
+    this.background = new createjs.Container();
+    this.addToBackground(this._createBackground(), 0);
+    this.stage.addChildAt(this.background, 0);
+    /** @member {createjs.Container} */
+    this.overlay = new createjs.Container();
+    this.overlay.name = 'Overlay Container';
+    this.stage.addChild(this.overlay);
+    // Grid
     /** @member {Boolean} */
     this.gridMode = false;
     /** @member {createjs.Container} */
     this.grid = new createjs.Container();
-    this.stage.addChild(this.grid);
+    this.addToBackground(this.grid);
+    // Scale
     /** @member {Boolean} */
     this.scaleMode = false;
     /** @member {createjs.Container} */
     this.scale = new createjs.Container();
-    this.stage.addChild(this.scale);
-    /** @member {createjs.Shape} */
-    this.background = this._createBackground();
-    this.stage.addChild(this.background);
-
-    window.addEventListener('click', (event) => {
-      if (this.measureMode) {
-        this.measure(event);
-      }
-    });
+    this.addToOverlay(this.scale, 0);
 
     /** @constant {Selector} */
     this.selector = new Selector(this.controller);
@@ -110,6 +110,65 @@ class Stage {
     });
 
     return background;
+  }
+
+  /**
+   *
+   * @param {*} node
+   * @param {*} pos
+   */
+  addToOverlay(node, pos) {
+    if (pos) {
+      this.overlay.addChildAt(node, pos);
+    } else {
+      this.overlay.addChild(node);
+    }
+  }
+
+  /**
+   *
+   * @param {*} node
+   */
+  addBeforeOverlay(node) {
+    const overlayIndex = this.stage.getChildIndex(this.overlay);
+    this.stage.addChildAt(node, overlayIndex);
+  }
+
+  /**
+   *
+   * @param {*} node
+   */
+  removeFromOverlay(node) {
+    this.overlay.removeChild(node);
+  }
+
+  /**
+   *
+   * @param {*} node
+   * @param {*} pos
+   */
+  addToBackground(node, pos) {
+    if (pos) {
+      this.background.addChildAt(node, 0);
+    } else {
+      this.background.addChild(node);
+    }
+  }
+
+  /**
+   *
+   * @param {*} node
+   */
+  removeFromBackground(node) {
+    this.background.removeChild(node);
+  }
+
+  /**
+   *
+   * @param {*} node
+   */
+  addAfterBackground(node) {
+    this.stage.addChildAt(node, 1);
   }
 
   /**
@@ -195,9 +254,6 @@ class Stage {
       text.y = endY + bounds.height*text.scale - 5;
       this.scale.addChild(text);
     }
-
-    this.stage.removeChild(this.scale);
-    this.stage.addChild(this.scale);
   }
 
   /**
@@ -433,10 +489,9 @@ class Stage {
     this.stage.canvas.width = this.width = width;
     this.stage.canvas.height = this.height = height;
 
-    this.stage.removeChild(this.background);
-    this.background = this._createBackground();
-    this.stage.addChildAt(this.background, 0);
-
+    const oldBackground = this.background.getChildAt(0);
+    this.removeFromBackground(oldBackground);
+    this.addToBackground(this._createBackground(), 0);
     this.update();
   }
 
@@ -446,8 +501,6 @@ class Stage {
    * show potential changes onscreen.
    */
   update() {
-    this.stage.removeChild(this.measurementsContainer);
-    this.stage.addChild(this.measurementsContainer);
     this.stage.update();
   }
 
@@ -472,8 +525,8 @@ class Stage {
   }
 
   /**
-   * 
-   * @param {*} fragmentData 
+   * TODO
+   * @param {*} fragmentData
    */
   _redoFragments(fragmentData) {
     const fragmentLists = Util.compareDicts(fragmentData, this.fragmentList);
@@ -514,7 +567,7 @@ class Stage {
     const newFragment = new Fragment(this.controller, this, newId, event);
     this.fragmentList[newId] = newFragment;
     const fragmentContainer = newFragment.getContainer();
-    this.stage.addChild(fragmentContainer);
+    this.addBeforeOverlay(fragmentContainer);
 
     this.controller.updateSidebarFragmentList();
   }
@@ -580,6 +633,7 @@ class Stage {
         }
       }
       this._moveToTop(this.fragmentList[clickedId]);
+      this.update();
 
       this.mouseClickStart = {x: event.stageX, y: event.stageY};
     });
@@ -683,8 +737,10 @@ class Stage {
    * TODO
    * @private
    * @param {*} event
+   * @return {[null]}
    */
   _panScene(event) {
+    if (!this.controller.getPermission('move_scene')) return null;
     const currentMouseX = event.stageX;
     const currentMouseY = event.stageY;
 
@@ -700,19 +756,22 @@ class Stage {
    * TODO
    * @private
    * @param {*} fragment
+   * @return {[null]}
    */
   _moveToTop(fragment) {
+    if (!this.controller.getPermission('move_fragment')) return null;
     const container = fragment.getContainer();
-    this.stage.removeChild(container);
-    this.stage.addChild(container);
+    this.addBeforeOverlay(container);
   }
 
   /**
    * TODO
    * @private
    * @param {*} event
+   * @return {[null]}
    */
   _rotateObjects(event) {
+    if (!this.controller.getPermission('move_fragment')) return null;
     const radsOld = Math.atan2(this.mouseClickStart.y - this.rotator.y,
         this.mouseClickStart.x - this.rotator.x);
     const radsNew = Math.atan2(event.stageY - this.rotator.y,
@@ -741,8 +800,10 @@ class Stage {
    * TODO
    * @private
    * @param {*} event
+   * @return {[null]}
    */
   _moveObjects(event) {
+    if (!this.controller.getPermission('move_fragment')) return null;
     let movedObject = event.target;
 
     if (movedObject.name == 'Image') {
@@ -858,7 +919,7 @@ class Stage {
     this.stage.removeChild(this.bb);
     this.selector.updateBb(this.selectedList, this.stage.scaling/100);
     this.bb = this.selector.getBb();
-    this.stage.addChild(this.bb);
+    this.addBeforeOverlay(this.bb);
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
     this._updateRotator(this.bb.center.x, this.bb.center.y, this.bb.height);
@@ -926,7 +987,7 @@ class Stage {
         this.update();
       });
 
-      this.stage.addChild(this.flipper);
+      this.addBeforeOverlay(this.flipper);
     }
   }
 
@@ -984,7 +1045,7 @@ class Stage {
         fragment.ghost(false);
       });
 
-      this.stage.addChild(this.ghoster);
+      this.addBeforeOverlay(this.ghoster);
     }
   }
 
@@ -1020,7 +1081,7 @@ class Stage {
       }
       this.rotator.name = 'Rotation Anchor';
 
-      this.stage.addChild(this.rotator);
+      this.addBeforeOverlay(this.rotator);
 
       this.rotator.on('mousedown', (event) => {
         this.rotator.getChildAt(0).graphics.clear()
@@ -1160,7 +1221,7 @@ class Stage {
           .lineTo(this.width/2, this.height)
           .endStroke();
       this.lines.horizontal = line;
-      this.stage.addChild(this.lines.horizontal);
+      this.addToOverlay(this.lines.horizontal);
       this.update();
     } else {
       const line = new createjs.Shape();
@@ -1171,7 +1232,7 @@ class Stage {
           .lineTo(this.width, this.height/2)
           .endStroke();
       this.lines.vertical = line;
-      this.stage.addChild(this.lines.vertical);
+      this.addToOverlay(this.lines.vertical);
       this.update();
     }
   }
