@@ -90,7 +90,7 @@ class UIController {
         this.hasUnsaved = false;
         this.firstSave = false;
       } else {
-        this.disableHotkeys();
+        this.setPermission('hotkeys', false);
         dialogs.prompt('Please enter your name(s)/initials:', (editor) => {
           if (editor != '' && editor != null) {
             this.editor = editor;
@@ -99,7 +99,7 @@ class UIController {
             this.hasUnsaved = false;
             this.firstSave = false;
           }
-          this.enableHotkeys();
+          this.setPermission('hotkeys', true);
         });
       }
     }
@@ -124,6 +124,7 @@ class UIController {
    */
   saveToModel(data) {
     this.hasUnsaved = true;
+    this.sidebar.updateDoButtons({undoSteps: 1});
     this.sendToServer('server-save-to-model', data);
   }
 
@@ -164,7 +165,6 @@ class UIController {
    * @param {String} [id] - ID of annotation, e.g. "a_0".
    */
   sendAnnotation(id) {
-    console.log('annotation id', id);
     if (id) {
       this.annotationPopup.updateAnnotation(id);
     } else {
@@ -404,6 +404,7 @@ class UIController {
    * @param {Object} data
    */
   redoScene(data) {
+    console.log(data.fragments['f_1'].baseX, data.fragments['f_1'].xPos);
     this.annotationPopup.loadAnnotations(data.annots);
     this.sidebar.updateDoButtons(data);
     this.stage.redoScene(data);

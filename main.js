@@ -62,11 +62,11 @@ function main() {
     if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
   });
   mainWindow.on('close', function(event) {
-    const choice = dialog.showMessageBoxSync(this, {
+    const choice = dialog.showMessageBoxSync(event.target, {
       type: 'question',
       buttons: ['Yes', 'No'],
       title: 'Confirm',
-      message: 'Are you sure you want to quit?'
+      message: 'Are you sure you want to quit?',
     });
     if (choice == 1) {
       event.preventDefault();

@@ -83,6 +83,15 @@ class Stage {
       this.fitToScreen();
       this.update();
     });
+
+    this.offset = {x: 0, y: 0, baseX: 0, baseY: 0};
+
+
+    this.origin = new createjs.Shape();
+    this.origin.name = 'p1';
+    this.origin.graphics.beginFill('red')
+        .drawCircle(0, 0, 10);
+    this.stage.addChild(this.origin);
   }
 
   /**
@@ -107,6 +116,10 @@ class Stage {
     });
     background.on('pressmove', (event) => {
       this._panScene(event);
+    });
+    $(window).on('mouseup', (event) => {
+      console.log(this.fragmentList["f_0"].baseX, this.fragmentList["f_0"].baseY);
+      console.log(this.offset);
     });
 
     return background;
@@ -330,6 +343,10 @@ class Stage {
    * @param {*} data
    */
   redoScene(data) {
+    if (data && data.stage) {
+      if (this.controller.isDevMode()) console.log('data.stage:', data.stage);
+      this._loadStageConfiguration(data.stage);
+    }
     if (data && data.fragments) {
       if (this.controller.isDevMode()) console.log('data.fragments:', data.fragments);
       this._redoFragments(data.fragments);
@@ -346,10 +363,14 @@ class Stage {
    */
   _loadStageConfiguration(dataStage) {
     this.stage.scaling = 100; // default value
+    this.offset = {x: 0, y: 0, baseX: 0, baseY: 0};
 
     if (dataStage) {
       if (dataStage.scaling) {
         this.controller.setScaling(dataStage.scaling);
+      }
+      if (dataStage.offset) {
+        this.offset = dataStage.offset;
       }
     }
   }
@@ -361,6 +382,7 @@ class Stage {
   getStageData() {
     return {
       'scaling': this.stage.scaling,
+      'offset': this.offset,
     };
   }
 
@@ -564,7 +586,7 @@ class Stage {
     } else {
       newId = this.getNewFragmentId();
     }
-    const newFragment = new Fragment(this.controller, this, newId, event);
+    const newFragment = new Fragment(this.controller, newId, event);
     this.fragmentList[newId] = newFragment;
     const fragmentContainer = newFragment.getContainer();
     this.addBeforeOverlay(fragmentContainer);
@@ -748,6 +770,14 @@ class Stage {
     const deltaY = currentMouseY - this.mouseClickStart.y;
 
     this.mouseClickStart = {x: currentMouseX, y: currentMouseY};
+
+    this.offset.x += deltaX;
+    this.offset.y += deltaY;
+    this.offset.baseX = this.offset.x * 100 / this.stage.scaling;
+    this.offset.baseY = this.offset.y * 100 / this.stage.scaling;
+
+    this.origin.x = this.offset.x;
+    this.origin.y = this.offset.y;
 
     this.moveStage(deltaX, deltaY);
   }
@@ -1242,11 +1272,11 @@ class Stage {
    */
   hideFlipLines() {
     if (this.lines.horizontal != null) {
-      this.stage.removeChild(this.lines.horizontal);
+      this.removeFromOverlay(this.lines.horizontal);
       this.lines.horizontal = null;
     }
     if (this.lines.vertical != null) {
-      this.stage.removeChild(this.lines.vertical);
+      this.removeFromOverlay(this.lines.vertical);
       this.lines.vertical = null;
     }
     this.update();

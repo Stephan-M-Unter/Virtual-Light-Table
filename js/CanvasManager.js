@@ -111,6 +111,7 @@ class CanvasManager {
     this.undoSteps = [];
     this.redoSteps = [];
     this.maxSteps = 30;
+    this.emptyTable = true;
   }
 
   /**
@@ -190,7 +191,12 @@ class CanvasManager {
       IDcounter: this.IDcounter,
       screenshot: this.screenshot,
     };
-    this.undoSteps.push(step);
+    if (this.emptyTable) {
+      this.emptyTable = false;
+    } else {
+      this.undoSteps.push(step);
+      console.log(step);
+    }
 
     // if maximum step length is reached, remove first undos
     while (this.undoSteps.length > this.maxSteps) {

@@ -257,15 +257,15 @@ $(document).ready(function() {
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
       $('#annot_window').css('display', 'none');
-      controller.enableHotkeys();
+      controller.setPermission('hotkeys', true);
     } else {
       $('#annot_window').css('display', 'flex');
-      controller.disableHotkeys();
+      controller.setPermission('hotkeys', false);
     }
   });
   $('#annot_close').click(function() {
     $('#annot_window').css('display', 'none');
-    controller.enableHotkeys();
+    controller.setPermission('hotkeys', true);
   });
   $('#annot_text').keyup(function(event) {
     controller.toggleAnnotSubmitButton();

@@ -1,7 +1,5 @@
 'use strict';
 
-const { TouchBarSlider } = require("electron");
-
 /**
  * TODO
  */
@@ -9,11 +7,10 @@ class Fragment {
   /**
      * TODO
      * @param {*} controller
-     * @param {*} stageObject
      * @param {*} id
      * @param {*} eventData
      */
-  constructor(controller, stageObject, id, eventData) {
+  constructor(controller, id, eventData) {
     if (controller.isDevMode()) console.log('New Fragment:', eventData);
     /*
       List of Properties (alphabetical):
@@ -43,8 +40,8 @@ class Fragment {
     */
     // control and framework elements
     this.controller = controller;
-    this.framework = stageObject;
-    this.stage = stageObject.stage;
+    this.framework = this.controller.getStage();
+    this.stage = this.framework.stage;
 
     const data = eventData.item.properties;
 
@@ -153,8 +150,8 @@ class Fragment {
     }
 
     if (data.baseX && data.baseY) {
-      const newX = this.baseX * this.container.scale;
-      const newY = this.baseY * this.container.scale;
+      const newX = (this.baseX+this.framework.offset.baseX) * this.container.scale;
+      const newY = (this.baseY+this.framework.offset.baseY) * this.container.scale;
       this.moveToPixel(newX, newY);
     }
   }
@@ -276,12 +273,16 @@ class Fragment {
     this.container.x += distX;
     this.container.y += distY;
 
-    this.baseX = this.baseX + (distX / this.container.scale);
-    this.baseY = this.baseY + (distY / this.container.scale);
+    this.baseX = (this.container.x - this.framework.offset.x) / this.container.scale;
+    this.baseY = (this.container.y - this.framework.offset.y) / this.container.scale;
+
+    // this.baseX = this.baseX + (distX / this.container.scale);
+    // this.baseY = this.baseY + (distY / this.container.scale);
   }
 
   /**
-   * TODO
+   * Moves the fragment to a particular position on the table, given by the x and y coordinate. These coordinates
+   * are "in scale", and thus refer to the scaling situation on the table. 
    * @param {*} x
    * @param {*} y
    */
@@ -497,6 +498,7 @@ class Fragment {
       'imageHeightRecto': this.containerRecto.imageHeight,
       'imageWidthVerso': this.containerVerso.imageWidth,
       'imageHeightVerso': this.containerVerso.imageHeight,
+      'scale': this.container.scale,
     };
   }
 
@@ -528,6 +530,7 @@ class Fragment {
     this.containerRecto.imageHeight = data['imageHeightRecto'];
     this.containerVerso.imageWidth = data['imageWidthVerso'];
     this.containerVerso.imageHeight = data['imageHeightVerso'];
+    this.container.scale = data['scale'];
 
     this.maskRecto = this._createMask(data['maskRecto']);
     this.maskVerso = this._createMask(data['maskVerso']);
