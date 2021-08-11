@@ -124,7 +124,6 @@ class UIController {
    */
   saveToModel(data) {
     this.hasUnsaved = true;
-    this.sidebar.updateDoButtons({undoSteps: 1});
     this.sendToServer('server-save-to-model', data);
   }
 
@@ -394,9 +393,16 @@ class UIController {
       this.firstSave = true;
     }
     this.annotationPopup.loadAnnotations(data.annots);
-    this.sidebar.updateDoButtons(data);
     this.stage.loadScene(data);
     this.updateSidebarFragmentList();
+  }
+
+  /**
+   * Relay function.
+   * @param {Object} data
+   */
+  updateRedoUndo(data) {
+    this.sidebar.updateRedoUndo(data);
   }
 
   /**
@@ -404,9 +410,7 @@ class UIController {
    * @param {Object} data
    */
   redoScene(data) {
-    console.log(data.fragments['f_1'].baseX, data.fragments['f_1'].xPos);
     this.annotationPopup.loadAnnotations(data.annots);
-    this.sidebar.updateDoButtons(data);
     this.stage.redoScene(data);
     this.updateSidebarFragmentList();
   }

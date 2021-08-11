@@ -38,6 +38,12 @@ let detailWindow; // TODO additional window to show fragment details
 // let filterWindow; // TODO additional window to set database filters
 let localUploadWindow;
 
+
+const color = {
+  success: 'rgba(0,255,0,0.6)',
+  error: 'rgba(255,0,0,0.6)',
+};
+
 /* ##############################################################
 ###
 ###                         MAIN PROCESS
@@ -133,6 +139,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
   }
   canvasManager.updateAll(data);
   saveManager.saveTable(data, false, true);
+  sendMessage(event.sender, 'client-redo-undo-update', canvasManager.getRedoUndo());
 });
 
 // server-undo-step
@@ -146,11 +153,12 @@ ipcMain.on('server-undo-step', (event) => {
     const data = canvasManager.getAll();
     data['undo'] = true;
     sendMessage(event.sender, 'client-redo-model', data);
+    sendMessage(event.sender, 'client-redo-undo-update', canvasManager.getRedoUndo());
   } else {
     const feedback = {
       title: 'Undo Impossible',
       desc: 'There are no more undo steps possible.',
-      color: 'rgba(255,0,0,0.6)',
+      color: color.error,
     };
     sendMessage(event.sender, 'client-show-feedback', feedback);
   }
@@ -167,11 +175,12 @@ ipcMain.on('server-redo-step', (event) => {
     const data = canvasManager.getAll();
     data['undo'] = true;
     sendMessage(event.sender, 'client-redo-model', data);
+    sendMessage(event.sender, 'client-redo-undo-update', canvasManager.getRedoUndo());
   } else {
     const feedback = {
       title: 'Redo Impossible',
       desc: 'There are no more redo steps available.',
-      color: 'rgba(255,0,0,0.6)',
+      color: color.error,
     };
     sendMessage(event.sender, 'client-show-feedback', feedback);
   }
@@ -224,7 +233,7 @@ ipcMain.on('server-load-file', (event, filename) => {
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
-    color: 'rgba(0,255,0,0.6)',
+    color: color.success,
   };
   sendMessage(mainWindow, 'client-show-feedback', feedback);
 });
@@ -252,7 +261,7 @@ ipcMain.on('server-save-file', (event, data) => {
     response = {
       title: 'Quicksave',
       desc: 'Quicksave successful',
-      color: 'rgba(0,255,0,0.6)',
+      color: color.success,
     };
   } else {
     // don't overwrite but ask for new file destination
@@ -260,7 +269,7 @@ ipcMain.on('server-save-file', (event, data) => {
     response = {
       title: 'Save',
       desc: 'Lighttable has successfully been saved',
-      color: 'rgba(0,255,0,0.6)',
+      color: color.success,
     };
   }
   if (filepath && response) {
@@ -454,7 +463,7 @@ ipcMain.on('server-confirm-autosave', (event, confirmation) => {
     const feedback = {
       title: 'Table Loaded',
       desc: 'Successfully loaded last autosave',
-      color: 'rgba(0,255,0,0.6)',
+      color: color.success,
     };
     sendMessage(mainWindow, 'client-show-feedback', feedback);
   } else {

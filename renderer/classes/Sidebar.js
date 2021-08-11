@@ -207,9 +207,9 @@ class Sidebar {
 
   /**
    * TODO
-   * @param {*} data
+   * @param {Object} data
    */
-  updateDoButtons(data) {
+  updateRedoUndo(data) {
     if (data.undoSteps) {
       $('#undo').removeClass('disabled');
     } else {

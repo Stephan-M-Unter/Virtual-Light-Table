@@ -517,6 +517,11 @@ $(document).ready(function() {
     controller.showVisualFeedback(title, desc, color, duration);
   });
 
+  ipcRenderer.on('client-redo-undo-update', (event, data) => {
+    if (controller.isDevMode()) console.log('Received client-redo-undo-update');
+    controller.updateRedoUndo(data);
+  });
+
   ipcRenderer.on('client-confirm-autosave', (event) => {
     if (controller.isDevMode()) console.log('Received client-confirm-autosave');
     controller.confirmAutosave();

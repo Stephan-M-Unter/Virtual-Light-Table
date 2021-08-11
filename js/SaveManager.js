@@ -52,7 +52,6 @@ class SaveManager {
    *    String with the filepath of the just saved file.
    */
   saveTable(tableConfiguration, overwrite, autosave) {
-    console.log('Saving; filepath:', this.filepath);
     let filepath;
     if (autosave) {
       filepath = this.tempSaveFolder + '_temp.vlt';

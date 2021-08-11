@@ -150,8 +150,8 @@ class Fragment {
     }
 
     if (data.baseX && data.baseY) {
-      const newX = (this.baseX+this.framework.offset.baseX) * this.container.scale;
-      const newY = (this.baseY+this.framework.offset.baseY) * this.container.scale;
+      const newX = this.baseX * this.container.scale;
+      const newY = this.baseY * this.container.scale;
       this.moveToPixel(newX, newY);
     }
   }
@@ -273,16 +273,13 @@ class Fragment {
     this.container.x += distX;
     this.container.y += distY;
 
-    this.baseX = (this.container.x - this.framework.offset.x) / this.container.scale;
-    this.baseY = (this.container.y - this.framework.offset.y) / this.container.scale;
-
-    // this.baseX = this.baseX + (distX / this.container.scale);
-    // this.baseY = this.baseY + (distY / this.container.scale);
+    this.baseX = this.baseX + (distX / this.container.scale);
+    this.baseY = this.baseY + (distY / this.container.scale);
   }
 
   /**
    * Moves the fragment to a particular position on the table, given by the x and y coordinate. These coordinates
-   * are "in scale", and thus refer to the scaling situation on the table. 
+   * are "in scale", and thus refer to the scaling situation on the table.
    * @param {*} x
    * @param {*} y
    */
