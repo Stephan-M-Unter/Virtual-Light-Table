@@ -7,11 +7,10 @@ class Fragment {
   /**
      * TODO
      * @param {*} controller
-     * @param {*} stageObject
      * @param {*} id
      * @param {*} eventData
      */
-  constructor(controller, stageObject, id, eventData) {
+  constructor(controller, id, eventData) {
     if (controller.isDevMode()) console.log('New Fragment:', eventData);
     /*
       List of Properties (alphabetical):
@@ -41,8 +40,8 @@ class Fragment {
     */
     // control and framework elements
     this.controller = controller;
-    this.framework = stageObject;
-    this.stage = stageObject.stage;
+    this.framework = this.controller.getStage();
+    this.stage = this.framework.stage;
 
     const data = eventData.item.properties;
 
@@ -206,6 +205,7 @@ class Fragment {
    * @return {*}
    */
   _createMask(polygon) {
+    if (!polygon) return null;
     const mask = new createjs.Shape();
     let started = false;
 
@@ -278,7 +278,8 @@ class Fragment {
   }
 
   /**
-   * TODO
+   * Moves the fragment to a particular position on the table, given by the x and y coordinate. These coordinates
+   * are "in scale", and thus refer to the scaling situation on the table.
    * @param {*} x
    * @param {*} y
    */
@@ -491,10 +492,45 @@ class Fragment {
       'offsetX': this.alignOffsetX,
       'offsetY': this.alignOffsetY,
       'imageWidthRecto': this.containerRecto.imageWidth,
-      'imageWidthVerso': this.containerRecto.imageHeight,
-      'imageHeightRecto': this.containerVerso.imageWidth,
+      'imageHeightRecto': this.containerRecto.imageHeight,
+      'imageWidthVerso': this.containerVerso.imageWidth,
       'imageHeightVerso': this.containerVerso.imageHeight,
+      'scale': this.container.scale,
     };
+  }
+
+  /**
+   * TODO
+   * @param {Object} data
+   */
+  setData(data) {
+    this.name = data['name'];
+    this.isRecto = data['recto'];
+    this.urlRecto = data['rectoURL'];
+    this.urlVerso = data['versoURL'];
+    this.container.x = data['xPos'];
+    this.baseX = data['baseX'];
+    this.container.y = data['yPos'];
+    this.baseY = data['baseY'];
+    this.container.rotation = data['rotation'];
+    this.containerRecto.rotation = data['containerRotation'];
+    this.originalScaleRecto = data['originalScaleRecto'];
+    this.originaScaleVerso = data['originalScaleVerso'];
+    this.ppiRecto = data['ppiRecto'];
+    this.ppiVersio = data['ppiVerso'];
+    this.rectoRotation = data['rectoRotation'];
+    this.versoRotation = data['versoRotation'];
+    this.rotationDistance = data['rotationDistance'];
+    this.alignOffsetX = data['offsetX'];
+    this.alignOffsetY = data['offsetY'];
+    this.containerRecto.imageWidth = data['imageWidthRecto'];
+    this.containerRecto.imageHeight = data['imageHeightRecto'];
+    this.containerVerso.imageWidth = data['imageWidthVerso'];
+    this.containerVerso.imageHeight = data['imageHeightVerso'];
+    this.container.scale = data['scale'];
+
+    this.maskRecto = this._createMask(data['maskRecto']);
+    this.maskVerso = this._createMask(data['maskVerso']);
   }
 
   /**

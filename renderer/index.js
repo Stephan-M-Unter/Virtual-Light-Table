@@ -257,15 +257,15 @@ $(document).ready(function() {
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
       $('#annot_window').css('display', 'none');
-      controller.enableHotkeys();
+      controller.setPermission('hotkeys', true);
     } else {
       $('#annot_window').css('display', 'flex');
-      controller.disableHotkeys();
+      controller.setPermission('hotkeys', false);
     }
   });
   $('#annot_close').click(function() {
     $('#annot_window').css('display', 'none');
-    controller.enableHotkeys();
+    controller.setPermission('hotkeys', true);
   });
   $('#annot_text').keyup(function(event) {
     controller.toggleAnnotSubmitButton();
@@ -295,7 +295,7 @@ $(document).ready(function() {
 
   /**
    * TODO
-   * @param {*} event 
+   * @param {*} event
    */
   function moveAnnotationWindow(event) {
     const distance = {};
@@ -404,6 +404,7 @@ $(document).ready(function() {
 
   // Keystrokes
   $('html').keydown(function(event) {
+    const hotkeysOn = controller.getPermission('hotkeys');
     if (event.ctrlKey) {
       if (event.keyCode == 83) {
         if (event.shiftKey) {
@@ -430,7 +431,6 @@ $(document).ready(function() {
         controller.toggleDevMode();
       }
     } else {
-      const hotkeysOn = controller.getHotkeysOn();
       if (event.keyCode == 46) {
         // DEL -> Delete Fragment(s)
         controller.removeFragments();
@@ -497,6 +497,11 @@ $(document).ready(function() {
     controller.loadScene(data);
   });
 
+  ipcRenderer.on('client-redo-model', (event, data) => {
+    if (controller.isDevMode()) console.log('Received client-redo-model', data);
+    controller.redoScene(data);
+  });
+
   ipcRenderer.on('client-add-upload', (event, data) => {
     if (controller.isDevMode()) console.log('Received client-add-upload');
     if (controller.isDevMode()) console.log('Local Upload Data:', data);
@@ -510,6 +515,11 @@ $(document).ready(function() {
     const duration = data.duration || '';
     const color = data.color || '';
     controller.showVisualFeedback(title, desc, color, duration);
+  });
+
+  ipcRenderer.on('client-redo-undo-update', (event, data) => {
+    if (controller.isDevMode()) console.log('Received client-redo-undo-update');
+    controller.updateRedoUndo(data);
   });
 
   ipcRenderer.on('client-confirm-autosave', (event) => {

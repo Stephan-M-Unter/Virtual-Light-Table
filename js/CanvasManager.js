@@ -111,6 +111,7 @@ class CanvasManager {
     this.undoSteps = [];
     this.redoSteps = [];
     this.maxSteps = 30;
+    this.emptyTable = true;
   }
 
   /**
@@ -190,14 +191,17 @@ class CanvasManager {
       IDcounter: this.IDcounter,
       screenshot: this.screenshot,
     };
-    this.undoSteps.push(step);
+    if (this.emptyTable) {
+      this.emptyTable = false;
+    } else {
+      this.undoSteps.push(step);
+    }
 
     // if maximum step length is reached, remove first undos
     while (this.undoSteps.length > this.maxSteps) {
       this.undoSteps.shift();
     }
 
-    console.log('Current UndoLog-Size: ', this.undoSteps.length);
     return true;
   }
 
@@ -292,7 +296,7 @@ class CanvasManager {
 
   /**
    * TODO
-   * @return {*}
+   * @return {Object}
    */
   getAll() {
     return {
@@ -301,6 +305,17 @@ class CanvasManager {
       'editors': this.editors,
       'annots': this.annots,
       'screenshot': this.screenshot,
+      'undoSteps': this.undoSteps.length,
+      'redoSteps': this.redoSteps.length,
+    };
+  }
+
+  /**
+   * TODO
+   * @return {Object}
+   */
+  getRedoUndo() {
+    return {
       'undoSteps': this.undoSteps.length,
       'redoSteps': this.redoSteps.length,
     };
@@ -374,7 +389,6 @@ class CanvasManager {
    */
   loadFile(file) {
     this.clearAll();
-    this.doStep();
     this.stage = file.stage;
     this.fragments = file.fragments;
     if (file.editors) this.editors = file.editors;
