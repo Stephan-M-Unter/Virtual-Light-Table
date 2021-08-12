@@ -37,7 +37,6 @@ class UIController {
     this.firstSave = true;
     /** @member {String} */
     this.editor = '';
-    this.editor = '';
     /** @member {'dark' | 'bright'} */
     this.lightMode = 'dark';
     /** @member {String} */
@@ -47,8 +46,14 @@ class UIController {
     /** @member {String[]} */
     this.permissionList = ['move_fragment', 'move_scene', 'hotkeys'];
     this.resetPermissions();
-
+    /** @member {String[]} */
+    this.tables = [];
+    /** @member {String} */
+    this.activeTable = null;
+    /** @member {Boolean} */
     this.devMode = false;
+
+    this.sendToServer('server-create-table');
   }
 
   /**
@@ -76,6 +81,7 @@ class UIController {
    */
   save(isQuicksave) {
     const data = {};
+    data.tableID = this.activeTable;
     data.screenshot = this.exportCanvas('png', true, true);
     data.quicksave = isQuicksave;
 
@@ -111,19 +117,23 @@ class UIController {
    */
   loadTable() {
     if (!this.hasUnsaved) {
-      this.sendToServer('server-open-load');
+      this.sendToServer('server-open-load', this.activeTable);
     } else if (this.confirmClearTable()) {
-      this.sendToServer('server-open-load');
+      this.sendToServer('server-open-load', this.activeTable);
     }
   }
 
   /**
    * Gathers table configuration from stage and sends save request to server.
-   * @param {Object} data - Object containing all information about the stage
+   * @param {Object} tableData - Object containing all information about the stage
    *                   configuration and the fragments to be saved to the model.
    */
-  saveToModel(data) {
+  saveToModel(tableData) {
     this.hasUnsaved = true;
+    const data = {
+      tableID: this.activeTable,
+      tableData: tableData,
+    };
     this.sendToServer('server-save-to-model', data);
   }
 
@@ -134,13 +144,13 @@ class UIController {
   clearTable() {
     if (!this.hasUnsaved) {
       // this.clearMeasurements();
-      this.sendToServer('server-clear-table');
+      this.sendToServer('server-clear-table', this.activeTable);
       this.hasUnsaved = false;
       this.firstSave = true;
       this.resetPermissions();
     } else if (this.confirmClearTable()) {
       // this.clearMeasurements();
-      this.sendToServer('server-clear-table');
+      this.sendToServer('server-clear-table', this.activeTable);
       this.hasUnsaved = false;
       this.firstSave = true;
       this.resetPermissions();
@@ -376,6 +386,14 @@ class UIController {
   }
 
   /**
+   * Getter method for the active table ID.
+   * @return {String} ID of active table, e.g. "table_1".
+   */
+  getActiveTable() {
+    return this.activeTable;
+  }
+
+  /**
    * Relays resizing request to the stage object.
    * @param {double} width - New width value for canvas.
    * @param {double} height - New height value for canvas.
@@ -389,11 +407,17 @@ class UIController {
    * @param {*} data
    */
   loadScene(data) {
-    if ('loading' in data) {
+    this.activeTable = data.tableID;
+    if (!(this.activeTable in this.tables)) {
+      this.tables.push(this.activeTable);
+    }
+    console.log('active table:', this.activeTable);
+    console.log('all tables:', this.tables);
+    if ('loading' in data.tableData) {
       this.firstSave = true;
     }
-    this.annotationPopup.loadAnnotations(data.annots);
-    this.stage.loadScene(data);
+    this.annotationPopup.loadAnnotations(data.tableData.annots);
+    this.stage.loadScene(data.tableData);
     this.updateSidebarFragmentList();
   }
 
@@ -637,8 +661,12 @@ class UIController {
   changeFragment() {
     const selectionList = this.stage.getSelectedList();
     if (Object.keys(selectionList).length == 1) {
-      const id = Object.keys(selectionList)[0];
-      this.sendToServer('server-change-fragment', id);
+      const fragmentID = Object.keys(selectionList)[0];
+      const data = {
+        tableID: this.activeTable,
+        fragmentID: fragmentID,
+      };
+      this.sendToServer('server-change-fragment', data);
     }
   }
 
@@ -693,8 +721,13 @@ class UIController {
     'Otherwise, it will be removed permanently.';
 
     dialogs.confirm(confirmMessage, (confirmation) => {
-      if (confirmation) this.sendToServer('server-confirm-autosave', true);
-      else this.sendToServer('server-confirm-autosave', false);
+      const data = {
+        tableID: this.activeTable,
+      };
+      if (confirmation) data.confirmation = true;
+      else data.confirmation = false;
+
+      this.sendToServer('server-confirm-autosave', data);
     });
   }
 

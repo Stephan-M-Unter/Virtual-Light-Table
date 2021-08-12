@@ -79,7 +79,6 @@ function toggleSidebar() {
 
 $(document).ready(function() {
   controller = new UIController('lighttable');
-  controller.clearTable();
 
   /* ##########################################
         #               INPUT/OUTPUT
@@ -190,10 +189,10 @@ $(document).ready(function() {
   });
 
   $('#undo').click(function() {
-    controller.sendToServer('server-undo-step');
+    controller.sendToServer('server-undo-step', controller.getActiveTable());
   });
   $('#redo').click(function() {
-    controller.sendToServer('server-redo-step');
+    controller.sendToServer('server-redo-step', controller.getActiveTable());
   });
 
   // Light Switch Button
@@ -329,7 +328,7 @@ $(document).ready(function() {
 
   // Upload Local Image Button
   $('#upload_local').click(function() {
-    controller.sendToServer('server-open-upload');
+    controller.sendToServer('server-open-upload', controller.getActiveTable());
   });
 
   /**
@@ -422,10 +421,10 @@ $(document).ready(function() {
         controller.clearTable();
       } else if (event.keyCode == 90) {
         // Ctrl + Z -> Undo Step
-        controller.sendToServer('server-undo-step');
+        controller.sendToServer('server-undo-step', controller.getActiveTable());
       } else if (event.keyCode == 89) {
         // Ctrl + Y -> Redo Step
-        controller.sendToServer('server-redo-step');
+        controller.sendToServer('server-redo-step', controller.getActiveTable());
       } else if (event.altKey && event.keyCode == 68) {
         // Ctrl + Alt + D -> Toggle DevMode
         controller.toggleDevMode();
@@ -466,7 +465,7 @@ $(document).ready(function() {
       } else if (event.keyCode == 78) {
         // N -> Add Custom Fragment
         if (hotkeysOn) {
-          controller.sendToServer('server-open-upload');
+          controller.sendToServer('server-open-upload', controller.getActiveTable());
         }
       } else if (event.keyCode == 79) {
         controller.changeFragment();
@@ -488,7 +487,7 @@ $(document).ready(function() {
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-model', (event, data) => {
     if (controller.isDevMode()) console.log('Received client-load-model', data);
-    if ('loading' in data) {
+    if ('loading' in data.tableData) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
       $('#fragment_list').find('.arrow').addClass('down');
