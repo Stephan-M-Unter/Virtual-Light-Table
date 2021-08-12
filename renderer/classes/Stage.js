@@ -312,12 +312,10 @@ class Stage {
     this.controller.clearMeasurements();
 
     if (data && data.fragments) {
-      if (this.controller.isDevMode()) console.log('data.fragments:', data.fragments);
       this._loadFragments(data.fragments);
     }
 
     if (data && data.stage) {
-      if (this.controller.isDevMode()) console.log('data.stage:', data.stage);
       this._loadStageConfiguration(data.stage);
     } else {
       this._loadStageConfiguration();

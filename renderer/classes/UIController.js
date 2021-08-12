@@ -51,7 +51,7 @@ class UIController {
     /** @member {String} */
     this.activeTable = null;
     /** @member {Boolean} */
-    this.devMode = false;
+    this.devMode = true;
 
     this.sendToServer('server-create-table');
   }
@@ -65,10 +65,10 @@ class UIController {
    */
   sendToServer(message, data) {
     if (data) {
-      if (this.devMode) console.log('Sending ' + message + '; data:', data);
+      if (this.devMode) console.log('DevMode: Sending ' + message + '; data:', data);
       ipcRenderer.send(message, data);
     } else {
-      if (this.devMode) console.log('Sending ' + message + '; no data.');
+      if (this.devMode) console.log('DevMode: Sending ' + message + '; no data.');
       ipcRenderer.send(message);
     }
   }
@@ -408,11 +408,9 @@ class UIController {
    */
   loadScene(data) {
     this.activeTable = data.tableID;
-    if (!(this.activeTable in this.tables)) {
+    if (!this.tables.includes(this.activeTable)) {
       this.tables.push(this.activeTable);
     }
-    console.log('active table:', this.activeTable);
-    console.log('all tables:', this.tables);
     if ('loading' in data.tableData) {
       this.firstSave = true;
     }

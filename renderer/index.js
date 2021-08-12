@@ -428,6 +428,9 @@ $(document).ready(function() {
       } else if (event.altKey && event.keyCode == 68) {
         // Ctrl + Alt + D -> Toggle DevMode
         controller.toggleDevMode();
+      } else if (event.keyCode == 65) {
+        // Ctrl + A -> DevMode, ask for model
+        controller.sendToServer('server-send-model', controller.getActiveTable());
       }
     } else {
       if (event.keyCode == 46) {
@@ -486,7 +489,7 @@ $(document).ready(function() {
   // client-load-model
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-model', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-load-model', data);
+    if (controller.isDevMode()) console.log('DevMode: Received client-load-model', data);
     if ('loading' in data.tableData) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
@@ -497,18 +500,17 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-redo-model', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-redo-model', data);
+    if (controller.isDevMode()) console.log('DevMode: Received client-redo-model', data);
     controller.redoScene(data);
   });
 
   ipcRenderer.on('client-add-upload', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-add-upload');
-    if (controller.isDevMode()) console.log('Local Upload Data:', data);
+    if (controller.isDevMode()) console.log('DevMode: Received client-add-upload', data);
     controller.addFragment(data);
   });
 
   ipcRenderer.on('client-show-feedback', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-show-feedback');
+    if (controller.isDevMode()) console.log('DevMode: Received client-show-feedback');
     const title = data.title || '';
     const desc = data.desc || '';
     const duration = data.duration || '';
@@ -517,13 +519,17 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-redo-undo-update', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-redo-undo-update');
+    if (controller.isDevMode()) console.log('DevMode: Received client-redo-undo-update', data);
     controller.updateRedoUndo(data);
   });
 
   ipcRenderer.on('client-confirm-autosave', (event) => {
-    if (controller.isDevMode()) console.log('Received client-confirm-autosave');
+    if (controller.isDevMode()) console.log('DevMode: Received client-confirm-autosave');
     controller.confirmAutosave();
+  });
+
+  ipcRenderer.on('client-get-model', (event, data) => {
+    console.log(data);
   });
 
   xyz = controller.getStage(); // REMOVE

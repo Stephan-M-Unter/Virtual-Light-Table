@@ -146,7 +146,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
   tableManager.updateTable(data.tableID, data.tableData);
   saveManager.saveTable(data.tableData, false, true);
 
-  sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo());
+  sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
 });
 
 // server-undo-step
@@ -516,9 +516,19 @@ ipcMain.on('server-confirm-autosave', (event, data) => {
 // server-create-table
 ipcMain.on('server-create-table', (event) => {
   const tableID = tableManager.createNewTable();
+  console.log("tableID", tableID);
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
   };
+  console.log("data", data);
   sendMessage(event.sender, 'client-load-model', data);
+});
+
+ipcMain.on('server-send-model', (event, tableID) => {
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  sendMessage(event.sender, 'client-get-model', data);
 });

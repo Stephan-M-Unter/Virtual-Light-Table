@@ -70,6 +70,8 @@
 
 'use strict';
 
+const irrelevantProperties = ['undoSteps', 'redoSteps', 'emptyTable'];
+
 /**
  * TODO
  */
@@ -161,7 +163,6 @@ class TableManager {
    * @return {Object}
    */
   getTable(tableID) {
-    const irrelevantProperties = ['undoSteps', 'redoSteps', 'emptyTable'];
     if (tableID in this.tables) {
       const properties = Object.keys(this.tables[tableID]);
       const tableData = {};
@@ -170,11 +171,7 @@ class TableManager {
           tableData[property] = this.tables[tableID][property];
         }
       });
-      const tableObject = {
-        tableID: tableID,
-        tableData: tableData,
-      };
-      return tableObject;
+      return tableData;
     }
   }
 
@@ -201,10 +198,12 @@ class TableManager {
    * @param {Object} tableData Object containing all relevant information for one table.
    */
   updateTable(tableID, tableData) {
-    this.doStep();
+    this.doStep(tableID);
     if (tableID in this.tables) {
-      Object.keys(tableData).forEach((item) => {
-        this.table[tableID][item] = tableData[item];
+      Object.keys(tableData).forEach((property) => {
+        if (!irrelevantProperties.includes(property)) {
+          this.tables[tableID][property] = tableData[property];
+        }
       });
     }
   }
@@ -251,7 +250,7 @@ class TableManager {
     }
 
     // saving current state as new entry in redoSteps
-    const step = this.getTable(tableId);
+    const step = this.getTable(tableID);
     this.tables[tableID].redoSteps.push(step);
 
     // loading former state
