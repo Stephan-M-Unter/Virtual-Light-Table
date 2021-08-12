@@ -1086,3 +1086,46 @@ body {
     margin: 10px auto;
     color: black;
 }
+
+/* TOPBAR */
+
+#topbar {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: calc(100vw - 600px);
+    height: 200px;
+    background-color: black;
+    padding: 5px;
+    transform: translateX(-50%);
+}
+
+#table_wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: yellow;
+    box-sizing: border-box;
+    padding: 5px;
+    text-align: center;
+}
+
+.table_item {
+    height: 100%;
+    width: 200px;
+    background-color: white;
+    box-sizing: border-box;
+    margin: 0px 5px;
+}
+
+#topbar_handle {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 30px;
+    background-color: red;
+}
