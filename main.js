@@ -20,6 +20,7 @@ const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
+const { DefaultSerializer } = require('v8');
 
 // Settings
 const devMode = true;
@@ -46,7 +47,7 @@ const color = {
 const activeTable = {
   loading: null,
   uploading: null,
-  active: null,
+  view: null,
 };
 
 /* ##############################################################
@@ -71,6 +72,9 @@ function main() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
+  });
+  mainWindow.on('reload', function(event) {
+    console.log("RELOAD");
   });
   mainWindow.on('close', function(event) {
     const choice = dialog.showMessageBoxSync(event.target, {
@@ -136,14 +140,14 @@ function sendMessage(recipientWindow, message, data=null) {
 
 /* RECEIVING MESSAGES */
 
-// server-save-to-model | data -> data.tableID, data.tableData
+// server-save-to-model | data -> data.tableID, data.tableData, data.skipDoStep
 ipcMain.on('server-save-to-model', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-to-model] from client for table '+data.tableID);
   }
 
-  tableManager.updateTable(data.tableID, data.tableData);
+  tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
   saveManager.saveTable(data.tableData, false, true);
 
   sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
@@ -237,17 +241,23 @@ ipcMain.on('server-load-file', (event, filename) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-load-file] from loadWindow');
   }
-  const tableID = activeTable.loading;
+  let tableID = activeTable.loading;
   activeTable.loading = null;
   loadWindow.close();
   const savefolder = saveManager.getCurrentFolder();
   const file = saveManager.loadSaveFile(path.join(savefolder, filename));
+
+  if (tableManager.hasFragments(activeTable.view)) {
+    tableID = tableManager.createNewTable();
+  }
+
   tableManager.loadFile(tableID, file);
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
   };
   data.tableData['loading'] = true;
+  data.tableData['filename'] = filename;
   sendMessage(mainWindow, 'client-load-model', data);
   const feedback = {
     title: 'Table Loaded',
@@ -293,6 +303,11 @@ ipcMain.on('server-save-file', (event, data) => {
   }
   if (filepath && response) {
     sendMessage(mainWindow, 'client-show-feedback', response);
+    const saveData = {
+      tableID: data.tableID,
+      filename: path.basename(filepath),
+    };
+    sendMessage(mainWindow, 'client-file-saved', saveData);
   }
 });
 
@@ -516,19 +531,55 @@ ipcMain.on('server-confirm-autosave', (event, data) => {
 // server-create-table
 ipcMain.on('server-create-table', (event) => {
   const tableID = tableManager.createNewTable();
-  console.log("tableID", tableID);
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
   };
-  console.log("data", data);
+  activeTable.view = tableID;
   sendMessage(event.sender, 'client-load-model', data);
 });
 
+// server-open-table
+ipcMain.on('server-open-table', (event, tableID) => {
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  activeTable.view = tableID;
+  sendMessage(event.sender, 'client-load-model', data);
+});
+
+// server-close-table
+ipcMain.on('server-close-table', (event, tableID) => {
+  const newTableID = tableManager.removeTable(tableID);
+  if (tableID == activeTable.view) {
+    const data = {
+      tableID: newTableID,
+      tableData: tableManager.getTable(newTableID),
+    };
+    activeTable.view = newTableID;
+    sendMessage(event.sender, 'client-load-model', data);
+  }
+});
+
+// server-send-model
 ipcMain.on('server-send-model', (event, tableID) => {
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
   };
   sendMessage(event.sender, 'client-get-model', data);
+});
+
+ipcMain.on('server-send-all', (event) => {
+  sendMessage(event.sender, 'client-get-all', tableManager.getTables());
+});
+
+ipcMain.on('server-new-session', (event) => {
+  tableManager.clearAll();
+});
+
+// server-save-screenshot | data -> data.tableID, data.screenshot
+ipcMain.on('server-save-screenshot', (event, data) => {
+  tableManager.setScreenshot(data.tableID, data.screenshot);
 });

@@ -82,7 +82,8 @@ class Stage {
     this.loadqueue.on('complete', () => {
       this.fitToScreen();
       this.update();
-      this._saveToModel();
+      this.controller.saveToModel(true);
+      this.controller.finishedLoading();
     });
   }
 
@@ -433,15 +434,6 @@ class Stage {
   }
 
   /**
-   * @private
-   * Collects the full stage configuration information and hands it to the controller to send it to the server.
-   */
-  _saveToModel() {
-    const dataObject = this.getData();
-    this.controller.saveToModel(dataObject);
-  }
-
-  /**
    * Method to set the scaling of a scene.  Updates the scaling value
    * accordingly and then invokes the following scaling of all items
    * on stage.
@@ -590,7 +582,7 @@ class Stage {
           this.stage.removeChild(fragmentContainer);
           delete this.fragmentList[fragment.id];
           this.controller.clearSelection();
-          this._saveToModel();
+          this.controller.saveToModel(false);
           this.stage.update();
         }
       }
@@ -610,7 +602,7 @@ class Stage {
 
     this.controller.clearSelection();
     this.update();
-    this._saveToModel();
+    this.controller.saveToModel(false);
   }
 
   /**
@@ -646,7 +638,7 @@ class Stage {
     });
 
     image.on('pressup', (event) => {
-      this._saveToModel();
+      this.controller.saveToModel(false);
     });
 
     image.on('mouseover', (event) => {
@@ -693,15 +685,35 @@ class Stage {
 
   /**
    * TODO
+   * @return {String[]}
    */
   clearSelection() {
+    const temp = [];
     for (const id in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, id)) {
         this.selectedList[id].getImage().shadow = null;
+        temp.push(id);
       }
     }
     this.selectedList = {};
     this._updateBb();
+    return temp;
+  }
+
+  /**
+   * 
+   * @param {String[]} savedSelection List of fragmentIDs which were originally selected.
+   */
+  setSelection(savedSelection) {
+    if (savedSelection) {
+      console.log(savedSelection);
+      savedSelection.forEach((fragmentID) => {
+        if (fragmentID in this.fragmentList) {
+          this.selectedList[fragmentID] = this.fragmentList[fragmentID];
+        }
+      });
+      this._updateBb();
+    }
   }
 
   /**
@@ -910,7 +922,7 @@ class Stage {
       }
     }
     this.update();
-    this._saveToModel();
+    this.controller.saveToModel(false);
     this.controller.updateSidebarFragmentList();
   }
 
@@ -975,7 +987,7 @@ class Stage {
         const fragment = this.selectedList[id];
         fragment.flip();
         this._updateBb();
-        this._saveToModel();
+        this.controller.saveToModel(false);
       });
 
       this.flipper.on('mousedown', () => {
@@ -1100,7 +1112,7 @@ class Stage {
             .beginFill('#f5842c').drawCircle(0, 0, 20).endFill();
         this._updateBb();
         this.update();
-        this._saveToModel();
+        this.controller.saveToModel(false);
       });
     }
   }
@@ -1123,9 +1135,7 @@ class Stage {
     }
 
     // remove UI elements
-    this.controller.clearSelection();
-    this._updateBb();
-
+    const savedSelection = this.controller.clearSelection();
 
     const pseudoLink = document.createElement('a');
     let extension; let type;
@@ -1162,10 +1172,12 @@ class Stage {
           .toDataURL('image/png');
       this.moveStage(-changeParameters.x, -changeParameters.y);
       this.controller.setScaling(changeParameters.scale);
+      this.setSelection(savedSelection);
       this.update();
-      this._saveToModel();
+      // this._saveToModel();
       return screenshot;
     }
+    this.setSelection(savedSelection);
 
     // creating artificial anchor element for download
     pseudoLink.download = 'reconstruction.' + extension;

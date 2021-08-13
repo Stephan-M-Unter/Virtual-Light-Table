@@ -61,12 +61,14 @@ function activateKonami() {
  */
 function toggleSidebar() {
   if (sidebarCollapsed) {
+    $('#left_sidebar').removeClass('collapsed');
     $('#left_sidebar').css('width', sidebarWidth);
     $('#left_sidebar').css('min-width', 180);
     $('#sidebar_content').css('display', 'block');
     $('#sidebar_handle_grabber').css('transform',
         'translateX(-40%) translateY(-50%)');
   } else {
+    $('#left_sidebar').addClass('collapsed');
     sidebarWidth = $('#left_sidebar').css('width');
     $('#left_sidebar').css('min-width', 1);
     $('#left_sidebar').css('width', 0);
@@ -236,6 +238,7 @@ $(document).ready(function() {
       $('#annot_button').removeClass('hidden');
       $('#fit_to_screen').removeClass('hidden');
       $('#reset_zoom').removeClass('hidden');
+      $('#topbar').removeClass('hidden');
       $('#hide_hud').removeClass('hide_active');
     } else {
       $('#left_sidebar').addClass('hidden');
@@ -244,6 +247,7 @@ $(document).ready(function() {
       $('#annot_button').addClass('hidden');
       $('#fit_to_screen').addClass('hidden');
       $('#reset_zoom').addClass('hidden');
+      $('#topbar').addClass('hidden');
       $('#hide_hud').addClass('hide_active');
     }
   });
@@ -431,6 +435,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 65) {
         // Ctrl + A -> DevMode, ask for model
         controller.sendToServer('server-send-model', controller.getActiveTable());
+      } else if (event.keyCode == 81) {
+        // Ctrl + Q -> DevMode, ask for everything
+        controller.sendToServer('server-send-all');
       }
     } else {
       if (event.keyCode == 46) {
@@ -530,6 +537,14 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-get-model', (event, data) => {
     console.log(data);
+  });
+
+  ipcRenderer.on('client-get-all', (event, data) => {
+    console.log(data);
+  });
+
+  ipcRenderer.on('client-file-saved', (event, saveData) => {
+    controller.updateFilename(saveData);
   });
 
   xyz = controller.getStage(); // REMOVE

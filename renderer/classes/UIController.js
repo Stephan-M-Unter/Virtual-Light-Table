@@ -6,6 +6,7 @@ const {AnnotationPopup} = require('./AnnotationPopup');
 const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
 const {MeasurementTool} = require('./MeasurementTool');
+const {Topbar} = require('./Topbar');
 const dialogs = new Dialogs();
 
 /**
@@ -27,12 +28,14 @@ class UIController {
     this.stage = new Stage(this, DOMElement);
     /** @constant {Sidebar} */
     this.sidebar = new Sidebar(this);
+    /** @constant {Topbar} */
+    this.topbar = new Topbar(this);
     /** @constant {AnnotationPopup} */
     this.annotationPopup = new AnnotationPopup(this);
     /** @constant {MeasurementTool} */
     this.measurementTool = new MeasurementTool(this, 'lighttable');
     /** @member {Boolean} */
-    this.hasUnsaved = false;
+    this.unsaved = {};
     /** @member {Boolean} */
     this.firstSave = true;
     /** @member {String} */
@@ -52,7 +55,10 @@ class UIController {
     this.activeTable = null;
     /** @member {Boolean} */
     this.devMode = true;
+    /** @member {Boolean} */
+    this.isLoading = false;
 
+    this.sendToServer('server-new-session');
     this.sendToServer('server-create-table');
   }
 
@@ -74,6 +80,16 @@ class UIController {
   }
 
   /**
+   *
+   * @param {*} tableID ID of table, e.g. "table_1".
+   * @param {*} hasUnsavedChanges TRUE if table has unsaved changes, FALSE otherwise.
+   */
+  setUnsavedState(tableID, hasUnsavedChanges) {
+    this.unsaved[tableID] = hasUnsavedChanges;
+    this.topbar.updateSavestates(this.unsaved);
+  }
+
+  /**
    * TODO
    * @param {Boolean} isQuicksave
    *    if TRUE, the VLT will try to overwrite the pre-existing file
@@ -88,12 +104,12 @@ class UIController {
     if (isQuicksave && !this.firstSave && this.editor) {
       // not first quicksave, thus editor no longer needed
       this.sendToServer('server-save-file', data);
-      this.hasUnsaved = false;
+      this.setUnsavedState(this.activeTable, false);
     } else {
       if (this.editor) {
         data.editor = this.editor;
         this.sendToServer('server-save-file', data);
-        this.hasUnsaved = false;
+        this.setUnsavedState(this.activeTable, false);
         this.firstSave = false;
       } else {
         this.setPermission('hotkeys', false);
@@ -102,7 +118,7 @@ class UIController {
             this.editor = editor;
             data.editor = editor;
             this.sendToServer('server-save-file', data);
-            this.hasUnsaved = false;
+            this.setUnsavedState(this.activeTable, false);
             this.firstSave = false;
           }
           this.setPermission('hotkeys', true);
@@ -116,7 +132,7 @@ class UIController {
    * to the server. Only proceeds if there have been no changes or user confirms.
    */
   loadTable() {
-    if (!this.hasUnsaved) {
+    if (!this.unsaved[this.activeTable]) {
       this.sendToServer('server-open-load', this.activeTable);
     } else if (this.confirmClearTable()) {
       this.sendToServer('server-open-load', this.activeTable);
@@ -125,15 +141,17 @@ class UIController {
 
   /**
    * Gathers table configuration from stage and sends save request to server.
-   * @param {Object} tableData - Object containing all information about the stage
-   *                   configuration and the fragments to be saved to the model.
+   * @param {Boolean} skipDoStep - if TRUE, tell server to not register this save as a
+   * "do step" which could be undone; if FALSE, make a do step.
    */
-  saveToModel(tableData) {
-    this.hasUnsaved = true;
+  saveToModel(skipDoStep) {
+    const tableData = this.stage.getData();
     const data = {
       tableID: this.activeTable,
       tableData: tableData,
+      skipDoStep: skipDoStep,
     };
+    if (!skipDoStep) this.setUnsavedState(this.activeTable, true);
     this.sendToServer('server-save-to-model', data);
   }
 
@@ -142,16 +160,16 @@ class UIController {
    * from server. Only works if there are no currently unsaved changes or if user confirms.
    */
   clearTable() {
-    if (!this.hasUnsaved) {
+    if (!this.unsaved[this.activeTable]) {
       // this.clearMeasurements();
       this.sendToServer('server-clear-table', this.activeTable);
-      this.hasUnsaved = false;
+      this.setUnsavedState(this.activeTable, false);
       this.firstSave = true;
       this.resetPermissions();
     } else if (this.confirmClearTable()) {
       // this.clearMeasurements();
       this.sendToServer('server-clear-table', this.activeTable);
-      this.hasUnsaved = false;
+      this.setUnsavedState(this.activeTable, false);
       this.firstSave = true;
       this.resetPermissions();
     }
@@ -168,6 +186,19 @@ class UIController {
     return confirmation;
   }
 
+  /**
+   * Check if the currently active table has any fragments or not.
+   * @return {Boolean}
+   */
+  hasFragments() {
+    const fragmentList = this.stage.getFragmentList();
+    const numberFragments = Object.keys(fragmentList).length;
+    if (numberFragments > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   /**
    * TODO
@@ -407,13 +438,19 @@ class UIController {
    * @param {*} data
    */
   loadScene(data) {
+    this.isLoading = true;
     this.activeTable = data.tableID;
     if (!this.tables.includes(this.activeTable)) {
       this.tables.push(this.activeTable);
+      this.topbar.addTable(data.tableID, data.tableData);
+    } else {
+      this.topbar.updateTable(data.tableID, data.tableData);
     }
     if ('loading' in data.tableData) {
       this.firstSave = true;
     }
+    this.topbar.setActiveTable(data.tableID);
+    this.topbar.collapse();
     this.annotationPopup.loadAnnotations(data.tableData.annots);
     this.stage.loadScene(data.tableData);
     this.updateSidebarFragmentList();
@@ -763,6 +800,54 @@ class UIController {
     } else {
       return null;
     }
+  }
+
+  /**
+   *
+   */
+  newTable() {
+    if (!this.isLoading) {
+      this.sendToServer('server-create-table');
+    }
+  }
+
+  /**
+   *
+   * @param {*} tableID
+   */
+  closeTable(tableID) {
+    if (!this.unsaved[tableID]) {
+      this.sendToServer('server-close-table', tableID);
+      this.topbar.removeTable(tableID);
+    } else if (this.confirmClearTable()) {
+      this.sendToServer('server-close-table', tableID);
+      this.topbar.removeTable(tableID);
+    }
+  }
+
+  /**
+   *
+   * @param {*} tableID
+   */
+  openTable(tableID) {
+    if (!this.isLoading) {
+      this.sendToServer('server-open-table', tableID);
+    }
+  }
+
+  /**
+   *
+   */
+  finishedLoading() {
+    this.isLoading = false;
+  }
+
+  /**
+   * 
+   * @param {*} saveData 
+   */
+  updateFilename(saveData) {
+    this.topbar.updateFilename(saveData);
   }
 }
 

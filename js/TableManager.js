@@ -90,6 +90,7 @@ class TableManager {
    */
   clearAll() {
     this.tables = {};
+    this.tableIdRunner = 0;
   }
 
   /**
@@ -113,6 +114,41 @@ class TableManager {
     this.tableIdRunner += 1;
     this.tables[newTableID] = emptyTable;
     return newTableID;
+  }
+
+  /**
+   * Removes stored data for given table.
+   * @param {String} tableID ID of table to remove, e.g. "table_1".
+   * @return {String}
+   */
+  removeTable(tableID) {
+    if (tableID in this.tables) {
+      let nextTable;
+      const tables = Object.keys(this.tables);
+      const arrayIndex = tables.indexOf(tableID);
+      if (arrayIndex+1 < tables.length) {
+        nextTable = tables[arrayIndex+1];
+      } else if (arrayIndex-1 >= 0) {
+        nextTable = tables[arrayIndex-1];
+      } else {
+        nextTable = this.createNewTable();
+      }
+      delete this.tables[tableID];
+      return nextTable;
+    }
+  }
+
+  /**
+   * Returns if the table with ID tableID has any fragments in the model.
+   * @param {*} tableID ID of table to check for fragments, e.g. "table_1".
+   * @return {Boolean}
+   */
+  hasFragments(tableID) {
+    if (tableID in this.tables && Object.keys(this.tables[tableID].fragments).length > 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -176,6 +212,14 @@ class TableManager {
   }
 
   /**
+   * Return everything.
+   * @return {Object}
+   */
+  getTables() {
+    return this.tables;
+  }
+
+  /**
    * Deletes all information about previously loaded fragments from table with id tableID.
    * @param {String} tableID ID of table to clear, e.g. "table_1".
    */
@@ -196,10 +240,13 @@ class TableManager {
    * doing so, a "step" is performed that is saved in the "undoSteps" and could be access via "undoStep()".
    * @param {String} tableID ID of table to act on, e.g. "table_1".
    * @param {Object} tableData Object containing all relevant information for one table.
+   * @param {[Boolean]} skipDoStep optional; if TRUE, skip the do step, if FALSE, make a do step.
+   * Default (when not given): FALSE.
    */
-  updateTable(tableID, tableData) {
-    this.doStep(tableID);
+  updateTable(tableID, tableData, skipDoStep) {
     if (tableID in this.tables) {
+      const numberFragments = Object.keys(this.tables[tableID].fragments).length;
+      if (!skipDoStep && numberFragments > 0) this.doStep(tableID);
       Object.keys(tableData).forEach((property) => {
         if (!irrelevantProperties.includes(property)) {
           this.tables[tableID][property] = tableData[property];
@@ -254,7 +301,7 @@ class TableManager {
     this.tables[tableID].redoSteps.push(step);
 
     // loading former state
-    const tableData = this.undoSteps.pop();
+    const tableData = this.tables[tableID].undoSteps.pop();
     Object.keys(tableData).forEach((item) => {
       this.tables[tableID][item] = tableData[item];
     });
@@ -271,7 +318,7 @@ class TableManager {
    */
   redoStep(tableID) {
     // if there are no redo steps saved, there is nothing we can do
-    if (this.redoSteps.length == 0) {
+    if (this.tables[tableID].redoSteps.length == 0) {
       return false;
     }
 
@@ -280,7 +327,7 @@ class TableManager {
     this.tables[tableID].undoSteps.push(step);
 
     // load first redo step available
-    const tableData = this.redoSteps.pop();
+    const tableData = this.tables[tableID].redoSteps.pop();
     Object.keys(tableData).forEach((item) => {
       this.tables[tableID][item] = tableData[item];
     });
@@ -384,7 +431,7 @@ class TableManager {
    * @param {*} screenshot
    */
   setScreenshot(tableID, screenshot) {
-    this.table[tableID].screenshot = screenshot;
+    this.tables[tableID].screenshot = screenshot;
   }
 }
 
