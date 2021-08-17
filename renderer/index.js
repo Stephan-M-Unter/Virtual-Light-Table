@@ -61,12 +61,14 @@ function activateKonami() {
  */
 function toggleSidebar() {
   if (sidebarCollapsed) {
+    $('#left_sidebar').removeClass('collapsed');
     $('#left_sidebar').css('width', sidebarWidth);
     $('#left_sidebar').css('min-width', 180);
     $('#sidebar_content').css('display', 'block');
     $('#sidebar_handle_grabber').css('transform',
         'translateX(-40%) translateY(-50%)');
   } else {
+    $('#left_sidebar').addClass('collapsed');
     sidebarWidth = $('#left_sidebar').css('width');
     $('#left_sidebar').css('min-width', 1);
     $('#left_sidebar').css('width', 0);
@@ -79,7 +81,6 @@ function toggleSidebar() {
 
 $(document).ready(function() {
   controller = new UIController('lighttable');
-  controller.clearTable();
 
   /* ##########################################
         #               INPUT/OUTPUT
@@ -190,10 +191,10 @@ $(document).ready(function() {
   });
 
   $('#undo').click(function() {
-    controller.sendToServer('server-undo-step');
+    controller.sendToServer('server-undo-step', controller.getActiveTable());
   });
   $('#redo').click(function() {
-    controller.sendToServer('server-redo-step');
+    controller.sendToServer('server-redo-step', controller.getActiveTable());
   });
 
   // Light Switch Button
@@ -237,6 +238,7 @@ $(document).ready(function() {
       $('#annot_button').removeClass('hidden');
       $('#fit_to_screen').removeClass('hidden');
       $('#reset_zoom').removeClass('hidden');
+      $('#topbar').removeClass('hidden');
       $('#hide_hud').removeClass('hide_active');
     } else {
       $('#left_sidebar').addClass('hidden');
@@ -245,6 +247,7 @@ $(document).ready(function() {
       $('#annot_button').addClass('hidden');
       $('#fit_to_screen').addClass('hidden');
       $('#reset_zoom').addClass('hidden');
+      $('#topbar').addClass('hidden');
       $('#hide_hud').addClass('hide_active');
     }
   });
@@ -329,7 +332,7 @@ $(document).ready(function() {
 
   // Upload Local Image Button
   $('#upload_local').click(function() {
-    controller.sendToServer('server-open-upload');
+    controller.sendToServer('server-open-upload', controller.getActiveTable());
   });
 
   /**
@@ -422,13 +425,19 @@ $(document).ready(function() {
         controller.clearTable();
       } else if (event.keyCode == 90) {
         // Ctrl + Z -> Undo Step
-        controller.sendToServer('server-undo-step');
+        controller.sendToServer('server-undo-step', controller.getActiveTable());
       } else if (event.keyCode == 89) {
         // Ctrl + Y -> Redo Step
-        controller.sendToServer('server-redo-step');
+        controller.sendToServer('server-redo-step', controller.getActiveTable());
       } else if (event.altKey && event.keyCode == 68) {
         // Ctrl + Alt + D -> Toggle DevMode
         controller.toggleDevMode();
+      } else if (event.keyCode == 65) {
+        // Ctrl + A -> DevMode, ask for model
+        controller.sendToServer('server-send-model', controller.getActiveTable());
+      } else if (event.keyCode == 81) {
+        // Ctrl + Q -> DevMode, ask for everything
+        controller.sendToServer('server-send-all');
       }
     } else {
       if (event.keyCode == 46) {
@@ -466,7 +475,7 @@ $(document).ready(function() {
       } else if (event.keyCode == 78) {
         // N -> Add Custom Fragment
         if (hotkeysOn) {
-          controller.sendToServer('server-open-upload');
+          controller.sendToServer('server-open-upload', controller.getActiveTable());
         }
       } else if (event.keyCode == 79) {
         controller.changeFragment();
@@ -487,8 +496,8 @@ $(document).ready(function() {
   // client-load-model
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-model', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-load-model', data);
-    if ('loading' in data) {
+    if (controller.isDevMode()) console.log('DevMode: Received client-load-model', data);
+    if ('loading' in data.tableData) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
       $('#fragment_list').find('.arrow').addClass('down');
@@ -498,18 +507,17 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-redo-model', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-redo-model', data);
+    if (controller.isDevMode()) console.log('DevMode: Received client-redo-model', data);
     controller.redoScene(data);
   });
 
   ipcRenderer.on('client-add-upload', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-add-upload');
-    if (controller.isDevMode()) console.log('Local Upload Data:', data);
+    if (controller.isDevMode()) console.log('DevMode: Received client-add-upload', data);
     controller.addFragment(data);
   });
 
   ipcRenderer.on('client-show-feedback', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-show-feedback');
+    if (controller.isDevMode()) console.log('DevMode: Received client-show-feedback');
     const title = data.title || '';
     const desc = data.desc || '';
     const duration = data.duration || '';
@@ -518,13 +526,30 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-redo-undo-update', (event, data) => {
-    if (controller.isDevMode()) console.log('Received client-redo-undo-update');
+    if (controller.isDevMode()) console.log('DevMode: Received client-redo-undo-update', data);
     controller.updateRedoUndo(data);
   });
 
   ipcRenderer.on('client-confirm-autosave', (event) => {
-    if (controller.isDevMode()) console.log('Received client-confirm-autosave');
+    if (controller.isDevMode()) console.log('DevMode: Received client-confirm-autosave');
     controller.confirmAutosave();
+  });
+  
+  ipcRenderer.on('client-get-model', (event, data) => {
+    console.log(data);
+  });
+  
+  ipcRenderer.on('client-get-all', (event, data) => {
+    console.log(data);
+  });
+  
+  ipcRenderer.on('client-file-saved', (event, saveData) => {
+    controller.updateFilename(saveData);
+  });
+  
+  ipcRenderer.on('client-inactive-model', (event, data) => {
+    if (controller.isDevMode()) console.log('DevMode: Received client-inactive-model', data);
+    controller.loadInactive(data);
   });
 
   xyz = controller.getStage(); // REMOVE

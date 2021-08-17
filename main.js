@@ -17,7 +17,7 @@ const {app, ipcMain, dialog} = require('electron');
 const path = require('path');
 
 const Window = require('./js/Window');
-const CanvasManager = require('./js/CanvasManager');
+const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 
@@ -28,7 +28,7 @@ app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
 // Managers
-const canvasManager = new CanvasManager();
+const tableManager = new TableManager();
 const imageManager = new ImageManager();
 const saveManager = new SaveManager(__dirname.split(path.sep).pop());
 // Windows
@@ -43,6 +43,12 @@ const color = {
   success: 'rgba(0,255,0,0.6)',
   error: 'rgba(255,0,0,0.6)',
 };
+const activeTable = {
+  loading: null,
+  uploading: null,
+  view: null,
+};
+let autosaveChecked = false;
 
 /* ##############################################################
 ###
@@ -65,7 +71,14 @@ function main() {
   }
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
+    if (saveManager.checkForAutosave()) {
+      sendMessage(mainWindow, 'client-confirm-autosave');
+    } else {
+      autosaveChecked = true;
+      const data = createNewTable();
+      activeTable.view = data.tableID;
+      sendMessage(event.sender, 'client-load-model', data);
+    }
   });
   mainWindow.on('close', function(event) {
     const choice = dialog.showMessageBoxSync(event.target, {
@@ -106,6 +119,19 @@ function timestamp() {
   return '['+day+'/'+month+'/'+year+' '+hour+':'+minute+':'+second+']';
 }
 
+/**
+ * 
+ * @return {Object}
+ */
+function createNewTable() {
+  const tableID = tableManager.createNewTable();
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  return data;
+}
+
 /* ##############################################################
 ###
 ###                    MESSAGES (SEND/RECEIVE)
@@ -131,33 +157,38 @@ function sendMessage(recipientWindow, message, data=null) {
 
 /* RECEIVING MESSAGES */
 
-// server-save-to-model
+// server-save-to-model | data -> data.tableID, data.tableData, data.skipDoStep
 ipcMain.on('server-save-to-model', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-save-to-model] from client');
+    'Receiving code [server-save-to-model] from client for table '+data.tableID);
   }
-  canvasManager.updateAll(data);
-  saveManager.saveTable(data, false, true);
-  sendMessage(event.sender, 'client-redo-undo-update', canvasManager.getRedoUndo());
+
+  tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
+  saveManager.saveTable(data.tableData, false, true, data.tableID);
+
+  sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
 });
 
 // server-undo-step
-ipcMain.on('server-undo-step', (event) => {
+ipcMain.on('server-undo-step', (event, tableID) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-undo-step] from client');
+    'Receiving code [server-undo-step] from client for table '+tableID);
   }
-  const undo = canvasManager.undoStep();
-  if (undo) {
-    const data = canvasManager.getAll();
-    data['undo'] = true;
-    sendMessage(event.sender, 'client-redo-model', data);
-    sendMessage(event.sender, 'client-redo-undo-update', canvasManager.getRedoUndo());
+  const isUndone = tableManager.undoStep(tableID);
+  if (isUndone) {
+    // undo step was successful
+    const tableData = tableManager.getTable(tableID);
+    tableData['undo'] = true;
+    // TODO evtl. zusammenfassen???
+    sendMessage(event.sender, 'client-redo-model', tableData);
+    sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
   } else {
+    // undo step was unsuccessful
     const feedback = {
       title: 'Undo Impossible',
-      desc: 'There are no more undo steps possible.',
+      desc: 'There are probably no more undo steps possible.',
       color: color.error,
     };
     sendMessage(event.sender, 'client-show-feedback', feedback);
@@ -165,21 +196,23 @@ ipcMain.on('server-undo-step', (event) => {
 });
 
 // server-redo-step
-ipcMain.on('server-redo-step', (event) => {
+ipcMain.on('server-redo-step', (event, tableID) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-redo-step] from client');
+    'Receiving code [server-redo-step] from client for table '+tableID);
   }
-  const redo = canvasManager.redoStep();
-  if (redo) {
-    const data = canvasManager.getAll();
-    data['undo'] = true;
-    sendMessage(event.sender, 'client-redo-model', data);
-    sendMessage(event.sender, 'client-redo-undo-update', canvasManager.getRedoUndo());
+  const isRedone = tableManager.redoStep(tableID);
+  if (isRedone) {
+    // redo step was successful
+    const tableData = tableManager.getTable(tableID);
+    tableData['undo'] = true;
+    // TODO evtl. zusammenfassen???
+    sendMessage(event.sender, 'client-redo-model', tableData);
+    sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
   } else {
     const feedback = {
       title: 'Redo Impossible',
-      desc: 'There are no more redo steps available.',
+      desc: 'There are probably no more redo steps available.',
       color: color.error,
     };
     sendMessage(event.sender, 'client-show-feedback', feedback);
@@ -187,14 +220,17 @@ ipcMain.on('server-redo-step', (event) => {
 });
 
 // server-clear-table
-ipcMain.on('server-clear-table', (event) => {
+ipcMain.on('server-clear-table', (event, tableID) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-clear-table] from client');
+    'Receiving code [server-clear-table] from client for table '+tableID);
   }
-  canvasManager.clearAll();
-  saveManager.clear();
-  sendMessage(event.sender, 'client-load-model', canvasManager.getAll());
+  tableManager.clearTable(tableID);
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  sendMessage(event.sender, 'client-load-model', data);
 });
 
 // server-open-details
@@ -222,14 +258,24 @@ ipcMain.on('server-load-file', (event, filename) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-load-file] from loadWindow');
   }
+  let tableID = activeTable.loading;
+  activeTable.loading = null;
   loadWindow.close();
   const savefolder = saveManager.getCurrentFolder();
   const file = saveManager.loadSaveFile(path.join(savefolder, filename));
-  canvasManager.clearAll();
-  canvasManager.loadFile(file);
-  const fileData = canvasManager.getAll();
-  fileData['loading'] = true;
-  sendMessage(mainWindow, 'client-load-model', fileData);
+
+  if (tableManager.hasFragments(activeTable.view)) {
+    tableID = tableManager.createNewTable();
+  }
+
+  tableManager.loadFile(tableID, file);
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  data.tableData['loading'] = true;
+  data.tableData['filename'] = filename;
+  sendMessage(mainWindow, 'client-load-model', data);
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
@@ -238,26 +284,26 @@ ipcMain.on('server-load-file', (event, filename) => {
   sendMessage(mainWindow, 'client-show-feedback', feedback);
 });
 
-// server-save-file
+// server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor
 ipcMain.on('server-save-file', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-save-file] from client');
   }
-  canvasManager.setScreenshot(data.screenshot);
+  tableManager.setScreenshot(data.tableID, data.screenshot);
 
   if (data.quicksave && !data.editor) {
     // non-initial quicksave, only update editor modified time
-    canvasManager.updateEditor();
+    tableManager.updateEditor(data.tableID);
   } else {
     // add new editor
-    canvasManager.addEditor(data.editor);
+    tableManager.addEditor(data.tableID, data.editor);
   }
 
   let filepath; let response;
   if (data.quicksave && saveManager.getCurrentFilepath()) {
     // overwrite old file
-    filepath = saveManager.saveTable(canvasManager.getAll(), true);
+    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), true, false);
     response = {
       title: 'Quicksave',
       desc: 'Quicksave successful',
@@ -265,7 +311,7 @@ ipcMain.on('server-save-file', (event, data) => {
     };
   } else {
     // don't overwrite but ask for new file destination
-    filepath = saveManager.saveTable(canvasManager.getAll(), false);
+    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), false, false);
     response = {
       title: 'Save',
       desc: 'Lighttable has successfully been saved',
@@ -274,6 +320,11 @@ ipcMain.on('server-save-file', (event, data) => {
   }
   if (filepath && response) {
     sendMessage(mainWindow, 'client-show-feedback', response);
+    const saveData = {
+      tableID: data.tableID,
+      filename: path.basename(filepath),
+    };
+    sendMessage(mainWindow, 'client-file-saved', saveData);
   }
 });
 
@@ -308,11 +359,13 @@ ipcMain.on('server-get-saves-folder', (event) => {
 });
 
 // server-open-load
-ipcMain.on('server-open-load', (event) => {
+ipcMain.on('server-open-load', (event, tableID) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-open-load] from client');
+    'Receiving code [server-open-load] from client for table '+tableID);
   }
+
+  activeTable.loading = tableID;
 
   if (loadWindow != null) {
     loadWindow.show();
@@ -328,10 +381,12 @@ ipcMain.on('server-open-load', (event) => {
     });
     loadWindow.on('close', function() {
       loadWindow = null;
+      activeTable.loading = null;
     });
   }
 });
 
+// server-export-file
 ipcMain.on('server-export-file', (event, filename) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -340,6 +395,7 @@ ipcMain.on('server-export-file', (event, filename) => {
   saveManager.exportFile(filename);
 });
 
+// server-delete-file
 ipcMain.on('server-delete-file', (event, filename) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -353,27 +409,32 @@ ipcMain.on('server-delete-file', (event, filename) => {
   }
 });
 
-ipcMain.on('server-write-annotation', (event, annotData) => {
+// server-write-annotation | data -> data.tableID, data.aData
+ipcMain.on('server-write-annotation', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-write-annotation] from client');
+    'Receiving code [server-write-annotation] from client for table '+data.tableID);
   }
-  canvasManager.setAnnotation(annotData);
+  tableManager.setAnnotation(data.tableID, data.aData);
 });
 
-ipcMain.on('server-remove-annotation', (event, id) => {
+// server-remove-annotation | data -> data.tableID, data.aID
+ipcMain.on('server-remove-annotation', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-remove-annotation] from client');
+    'Receiving code [server-remove-annotation] from client for table '+data.tableID);
   }
-  canvasManager.removeAnnotation(id);
+  tableManager.removeAnnotation(data.tableID, data.aID);
 });
 
-ipcMain.on('server-open-upload', (event) => {
+// server-open-upload
+ipcMain.on('server-open-upload', (event, tableID) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-open-upload] from client');
+    'Receiving code [server-open-upload] from client for table '+tableID);
   }
+
+  activeTable.uploading = tableID;
 
   if (!localUploadWindow) {
     localUploadWindow = new Window({
@@ -387,10 +448,12 @@ ipcMain.on('server-open-upload', (event) => {
     });
     localUploadWindow.on('close', function() {
       localUploadWindow = null;
+      activeTable.uploading = null;
     });
   }
 });
 
+// server-upload-ready
 ipcMain.on('server-upload-ready', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -398,9 +461,12 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
   localUploadWindow.close();
   localUploadWindow = null;
+  activeTable.uploading = null;
   mainWindow.send('client-add-upload', data);
 });
 
+// server-upload-image | triggers a file dialog for the user to select a fragment
+// image which will then be displayed in the upload window
 ipcMain.on('server-upload-image', (event) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -413,6 +479,7 @@ ipcMain.on('server-upload-image', (event) => {
   }
 });
 
+// server-quit-table
 ipcMain.on('server-quit-table', (event) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -421,17 +488,19 @@ ipcMain.on('server-quit-table', (event) => {
   app.quit();
 });
 
-ipcMain.on('server-change-fragment', (event, id) => {
+// server-change-fragment | data -> data.tableID, data.fragmentID
+ipcMain.on('server-change-fragment', (event, data) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-change-fragment] from client');
+    'Receiving code [server-change-fragment] from client for table '+data.tableID);
   }
 
-  const fragment = canvasManager.getFragment(id);
-
+  const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
   if (localUploadWindow) {
     localUploadWindow.close();
   }
+
+  activeTable.uploading = data.tableID;
 
   localUploadWindow = new Window({
     file: './renderer/upload.html',
@@ -444,22 +513,37 @@ ipcMain.on('server-change-fragment', (event, id) => {
   });
   localUploadWindow.on('close', function() {
     localUploadWindow = null;
+    activeTable.uploading = null;
   });
   sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
 });
 
-ipcMain.on('server-confirm-autosave', (event, confirmation) => {
+// server-confirm-autosave | data -> data.tableID, data.confirmation
+ipcMain.on('server-confirm-autosave', (event, confirmationData) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-confirm-autosave] from client');
+    'Receiving code [server-confirm-autosave] from client for table '+confirmationData.tableID);
   }
-  if (confirmation) {
-    canvasManager.clearAll();
-    const autosave = saveManager.loadAutosave();
-    canvasManager.loadFile(autosave);
-    const fileData = canvasManager.getAll();
-    fileData['loading'] = true;
-    sendMessage(mainWindow, 'client-load-model', fileData);
+  autosaveChecked = true;
+  if (confirmationData.confirmation) {
+    let tableID;
+    const autosaves = saveManager.loadAutosaves();
+    autosaves.forEach((autosave, key, autosaves) => {
+      tableID = tableManager.createNewTable();
+      tableManager.loadFile(tableID, autosave);
+      const data = {
+        tableID: tableID,
+        tableData: tableManager.getTable(tableID),
+      };
+      sendMessage(mainWindow, 'client-inactive-model', data);
+    });
+    const data = {
+      tableID: tableID,
+      tableData: tableManager.getTable(tableID),
+    };
+    activeTable.view = tableID;
+    data.tableData['loading'] = true;
+    sendMessage(mainWindow, 'client-load-model', data);
     const feedback = {
       title: 'Table Loaded',
       desc: 'Successfully loaded last autosave',
@@ -468,5 +552,63 @@ ipcMain.on('server-confirm-autosave', (event, confirmation) => {
     sendMessage(mainWindow, 'client-show-feedback', feedback);
   } else {
     saveManager.removeAutosaveFiles();
+    const data = createNewTable();
+    activeTable.view = data.tableID;
+    sendMessage(event.sender, 'client-load-model', data);
   }
+});
+
+// server-create-table
+ipcMain.on('server-create-table', (event) => {
+  if (autosaveChecked) {
+    const data = createNewTable();
+    activeTable.view = data.tableID;
+    sendMessage(event.sender, 'client-load-model', data);
+  }
+});
+
+// server-open-table
+ipcMain.on('server-open-table', (event, tableID) => {
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  activeTable.view = tableID;
+  sendMessage(event.sender, 'client-load-model', data);
+});
+
+// server-close-table
+ipcMain.on('server-close-table', (event, tableID) => {
+  const newTableID = tableManager.removeTable(tableID);
+  saveManager.removeAutosave(tableID);
+  if (tableID == activeTable.view) {
+    const data = {
+      tableID: newTableID,
+      tableData: tableManager.getTable(newTableID),
+    };
+    activeTable.view = newTableID;
+    sendMessage(event.sender, 'client-load-model', data);
+  }
+});
+
+// server-send-model
+ipcMain.on('server-send-model', (event, tableID) => {
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  sendMessage(event.sender, 'client-get-model', data);
+});
+
+ipcMain.on('server-send-all', (event) => {
+  sendMessage(event.sender, 'client-get-all', tableManager.getTables());
+});
+
+ipcMain.on('server-new-session', (event) => {
+  tableManager.clearAll();
+});
+
+// server-save-screenshot | data -> data.tableID, data.screenshot
+ipcMain.on('server-save-screenshot', (event, data) => {
+  tableManager.setScreenshot(data.tableID, data.screenshot);
 });

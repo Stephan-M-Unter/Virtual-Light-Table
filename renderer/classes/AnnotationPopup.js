@@ -311,23 +311,31 @@ class AnnotationPopup {
    * @param {*} hidden
    */
   _writeToServer(id, text, editor, time, hidden) {
-    const annotData = {
+    const aData = {
       'id': id,
       'text': text,
       'editor': editor,
       'time': time,
       'hidden': hidden,
     };
+    const data = {
+      tableID: this.controller.getActiveTable(),
+      aData: aData,
+    };
 
-    this.controller.sendToServer('server-write-annotation', annotData);
+    this.controller.sendToServer('server-write-annotation', data);
   }
 
   /**
    * TODO
-   * @param {*} id
+   * @param {String} aID Annotation-ID, e.g. "a_0".
    */
-  _removeFromServer(id) {
-    this.controller.sendToServer('server-remove-annotation', id);
+  _removeFromServer(aID) {
+    const data = {
+      tableID: this.controller.getActiveTable(),
+      aID: aID,
+    };
+    this.controller.sendToServer('server-remove-annotation', data);
   }
 }
 
