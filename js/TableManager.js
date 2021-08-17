@@ -212,6 +212,18 @@ class TableManager {
   }
 
   /**
+   * 
+   * @param {String} tableID 
+   * @return {Object} 
+   */
+  getInactiveTable(tableID) {
+    const table = this.getEmptyTable();
+    table.screenshot = this.tables[tableID].screenshot;
+    table.fragments = this.tables[tableID].fragments;
+    return table;
+  }
+
+  /**
    * Return everything.
    * @return {Object}
    */

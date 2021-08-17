@@ -17,6 +17,13 @@ class Topbar {
 
     $('#topbar_handle').click((event) => {
       $('#topbar').toggleClass('collapsed');
+      event.stopPropagation();
+    });
+
+    $('#topbar').click((event) => {
+      if ($('#topbar').hasClass('collapsed')) {
+        $('#topbar').toggleClass('collapsed');
+      }
     });
   }
 
@@ -80,6 +87,7 @@ class Topbar {
    * and, potentielly, the filename.
    */
   updateTable(tableID, tableData) {
+    console.log("updateTable", tableID, tableData);
     if (tableData.filename) {
       $('#'+tableID).find('.table_header').html(tableData.filename);
     }
@@ -87,7 +95,8 @@ class Topbar {
       // show screenshot for table on card
       $('#'+tableID).find('.table_header').removeClass('empty');
       $('#'+tableID).find('.table_screenshot').removeClass('empty');
-      $('#'+tableID).find('.table_screenshot>img').attr('src', tableData.screenshot);
+      $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading.gif');
+      this.storedScreenshot = tableData.screenshot;
     } else {
       // don't show any screenshot
       $('#'+tableID).find('.table_header').addClass('empty');
@@ -134,8 +143,15 @@ class Topbar {
    */
   collapse() {
     $('#topbar').delay(1500).queue(function() {
-      // $('#topbar').addClass('collapsed').dequeue();
+      $('#topbar').addClass('collapsed').dequeue();
     });
+  }
+
+  /**
+   * 
+   */
+  uncollapse() {
+    $('#topbar').removeClass('collapsed');
   }
 
   /**
@@ -153,11 +169,32 @@ class Topbar {
   }
 
   /**
-   * 
-   * @param {*} saveData 
+   *
+   * @param {*} saveData
    */
   updateFilename(saveData) {
-      $('#'+saveData.tableID).find('.table_header').html(saveData.filename);
+    $('#'+saveData.tableID).find('.table_header').html(saveData.filename);
+  }
+
+  /**
+   * @param {String} tableID
+   * @param {[*]} screenshot
+   */
+  finishedLoading(tableID, screenshot) {
+    if (this.storedScreenshot) {
+      $('#'+tableID).find('.table_screenshot>img').attr('src', this.storedScreenshot);
+      this.storedScreenshot = null;
+    } else if (screenshot) {
+      $('#'+tableID).find('.table_screenshot>img').attr('src', screenshot);
+    }
+  }
+
+  /**
+   * 
+   * @return {Boolean}
+   */
+  hasStoredScreenshot() {
+    return this.storedScreenshot;
   }
 }
 

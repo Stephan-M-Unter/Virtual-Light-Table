@@ -80,10 +80,10 @@ class Stage {
       this._createFragment(event);
     });
     this.loadqueue.on('complete', () => {
+      this.controller.finishedLoading();
       this.fitToScreen();
       this.update();
       this.controller.saveToModel(true);
-      this.controller.finishedLoading();
     });
   }
 

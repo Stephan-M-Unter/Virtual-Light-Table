@@ -20,7 +20,6 @@ const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
-const { DefaultSerializer } = require('v8');
 
 // Settings
 const devMode = true;
@@ -49,6 +48,7 @@ const activeTable = {
   uploading: null,
   view: null,
 };
+let autosaveChecked = false;
 
 /* ##############################################################
 ###
@@ -71,10 +71,14 @@ function main() {
   }
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    if (saveManager.checkForAutosave()) sendMessage(mainWindow, 'client-confirm-autosave');
-  });
-  mainWindow.on('reload', function(event) {
-    console.log("RELOAD");
+    if (saveManager.checkForAutosave()) {
+      sendMessage(mainWindow, 'client-confirm-autosave');
+    } else {
+      autosaveChecked = true;
+      const data = createNewTable();
+      activeTable.view = data.tableID;
+      sendMessage(event.sender, 'client-load-model', data);
+    }
   });
   mainWindow.on('close', function(event) {
     const choice = dialog.showMessageBoxSync(event.target, {
@@ -115,6 +119,19 @@ function timestamp() {
   return '['+day+'/'+month+'/'+year+' '+hour+':'+minute+':'+second+']';
 }
 
+/**
+ * 
+ * @return {Object}
+ */
+function createNewTable() {
+  const tableID = tableManager.createNewTable();
+  const data = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  };
+  return data;
+}
+
 /* ##############################################################
 ###
 ###                    MESSAGES (SEND/RECEIVE)
@@ -148,7 +165,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
   }
 
   tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
-  saveManager.saveTable(data.tableData, false, true);
+  saveManager.saveTable(data.tableData, false, true, data.tableID);
 
   sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
 });
@@ -286,7 +303,7 @@ ipcMain.on('server-save-file', (event, data) => {
   let filepath; let response;
   if (data.quicksave && saveManager.getCurrentFilepath()) {
     // overwrite old file
-    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), true);
+    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), true, false);
     response = {
       title: 'Quicksave',
       desc: 'Quicksave successful',
@@ -294,7 +311,7 @@ ipcMain.on('server-save-file', (event, data) => {
     };
   } else {
     // don't overwrite but ask for new file destination
-    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), false);
+    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), false, false);
     response = {
       title: 'Save',
       desc: 'Lighttable has successfully been saved',
@@ -502,19 +519,29 @@ ipcMain.on('server-change-fragment', (event, data) => {
 });
 
 // server-confirm-autosave | data -> data.tableID, data.confirmation
-ipcMain.on('server-confirm-autosave', (event, data) => {
+ipcMain.on('server-confirm-autosave', (event, confirmationData) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-confirm-autosave] from client for table '+data.tableID);
+    'Receiving code [server-confirm-autosave] from client for table '+confirmationData.tableID);
   }
-  if (data.confirmation) {
-    tableManager.clearTable(data.tableID);
-    const autosave = saveManager.loadAutosave();
-    tableManager.loadFile(data.tableID, autosave);
+  autosaveChecked = true;
+  if (confirmationData.confirmation) {
+    let tableID;
+    const autosaves = saveManager.loadAutosaves();
+    autosaves.forEach((autosave, key, autosaves) => {
+      tableID = tableManager.createNewTable();
+      tableManager.loadFile(tableID, autosave);
+      const data = {
+        tableID: tableID,
+        tableData: tableManager.getTable(tableID),
+      };
+      sendMessage(mainWindow, 'client-inactive-model', data);
+    });
     const data = {
-      tableID: data.tableID,
-      tableData: tableManager.getTable(data.tableID),
+      tableID: tableID,
+      tableData: tableManager.getTable(tableID),
     };
+    activeTable.view = tableID;
     data.tableData['loading'] = true;
     sendMessage(mainWindow, 'client-load-model', data);
     const feedback = {
@@ -525,18 +552,19 @@ ipcMain.on('server-confirm-autosave', (event, data) => {
     sendMessage(mainWindow, 'client-show-feedback', feedback);
   } else {
     saveManager.removeAutosaveFiles();
+    const data = createNewTable();
+    activeTable.view = data.tableID;
+    sendMessage(event.sender, 'client-load-model', data);
   }
 });
 
 // server-create-table
 ipcMain.on('server-create-table', (event) => {
-  const tableID = tableManager.createNewTable();
-  const data = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  };
-  activeTable.view = tableID;
-  sendMessage(event.sender, 'client-load-model', data);
+  if (autosaveChecked) {
+    const data = createNewTable();
+    activeTable.view = data.tableID;
+    sendMessage(event.sender, 'client-load-model', data);
+  }
 });
 
 // server-open-table
@@ -552,6 +580,7 @@ ipcMain.on('server-open-table', (event, tableID) => {
 // server-close-table
 ipcMain.on('server-close-table', (event, tableID) => {
   const newTableID = tableManager.removeTable(tableID);
+  saveManager.removeAutosave(tableID);
   if (tableID == activeTable.view) {
     const data = {
       tableID: newTableID,

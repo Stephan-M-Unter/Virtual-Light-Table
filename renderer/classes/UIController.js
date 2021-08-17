@@ -59,7 +59,6 @@ class UIController {
     this.isLoading = false;
 
     this.sendToServer('server-new-session');
-    this.sendToServer('server-create-table');
   }
 
   /**
@@ -100,6 +99,8 @@ class UIController {
     data.tableID = this.activeTable;
     data.screenshot = this.exportCanvas('png', true, true);
     data.quicksave = isQuicksave;
+
+    this.topbar.updateScreenshot(this.activeTable, data.screenshot);
 
     if (isQuicksave && !this.firstSave && this.editor) {
       // not first quicksave, thus editor no longer needed
@@ -450,11 +451,23 @@ class UIController {
       this.firstSave = true;
     }
     this.topbar.setActiveTable(data.tableID);
-    this.topbar.collapse();
     this.annotationPopup.loadAnnotations(data.tableData.annots);
     this.stage.loadScene(data.tableData);
     this.updateSidebarFragmentList();
   }
+
+  /**
+   * 
+   * @param {*} data 
+   */
+  loadInactive(data) {
+    if (!this.tables.includes(data.tableID)) {
+      this.tables.push(data.tableID);
+      this.topbar.addTable(data.tableID, data.tableData);
+    } else {
+      this.topbar.updateTable(data.tableID, data.tableData);
+    }
+  };
 
   /**
    * Relay function.
@@ -840,6 +853,16 @@ class UIController {
    */
   finishedLoading() {
     this.isLoading = false;
+    const screenshot = this.stage.exportCanvas('png', true, true);
+    const tableData = this.stage.getData();
+    tableData.screenshot = screenshot;
+    this.topbar.updateTable(this.activeTable, tableData);
+    const data = {
+      tableID: this.activeTable,
+      screenshot: screenshot,
+    };
+    this.sendToServer('server-save-screenshot', data);
+    this.topbar.finishedLoading(this.activeTable);
   }
 
   /**

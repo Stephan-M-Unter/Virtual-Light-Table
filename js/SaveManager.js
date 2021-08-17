@@ -42,19 +42,20 @@ class SaveManager {
    * TODO
    * @param {Object} tableConfiguration
    *    Object containing the full data JSON with table and fragments configuration.
-   * @param {Boolean} overwrite
+   * @param {[Boolean]} overwrite
    *    TRUE: if there is already a savefile, it will be overwritten
    *    FALSE: the user will be asked for a directory and filename
-   * @param {Boolean} autosave
+   * @param {[Boolean]} autosave
    *    TRUE: table will be saved as temp_save in dedicated place and overwrite pre-existing file
    *    FALSE: regular save, user will potentially be asked for directory and filename
+   * @param {[String]} tableID ID of table, e.g. "table_1".
    * @return {String}
    *    String with the filepath of the just saved file.
    */
-  saveTable(tableConfiguration, overwrite, autosave) {
+  saveTable(tableConfiguration, overwrite, autosave, tableID) {
     let filepath;
     if (autosave) {
-      filepath = this.tempSaveFolder + '_temp.vlt';
+      filepath = this.tempSaveFolder + tableID + '_temp.vlt';
     } else if (overwrite && this.filepath) {
       filepath = this.filepath;
     } else {
@@ -304,14 +305,6 @@ class SaveManager {
 
   /**
    * TODO
-   * @return {Object}
-   */
-  loadAutosave() {
-    return this.loadSaveFile(this.tempSaveFolder+'_temp.vlt');
-  }
-
-  /**
-   * TODO
    * @param {*} filepath
    * @param {*} data
    */
@@ -412,6 +405,17 @@ class SaveManager {
    * @return {Boolean}
    */
   checkForAutosave() {
+    const tempFiles = fs.readdirSync(this.tempSaveFolder);
+    let autosaveFound = false;
+    if (tempFiles.length > 0) {
+      tempFiles.forEach((file) => {
+        if (file.includes('_temp.vlt')) {
+          autosaveFound = true;
+        }
+      });
+    }
+    return autosaveFound;
+    console.log(tempFiles);
     try {
       if (fs.existsSync(this.tempSaveFolder+'_temp.vlt')) {
         return true;
@@ -420,6 +424,21 @@ class SaveManager {
       console.error(err);
     }
     return false;
+  }
+
+  /**
+   * TODO
+   * @return {Object[]}
+   */
+  loadAutosaves() {
+    const tempFiles = fs.readdirSync(this.tempSaveFolder);
+    const autosaves = [];
+    tempFiles.forEach((file) => {
+      if (file.includes('_temp.vlt')) {
+        autosaves.push(this.loadSaveFile(this.tempSaveFolder+file));
+      }
+    });
+    return autosaves;
   }
 
   /**
@@ -443,6 +462,16 @@ class SaveManager {
     };
 
     removeDir(this.tempSaveFolder);
+  }
+
+  /**
+   * 
+   * @param {*} tableID 
+   */
+  removeAutosave(tableID) {
+    if (fs.existsSync(this.tempSaveFolder+tableID+'_temp.vlt')) {
+      fs.unlinkSync(this.tempSaveFolder+tableID+'_temp.vlt');
+    }
   }
 
   /**
