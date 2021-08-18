@@ -40,10 +40,10 @@ body {
 /* Sidebar */
 
 #left_sidebar {
-    position: relative;
+    position: absolute;
     background-color: rgba(29, 29, 27, 0.5);
-    top: 0;
-    left: 0;
+    top: 0px;
+    left: 0px;
     width: 200px;
     max-width: 50%;
     min-width: 180px;
@@ -98,7 +98,7 @@ body {
     width: 20px;
     height: 100px;
     background-color: rgba(100, 100, 100, 1);
-    transform: translateX(-40%) translateY(-50%);
+    transform: translateX(-20%) translateY(-50%);
     border: 1px solid rgb(40, 40, 40);
     border-radius: 7px;
     writing-mode: vertical-lr;
@@ -182,7 +182,7 @@ body {
 }
 
 .sidebar_content_wrapper.expanded .sidebar_content {
-    height: calc(100vh - 200px);
+    height: calc(100vh - 150px);
     opacity: 1;
     padding: 0px 10px;
     transition: 0.2s all;
@@ -190,7 +190,7 @@ body {
 }
 
 .small .sidebar_content_wrapper.expanded .sidebar_content {
-    height: calc(100vh - 140px);
+    height: calc(100vh - 100px);
 }
 
 .sidebar_content_wrapper .sidebar_content {
@@ -953,11 +953,15 @@ body {
 }
 
 .button_label {
-    font-size: 1.1em;
+    font-size: 1em;
     text-align: center;
     flex: 1 0 auto;
     position: relative;
     line-height: 50px;
+}
+
+.small .button_label {
+    font-size: 0.9em;
 }
 
 .small .wide_button {
@@ -1107,7 +1111,6 @@ body {
     transition: 0.2s top, 0.2s background-color;
     box-shadow: 3px 0px 10px black;
     box-sizing: border-box;
-    z-index: 5;
 }
 
 #topbar.collapsed {
