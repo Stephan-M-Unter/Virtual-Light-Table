@@ -77,7 +77,7 @@ function main() {
       autosaveChecked = true;
       const data = createNewTable();
       activeTable.view = data.tableID;
-      sendMessage(event.sender, 'client-load-model', data);
+      sendMessage(mainWindow, 'client-load-model', data);
     }
   });
   mainWindow.on('close', function(event) {
@@ -264,7 +264,10 @@ ipcMain.on('server-load-file', (event, filename) => {
   const savefolder = saveManager.getCurrentFolder();
   const file = saveManager.loadSaveFile(path.join(savefolder, filename));
 
-  if (tableManager.hasFragments(activeTable.view)) {
+  if (!activeTable.view) {
+    tableID = tableManager.createNewTable();
+    activeTable.view = tableID;
+  } else if (tableManager.hasFragments(activeTable.view)) {
     tableID = tableManager.createNewTable();
   }
 
@@ -461,7 +464,19 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
   localUploadWindow.close();
   localUploadWindow = null;
+
+  if (!activeTable.uploading) {
+    const tableID = tableManager.createNewTable();
+    const tableData = tableManager.getTable(tableID);
+    const newTableData = {
+      tableID: tableID,
+      tableData: tableData,
+    };
+    sendMessage(mainWindow, 'client-load-model', newTableData);
+  }
+
   activeTable.uploading = null;
+  console.log(data);
   mainWindow.send('client-add-upload', data);
 });
 
@@ -606,9 +621,14 @@ ipcMain.on('server-send-all', (event) => {
 
 ipcMain.on('server-new-session', (event) => {
   tableManager.clearAll();
+  activeTable.view = null;
+  activeTable.loading = null;
+  activeTable.uploading = null;
 });
 
 // server-save-screenshot | data -> data.tableID, data.screenshot
 ipcMain.on('server-save-screenshot', (event, data) => {
-  tableManager.setScreenshot(data.tableID, data.screenshot);
+  if (data.tableID && data.screenshot) {
+    tableManager.setScreenshot(data.tableID, data.screenshot);
+  }
 });
