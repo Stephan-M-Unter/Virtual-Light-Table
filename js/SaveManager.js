@@ -256,8 +256,8 @@ class SaveManager {
         for (const fID in savefile.fragments) {
           if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
             const fragment = savefile.fragments[fID];
-            const recto = path.basename(path.resolve(fragment.rectoURL));
-            const verso = path.basename(path.resolve(fragment.versoURL));
+            const recto = path.resolve(fragment.rectoURL).split('\\').pop().split('/').pop();
+            const verso = path.resolve(fragment.versoURL).split('\\').pop().split('/').pop();
             console.log("Recto", recto);
             console.log("Verso", verso);
 
