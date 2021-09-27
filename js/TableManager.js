@@ -212,9 +212,8 @@ class TableManager {
   }
 
   /**
-   * 
-   * @param {String} tableID 
-   * @return {Object} 
+   * @param {String} tableID
+   * @return {Object}
    */
   getInactiveTable(tableID) {
     const table = this.getEmptyTable();

@@ -75,9 +75,9 @@ function main() {
       sendMessage(mainWindow, 'client-confirm-autosave');
     } else {
       autosaveChecked = true;
-      const data = createNewTable();
-      activeTable.view = data.tableID;
-      sendMessage(mainWindow, 'client-load-model', data);
+      // const data = createNewTable();
+      // activeTable.view = data.tableID;
+      // sendMessage(mainWindow, 'client-load-model', data);
     }
   });
   mainWindow.on('close', function(event) {
@@ -120,7 +120,6 @@ function timestamp() {
 }
 
 /**
- * 
  * @return {Object}
  */
 function createNewTable() {
@@ -575,6 +574,10 @@ ipcMain.on('server-confirm-autosave', (event, confirmationData) => {
 
 // server-create-table
 ipcMain.on('server-create-table', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-create-table] from client');
+  }
   if (autosaveChecked) {
     const data = createNewTable();
     activeTable.view = data.tableID;
@@ -584,6 +587,10 @@ ipcMain.on('server-create-table', (event) => {
 
 // server-open-table
 ipcMain.on('server-open-table', (event, tableID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-table] from client for table '+tableID);
+  }
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
@@ -594,6 +601,10 @@ ipcMain.on('server-open-table', (event, tableID) => {
 
 // server-close-table
 ipcMain.on('server-close-table', (event, tableID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-close-table] from client for table '+tableID);
+  }
   const newTableID = tableManager.removeTable(tableID);
   saveManager.removeAutosave(tableID);
   if (tableID == activeTable.view) {
@@ -608,6 +619,10 @@ ipcMain.on('server-close-table', (event, tableID) => {
 
 // server-send-model
 ipcMain.on('server-send-model', (event, tableID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-send-model] from client for table '+tableID);
+  }
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
@@ -616,18 +631,34 @@ ipcMain.on('server-send-model', (event, tableID) => {
 });
 
 ipcMain.on('server-send-all', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-send-all] from client');
+  }
   sendMessage(event.sender, 'client-get-all', tableManager.getTables());
 });
 
 ipcMain.on('server-new-session', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-new-session] from client');
+  }
   tableManager.clearAll();
-  activeTable.view = null;
+  // activeTable.view = null;
   activeTable.loading = null;
   activeTable.uploading = null;
+
+  const data = createNewTable();
+  activeTable.view = data.tableID;
+  sendMessage(mainWindow, 'client-load-model', data);
 });
 
 // server-save-screenshot | data -> data.tableID, data.screenshot
 ipcMain.on('server-save-screenshot', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-save-screenshot] from client for table '+data.tableID);
+  }
   if (data.tableID && data.screenshot) {
     tableManager.setScreenshot(data.tableID, data.screenshot);
   }

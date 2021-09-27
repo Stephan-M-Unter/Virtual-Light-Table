@@ -457,8 +457,8 @@ class UIController {
   }
 
   /**
-   * 
-   * @param {*} data 
+   *
+   * @param {*} data
    */
   loadInactive(data) {
     if (!this.tables.includes(data.tableID)) {

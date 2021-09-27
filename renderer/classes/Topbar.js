@@ -87,7 +87,6 @@ class Topbar {
    * and, potentielly, the filename.
    */
   updateTable(tableID, tableData) {
-    console.log("updateTable", tableID, tableData);
     if (tableData.filename) {
       $('#'+tableID).find('.table_header').html(tableData.filename);
     }
@@ -135,6 +134,12 @@ class Topbar {
         screenshot: screenshot,
       };
       this.controller.sendToServer('server-save-screenshot', data);
+    } else {
+      // don't show any screenshot
+      const tableID = $('.activeTable').attr('table');
+      $('#'+tableID).find('.table_header').addClass('empty');
+      $('#'+tableID).find('.table_screenshot').addClass('empty');
+      $('#'+tableID).find('.table_screenshot>img').attr('src', '');
     }
   }
 
@@ -148,7 +153,7 @@ class Topbar {
   }
 
   /**
-   * 
+   *
    */
   uncollapse() {
     $('#topbar').removeClass('collapsed');
@@ -190,7 +195,7 @@ class Topbar {
   }
 
   /**
-   * 
+   *
    * @return {Boolean}
    */
   hasStoredScreenshot() {

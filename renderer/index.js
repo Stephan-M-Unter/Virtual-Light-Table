@@ -534,19 +534,19 @@ $(document).ready(function() {
     if (controller.isDevMode()) console.log('DevMode: Received client-confirm-autosave');
     controller.confirmAutosave();
   });
-  
+
   ipcRenderer.on('client-get-model', (event, data) => {
     console.log(data);
   });
-  
+
   ipcRenderer.on('client-get-all', (event, data) => {
     console.log(data);
   });
-  
+
   ipcRenderer.on('client-file-saved', (event, saveData) => {
     controller.updateFilename(saveData);
   });
-  
+
   ipcRenderer.on('client-inactive-model', (event, data) => {
     if (controller.isDevMode()) console.log('DevMode: Received client-inactive-model', data);
     controller.loadInactive(data);
