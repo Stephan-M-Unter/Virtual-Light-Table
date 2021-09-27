@@ -242,9 +242,13 @@ class SaveManager {
   cleanSavefileImages(folder, savefiles) {
     let images = fs.readdirSync(folder+'/imgs');
 
+    /*
     images = images.map((item) => {
       return path.resolve(folder+'/imgs/'+item);
     });
+    */
+
+    console.log("Images", images);
 
     for (const sID in savefiles) {
       if (Object.prototype.hasOwnProperty.call(savefiles, sID)) {
@@ -252,8 +256,10 @@ class SaveManager {
         for (const fID in savefile.fragments) {
           if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
             const fragment = savefile.fragments[fID];
-            const recto = path.resolve(fragment.rectoURL);
-            const verso = path.resolve(fragment.versoURL);
+            const recto = path.basename(path.resolve(fragment.rectoURL));
+            const verso = path.basename(path.resolve(fragment.versoURL));
+            console.log("Recto", recto);
+            console.log("Verso", verso);
 
             while (true) {
               const index = images.indexOf(recto);
