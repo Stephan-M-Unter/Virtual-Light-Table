@@ -118,12 +118,13 @@ class SaveManager {
           } else {
             if (!rectoAlreadyMoved) {
               // is image in temp folder?
+              const rectoOldPath = fragment.rectoURL.replace(/\\\\/g, "/").replace(/\\/g, "/");
               if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
-                fs.renameSync(path.resolve(fragment.rectoURL), rectoNewPath);
+                fs.renameSync(rectoOldPath, rectoNewPath);
               } else {
                 // image is somewhere else; copy image to imagepath
-                fs.copyFileSync(path.resolve(fragment.rectoURL), rectoNewPath);
+                fs.copyFileSync(rectoOldPath, rectoNewPath);
               }
             }
             tableConfiguration.fragments[fID].rectoURL = rectoNewPath;
@@ -136,12 +137,13 @@ class SaveManager {
           } else {
             if (!versoAlreadyMoved) {
               // is image in temp folder?
+              const versoOldPath = fragment.versoURL.replace(/\\\\/g, "/").replace(/\\/g, "/");
               if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
-                fs.renameSync(fragment.versoURL, versoNewPath);
+                fs.renameSync(versoOldPath, versoNewPath);
               } else {
                 // image is somewhere else; copy image to imagepath
-                fs.copyFileSync(fragment.versoURL, versoNewPath);
+                fs.copyFileSync(versoOldPath, versoNewPath);
               }
             }
             tableConfiguration.fragments[fID].versoURL = versoNewPath;
