@@ -120,10 +120,10 @@ class SaveManager {
               // is image in temp folder?
               if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
-                fs.renameSync(fragment.rectoURL, rectoNewPath);
+                fs.renameSync(path.resolve(fragment.rectoURL), rectoNewPath);
               } else {
                 // image is somewhere else; copy image to imagepath
-                fs.copyFileSync(fragment.rectoURL, rectoNewPath);
+                fs.copyFileSync(path.resolve(fragment.rectoURL), rectoNewPath);
               }
             }
             tableConfiguration.fragments[fID].rectoURL = rectoNewPath;
