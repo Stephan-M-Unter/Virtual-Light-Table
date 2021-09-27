@@ -101,9 +101,9 @@ class SaveManager {
         if (Object.prototype.hasOwnProperty.call(tableConfiguration.fragments, fID)) {
           const fragment = tableConfiguration.fragments[fID];
           const rectoImageDir = path.dirname(fragment.rectoURL);
-          const rectoImageName = path.basename(fragment.rectoURL);
+          const rectoImageName = fragment.rectoURL.split('\\').pop().split('/').pop();
           const versoImageDir = path.dirname(fragment.versoURL);
-          const versoImageName = path.basename(fragment.versoURL);
+          const versoImageName = fragment.versoURL.split('\\').pop().split('/').pop();
           const rectoNewPath = path.join(imagepath, rectoImageName);
           const versoNewPath = path.join(imagepath, versoImageName);
           const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
@@ -240,15 +240,13 @@ class SaveManager {
    * @param {Object} savefiles - Object containing all loaded savefiles.
    */
   cleanSavefileImages(folder, savefiles) {
-    let images = fs.readdirSync(folder+'/imgs');
+    const images = fs.readdirSync(folder+'/imgs');
 
     /*
     images = images.map((item) => {
       return path.resolve(folder+'/imgs/'+item);
     });
     */
-
-    console.log("Images", images);
 
     for (const sID in savefiles) {
       if (Object.prototype.hasOwnProperty.call(savefiles, sID)) {
@@ -258,8 +256,6 @@ class SaveManager {
             const fragment = savefile.fragments[fID];
             const recto = path.resolve(fragment.rectoURL).split('\\').pop().split('/').pop();
             const verso = path.resolve(fragment.versoURL).split('\\').pop().split('/').pop();
-            console.log("Recto", recto);
-            console.log("Verso", verso);
 
             while (true) {
               const index = images.indexOf(recto);
