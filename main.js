@@ -165,7 +165,10 @@ ipcMain.on('server-save-to-model', (event, data) => {
   }
 
   tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
-  saveManager.saveTable(data.tableData, false, true, data.tableID);
+  if (Object.keys(data.tableData.fragments).length > 0) {
+    // no need to autosave when there are no fragments
+    saveManager.saveTable(data.tableData, false, true, data.tableID);
+  }
 
   sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
 });
