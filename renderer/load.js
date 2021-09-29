@@ -5,7 +5,7 @@ const {Util} = require('./classes/Util');
 
 let saves;
 let currentSave;
-const defaultFolder = './saves/';
+let defaultFolder;
 
 /**
  * TODO
@@ -16,7 +16,7 @@ function selectDefaultFolder() {
 }
 
 $(document).ready(function() {
-  selectDefaultFolder();
+  ipcRenderer.send('server-ask-load-folders');
 });
 
 /**
@@ -326,6 +326,12 @@ ipcRenderer.on('load-receive-saves', (event, savefiles) => {
 
 // load-receive-folder
 ipcRenderer.on('load-receive-folder', (event, path) => {
+  console.log('[load-receive-folder]', path);
   $('#folder').val(path);
   ipcRenderer.send('server-list-savefiles', path);
+});
+
+ipcRenderer.on('load-set-default-folder', (event, path) => {
+  console.log('[load-set-default-folder]', path);
+  defaultFolder = path;
 });

@@ -24,13 +24,14 @@ const SaveManager = require('./js/SaveManager');
 // Settings
 const devMode = true;
 const appPath = app.getAppPath();
+const appDataPath = app.getPath('appData');
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // Initialisation
 // Managers
 const tableManager = new TableManager();
 const imageManager = new ImageManager();
-const saveManager = new SaveManager(__dirname.split(path.sep).pop());
+const saveManager = new SaveManager(appDataPath);
 // Windows
 let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
@@ -662,4 +663,9 @@ ipcMain.on('server-save-screenshot', (event, data) => {
   if (data.tableID && data.screenshot) {
     tableManager.setScreenshot(data.tableID, data.screenshot);
   }
+});
+
+ipcMain.on('server-ask-load-folders', (event) => {
+  event.sender.send('load-set-default-folder', saveManager.getDefaultFolder());
+  event.sender.send('load-receive-folder', saveManager.getCurrentFolder());
 });

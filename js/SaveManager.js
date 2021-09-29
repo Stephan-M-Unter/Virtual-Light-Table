@@ -25,15 +25,34 @@ const JSZip = require('jszip');
 class SaveManager {
   /**
      * TODO
-     * @param {String} appPath
+     * @param {String} appPath - Path to the application data directory provided by the operating
+     *                           system. If not "Virtual Light Table" subfolder is present, a new one
+     *                           will be created.
      */
   constructor(appPath) {
-    // this.defaultSaveFolder = './saves';
-    this.defaultSaveFolder = __dirname+'/saves/';
-    this.tempSaveFolder = __dirname+'/../temp/';
-    if (!fs.existsSync(this.tempSaveFolder)) fs.mkdirSync(this.tempSaveFolder);
-    console.log('Temp Save Folder:', this.tempSaveFolder);
+    // check if "Virtual Light Table" subfolder exists
+    const vltFolder = path.join(appPath, 'Virtual Light Table');
+    if (!fs.existsSync(vltFolder)) {
+      // creating VLT subfolder in appdata
+      fs.mkdirSync(vltFolder);
+      console.log('Created new VLT folder at ' + vltFolder);
+    }
+
+    this.defaultSaveFolder = path.join(vltFolder, 'saves');
     this.currentSaveFolder = this.defaultSaveFolder;
+    if (!fs.existsSync(this.defaultSaveFolder)) {
+      // creating saves subfolder
+      fs.mkdirSync(path.join(vltFolder, 'saves'));
+      fs.mkdirSync(path.join(vltFolder, 'saves', 'imgs'));
+    }
+
+    this.tempSaveFolder = path.join(vltFolder, 'temp');
+    if (!fs.existsSync(this.tempSaveFolder)) {
+      // creating temp subfolder for autosaves
+      fs.mkdirSync(path.join(vltFolder, 'temp'));
+      fs.mkdirSync(path.join(vltFolder, 'temp', 'imgs'));
+    }
+
     this.filepath = null;
     this.appPath = appPath;
   }
@@ -55,7 +74,7 @@ class SaveManager {
   saveTable(tableConfiguration, overwrite, autosave, tableID) {
     let filepath;
     if (autosave) {
-      filepath = this.tempSaveFolder + tableID + '_temp.vlt';
+      filepath = path.join(this.tempSaveFolder, tableID + '_temp.vlt');
     } else if (overwrite && this.filepath) {
       filepath = this.filepath;
     } else {
@@ -76,7 +95,7 @@ class SaveManager {
       // create save dialog
       filepath = dialog.showSaveDialogSync({
         title: 'Save Current Table Configuration',
-        defaultPath: path.join(__dirname+'/../saves/', filename),
+        defaultPath: path.join(this.currentSaveFolder, filename),
         filters: [{
           name: 'Virtual Light Table Save',
           extensions: ['vlt'],
@@ -118,7 +137,7 @@ class SaveManager {
           } else {
             if (!rectoAlreadyMoved) {
               // is image in temp folder?
-              const rectoOldPath = fragment.rectoURL.replace(/\\\\/g, "/").replace(/\\/g, "/");
+              const rectoOldPath = fragment.rectoURL.replace(/\\\\/g, '/').replace(/\\/g, '/');
               if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
                 fs.renameSync(rectoOldPath, rectoNewPath);
@@ -137,7 +156,7 @@ class SaveManager {
           } else {
             if (!versoAlreadyMoved) {
               // is image in temp folder?
-              const versoOldPath = fragment.versoURL.replace(/\\\\/g, "/").replace(/\\/g, "/");
+              const versoOldPath = fragment.versoURL.replace(/\\\\/g, '/').replace(/\\/g, '/');
               if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
                 fs.renameSync(versoOldPath, versoNewPath);
@@ -171,7 +190,7 @@ class SaveManager {
         name: 'Virtual Light Table Save',
         extensions: ['vlt'],
       }],
-      defaultPath: __dirname+'/..',
+      defaultPath: this.currentSaveFolder,
       properties: [
         'openFile',
       ],
@@ -203,7 +222,7 @@ class SaveManager {
       * ich den Filter nur auf vlt-Dateien lasse, kann die NutzerIn nicht mehr
       * frei durch die Ordner traversieren.
       */
-      defaultPath: __dirname+'/..',
+      defaultPath: this.currentSaveFolder,
       properties: [
         'openDirectory',
         'treatPackageAsDirectory',
@@ -242,6 +261,9 @@ class SaveManager {
    * @param {Object} savefiles - Object containing all loaded savefiles.
    */
   cleanSavefileImages(folder, savefiles) {
+    if (!fs.existsSync(folder+'/imgs')) {
+      return;
+    }
     const images = fs.readdirSync(folder+'/imgs');
 
     /*
@@ -439,7 +461,8 @@ class SaveManager {
     const autosaves = [];
     tempFiles.forEach((file) => {
       if (file.includes('_temp.vlt')) {
-        autosaves.push(this.loadSaveFile(this.tempSaveFolder+file));
+        const autosavePath = path.join(this.tempSaveFolder, file);
+        autosaves.push(this.loadSaveFile(autosavePath));
       }
     });
     return autosaves;
@@ -469,8 +492,8 @@ class SaveManager {
   }
 
   /**
-   * 
-   * @param {*} tableID 
+   *
+   * @param {*} tableID
    */
   removeAutosave(tableID) {
     if (fs.existsSync(this.tempSaveFolder+tableID+'_temp.vlt')) {
