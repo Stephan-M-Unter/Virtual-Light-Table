@@ -769,13 +769,10 @@ class UIController {
     'Otherwise, it will be removed permanently.';
 
     dialogs.confirm(confirmMessage, (confirmation) => {
-      const data = {
-        tableID: this.activeTable,
-      };
-      if (confirmation) data.confirmation = true;
-      else data.confirmation = false;
-
-      this.sendToServer('server-confirm-autosave', data);
+      this.sendToServer('server-confirm-autosave', confirmation);
+      if (confirmation) {
+        this.closeTable(this.activeTable);
+      }
     });
   }
 

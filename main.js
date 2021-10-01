@@ -44,7 +44,7 @@ const color = {
   success: 'rgba(0,255,0,0.6)',
   error: 'rgba(255,0,0,0.6)',
 };
-const activeTable = {
+const activeTables = {
   loading: null,
   uploading: null,
   view: null,
@@ -261,16 +261,16 @@ ipcMain.on('server-load-file', (event, filename) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-load-file] from loadWindow');
   }
-  let tableID = activeTable.loading;
-  activeTable.loading = null;
+  let tableID = activeTables.loading;
+  activeTables.loading = null;
   loadWindow.close();
   const savefolder = saveManager.getCurrentFolder();
   const file = saveManager.loadSaveFile(path.join(savefolder, filename));
 
-  if (!activeTable.view) {
+  if (!activeTables.view) {
     tableID = tableManager.createNewTable();
-    activeTable.view = tableID;
-  } else if (tableManager.hasFragments(activeTable.view)) {
+    activeTables.view = tableID;
+  } else if (tableManager.hasFragments(activeTables.view)) {
     tableID = tableManager.createNewTable();
   }
 
@@ -371,7 +371,7 @@ ipcMain.on('server-open-load', (event, tableID) => {
     'Receiving code [server-open-load] from client for table '+tableID);
   }
 
-  activeTable.loading = tableID;
+  activeTables.loading = tableID;
 
   if (loadWindow != null) {
     loadWindow.show();
@@ -387,7 +387,7 @@ ipcMain.on('server-open-load', (event, tableID) => {
     });
     loadWindow.on('close', function() {
       loadWindow = null;
-      activeTable.loading = null;
+      activeTables.loading = null;
     });
   }
 });
@@ -440,7 +440,7 @@ ipcMain.on('server-open-upload', (event, tableID) => {
     'Receiving code [server-open-upload] from client for table '+tableID);
   }
 
-  activeTable.uploading = tableID;
+  activeTables.uploading = tableID;
 
   if (!localUploadWindow) {
     localUploadWindow = new Window({
@@ -454,7 +454,7 @@ ipcMain.on('server-open-upload', (event, tableID) => {
     });
     localUploadWindow.on('close', function() {
       localUploadWindow = null;
-      activeTable.uploading = null;
+      activeTables.uploading = null;
     });
   }
 });
@@ -468,7 +468,7 @@ ipcMain.on('server-upload-ready', (event, data) => {
   localUploadWindow.close();
   localUploadWindow = null;
 
-  if (!activeTable.uploading) {
+  if (!activeTables.uploading) {
     const tableID = tableManager.createNewTable();
     const tableData = tableManager.getTable(tableID);
     const newTableData = {
@@ -478,7 +478,7 @@ ipcMain.on('server-upload-ready', (event, data) => {
     sendMessage(mainWindow, 'client-load-model', newTableData);
   }
 
-  activeTable.uploading = null;
+  activeTables.uploading = null;
   console.log(data);
   mainWindow.send('client-add-upload', data);
 });
@@ -518,7 +518,7 @@ ipcMain.on('server-change-fragment', (event, data) => {
     localUploadWindow.close();
   }
 
-  activeTable.uploading = data.tableID;
+  activeTables.uploading = data.tableID;
 
   localUploadWindow = new Window({
     file: './renderer/upload.html',
@@ -531,23 +531,27 @@ ipcMain.on('server-change-fragment', (event, data) => {
   });
   localUploadWindow.on('close', function() {
     localUploadWindow = null;
-    activeTable.uploading = null;
+    activeTables.uploading = null;
   });
   sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
 });
 
-// server-confirm-autosave | data -> data.tableID, data.confirmation
-ipcMain.on('server-confirm-autosave', (event, confirmationData) => {
+// server-confirm-autosave | confirmation -> Boolean
+ipcMain.on('server-confirm-autosave', (event, confirmation) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-confirm-autosave] from client for table '+confirmationData.tableID);
+    'Receiving code [server-confirm-autosave] from client with reply ' + confirmation);
   }
   autosaveChecked = true;
-  if (confirmationData.confirmation) {
+  if (confirmation) {
     let tableID;
     const autosaves = saveManager.loadAutosaves();
     autosaves.forEach((autosave, key, autosaves) => {
-      tableID = tableManager.createNewTable();
+      if (Object.keys(autosave).includes('tableID')) {
+        tableID = tableManager.createNewTable(autosave.tableID);
+      } else {
+        tableID = tableManager.createNewTable();
+      }
       tableManager.loadFile(tableID, autosave);
       const data = {
         tableID: tableID,
@@ -559,7 +563,7 @@ ipcMain.on('server-confirm-autosave', (event, confirmationData) => {
       tableID: tableID,
       tableData: tableManager.getTable(tableID),
     };
-    activeTable.view = tableID;
+    activeTables.view = tableID;
     data.tableData['loading'] = true;
     sendMessage(mainWindow, 'client-load-model', data);
     const feedback = {
@@ -571,7 +575,7 @@ ipcMain.on('server-confirm-autosave', (event, confirmationData) => {
   } else {
     saveManager.removeAutosaveFiles();
     const data = createNewTable();
-    activeTable.view = data.tableID;
+    activeTables.view = data.tableID;
     sendMessage(event.sender, 'client-load-model', data);
   }
 });
@@ -584,7 +588,7 @@ ipcMain.on('server-create-table', (event) => {
   }
   if (autosaveChecked) {
     const data = createNewTable();
-    activeTable.view = data.tableID;
+    activeTables.view = data.tableID;
     sendMessage(event.sender, 'client-load-model', data);
   }
 });
@@ -599,7 +603,7 @@ ipcMain.on('server-open-table', (event, tableID) => {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
   };
-  activeTable.view = tableID;
+  activeTables.view = tableID;
   sendMessage(event.sender, 'client-load-model', data);
 });
 
@@ -611,12 +615,12 @@ ipcMain.on('server-close-table', (event, tableID) => {
   }
   const newTableID = tableManager.removeTable(tableID);
   saveManager.removeAutosave(tableID);
-  if (tableID == activeTable.view) {
+  if (tableID == activeTables.view) {
     const data = {
       tableID: newTableID,
       tableData: tableManager.getTable(newTableID),
     };
-    activeTable.view = newTableID;
+    activeTables.view = newTableID;
     sendMessage(event.sender, 'client-load-model', data);
   }
 });
@@ -647,14 +651,34 @@ ipcMain.on('server-new-session', (event) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-new-session] from client');
   }
-  tableManager.clearAll();
-  // activeTable.view = null;
-  activeTable.loading = null;
-  activeTable.uploading = null;
 
-  const data = createNewTable();
-  activeTable.view = data.tableID;
-  sendMessage(mainWindow, 'client-load-model', data);
+  activeTables.view = null;
+  activeTables.loading = null;
+  activeTables.uploading = null;
+
+  // if no tables are yet created, create a new one
+  if (tableManager.getNumberOfTables() == 0) {
+    tableManager.createNewTable();
+  }
+
+  // checking for all registered tables
+  const registeredTables = tableManager.getTableIds();
+  const selectedTable = registeredTables.pop();
+
+  registeredTables.forEach((tableID) => {
+    const data = {
+      tableID: tableID,
+      tableData: tableManager.getInactiveTable(tableID),
+    };
+    sendMessage(event.sender, 'client-inactive-model', data);
+  });
+
+  activeTables.view = selectedTable;
+  const data = {
+    tableID: selectedTable,
+    tableData: tableManager.getTable(selectedTable),
+  };
+  sendMessage(event.sender, 'client-load-model', data);
 });
 
 // server-save-screenshot | data -> data.tableID, data.screenshot

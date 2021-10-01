@@ -462,7 +462,9 @@ class SaveManager {
     tempFiles.forEach((file) => {
       if (file.includes('_temp.vlt')) {
         const autosavePath = path.join(this.tempSaveFolder, file);
-        autosaves.push(this.loadSaveFile(autosavePath));
+        const autosave = this.loadSaveFile(autosavePath);
+        autosave.tableID = file.slice(0, file.lastIndexOf('_'));
+        autosaves.push(autosave);
       }
     });
     return autosaves;

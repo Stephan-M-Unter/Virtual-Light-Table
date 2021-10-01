@@ -87,10 +87,12 @@ class TableManager {
 
   /**
    * Deletes all tables from the manager, creates a new and empty one and returns its ID.
+   * @return {String}
    */
   clearAll() {
     this.tables = {};
     this.tableIdRunner = 0;
+    return this.createNewTable();
   }
 
   /**
@@ -106,18 +108,35 @@ class TableManager {
   /**
    * Creates a new table by defining a new tableID and storing a completely fresh and empty
    * table configuration. Returns the new table's tableID, e.g. "table_1".
+   * @param {[String]} tableID - optional: tableID, if you already want to give it
    * @return {String}
    */
-  createNewTable() {
+  createNewTable(tableID) {
     const emptyTable = this.getEmptyTable();
-    const newTableID = 'table_'+this.tableIdRunner;
-    this.tableIdRunner += 1;
+    let newTableID;
+
+    if (tableID && !Object.keys(this.tables).includes(tableID)) {
+      newTableID = tableID;
+    } else {
+      while (true) {
+        newTableID = 'table_'+this.tableIdRunner;
+        if (!Object.keys(this.tables).includes(newTableID)) {
+          this.tableIdRunner += 1;
+          break;
+        } else {
+          console.log(Object.keys(this.tables).includes(newTableID));
+          this.tableIdRunner += 1;
+        }
+      }
+    }
     this.tables[newTableID] = emptyTable;
     return newTableID;
   }
 
   /**
-   * Removes stored data for given table.
+   * Removes stored data for given table. The function returns the ID for the next table to be active, which is
+   * either the next one in the list, or the last one (if the removed one was the table most right in the list), or an empty table
+   * (if the removed one was the last available table).
    * @param {String} tableID ID of table to remove, e.g. "table_1".
    * @return {String}
    */
@@ -127,10 +146,13 @@ class TableManager {
       const tables = Object.keys(this.tables);
       const arrayIndex = tables.indexOf(tableID);
       if (arrayIndex+1 < tables.length) {
+        // another table to the right is available
         nextTable = tables[arrayIndex+1];
       } else if (arrayIndex-1 >= 0) {
+        // tableID was last table on the right - choose table to the left
         nextTable = tables[arrayIndex-1];
       } else {
+        // no other table available, create new table
         nextTable = this.createNewTable();
       }
       delete this.tables[tableID];
@@ -185,7 +207,7 @@ class TableManager {
    * @return {Object}
    */
   getEmptyStage() {
-    return this.getEmptyStage().stage;
+    return this.getEmptyTable().stage;
   }
 
   /**
@@ -212,6 +234,8 @@ class TableManager {
   }
 
   /**
+   * Special variant of the getTable() function to only read the most basic information needed to
+   * display a table on the client.
    * @param {String} tableID
    * @return {Object}
    */
@@ -228,6 +252,22 @@ class TableManager {
    */
   getTables() {
     return this.tables;
+  }
+
+  /**
+   * Returns the number of tables currently registered.
+   * @return {Integer}
+   */
+  getNumberOfTables() {
+    return Object.keys(this.tables).length;
+  }
+
+  /**
+   * Returns a list of IDs for all registered tables.
+   * @return {String[]}
+   */
+  getTableIds() {
+    return Object.keys(this.tables);
   }
 
   /**

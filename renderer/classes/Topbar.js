@@ -29,10 +29,10 @@ class Topbar {
 
   /**
    *
-   * @param {String} tableID ID for a table, e.g. "table_1".
-   * @param {Object} tableData Object containing the defining information for a table. The necessary
+   * @param {String} tableID - ID for a table, e.g. "table_1".
+   * @param {Object} tableData - Object containing the defining information for a table. The necessary
    * information for the topbar are "screenshot", "fragments" (to determine the number of fragments)
-   * and, potentielly, the filename.
+   * and, potentially, the filename.
    */
   addTable(tableID, tableData) {
     const tableNumber = tableID.slice(6);
@@ -94,7 +94,11 @@ class Topbar {
       // show screenshot for table on card
       $('#'+tableID).find('.table_header').removeClass('empty');
       $('#'+tableID).find('.table_screenshot').removeClass('empty');
-      $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading.gif');
+      if (tableData.emptyTable) {
+        $('#'+tableID).find('.table_screenshot>img').attr('src', tableData.screenshot);
+      } else {
+        $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading.gif');
+      }
       this.storedScreenshot = tableData.screenshot;
     } else {
       // don't show any screenshot
