@@ -1101,7 +1101,7 @@ body {
     top: 0;
     left: 50%;
     width: calc(100vw - 600px);
-    height: 200px;
+    height: 150px;
     background-color: rgba(29, 29, 27, 0.5);
     padding: 5px;
     transform: translateX(-50%);
@@ -1114,11 +1114,11 @@ body {
 }
 
 #topbar.collapsed {
-    top: -199px;
+    top: -149px;
 }
 
 #topbar.collapsed:hover {
-    top: -190px;
+    top: -140px;
 }
 
 #topbar:hover {
@@ -1144,7 +1144,7 @@ body {
     flex: 0 0 auto;
     flex-direction: column;
     height: calc(100% - 10px);
-    width: 200px;
+    width: 150px;
     background-color:rgb(39, 39, 39);
     box-sizing: border-box;
     margin: 5px;
@@ -1253,6 +1253,10 @@ body {
     width: 100%;
     height: calc(100% - 30px);
     flex: 0 1 auto;
+}
+
+.table_item.activeTable .table_screenshot {
+    background-color: var(--cb_blue);
 }
 
 .table_screenshot img {
