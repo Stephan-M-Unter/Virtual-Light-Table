@@ -574,9 +574,9 @@ ipcMain.on('server-confirm-autosave', (event, confirmation) => {
     sendMessage(mainWindow, 'client-show-feedback', feedback);
   } else {
     saveManager.removeAutosaveFiles();
-    const data = createNewTable();
-    activeTables.view = data.tableID;
-    sendMessage(event.sender, 'client-load-model', data);
+    // const data = createNewTable();
+    // activeTables.view = data.tableID;
+    // sendMessage(event.sender, 'client-load-model', data);
   }
 });
 
