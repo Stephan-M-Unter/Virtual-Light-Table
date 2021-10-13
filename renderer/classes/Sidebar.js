@@ -24,6 +24,7 @@ class Sidebar {
     // thumbnail wrapper
     const fragmentWrapper = document.createElement('div');
     fragmentWrapper.setAttribute('class', 'fragment_list_item');
+    fragmentWrapper.setAttribute('title', name);
     fragmentWrapper.setAttribute('id', id);
 
     // thumbnail description
@@ -45,8 +46,10 @@ class Sidebar {
     const deleteButton = document.createElement('div');
     deleteButton.setAttribute('class',
         'fragment_list_button delete_button hidden');
+    deleteButton.setAttribute('title', 'Remove fragment from table');
     const gotoButton = document.createElement('div');
     gotoButton.setAttribute('class', 'fragment_list_button goto_button hidden');
+    gotoButton.setAttribute('title', 'Go to fragment');
     const detailsButton = document.createElement('div');
     detailsButton.setAttribute('class',
         'fragment_list_button details_button hidden');
