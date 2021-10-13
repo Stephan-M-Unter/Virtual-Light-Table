@@ -542,8 +542,6 @@ ipcMain.on('server-upload-ready', (event, data) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-upload-ready] from client');
   }
-  localUploadWindow.close();
-  localUploadWindow = null;
 
   if (!activeTables.uploading) {
     const tableID = tableManager.createNewTable();
@@ -558,6 +556,8 @@ ipcMain.on('server-upload-ready', (event, data) => {
   activeTables.uploading = null;
   console.log(data);
   mainWindow.send('client-add-upload', data);
+  localUploadWindow.close();
+  localUploadWindow = null;
 });
 
 // server-upload-image | triggers a file dialog for the user to select a fragment
@@ -721,6 +721,7 @@ ipcMain.on('server-send-all', (event) => {
     'Receiving code [server-send-all] from client');
   }
   sendMessage(event.sender, 'client-get-all', tableManager.getTables());
+  console.log("DING", activeTables);
 });
 
 ipcMain.on('server-new-session', (event) => {
