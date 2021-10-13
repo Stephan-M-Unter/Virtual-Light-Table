@@ -49,6 +49,17 @@ const uploadProps = {
   },
 };
 
+const calibrationProps = {
+  width: 500,
+  height: 800,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+};
+
 /**
  * TODO
  */
@@ -64,6 +75,8 @@ class Window extends BrowserWindow {
       props = loadProps;
     } else if (type == 'upload') {
       props = uploadProps;
+    } else if (type == 'calibration') {
+      props = calibrationProps;
     }
     // TODO: If not main, then change props
 

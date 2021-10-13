@@ -15,6 +15,7 @@
 // Loading Requirements
 const {app, ipcMain, dialog} = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -25,19 +26,24 @@ const SaveManager = require('./js/SaveManager');
 const devMode = true;
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
+const vltFolder = path.join(appDataPath, 'Virtual Light Table');
+const vltConfigFile = path.join(vltFolder, 'vlt.config');
 app.commandLine.appendSwitch('touch-events', 'enabled');
+
+const config = {};
 
 // Initialisation
 // Managers
 const tableManager = new TableManager();
 const imageManager = new ImageManager();
-const saveManager = new SaveManager(appDataPath);
+let saveManager;
 // Windows
 let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
 let detailWindow; // TODO additional window to show fragment details
 // let filterWindow; // TODO additional window to set database filters
 let localUploadWindow;
+let calibrationWindow;
 
 
 const color = {
@@ -61,6 +67,25 @@ let autosaveChecked = false;
  * TODO
  */
 function main() {
+  // check if "Virtual Light Table" subfolder exists
+  if (!fs.existsSync(vltFolder)) {
+    // creating VLT subfolder in appdata
+    fs.mkdirSync(vltFolder);
+    console.log('Created new VLT folder at ' + vltFolder);
+  }
+
+  // check if config file exists
+  if (!fs.existsSync(vltConfigFile)) {
+    // config file doesn't exist - load default values and save to file
+    loadDefaultConfig();
+    saveConfig();
+  } else {
+    // config file exists - read it
+    readConfig();
+  }
+
+  saveManager = new SaveManager(vltFolder);
+
   mainWindow = new Window({
     file: './renderer/index.html',
     type: 'main',
@@ -118,6 +143,58 @@ function timestamp() {
   month = month.toString().padStart(2, '0');
   const year = now.getFullYear();
   return '['+day+'/'+month+'/'+year+' '+hour+':'+minute+':'+second+']';
+}
+
+/**
+ *
+ */
+function saveConfig() {
+  const configJSON = JSON.stringify(config);
+  fs.writeFile(vltConfigFile, configJSON, function(err) {
+    if (err) {
+      console.log('Error while writing config file.');
+      console.log(err);
+      return;
+    } else {
+      console.log('Config File successfully saved.');
+    }
+  });
+}
+
+/**
+ *
+ */
+function readConfig() {
+  const configJSON = fs.readFileSync(vltConfigFile);
+  try {
+    const configData = JSON.parse(configJSON);
+    Object.keys(configData).forEach((key) => {
+      config[key] = configData[key];
+    });
+  } catch (err) {
+    console.log('An error occurred while reading the config file.');
+    console.log(err);
+    console.log('Loading default configuration.');
+    loadDefaultConfig();
+    return;
+  }
+}
+
+/**
+ *
+ */
+function loadDefaultConfig() {
+  config.ppi = 96;
+}
+
+/**
+ * 
+ * @param {*} key 
+ * @param {*} value 
+ */
+function setConfig(key, value) {
+  config[key] = value;
+  saveConfig();
 }
 
 /**
@@ -693,6 +770,49 @@ ipcMain.on('server-save-screenshot', (event, data) => {
 });
 
 ipcMain.on('server-ask-load-folders', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-ask-load-folders] from client');
+  }
   event.sender.send('load-set-default-folder', saveManager.getDefaultFolder());
   event.sender.send('load-receive-folder', saveManager.getCurrentFolder());
+});
+
+ipcMain.on('server-open-calibration', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-calibration] from client');
+  }
+
+  if (calibrationWindow) {
+    calibrationWindow.close();
+    calibrationWindow = null;
+  }
+
+  calibrationWindow = new Window({
+    file: './renderer/calibration.html',
+    type: 'calibration',
+    devMode: false,
+  });
+  calibrationWindow.removeMenu();
+  calibrationWindow.once('ready-to-show', () => {
+    calibrationWindow.show();
+  });
+  calibrationWindow.on('close', function() {
+    calibrationWindow = null;
+  });
+});
+
+ipcMain.on('server-gather-ppi', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-gather-ppi] from calibration tool');
+  }
+  sendMessage(event.sender, 'calibration-set-ppi', config.ppi);
+});
+
+ipcMain.on('server-calibrate', (event, ppi) => {
+  setConfig('ppi', ppi);
+  calibrationWindow.close();
+  calibrationWindow = null;
 });

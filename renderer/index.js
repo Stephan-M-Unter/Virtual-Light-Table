@@ -205,6 +205,10 @@ $(document).ready(function() {
     controller.toggleLight();
   });
 
+  $('#calibration').on('click', function(event) {
+    controller.sendToServer('server-open-calibration');
+  });
+
   $('#new_measure').on('click', function(event) {
     event.stopPropagation();
     controller.addMeasurement();
