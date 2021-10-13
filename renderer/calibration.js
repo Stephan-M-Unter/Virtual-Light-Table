@@ -6,7 +6,6 @@ let mode = '1cm';
 let ppi;
 const ppcmFactor = 0.393701;
 let stage;
-let canvas;
 let pointA;
 let textA;
 let line;
@@ -15,7 +14,6 @@ let pointB;
 $(document).ready(function() {
   ipcRenderer.send('server-gather-ppi');
 
-  canvas = $('canvas')[0];
   stage = new createjs.Stage('calibration_stage');
   stage.canvas.width = $('#calibration_stage').width();
   stage.canvas.height =$('#calibration_stage').height();
@@ -84,8 +82,8 @@ function initaliseA() {
 
 /**
  * 
- * @param {*} container 
- * @param {*} colour 
+ * @param {*} container
+ * @param {*} colour
  */
 function drawX(container, colour) {
   const lineUp = new createjs.Shape();
@@ -105,8 +103,8 @@ function drawX(container, colour) {
 
 /**
  * 
- * @param {Double} x 
- * @param {Double} y 
+ * @param {Double} x
+ * @param {Double} y
  */
 function drawDistance(x, y) {
   stage.removeChild(pointB);

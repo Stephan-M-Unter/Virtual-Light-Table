@@ -534,6 +534,14 @@ class Fragment {
   }
 
   /**
+   * 
+   * @param {*} ppi 
+   */
+  setPPI(ppi) {
+
+  }
+
+  /**
    * TODO
    * @return {*}
    */

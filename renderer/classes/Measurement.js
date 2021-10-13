@@ -115,7 +115,7 @@ class Measurement {
   getDistanceInCm() {
     if (this.p1 && this.p2) {
       const dist = this.getDistanceInPixel();
-      const CmInPx = 38 * this.stage.getScaling()/100;
+      const CmInPx = (this.stage.getPPI()/2.54) * this.stage.getScaling()/100;
       const distInCm = Math.round(dist/CmInPx*100)/100;
       return distInCm;
     } else {

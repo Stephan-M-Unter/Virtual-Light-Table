@@ -556,5 +556,10 @@ $(document).ready(function() {
     controller.loadInactive(data);
   });
 
+  ipcRenderer.on('calibration-set-ppi', (event, ppi) => {
+    if (controller.isDevMode()) console.log('DevMode: Received calibration-set-ppi', ppi);
+    controller.setPPI(ppi);
+  });
+
   xyz = controller.getStage(); // REMOVE
 });

@@ -815,4 +815,5 @@ ipcMain.on('server-calibrate', (event, ppi) => {
   setConfig('ppi', ppi);
   calibrationWindow.close();
   calibrationWindow = null;
+  sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
 });

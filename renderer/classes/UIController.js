@@ -177,6 +177,14 @@ class UIController {
   }
 
   /**
+   * 
+   * @param {*} ppi 
+   */
+  setPPI(ppi) {
+    this.stage.setPPI(ppi);
+  }
+
+  /**
    * Input function. Asks user for confirmation that unsaved changes can be
    * overwritten.
    * @return {Boolean} True if changes can be overwritten, false otherwise.

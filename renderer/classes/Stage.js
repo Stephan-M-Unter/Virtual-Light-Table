@@ -43,6 +43,9 @@ class Stage {
     /** @member {double} */
     this.stage.scaling = 100;
 
+    /** @member {double} */
+    this.ppi = 96;
+
     /** @constant {Object} */
     this.lines = {
       'horizontal': null,
@@ -85,6 +88,8 @@ class Stage {
       this.update();
       this.controller.saveToModel(true);
     });
+
+    this.controller.sendToServer('server-gather-ppi');
   }
 
   /**
@@ -112,6 +117,26 @@ class Stage {
     });
 
     return background;
+  }
+
+  /**
+   * 
+   * @param {double} ppi 
+   */
+  setPPI(ppi) {
+    this.ppi = ppi;
+    this.updateGrid();
+    this.updateScale();
+    this.setScaling(this.stage.scaling);
+    this.controller.update();
+  }
+
+  /**
+   * 
+   * @returns 
+   */
+  getPPI() {
+    return this.ppi;
   }
 
   /**
@@ -184,7 +209,7 @@ class Stage {
     this.grid.removeAllChildren();
 
     if (this.gridMode) {
-      const CmInPx = 38 * this.stage.scaling / 100;
+      const CmInPx = (this.ppi/2.54) * this.stage.scaling / 100;
 
       for (let i = 0; i < this.width; i += CmInPx) {
         const line = new createjs.Shape();
@@ -217,7 +242,7 @@ class Stage {
     this.scale.removeAllChildren();
 
     if (this.scaleMode) {
-      let cm = 38 * this.stage.scaling / 100;
+      let cm = (this.ppi/2.54) * this.stage.scaling / 100;
       let unit = '1 cm';
 
       if (this.width / cm > 50) {
@@ -464,7 +489,8 @@ class Stage {
     Scaler.zoom.world.x = Scaler.zoom.screen.x;
     Scaler.zoom.world.y = Scaler.zoom.screen.y;
 
-    Scaler.scaling = scaling/100;
+    // Scaler.scaling = scaling/100;
+    Scaler.scaling = (this.ppi/96)*this.stage.scaling/100;
     this._scaleObjects();
 
     this.moveStage(-distX, -distY);
@@ -873,7 +899,7 @@ class Stage {
         const xNew = Scaler.x(fragment.getBaseX());
         const yNew = Scaler.y(fragment.getBaseY());
         fragment.moveToPixel(xNew, yNew);
-        fragment.scaleToValue(this.stage.scaling/100);
+        fragment.scaleToValue(Scaler.scaling);
       }
     }
 
