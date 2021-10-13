@@ -120,8 +120,8 @@ class Stage {
   }
 
   /**
-   * 
-   * @param {double} ppi 
+   * Updates all GUI elements regarding measurements to the new PPI ratio.
+   * @param {double} ppi PPI ratio given by the calibration tool.
    */
   setPPI(ppi) {
     this.ppi = ppi;
@@ -132,8 +132,8 @@ class Stage {
   }
 
   /**
-   * 
-   * @returns 
+   * Returns current PPI ratio on the stage.
+   * @return {double}
    */
   getPPI() {
     return this.ppi;
@@ -727,7 +727,7 @@ class Stage {
   }
 
   /**
-   * 
+   * TODO
    * @param {String[]} savedSelection List of fragmentIDs which were originally selected.
    */
   setSelection(savedSelection) {

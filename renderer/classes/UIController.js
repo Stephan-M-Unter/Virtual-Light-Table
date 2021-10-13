@@ -177,8 +177,8 @@ class UIController {
   }
 
   /**
-   * 
-   * @param {*} ppi 
+   * Relay function. Passing the PPI value to the stage.
+   * @param {double} ppi Value for pixels per inch given by the screen calibration.
    */
   setPPI(ppi) {
     this.stage.setPPI(ppi);
@@ -871,8 +871,8 @@ class UIController {
   }
 
   /**
-   * 
-   * @param {*} saveData 
+   * TODO
+   * @param {*} saveData
    */
   updateFilename(saveData) {
     this.topbar.updateFilename(saveData);

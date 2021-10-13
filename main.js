@@ -188,9 +188,9 @@ function loadDefaultConfig() {
 }
 
 /**
- * 
- * @param {*} key 
- * @param {*} value 
+ * Helper function to feed config settings into the config object and save everything to disk.
+ * @param {String} key - Config attribute name.
+ * @param {*} value - Config attribute value.
  */
 function setConfig(key, value) {
   config[key] = value;
