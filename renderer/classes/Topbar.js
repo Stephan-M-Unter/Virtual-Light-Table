@@ -37,15 +37,15 @@ class Topbar {
   addTable(tableID, tableData) {
     const tableNumber = tableID.slice(6);
     const tableItem = $('<div id="'+tableID+'" class="table_item" table="'+tableID+'"></div>');
-    const tableHeader = $('<div class="table_header empty" table="'+tableID+
-        '">Table '+tableNumber+'</div>');
-    const tableClose = $('<div class="table_close" table="'+tableID+'"></div>');
+    const tableHeader = $('<div title="Table '+tableNumber+'" class="table_header empty" table="'+
+    tableID+'">Table '+tableNumber+'</div>');
+    const tableClose = $('<div title="Close table" class="table_close" table="'+tableID+'"></div>');
     const imageClose = $('<img src="../imgs/symbol_x.png" table="'+tableID+'">');
     const tableScreenshot = $('<div class="table_screenshot empty" table="'+tableID+'"></div>');
     const imageScreenshot = $('<img table="'+tableID+'">');
-    const renewScreenshot = $('<div class="table_renew_screenshot" table="'+tableID+'"></div>');
+    const renewScreenshot = $('<div title="Refresh thumbnail" class="table_renew_screenshot" table="'+tableID+'"></div>');
     const imageRenewScreenshot = $('<img src="../imgs/symbol_rotate.png" table="'+tableID+'">');
-    const unsavedDot = $('<div class="unsaved_dot"></div>');
+    const unsavedDot = $('<div title="Table contains unsaved changes" class="unsaved_dot"></div>');
     $(renewScreenshot).append(imageRenewScreenshot);
     $(tableClose).append(imageClose);
     $(tableScreenshot).append(imageScreenshot, renewScreenshot);
@@ -89,6 +89,7 @@ class Topbar {
   updateTable(tableID, tableData) {
     if (tableData.filename) {
       $('#'+tableID).find('.table_header').html(tableData.filename);
+      $('#'+tableID).find('.table_header').attr('title', tableData.filename);
     }
     if (Object.keys(tableData.fragments).length >= 1 && tableData.screenshot) {
       // show screenshot for table on card
@@ -183,6 +184,7 @@ class Topbar {
    */
   updateFilename(saveData) {
     $('#'+saveData.tableID).find('.table_header').html(saveData.filename);
+    $('#'+saveData.tableID).find('.table_header').attr('title', saveData.filename);
   }
 
   /**
