@@ -1,0 +1,62 @@
+@import "root.css";
+
+body {
+    background-color: darkgrey;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 8px;
+    height: calc(100vh - 16px);
+}
+
+header {
+    font-size: 1.5em;
+    text-align: center;
+    margin: 10px 0px;
+}
+
+canvas {
+    background-color: white;
+    position: relative;
+    height: 200px;
+}
+
+#cm_inch_buttons {
+    margin: 10px 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.size_button {
+    padding: 8px;
+    margin: 2px;
+    background-color: rgb(41, 41, 41);
+    color: white;
+}
+
+.size_button.active {
+    background-color: var(--cb_blue);
+}
+
+#explanation {
+    margin: 0px 50px;
+    padding: 5px 20px;
+    text-align: justify;
+    background-color: white;
+}
+
+.relation {
+    font-size: 1.4em;
+    text-align: center;
+    margin: 5px auto;
+}
+
+button {
+    font-size: 1.2em;
+}
+
+#calibrate {
+    background-color: var(--cb_orange);
+    margin: 5px;
+}

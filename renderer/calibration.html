@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Virtual Light Table | Calibration Tool</title>
+        <link rel="stylesheet" type="text/css" href="./calibration.css" />
+        <script src="../js/libs/jquery-3.6.0.min.js"></script>
+        <script>
+            window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');
+        </script>
+    </head>
+    <body>
+        <header>Screen Calibration Tool</header>
+        <canvas id="calibration_stage"></canvas>
+        <div class="wrapper" id="cm_inch_buttons">
+            <button class="size_button active" id="1cm">1 cm</button>
+            <button class="size_button" id="10cm">10 cm</button>
+            <button class="size_button" id="1inch">1 inch</button>
+            <button class="size_button" id="4inch">4 inch</button>
+        </div>
+        <div id="explanation">Adjust the Virtual Light Table display to your personal screen:
+            <ol>
+                <li>Grab some ruler or any other real world size indicator</li>
+                <li>Select the distance you want to measure with the buttons above</li>
+                <li>Hold the 0 cm/inch mark against the screen such that it corresponds with point A in the field above</li>
+                <li>Find the mark on your ruler that fits to your size mode and click into the field</li>
+            </ol>
+            Below you will see your new calibration values. Once you are happy with your result, press "Calibrate". Zoom mode "1x" should now correspond with real world sizes.
+        </div>
+        <div class="relation">1 cm ≙ <span id="cm_px">96</span> px</div>
+        <div class="relation">1 inch ≙ <span id="inch_px">243,84</span> px</div>
+        <button id="calibrate">Calibrate</button>
+        <script src="../js/libs/createjs.min.js"></script>
+        <script src="./calibration.js"></script>
+    </body>
+</html>

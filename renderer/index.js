@@ -205,6 +205,10 @@ $(document).ready(function() {
     controller.toggleLight();
   });
 
+  $('#calibration').on('click', function(event) {
+    controller.sendToServer('server-open-calibration');
+  });
+
   $('#new_measure').on('click', function(event) {
     event.stopPropagation();
     controller.addMeasurement();
@@ -550,6 +554,11 @@ $(document).ready(function() {
   ipcRenderer.on('client-inactive-model', (event, data) => {
     if (controller.isDevMode()) console.log('DevMode: Received client-inactive-model', data);
     controller.loadInactive(data);
+  });
+
+  ipcRenderer.on('calibration-set-ppi', (event, ppi) => {
+    if (controller.isDevMode()) console.log('DevMode: Received calibration-set-ppi', ppi);
+    controller.setPPI(ppi);
   });
 
   xyz = controller.getStage(); // REMOVE

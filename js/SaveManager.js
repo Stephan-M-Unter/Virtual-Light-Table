@@ -25,19 +25,11 @@ const JSZip = require('jszip');
 class SaveManager {
   /**
      * TODO
-     * @param {String} appPath - Path to the application data directory provided by the operating
+     * @param {String} vltFolder - Path to the application data directory provided by the operating
      *                           system. If not "Virtual Light Table" subfolder is present, a new one
      *                           will be created.
      */
-  constructor(appPath) {
-    // check if "Virtual Light Table" subfolder exists
-    const vltFolder = path.join(appPath, 'Virtual Light Table');
-    if (!fs.existsSync(vltFolder)) {
-      // creating VLT subfolder in appdata
-      fs.mkdirSync(vltFolder);
-      console.log('Created new VLT folder at ' + vltFolder);
-    }
-
+  constructor(vltFolder) {
     this.defaultSaveFolder = path.join(vltFolder, 'saves');
     this.currentSaveFolder = this.defaultSaveFolder;
     if (!fs.existsSync(this.defaultSaveFolder)) {
@@ -54,7 +46,6 @@ class SaveManager {
     }
 
     this.filepath = null;
-    this.appPath = appPath;
   }
 
   /**

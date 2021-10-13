@@ -177,6 +177,14 @@ class UIController {
   }
 
   /**
+   * Relay function. Passing the PPI value to the stage.
+   * @param {double} ppi Value for pixels per inch given by the screen calibration.
+   */
+  setPPI(ppi) {
+    this.stage.setPPI(ppi);
+  }
+
+  /**
    * Input function. Asks user for confirmation that unsaved changes can be
    * overwritten.
    * @return {Boolean} True if changes can be overwritten, false otherwise.
@@ -863,8 +871,8 @@ class UIController {
   }
 
   /**
-   * 
-   * @param {*} saveData 
+   * TODO
+   * @param {*} saveData
    */
   updateFilename(saveData) {
     this.topbar.updateFilename(saveData);
