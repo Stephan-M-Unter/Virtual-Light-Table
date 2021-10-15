@@ -1,0 +1,350 @@
+@import 'root.css';
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #dddddd;
+    overflow: hidden;
+}
+
+*.disabled {
+    background-color: rgb(140, 140, 140) !important;
+    box-shadow: none !important;
+}
+
+.wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    margin: 5px 0;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cb_darkred);
+    border-radius: 5px;
+}
+
+/* BUTTONS */
+
+.button {
+    transition: all .2s;
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    background-color: white;
+    padding: 2px;
+    text-align: center;
+    font-size: 1.2em;
+    max-height: 50px;
+    user-select: none;
+}
+
+.button:hover {
+    background-color: var(--cb_grey);
+}
+
+.button:hover:not(.disabled) {
+    box-shadow: 4px 4px 8px black;
+    font-size: 1.3em;
+    cursor: pointer;
+}
+
+.button:active:not(.disabled) {
+    box-shadow: inset 2px 2px 3px black !important;
+    background-color: var(--cb_blue) !important;
+}
+
+.square_button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 50px;
+}
+
+.square_button img {
+    transition: all .2s;
+    height: 90%;
+    width: 90%;
+}
+
+.square_button:hover:not(.disabled) img {
+    height: 100%;
+    width: 100%;
+}
+
+/* LEFT AREA */
+
+#left_area {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: rgb(100, 100, 100);
+    background-color: var(--cb_blue);
+    min-width: 500px;
+    flex-shrink: 0;
+    padding: 8px;
+}
+
+.title {
+    font-variant: small-caps;
+    text-align: center;
+    font-size: 2em;
+    color: white;
+    margin: 10px auto;
+}
+
+#save_list {
+    flex-grow: 1;
+}
+
+/* LEFT: SPECIAL BUTTONS and BUTTON WRAPPERS */
+
+#select_folder {
+    margin: 2px;
+    flex-grow: 1;
+}
+
+#default_folder {
+    margin: 2px;
+
+}
+
+#load {
+    margin: 2px;
+    flex-grow: 4;
+    background-color: var(--cb_orange);
+    line-height: 50px;
+}
+
+#export{
+    margin: 2px;
+    background-color: var(--cb_orange);
+}
+
+#import {
+    margin: 2px;
+    background-color: var(--cb_orange);
+}
+
+#delete {
+    margin: 2px;
+    background-color: var(--cb_darkred);
+}
+
+#load:hover,
+#export:hover,
+#import:hover {
+    background-color: #ffa459;
+}
+
+#delete:hover {
+    background-color: var(--cb_red);
+}
+
+/* LEFT: TABLE */
+
+#save_list {
+    overflow: auto;
+    margin: 10px auto;
+    height: fill;
+    background-color: white;
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    height: fill;
+    background-color: white;
+}
+
+th {
+    color: white;
+    background-color: #444444;
+    position: sticky;
+    top: 0;
+}
+
+.td_filename {
+    text-align: left;
+    padding-left: 5px !important;
+}
+
+.save_list_item {
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+}
+
+.save_list_item td {
+    padding: 4px 2px;
+}
+
+table {
+    border-collapse: collapse;
+    border: none;
+}
+  
+table tr:first-child td {
+    border-top: none;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+table tr td:first-child {
+    border-left: none;
+}
+
+table tr td:last-child {
+    border-right: none;
+}
+
+.td_filename {
+    text-align: left;
+    padding-left: 5px !important;
+}
+
+.save_list_item:nth-child(even) {
+    background-color: #eeeeee;
+}
+
+.save_list_item:hover {
+    color: white;
+    background-color: var(--cb_darkred);
+}
+
+.save_list_item.selected {
+    background-color: var(--cb_orange);
+    color: white;
+}
+
+.save_list_item td {
+    padding: 8px 5px;
+}
+
+/* LEFT: OTHER ELEMENTS */
+
+#fragment_search {
+    flex-grow: 1;
+    height: 30px;
+    margin: 2px;
+}
+
+label {
+    line-height: 30px;
+    height: 30px;
+    color: white;
+}
+
+
+/* RIGHT AREA */
+
+#right_area {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 7;
+    flex-shrink: 3;
+    padding: 8px;
+    visibility: hidden;
+}
+
+.subtitle {
+    font-variant: small-caps;
+    text-align: center;
+    font-size: 1.5em;
+    margin: 10px auto;
+}
+
+#thumb_reconstruction {
+    width: 100%;
+    background-color: white;
+    flex-grow: auto;
+    min-height: 250px;
+    margin: 2px;
+    padding: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    box-shadow: inset 2px 2px 3px black, inset -2px -2px 3px #dddddd;
+}
+
+#thumb_reconstruction img {
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-shrink: 1;
+}
+
+#thumb_list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    max-width: 100%;
+    flex-grow: 2;
+    overflow-y: auto;
+}
+
+.load_thumb {
+    position: relative;
+    background-color: white;
+    margin: 5px;
+    width: calc(50% - 10px);
+    height: calc(48%);
+    min-height: 200px;
+    min-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.load_thumb:hover, .load_thumb:hover .load_thumb_text {
+    background-color: var(--cb_darkred);
+}
+
+.img_wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100% - 25px);
+    width: 100%;
+}
+
+.load_thumb_img {
+    transition: all .5s;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.load_thumb_text {
+    position: absolute;
+    bottom: 0;
+    height: 24px;
+    line-height: 20px;
+    padding: 2px;
+    text-align: center;
+    width: 100%;
+    background-color: rgb(73, 73, 73);
+    color: white;
+    white-space: nowrap;
+    font-size: 0.8em;
+}

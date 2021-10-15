@@ -473,7 +473,7 @@ ipcMain.on('server-open-load', (event, tableID) => {
 ipcMain.on('server-export-file', (event, filename) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
-    'Receiving code [server-export-file] from loadWindow');
+    'Receiving code [server-export-file] with filename '+filename+' from loadWindow');
   }
   saveManager.exportFile(filename);
 });
@@ -813,8 +813,23 @@ ipcMain.on('server-gather-ppi', (event) => {
 });
 
 ipcMain.on('server-calibrate', (event, ppi) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-calibrate] from calibration tool');
+  }
   setConfig('ppi', ppi);
   calibrationWindow.close();
   calibrationWindow = null;
   sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
+});
+
+ipcMain.on('server-import-file', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-import-file] from loadWindow');
+  }
+  saveManager.importFile(() => {
+    sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
+    sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
+  });
 });

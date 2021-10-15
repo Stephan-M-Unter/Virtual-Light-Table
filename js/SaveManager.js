@@ -18,6 +18,7 @@ const {dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const JSZip = require('jszip');
+const yauzl = require('yauzl');
 
 /**
  * TODO
@@ -295,8 +296,9 @@ class SaveManager {
     }
 
     images.forEach((item) => {
-      console.log('**SaveManager** - Unlinking item:', item);
-      fs.unlinkSync(item);
+      const imageToDelete = path.join(folder, 'imgs', item);
+      console.log('**SaveManager** - Unlinking item:', imageToDelete);
+      fs.unlinkSync(imageToDelete);
     });
   }
 
@@ -360,6 +362,8 @@ class SaveManager {
 
     const zip = new JSZip();
 
+    const zipname = filename.split('.').slice(0, -1).join('')+'.zip';
+
     zip.file(filename, fs.createReadStream(filepath));
 
     images.forEach((image) => {
@@ -371,6 +375,7 @@ class SaveManager {
     const outputpath = dialog.showSaveDialogSync({
       title: 'Save Export',
       // defaultPath: path.join(__dirname+'/../saves/', filename),
+      defaultPath: zipname,
       filters: [{
         name: 'ZIP-Archive',
         extensions: ['zip'],
@@ -384,6 +389,124 @@ class SaveManager {
           .on('finish', function() {
             console.log(outputpath + ' written');
           });
+    }
+  }
+
+  /**
+   *
+   */
+  importFile(callback) {
+    const filepath = dialog.showOpenDialogSync({
+      title: 'Select packed ZIP file containing VLT save(s)',
+      filters: [{
+        name: 'zip-file',
+        extensions: ['zip'],
+      }],
+      defaultPath: this.currentSaveFolder,
+      properties: [],
+    });
+
+    if (filepath) {
+      yauzl.open(filepath[0], {lazyEntries: true}, (err, zipfile) => {
+        if (err) {
+          console.log('An error occurred while reading the ZIP file:');
+          console.log(err);
+        } else {
+          zipfile.readEntry();
+          zipfile.on('entry', (entry) => {
+            console.log('entry', entry);
+            if (/\/$/.test(entry.fileName)) {
+              // filename ends with / => directory, read next entry
+              zipfile.readEntry();
+            } else {
+              zipfile.openReadStream(entry, (err, readStream) => {
+                if (err) {
+                  console.log('An error occurred with the readStream:');
+                  console.log(err);
+                } else {
+                  let destination = path.join(this.defaultSaveFolder, entry.fileName);
+
+                  if (fs.existsSync(destination)) {
+                    if (destination.endsWith('.vlt')) {
+                      destination = destination.split('.').slice(0, -1).join('')+'_copy.vlt';
+                      readStream.pipe(fs.createWriteStream(destination));
+                      readStream.on('end', () => {
+                        zipfile.readEntry();
+                      });
+                    } else {
+                      zipfile.readEntry();
+                    }
+                  } else {
+                    readStream.pipe(fs.createWriteStream(destination));
+                    readStream.on('end', () => {
+                      zipfile.readEntry();
+                    });
+                  }
+                }
+              });
+            }
+          });
+          zipfile.once('end', () => {
+            zipfile.close();
+            if (typeof callback == 'function') {
+              callback();
+            }
+          });
+        }
+      });
+      
+      
+      /*fs.readFile(filepath[0], (err, data) => {
+        if (err) {
+          // error handling
+          console.log('An error occured while reading a ZIP file:');
+          console.log(err);
+        } else {
+          const zip = new JSZip();
+          zip.loadAsync(data).then((contents) => {
+            Object.keys(contents.files).forEach((filename) => {
+              const zipObject = contents.files[filename];
+              console.log(zipObject);
+              const newFilepath = path.join(this.defaultSaveFolder, zipObject.name);
+              console.log('New Filename:', newFilepath);
+              if (fs.existsSync(newFilepath)) {
+                console.log('File already exists:', newFilepath);
+              } else {
+                fs.writeFile(newFilepath, zipObject._data.compressedContent, function(err) {
+                  if (err) {
+                    console.log('An error occurred while writing a file to disk:');
+                    console.log(err);
+                  } else {
+                    console.log('New file created:', newFilepath);
+                  }
+                });
+              }
+            });
+          }).catch((err) => {
+            console.log('An error occured while JSZip used the loadAsync function:');
+            console.log(err);
+          });
+        }
+      });
+      */
+
+
+
+      /*
+      fs.readFile(filePath, function(err, data) {
+        if (!err) {
+            var zip = new JSZip();
+            zip.loadAsync(data).then(function(contents) {
+                Object.keys(contents.files).forEach(function(filename) {
+                    zip.file(filename).async('nodebuffer').then(function(content) {
+                        var dest = path + filename;
+                        fs.writeFileSync(dest, content);
+                    });
+                });
+            });
+        }
+    });
+    */
     }
   }
 
