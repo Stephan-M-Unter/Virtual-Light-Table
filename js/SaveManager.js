@@ -393,7 +393,7 @@ class SaveManager {
   }
 
   /**
-   *
+   * @param {function} callback
    */
   importFile(callback) {
     const filepath = dialog.showOpenDialogSync({
@@ -454,59 +454,6 @@ class SaveManager {
           });
         }
       });
-      
-      
-      /*fs.readFile(filepath[0], (err, data) => {
-        if (err) {
-          // error handling
-          console.log('An error occured while reading a ZIP file:');
-          console.log(err);
-        } else {
-          const zip = new JSZip();
-          zip.loadAsync(data).then((contents) => {
-            Object.keys(contents.files).forEach((filename) => {
-              const zipObject = contents.files[filename];
-              console.log(zipObject);
-              const newFilepath = path.join(this.defaultSaveFolder, zipObject.name);
-              console.log('New Filename:', newFilepath);
-              if (fs.existsSync(newFilepath)) {
-                console.log('File already exists:', newFilepath);
-              } else {
-                fs.writeFile(newFilepath, zipObject._data.compressedContent, function(err) {
-                  if (err) {
-                    console.log('An error occurred while writing a file to disk:');
-                    console.log(err);
-                  } else {
-                    console.log('New file created:', newFilepath);
-                  }
-                });
-              }
-            });
-          }).catch((err) => {
-            console.log('An error occured while JSZip used the loadAsync function:');
-            console.log(err);
-          });
-        }
-      });
-      */
-
-
-
-      /*
-      fs.readFile(filePath, function(err, data) {
-        if (!err) {
-            var zip = new JSZip();
-            zip.loadAsync(data).then(function(contents) {
-                Object.keys(contents.files).forEach(function(filename) {
-                    zip.file(filename).async('nodebuffer').then(function(content) {
-                        var dest = path + filename;
-                        fs.writeFileSync(dest, content);
-                    });
-                });
-            });
-        }
-    });
-    */
     }
   }
 
