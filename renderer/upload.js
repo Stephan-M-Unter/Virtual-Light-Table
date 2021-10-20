@@ -9,101 +9,111 @@ const dialogs = new Dialogs();
 let currentUpload = null;
 const mode = $('.active').attr('mode');
 
-const recto = {
+let recto = {
   'stage': new createjs.Stage('recto_canvas'),
   'canvas': $('#recto_canvas'),
+  'sidename': 'recto',
   'content': {
     'filepath': null,
+    'img': null,
+    'img_bg': null,
   },
 };
-const verso = {
+let verso = {
   'stage': new createjs.Stage('verso_canvas'),
   'canvas': $('#verso_canvas'),
+  'sidename': 'verso',
   'content': {
     'filepath': null,
+    'img': null,
+    'img_bg': null,
   },
 };
 
 /* DOCUMENT READY */
 
 $(document).ready(function() {
-  recto.stage.canvas.width = recto.canvas.width();
-  recto.stage.canvas.height = recto.canvas.height();
-  verso.stage.canvas.widht = verso.canvas.width();
-  verso.stage.canvas.height = verso.canvas.height();
+  updateCanvasSize();
 });
 
 /* FUNCTIONS */
 
 /**
- *
+ * Reading the current width and height of the canvas DOM element and feeding it into
+ * the createjs.Stage().canvas object.
  */
-function showFullGUI() {
-  $('#button_region').removeClass('hidden');
-  $('#mask_region').removeClass('unrendered');
-  $('#load_region').removeClass('unrendered');
+function updateCanvasSize() {
+  recto.stage.canvas.width = recto.canvas.width();
+  recto.stage.canvas.height = recto.canvas.height();
+  verso.stage.canvas.width = verso.canvas.width();
+  verso.stage.canvas.height = verso.canvas.height();
+}
+
+/**
+ * Helper function to declutter code a little bit.
+ * @param {'recto'|'verso'} sidename
+ * @return {Object}
+ */
+function getSide(sidename) {
+  if (sidename == 'recto') {
+    return recto;
+  } else if (sidename == 'verso') {
+    return verso;
+  }
+}
+
+/**
+ * 
+ * @param {'recto'|'verso'} sidename
+ */
+function createEmptySide(sidename) {
+  const newSide = {
+    'stage': new createjs.Stage(sidename+'_canvas'),
+    'canvas': $('#'+sidename+'_canvas'),
+    'sidename': sidename,
+    'content': {
+      'filepath': null,
+      'img': null,
+      'img_bg': null,
+    },
+  };
+  if (sidename == 'recto') {
+    recto = newSide;
+  } else if (sidename == 'verso') {
+    verso = newSide;
+  }
 }
 
 /**
  *
- */
-function hideFullGUI() {
-  $('#button_region').addClass('hidden');
-  $('#mask_region').addClass('unrendered');
-  $('#load_region').addClass('unrendered');
-}
-
-/**
- *
- * @param {'recto'|'verso'} side - String indicating which canvas needs to show the control buttons.
- */
-function showSideButtons(side) {
-  $('#'+side+'_button_region').removeClass('hidden');
-  $('#'+side+'_upload_wrapper').addClass('unrendered');
-}
-
-/**
- *
- * @param {'recto'|'verso'} side - String indicating which canvas needs to hide the control buttons.
- */
-function hideSideGUI(side) {
-  $('#'+side+'_button_region').addClass('hidden');
-  $('#'+side+'_upload_wrapper').removeClass('unrendered');
-}
-
-/**
- *
- * @param {'recto'|'verso'} side - String indicating which canvas needs to be initialised.
+ * @param {'recto'|'verso'} sidename - String indicating which canvas needs to be initialised.
 */
-function startCanvas(sidename) {
-  const side = sides[sidename];
-  if (side.filepath != null) {
-    if (side.img == null) {
+function draw(sidename) {
+  const side = getSide(sidename);
+  side.stage.removeAllChildren();
+  if (side.content.filepath != null) {
+    if (side.content.img == null) {
     // create a new image first from file
       createImage(sidename);
     } else {
-    // load the image to the scene
-      showSideButtons(sidename);
-      $('#'+sidename+'_canvas').addClass('active');
-
+      // draw canvas
       // get width/height of image and canvas
-      const iWidth = side.img.image.width;
-      const iHeight = side.img.image.height;
-      const cWidth = stages[sidename].canvas.width;
-      const cHeight = stages[sidename].canvas.height;
+      const iWidth = side.content.img.image.width;
+      const iHeight = side.content.img.image.height;
+      const cWidth = side.stage.canvas.width;
+      const cHeight = side.stage.canvas.height;
 
-      // setting regCoordinates for img and imgBack
-      side.imgBackground.regX = side.img.regX = iWidth / 2;
-      side.imgBackground.regY = side.img.regY = iHeight / 2;
+      // setting regCoordinates for img and img_bg
+      side.content.img_bg.regX = side.content.img.regX = iWidth / 2;
+      side.content.img_bg.regY = side.content.img.regY = iHeight / 2;
 
       // set x, y - if there is an offset, take it,
       // otherwise center image to canvas
-      const x = side.offsetX || cWidth / 2;
-      const y = side.offsetY || cHeight / 2;
-      side.img.x = side.imgBackground.x = x;
-      side.img.y = side.imgBackground.y = y;
-      side.img.rotation = side.imgBackground.rotation = side.rotation;
-
+      const x = side.content.offsetX || cWidth / 2;
+      const y = side.content.offsetY || cHeight / 2;
+      side.content.img.x = side.content.img_bg.x = x;
+      side.content.img.y = side.content.img_bg.y = y;
+      // side.content.img.rotation = side.content.imgBackground.rotation = side.rotation; TODO
       // side.img.scale = getFittingScale(side);
       // side.imgBackground.scale = getFittingScale(side);
 
@@ -123,11 +133,12 @@ function startCanvas(sidename) {
         handlePressMove(event);
       });
 
-      stages[sidename].addChildAt(side.imgBackground, shadow, side.img, 0);
+      side.stage.addChildAt(side.content.img_bg, shadow, side.content.img, 0);
       //   drawMasks();
-      stages[sidename].update();
     }
   }
+  side.stage.update();
+  checkGUI();
 }
 
 /**
@@ -135,39 +146,43 @@ function startCanvas(sidename) {
  * @param {*} sidename
  */
 function createImage(sidename) {
-  const side = sides[sidename];
+  const side = getSide(sidename);
   const newImage = new Image();
-  newImage.src = side.filepath;
+  newImage.src = side.content.filepath;
   newImage.onload = function() {
+    // extract PPI from EXIF if possible
     readExifPPI(newImage, sidename);
 
+    // create new Bitmap objects
     const image = new createjs.Bitmap(newImage);
     const imageBackground = new createjs.Bitmap(newImage);
-    side.img = image;
-    side.imgBackground = imageBackground;
+    side.content.img = image;
+    side.content.img_bg = imageBackground;
 
     // register event listeners
-    side.img.on('mousedown', (event) => {
+    side.content.img.on('mousedown', (event) => {
       handleMouseDown(event);
     });
-    side.imgBackground.on('mousedown', (event) => {
+    side.content.img_bg.on('mousedown', (event) => {
       handleMouseDown(event);
     });
-    side.img.on('pressmove', (event) => {
+    side.content.img.on('pressmove', (event) => {
       handlePressMove(event);
     });
-    side.imgBackground.on('pressmove', (event) => {
+    side.content.img_bg.on('pressmove', (event) => {
       handlePressMove(event);
     });
 
-    startCanvas(sidename);
+    // now recursively restart startCanvas() as now an image is available
+    draw(sidename);
   };
 }
 
 /**
- * TODO
- * @param {*} image
- * @param {*} sidename
+ * Reading PPI resolution from EXIF data if available. If so, the result will be added
+ * to the input field connected to the given side (recto/verso).
+ * @param {Image} image
+ * @param {'recto'|'verso'} sidename
  */
 function readExifPPI(image, sidename) {
   try {
@@ -175,7 +190,6 @@ function readExifPPI(image, sidename) {
       const exifs = EXIF.getAllTags(image);
       if (exifs.XResolution) {
         const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-        sides[sidename].ppi = ppi;
         $('#'+sidename+'_ppi').val(ppi);
         checkRequiredFields();
       } else {
@@ -192,90 +206,127 @@ function readExifPPI(image, sidename) {
  * @param {'recto'|'verso'} sidename - String indicating which canvas needs to be cleared.
  */
 function clearCanvas(sidename) {
-  const side = sides[sidename];
-  side.filepath = null;
-  side.ppi = null;
-  $('#'+sidename+'_ppi').val('');
-  hideSideGUI(sidename);
-  $('#'+sidename+'_canvas').removeClass('active');
-
-  // if both sides are empty, rewind GUI back to start
-  if (sides.recto.filepath == null && sides.verso.filepath == null) {
-    hideFullGUI();
+  // remove data
+  if (sidename == 'recto') {
+    createEmptySide('recto');
+  } else if (sidename == 'verso') {
+    createEmptySide('verso');
   }
+
+  // clearing fields
+  $('#'+sidename+'_ppi').val('');
+  draw(sidename);
 }
 
 /**
  *
  */
 function swap() {
-  // deactivate active rendering of both stages
-  $('#recto_canvas').removeClass('active');
-  $('#verso_canvas').removeClass('active');
-  hideSideGUI('recto');
-  hideSideGUI('verso');
+  // swap side data
+  let temp = recto.content;
+  recto.content = verso.content;
+  verso.content = temp;
 
-  // swap data
-  const temp = sides.recto;
-  sides.recto = sides.verso;
-  sides.verso = temp;
+  // swap ppi
+  temp = $('#recto_ppi').val();
+  $('#recto_ppi').val($('#verso_ppi').val());
+  $('#verso_ppi').val(temp);
 
-  // reactivate canvases
-  startCanvas('recto');
-  startCanvas('verso');
+  draw('recto');
+  draw('verso');
 }
 
 /**
  *
  */
 function checkRequiredFields() {
-  let requirementFulfilled = true;
-  if (sides.recto.filepath) {
+  let rectoFulfilled = true;
+  let versoFulfilled = true;
+  let nameFulfilled = true;
+  if (recto.content.filepath) {
     if ($('#recto_ppi').val() == null) {
-      requirementFulfilled = false;
+      rectoFulfilled = false;
       $('#recto_ppi').addClass('missing');
     }
     if ($('#recto_ppi').val() == '') {
-      requirementFulfilled = false;
+      rectoFulfilled = false;
       $('#recto_ppi').addClass('missing');
     }
     if (isNaN($('#recto_ppi').val())) {
-      requirementFulfilled = false;
+      rectoFulfilled = false;
       $('#recto_ppi').addClass('missing');
     }
-    if (requirementFulfilled) {
+    if (rectoFulfilled) {
       $('#recto_ppi').removeClass('missing');
     }
   }
-  if (sides.verso.filepath) {
+  if (verso.content.filepath) {
     if ($('#verso_ppi').val() == null) {
-      requirementFulfilled = false;
+      versoFulfilled = false;
       $('#verso_ppi').addClass('missing');
     }
     if ($('#verso_ppi').val() == '') {
-      requirementFulfilled = false;
+      versoFulfilled = false;
       $('#verso_ppi').addClass('missing');
     }
     if (isNaN($('#verso_ppi').val())) {
-      requirementFulfilled = false;
+      versoFulfilled = false;
       $('#verso_ppi').addClass('missing');
     }
-    if (requirementFulfilled) {
+    if (versoFulfilled) {
       $('#verso_ppi').removeClass('missing');
     }
   }
   if ($('#objectname').val() == null || $('#objectname').val() == '') {
-    requirementFulfilled = false;
+    nameFulfilled = false;
     $('#objectname').addClass('missing');
   } else {
-    $('#objectname').removeClass('missing');
+    $('#objectname').removeClass('missing');  
   }
 
-  if (requirementFulfilled) {
+  if (rectoFulfilled && versoFulfilled && nameFulfilled) {
     $('#upload_button').removeClass('disabled');
   } else {
     $('#upload_button').addClass('disabled');
   }
+}
+
+/**
+ *
+ */
+function checkGUI() {
+  // show/hide side GUI elements according to the status of the connected side
+  if (recto.content.filepath) {
+    $('#recto_button_region').removeClass('hidden');
+    $('#button_region').removeClass('hidden');
+    $('#load_region').removeClass('unrendered');
+    $('#mask_region').removeClass('unrendered');
+    $('#recto_canvas').addClass('active');
+    $('#recto_upload_wrapper').addClass('unrendered');
+  } else {
+    $('#recto_canvas').removeClass('active');
+    $('#recto_upload_wrapper').removeClass('unrendered');
+    $('#recto_button_region').addClass('hidden');
+  }
+  if (verso.content.filepath) {
+    $('#verso_button_region').removeClass('hidden');
+    $('#button_region').removeClass('hidden');
+    $('#load_region').removeClass('unrendered');
+    $('#mask_region').removeClass('unrendered');
+    $('#verso_upload_wrapper').addClass('unrendered');
+    $('#verso_canvas').addClass('active');
+  } else {
+    $('#verso_canvas').removeClass('active');
+    $('#verso_upload_wrapper').removeClass('unrendered');
+    $('#verso_button_region').addClass('hidden');
+  }
+  // hide full GUI if both sides are empty
+  if (recto.content.filepath == null && verso.content.filepath == null) {
+    $('#button_region').addClass('hidden');
+    $('#load_region').addClass('unrendered');
+    $('#mask_region').addClass('unrendered');
+  }
+  checkRequiredFields();
 }
 
 
@@ -283,6 +334,10 @@ function checkRequiredFields() {
 
 $(window).on('keyup', (event) => {
   checkRequiredFields();
+});
+
+$(window).on('resize', (event) => {
+  updateCanvasSize();
 });
 
 /* Buttons */
@@ -336,9 +391,10 @@ $('.input_ppi').on('input', (event) => {
 
 // Event receiving the filepath to an image, be it local or from the internet.
 ipcRenderer.on('upload-receive-image', (event, filepath) => {
-  showFullGUI();
-  sides[currentUpload].filepath = filepath;
-  startCanvas(currentUpload);
+  updateCanvasSize();
+  const side = getSide(currentUpload);
+  side.content.filepath = filepath;
+  draw(currentUpload);
   currentUpload = null;
 
   if ($('#objectname').val() == '') {

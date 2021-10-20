@@ -124,7 +124,7 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    height: calc(100% - 50px);
+    height: calc(100% - 60px);
 }
 
 .canvas_wrapper {
