@@ -7,7 +7,9 @@ const dialogs = new Dialogs();
 /* Variables */
 
 let currentUpload = null;
-const mode = $('.active').attr('mode');
+let mode = $('.active_mode').attr('mode');
+let maskMode = 'no_mask';
+const mousestart = {};
 
 let recto = {
   'stage': new createjs.Stage('recto_canvas'),
@@ -17,6 +19,7 @@ let recto = {
     'filepath': null,
     'img': null,
     'img_bg': null,
+    'rotation': 0,
   },
 };
 let verso = {
@@ -27,12 +30,15 @@ let verso = {
     'filepath': null,
     'img': null,
     'img_bg': null,
+    'rotation': 0,
   },
 };
 
 /* DOCUMENT READY */
 
 $(document).ready(function() {
+  recto.stage.sidename = 'recto';
+  verso.stage.sidename = 'verso';
   updateCanvasSize();
 });
 
@@ -47,6 +53,8 @@ function updateCanvasSize() {
   recto.stage.canvas.height = recto.canvas.height();
   verso.stage.canvas.width = verso.canvas.width();
   verso.stage.canvas.height = verso.canvas.height();
+  recto.stage.update();
+  verso.stage.update();
 }
 
 /**
@@ -63,7 +71,7 @@ function getSide(sidename) {
 }
 
 /**
- * 
+ *
  * @param {'recto'|'verso'} sidename
  */
 function createEmptySide(sidename) {
@@ -75,6 +83,7 @@ function createEmptySide(sidename) {
       'filepath': null,
       'img': null,
       'img_bg': null,
+      'rotation': 0,
     },
   };
   if (sidename == 'recto') {
@@ -109,11 +118,11 @@ function draw(sidename) {
 
       // set x, y - if there is an offset, take it,
       // otherwise center image to canvas
-      const x = side.content.offsetX || cWidth / 2;
-      const y = side.content.offsetY || cHeight / 2;
-      side.content.img.x = side.content.img_bg.x = x;
-      side.content.img.y = side.content.img_bg.y = y;
-      // side.content.img.rotation = side.content.imgBackground.rotation = side.rotation; TODO
+      // const x = side.content.offsetX || cWidth / 2;
+      // const y = side.content.offsetY || cHeight / 2;
+      side.content.img.x = side.content.img_bg.x = side.content.x;
+      side.content.img.y = side.content.img_bg.y = side.content.y;
+      side.content.img.rotation = side.content.img_bg.rotation = side.content.rotation;
       // side.img.scale = getFittingScale(side);
       // side.imgBackground.scale = getFittingScale(side);
 
@@ -127,10 +136,10 @@ function draw(sidename) {
 
       // shadow event listeners
       shadow.on('mousedown', (event) => {
-        handleMouseDown(event);
+        handleMouseDown(event, event.target.side.sidename);
       });
       shadow.on('pressmove', (event) => {
-        handlePressMove(event);
+        handlePressMove(event, event.target.side.sidename);
       });
 
       side.stage.addChildAt(side.content.img_bg, shadow, side.content.img, 0);
@@ -159,18 +168,21 @@ function createImage(sidename) {
     side.content.img = image;
     side.content.img_bg = imageBackground;
 
+    side.content.x = side.stage.canvas.width / 2;
+    side.content.y = side.stage.canvas.height / 2;
+
     // register event listeners
     side.content.img.on('mousedown', (event) => {
-      handleMouseDown(event);
+      handleMouseDown(event, event.target.parent.sidename);
     });
     side.content.img_bg.on('mousedown', (event) => {
-      handleMouseDown(event);
+      handleMouseDown(event, event.target.parent.sidename);
     });
     side.content.img.on('pressmove', (event) => {
-      handlePressMove(event);
+      handlePressMove(event, event.target.parent.sidename);
     });
     side.content.img_bg.on('pressmove', (event) => {
-      handlePressMove(event);
+      handlePressMove(event, event.target.parent.sidename);
     });
 
     // now recursively restart startCanvas() as now an image is available
@@ -198,6 +210,66 @@ function readExifPPI(image, sidename) {
     });
   } catch {
     console.log('Input image has no EXIF data.');
+  }
+}
+
+/**
+ *
+ * @param {*} event
+ * @param {*} sidename
+ */
+function handleMouseDown(event, sidename) {
+  const side = getSide(sidename);
+  mousestart.x = event.stageX;
+  mousestart.y = event.stageY;
+  mousestart.offsetX = event.stageX - side.content.x;
+  mousestart.offsetY = event.stageY - side.content.y;
+}
+
+/**
+ *
+ * @param {*} event
+ * @param {*} sidename
+ */
+function handlePressMove(event, sidename) {
+  const side = getSide(sidename);
+  const mouse = {x: event.stageX, y: event.stageY};
+  const mouseDistance = {x: mouse.x - mousestart.offsetX, y: mouse.y - mousestart.offsetY};
+
+  if (mode == 'move') {
+    side.content.x = mouseDistance.x;
+    side.content.y = mouseDistance.y;
+  } else if (mode == 'rotate') {
+    const radsOld = Math.atan2(mousestart.y - side.content.img.y,
+        mousestart.x - side.content.img.x);
+    const radsNew = Math.atan2(mouse.y - side.content.img.y,
+        mouse.x - side.content.img.x);
+    const rads = radsNew - radsOld;
+    const deltaAngle = rads * (180 / Math.PI);
+    rotateByAngle(deltaAngle, sidename);
+    mousestart.x = mouse.x;
+    mousestart.y = mouse.y;
+  }
+  draw(sidename);
+}
+
+/**
+ * 
+ * @param {*} event 
+ */
+function handleMousewheel(event) {
+  const zoomDirection = Math.sign(event.originalEvent.wheelDelta);
+  if (recto.content.filepath != null || verso.content.filepath != null) {
+    // TODO zooming
+    if (recto.content.img) {
+      recto.content.img.scale = recto.content.img_bg.scale = recto.content.img.scale + (0.1 * zoomDirection);
+    }
+    if (verso.content.img) {
+      verso.content.img.scale = verso.content.img_bg.scale = verso.content.img.scale + (0.1 * zoomDirection);
+    }
+    recto.stage.update();
+    verso.stage.update();
+    console.log(recto.content.img.scale);
   }
 }
 
@@ -281,7 +353,7 @@ function checkRequiredFields() {
     nameFulfilled = false;
     $('#objectname').addClass('missing');
   } else {
-    $('#objectname').removeClass('missing');  
+    $('#objectname').removeClass('missing');
   }
 
   if (rectoFulfilled && versoFulfilled && nameFulfilled) {
@@ -329,6 +401,29 @@ function checkGUI() {
   checkRequiredFields();
 }
 
+/**
+ *
+ * @param {*} deltaAngle
+ * @param {*} sidename
+ */
+function rotateByAngle(deltaAngle, sidename) {
+  const side = getSide(sidename);
+  side.content.rotation += deltaAngle;
+  side.content.rotation = side.content.rotation % 360;
+  draw(sidename);
+}
+
+/**
+ *
+ * @param {*} targetAngle
+ * @param {*} sidename
+ */
+function rotateToAngle(targetAngle, sidename) {
+  const side = getSide(sidename);
+  side.content.rotation = (targetAngle%360);
+  draw(sidename);
+}
+
 
 /* INTERACTIVE ELEMENTS */
 
@@ -338,6 +433,10 @@ $(window).on('keyup', (event) => {
 
 $(window).on('resize', (event) => {
   updateCanvasSize();
+});
+
+$(window).on('mousewheel', (event) => {
+  handleMousewheel(event);
 });
 
 /* Buttons */
@@ -361,20 +460,53 @@ $('.delete').on('click', (event) => {
 });
 $('.rotate_90').on('click', (event) => {
   const canvas = $(event.target).attr('canvas');
-  console.log('Rotate 90', canvas);
+  rotateByAngle(90, canvas);
 });
 $('.measure').on('click', (event) => {
   const canvas = $(event.target).attr('canvas');
   console.log('Measure', canvas);
 });
 $('#move').on('click', (event) => {
-  console.log('Move');
+  $('.active_mode').removeClass('active_mode');
+  $('#move').addClass('active_mode');
+  mode = 'move';
 });
 $('#swap').on('click', (event) => {
   swap();
 });
 $('#rotate').on('click', (event) => {
-  console.log('Rotate');
+  $('.active_mode').removeClass('active_mode');
+  $('#rotate').addClass('active_mode');
+  mode = 'rotate';
+});
+
+$('#manual_instructions').on('click', (event) => {
+  $('#tutorial_region').removeClass('unrendered');
+});
+$('#tutorial_close').on('click', (event) => {
+  $('#tutorial_region').addClass('unrendered');
+});
+$('#tutorial_shadow').on('click', (event) => {
+  $('#tutorial_region').addClass('unrendered');
+});
+
+$('.list_item').on('click', (event) => {
+  const list = $('.list');
+  if (list.hasClass('open')) {
+    list.removeClass('open');
+    $('.selected').removeClass('selected');
+    let listItem = $(event.target);
+    if (!listItem.hasClass('list_item')) {
+      listItem = listItem.parent();
+    }
+    listItem.addClass('selected');
+    maskMode = listItem.attr('mask_mode');
+    $('.mask_controls.'+maskMode).addClass('selected');
+    $('.mask_explanation.'+maskMode).addClass('selected');
+    console.log("Mask Mode:", maskMode);
+  } else {
+    list.addClass('open');
+  }
 });
 
 /* Input Fields */
