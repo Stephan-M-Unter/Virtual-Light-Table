@@ -16,6 +16,7 @@
 const {app, ipcMain, dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const {spawn} = require('child_process');
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
