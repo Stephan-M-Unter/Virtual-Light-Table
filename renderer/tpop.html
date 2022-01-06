@@ -4,11 +4,29 @@
     <head>
         <title>TPOP-Fragments | Virtual Light Table</title>
         <link rel="stylesheet" type="text/css" href="./tpop.css"/>
-        <script src="../js/libs/jquery-3.4.1.min.js"></script>
-        <script>window.$ = window.jQuery = require('../js/libs/jquery-3.4.1.min.js');</script>
+        <script src="../js/libs/jquery-3.6.0.min.js"></script>
+        <script>window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');</script>
     </head>
     <body>
-        
+        <div id="sidebar" class="area"></div>
+        <div id="left-resize-slider" class="resize-slider no-select"></div>
+        <div id="tile-view" class="area"></div>
+        <div id="right-resize-slider" class="resize-slider no-select"></div>
+
+        <div id="detail-view" class="area">
+            <div class="title">Detailed Information</div>
+            <div id="name" class="subtitle">--- CPXXX/00Y ---</div>
+            <div class="subtitle">Recto</div>
+            <img src="../imgs/examples/dummy.jpg" class="detail-image"/>
+            <div class="subtitle">Verso</div>
+            <img src="../imgs/examples/dummy.jpg" class="detail-image"/>
+            <div id="meta-area"></div>
+        </div>
+
+        <div id="load">
+            <img/>
+            <div>Load Fragment(s)</div>
+        </div>
         <script src="./tpop.js"></script>
     </body>
 </html>

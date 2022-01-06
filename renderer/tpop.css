@@ -1,0 +1,123 @@
+@import 'root.css';
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    margin: 0px;
+}
+
+.title {
+    font-variant: small-caps;
+    font-size: 1.4em;
+}
+
+.subtitle {
+    margin-top: 20px;
+    font-variant: small-caps;
+    font-size: 1.2em;
+}
+
+#sidebar {
+    background-color: #aaa;
+    width: 250px;
+    max-width: 300px;
+    min-width: 0px;
+    flex: 0 0 auto;
+}
+
+#tile-view {
+    background-color: #333;
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    gap: 4px;
+}
+
+
+.tile {
+    position: relative;
+    background-color: #222;
+    width: calc(20% - 30px);
+    max-width: calc((100vh / 5) - 20px);
+    aspect-ratio: 1/1;
+    color: white;
+    text-align: center;
+    transition: background-color .2s;
+}
+
+.tile:hover {
+    background-color: #666;
+}
+
+.tile img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.tile .name {
+    bottom: 2px;
+}
+
+.tile .distance {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    color: green;
+    font-size: 0.7em;
+}
+
+#detail-view {
+    background-color: #aaa;
+    width: 30vw;
+    min-width: 0px;
+    max-width: 50vw;
+    text-align: center;
+    padding: 10px 0px;
+    flex: 0 0 auto;
+}
+
+
+.detail-image {
+    max-width: 100%;
+    max-height: 20vh;
+    transition: max-height .2s;
+}
+
+.detail-image:hover {
+    max-height: 30vh;
+}
+
+.area {
+    height: 100vh;
+}
+
+.resize-slider {
+    width: 2px;
+    height: 100vh;
+    background-color: #666;
+    cursor: ew-resize;
+    transition: background-color .2s, width .2s;
+    flex: 0 0 auto;
+}
+
+.resize-slider:hover, .resize-slider:active {
+    background-color: #222;
+    width: 8px;
+}
+
+#load {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: greenyellow;
+    border: 5px solid black;
+}
