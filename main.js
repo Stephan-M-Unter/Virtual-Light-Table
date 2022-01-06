@@ -44,6 +44,7 @@ let detailWindow; // TODO additional window to show fragment details
 // let filterWindow; // TODO additional window to set database filters
 let localUploadWindow;
 let calibrationWindow;
+let tpopWindow;
 
 
 const color = {
@@ -54,6 +55,7 @@ const activeTables = {
   loading: null,
   uploading: null,
   view: null,
+  tpop: null,
 };
 let autosaveChecked = false;
 
@@ -832,4 +834,28 @@ ipcMain.on('server-import-file', (event) => {
     sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
     sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
   });
+});
+
+// server-open-tpop
+ipcMain.on('server-open-tpop', (event, tableID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-tpop] from client for table '+tableID);
+  }
+
+  activeTables.tpop = tableID;
+
+  if (!tpopWindow) {
+    tpopWindow = new Window({
+      file: './renderer/tpop.html',
+      type: 'tpop',
+      devMode: devMode,
+    });
+    tpopWindow.removeMenu();
+    tpopWindow.maximize();
+    tpopWindow.on('close', function() {
+      tpopWindow = null;
+      activeTables.tpop = null;
+    });
+  }
 });
