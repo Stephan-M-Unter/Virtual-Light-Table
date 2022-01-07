@@ -21,6 +21,7 @@ const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
+const TPOPManager = require('./js/TPOPManager');
 
 // Settings
 const devMode = true;
@@ -36,6 +37,7 @@ const config = {};
 // Managers
 const tableManager = new TableManager();
 const imageManager = new ImageManager();
+const tpopManager = new TPOPManager();
 let saveManager;
 // Windows
 let mainWindow; // main window containing the light table itself
@@ -723,7 +725,7 @@ ipcMain.on('server-send-all', (event) => {
     'Receiving code [server-send-all] from client');
   }
   sendMessage(event.sender, 'client-get-all', tableManager.getTables());
-  console.log("DING", activeTables);
+  console.log('DING', activeTables);
 });
 
 ipcMain.on('server-new-session', (event) => {
@@ -858,4 +860,42 @@ ipcMain.on('server-open-tpop', (event, tableID) => {
       activeTables.tpop = null;
     });
   }
+});
+
+// server-load-tpop-json | data -> data.startIndex, data.endIndex
+ipcMain.on('server-load-tpop-json', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-load-tpop-json] from TPOP window.');
+  }
+
+  let tpopData;
+
+  if (data) {
+    tpopData = tpopManager.loadData(data.startIndex, data.endIndex);
+  } else {
+    tpopData = tpopManager.loadData();
+  }
+  /*
+    1. Check: ist bereits ein TPOP-Json vorhanden?
+    2. Check: Kann eine Verbindung zum ME-Server hergestellt werden?
+    3. Falls ja: muss das JSON neu heruntergeladen werden?
+    4. Übermittlung der Daten an das TPOP-Window
+    5. Falls kein JSON vorhanden: Übermittlung dass keine Daten vorhanden
+  */
+  if (tpopData == null) {
+    sendMessage(tpopWindow, 'tpop-json-failed');
+  } else {
+    sendMessage(tpopWindow, 'tpop-json-data', tpopData);
+  }
+});
+
+ipcMain.on('server-tpop-details', (event, id) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-details] from TPOP window for ID '+id);
+  }
+  const details = tpopManager.loadDetails(id);
+
+  sendMessage(tpopWindow, 'tpop-details', details);
 });
