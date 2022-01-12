@@ -9,19 +9,25 @@
     </head>
     <body>
         <div id="sidebar" class="area">
-            <div class="title">Filters</div>
-            <div id="filter-add" class="no-select">
-                <img src="../imgs/symbol_plus_zoom.png"/>
-            </div>
-            <div id="filter-list">
-                <div class="filter" data-attribute="a_a" data-operator="<" data-value="srtjr">
-                    <div class="filter-descriptor">a_a &lt; 22</div>
-                    <div class="filter-delete no-select">x</div>
+            <div id="version">Data Version: <span id="data-version">unknown</span> (<span id="data-date">unknown</span>)</div>
+            <div id="filter-section" class="sidebar-section">
+                <hr>
+                <div class="title">Filters</div>
+                <div id="filter-add" class="no-select">
+                    <img src="../imgs/symbol_plus_zoom.png"/>
+                </div>
+                <div id="filter-list">
+                    <div class="filter" data-attribute="a_a" data-operator="<" data-value="srtjr">
+                        <div class="filter-descriptor">a_a &lt; 22</div>
+                        <div class="filter-delete no-select">x</div>
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div class="title">Suggestion Weights</div>
-            <p>Section for future automatic suggestion feature; should contain sliders for users to interactively indicate the weight of specific attributes of a fragment to look for similar occurrences</p>
+            <div id="suggestion-section" class="sidebar-section">
+                <hr>
+                <div class="title">Suggestion Weights</div>
+                <p>Section for future automatic suggestion feature; should contain sliders for users to interactively indicate the weight of specific attributes of a fragment to look for similar occurrences</p>
+            </div>
         </div>
         <div id="left-resize-slider" class="resize-slider no-select"></div>
         <div id="main-area" class="area no-select">
@@ -32,7 +38,7 @@
                 <div id="tpop-right-arrow" class="no-select browse-arrow">></div>
             </div>
             <div id="loading-tile-view" class="no-select">
-                <div class="rotated-title">Selected Fragments</div>
+                <div class="rotated-title">Selected</div>
                 <div id="loading-left-arrow" class="no-select browse-arrow"><</div>
                 <div id="loading-view"></div>
                 <div id="loading-right-arrow" class="no-select browse-arrow">></div>

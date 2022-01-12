@@ -100,7 +100,18 @@ function addTile(data) {
 
   multibox.click(function(event) {
     event.stopPropagation();
-    $(event.target).parent().toggleClass('loading');
+    const tile = $(event.target).parent();
+    const id = tile.attr('id').replace('/', '\\/');
+    if (tile.hasClass('loading')) {
+      tile.removeClass('loading');
+      $('#load-'+id).remove();
+    } else {
+      tile.addClass('loading');
+      const tileClone = tile.clone();
+      tileClone.attr('id', 'load-'+id);
+      tileClone.removeClass('selected');
+      $('#loading-view').append(tileClone);
+    }
     updateLoadButton();
   });
 }
@@ -128,22 +139,22 @@ $('#filter-add-button').click((event) => {
   const attribute = $('#filter-attribute').val();
   const operator = $('#filter-operator').val();
   const value = $('#filter-input').val();
-  
+
   const filter = $('<div class="filter"></div>');
   filter.attr('data-attribute', attribute);
   filter.attr('data-operator', operator);
   filter.attr('data-value', value);
-  
+
   const filterDescriptor = $('<div class="filter-descriptor">'+attribute+' '+operator+' '+value+'</div>');
   const filterDelete = $('<div class="filter-delete no-select">x</div>');
-  
+
   filterDelete.click(function(event) {
     $(this).parent().remove();
   });
-  
+
   filter.append(filterDescriptor);
   filter.append(filterDelete);
-  
+
   $('#filter-list').append(filter);
   $('#filter-overlay').css('display', 'none');
 });
