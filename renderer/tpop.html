@@ -21,9 +21,25 @@
             <p>Section for future automatic suggestion feature; should contain sliders for users to interactively indicate the weight of specific attributes of a fragment to look for similar occurrences</p>
         </div>
         <div id="left-resize-slider" class="resize-slider no-select"></div>
-        <div id="main-area" class="area">
-            <div id="loading-view"></div>
-            <div id="tile-view"></div>
+        <div id="main-area" class="area no-select">
+            <div id="tpop-tile-view" class="no-select">
+                <div class="rotated-title">TPOP Fragments</div>
+                <div id="tpop-left-arrow" class="no-select browse-arrow"><</div>
+                <div id="tile-view"></div>
+                <div id="tpop-right-arrow" class="no-select browse-arrow">></div>
+            </div>
+            <div id="loading-tile-view" class="no-select">
+                <div class="rotated-title">Selected Fragments</div>
+                <div id="loading-left-arrow" class="no-select browse-arrow"><</div>
+                <div id="loading-view"></div>
+                <div id="loading-right-arrow" class="no-select browse-arrow">></div>
+            </div>
+            <div id="load-area" class="no-select">
+                <div id="load" class="inactive">
+                    <img/>
+                    <div id="load-text">Select fragments</div>
+                </div>
+            </div>
         </div>
         <div id="right-resize-slider" class="resize-slider no-select"></div>
 
@@ -35,10 +51,6 @@
             <div class="subtitle">Verso</div>
             <img id="detail-verso" src="" class="detail-image"/>
             <div id="detail-meta"></div>
-            <div id="load">
-                <img/>
-                <div id="load-text"></div>
-            </div>
         </div>
 
         <div id="filter-overlay" class="no-select">

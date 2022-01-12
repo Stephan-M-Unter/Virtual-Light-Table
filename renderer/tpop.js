@@ -38,7 +38,13 @@ function displayDetails(details) {
 
 function updateLoadButton() {
   const objectsToLoad = $('.loading').length;
-  $('#load-text').html('Load '+objectsToLoad+' fragment(s)');
+  if (objectsToLoad > 0) {
+    $('#load-text').html('Load '+objectsToLoad+' fragment(s)');
+    $('#load').removeClass('inactive');
+  } else {
+    $('#load-text').html('Select fragments');
+    $('#load').addClass('inactive');
+  }
 }
 
 /**
