@@ -131,10 +131,20 @@ $('#filter-add-button').click((event) => {
     console.log(attribute, operator, value);
     $('#filter-overlay').css('display', 'none');
 
-    const filter = $('<div class="filter">'+attribute+" "+operator+" "+value+'</div>');
+    const filter = $('<div class="filter"></div>');
     filter.attr('data-attribute', attribute);
     filter.attr('data-operator', operator);
     filter.attr('data-value', value);
+
+    const filterDescriptor = $('<div class="filter-descriptor">'+attribute+" "+operator+" "+value+'</div>');
+    const filterDelete = $('<div class="filter-delete no-select">x</div>');
+
+    filterDelete.click(function(event) {
+      $(this).parent().remove();
+    });
+
+    filter.append(filterDescriptor);
+    filter.append(filterDelete);
 
     $('#filter-list').append(filter);
 });
