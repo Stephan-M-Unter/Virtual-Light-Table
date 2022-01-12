@@ -121,32 +121,42 @@ $(window).on('mouseup', (event) => {
 });
 
 $('#filter-add').click((event) => {
-    $('#filter-overlay').css('display', 'flex');
+  $('#filter-overlay').css('display', 'flex');
 });
 
 $('#filter-add-button').click((event) => {
-    const attribute = $('#filter-attribute').val();
-    const operator = $('#filter-operator').val();
-    const value = $('#filter-input').val();
-    console.log(attribute, operator, value);
+  const attribute = $('#filter-attribute').val();
+  const operator = $('#filter-operator').val();
+  const value = $('#filter-input').val();
+  
+  const filter = $('<div class="filter"></div>');
+  filter.attr('data-attribute', attribute);
+  filter.attr('data-operator', operator);
+  filter.attr('data-value', value);
+  
+  const filterDescriptor = $('<div class="filter-descriptor">'+attribute+' '+operator+' '+value+'</div>');
+  const filterDelete = $('<div class="filter-delete no-select">x</div>');
+  
+  filterDelete.click(function(event) {
+    $(this).parent().remove();
+  });
+  
+  filter.append(filterDescriptor);
+  filter.append(filterDelete);
+  
+  $('#filter-list').append(filter);
+  $('#filter-overlay').css('display', 'none');
+});
+
+$('#filter-close').click(function(event) {
+  $('#filter-overlay').css('display', 'none');
+});
+
+$('html').keydown(function(event) {
+  if (event.keyCode == 27) {
+    // ESC -> close filter view
     $('#filter-overlay').css('display', 'none');
-
-    const filter = $('<div class="filter"></div>');
-    filter.attr('data-attribute', attribute);
-    filter.attr('data-operator', operator);
-    filter.attr('data-value', value);
-
-    const filterDescriptor = $('<div class="filter-descriptor">'+attribute+" "+operator+" "+value+'</div>');
-    const filterDelete = $('<div class="filter-delete no-select">x</div>');
-
-    filterDelete.click(function(event) {
-      $(this).parent().remove();
-    });
-
-    filter.append(filterDescriptor);
-    filter.append(filterDelete);
-
-    $('#filter-list').append(filter);
+  }
 });
 
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
