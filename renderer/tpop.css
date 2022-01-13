@@ -5,6 +5,7 @@
 }
 
 body {
+    background-color: purple;
     overflow: hidden;
     display: flex;
     flex-direction: row;
@@ -96,14 +97,16 @@ body {
 
 #main-area {
     background-color: #333;
-    flex-grow: 1;
     display: flex;
+    width: calc(70vw - 254px);
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    flex-shrink: 1;
 }
 
 #tpop-tile-view {
     display: flex;
+    height: calc(100vh - 250px);
     flex-direction: row;
     /* background-color: rgb(177, 141, 26); */
     overflow-y: hidden;
@@ -117,24 +120,31 @@ body {
 #loading-tile-view {
     display: flex;
     flex-direction: row;
+    width: 100%;
+    background-color: #445;
+    height: 180px;
+    align-items: center;
+    min-width: 0;
     flex-shrink: 0;
-    background-color: #334;
-    height: 200px;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 
 #loading-view {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: flex-start;
     flex-grow: 1;
+    flex-shrink: 1;
+    max-width: calc(100% - 20px);
+    overflow-x: hidden;
+    gap: 4px;
+    overflow-y: hidden;
 }
 
 #load-area {
     display: flex;
     flex-shrink: 0;
-    height: 80px;
+    height: 60px;
     justify-content: center;
     align-items: center;
 }
@@ -170,7 +180,7 @@ body {
 }
 
 .browse-arrow {
-    width: 50px;
+    width: 40px;
     height: 100%;
     flex-shrink: 0;
     background-color: #222;
@@ -186,11 +196,20 @@ body {
     background-color: #777;
 }
 
+.browse-arrow:active {
+    background-color: var(--cb_blue);
+}
+
+.browse-arrow.inactive {
+    background-color: #666;
+    color: #888;
+}
+
 #tile-view {
     flex-grow: 1;
     display: flex;
     flex-wrap: wrap;
-    align-content: center;
+    align-content: flex-start;
     justify-content: center;
     gap: 4px;
     overflow-y: auto;
@@ -200,14 +219,14 @@ body {
 .tile {
     position: relative;
     background-color: #222;
-    width: calc(20% - 30px);
-    min-width: 175px;
-    /* max-width: calc((100% / 5) - 20px); */
-    max-height: calc(75vh / 5);
-    aspect-ratio: 1/1;
+    width: 150px;
+    height: 150px;
     color: white;
     text-align: center;
     transition: background-color .2s;
+    animation-name: slideUp;
+    animation-duration: .2s;
+    flex-shrink: 0;
 }
 
 .tile:hover {
@@ -304,7 +323,7 @@ body {
 }
 
 .resize-slider:hover, .resize-slider:active {
-    background-color: #222;
+    background-color: #111;
     width: 8px;
 }
 
@@ -337,4 +356,26 @@ body {
 
 #filter-close:hover {
     color: white;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        top: 40px;
+    }
+    to {
+        opacity: 1;
+        top: 0px;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 1;
+        top: 0px;
+    }
+    to {
+        opacity: 0;
+        top: 40px;
+    }
 }

@@ -67,13 +67,9 @@ class TPOPManager {
   };
 
   loadDetails(id) {
-    for (const [key, value] of Object.entries(this.tpopData)) {
-      console.log(value);
-      if (value.name == id) {
-        return value;
-      }
-    }
-    return null;
+    let nr = id.replace('CP1_', '');
+    nr = 'entry-'+(nr-1);
+    return this.tpopData[nr];
   };
   
   filterData() {};
