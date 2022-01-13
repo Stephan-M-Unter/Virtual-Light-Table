@@ -13,7 +13,7 @@
 'use strict';
 
 // Loading Requirements
-const {app, ipcMain, dialog} = require('electron');
+const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const {spawn} = require('child_process');
@@ -833,4 +833,13 @@ ipcMain.on('server-import-file', (event) => {
     sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
     sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
   });
+});
+
+ipcMain.on('server-open-load-folder', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-load-folder] from loadWindow');
+  }
+  const folder = saveManager.getCurrentFolder();
+  shell.openPath(folder);
 });
