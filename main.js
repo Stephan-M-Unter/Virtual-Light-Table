@@ -899,3 +899,13 @@ ipcMain.on('server-tpop-details', (event, id) => {
 
   sendMessage(tpopWindow, 'tpop-details', details);
 });
+
+
+ipcMain.on('server-close-tpop', () => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-close-tpop] from TPOP window');
+  }
+  tpopWindow.close();
+  tpopWindow = null;
+});

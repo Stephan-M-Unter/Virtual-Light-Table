@@ -30,7 +30,6 @@ class TPOPManager {
         if (fs.existsSync('./tpop.json')) {
           this.tpopData = JSON.parse(fs.readFileSync('./tpop.json'));
           console.log('Loaded TPOP data from local JSON.');
-          console.log(this.tpopData);
         }
       } catch (err) {
         console.log(err);

@@ -89,7 +89,7 @@ function checkForRequest() {
 function updateLoadButton() {
   const objectsToLoad = $('.preview').length;
   if (objectsToLoad > 0) {
-    $('#load-text').html('Load '+objectsToLoad+' fragment(s)');
+    $('#load-text').html('Add '+objectsToLoad+' fragment(s) to table');
     $('#load').removeClass('inactive');
   } else {
     $('#load-text').html('Select fragments');
@@ -341,6 +341,10 @@ $('#loading-right-arrow').click(function() {
   $('#loading-view').stop().animate({scrollLeft: scroll_w+154}, 100, () => {
     updateSelectedScrollers();
   });
+});
+
+$('#cancel').click(function() {
+  ipcRenderer.send('server-close-tpop');
 });
 
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {

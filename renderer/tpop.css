@@ -100,7 +100,7 @@ body {
     display: flex;
     width: calc(70vw - 254px);
     flex-direction: column;
-    gap: 4px;
+    /* gap: 4px; */
     flex-shrink: 1;
 }
 
@@ -147,25 +147,26 @@ body {
     height: 60px;
     justify-content: center;
     align-items: center;
+    gap: 8px;
 }
 
-#load {
+.button {
     background-color: var(--cb_orange);
     padding: 5px 20px;
     box-shadow: 2px 2px 3px black;
     transition: all .1s;
 }
 
-#load:hover {
+.button:hover {
     background-color: rgb(255, 205, 129);
 }
 
-#load:active {
+.button:active {
     box-shadow: none;
     background-color: var(--cb_blue);
 }
 
-#load.inactive {
+.button.inactive {
     background-color: grey;
     box-shadow: none;
 }
