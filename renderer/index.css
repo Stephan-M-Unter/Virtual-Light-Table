@@ -1163,6 +1163,8 @@ body {
     box-sizing: border-box;
     margin: 5px;
     box-shadow: 2px 2px 5px black;
+    animation-name: slideUp;
+    animation-duration: .2s;
 }
 
 .table_item:hover {
@@ -1286,6 +1288,7 @@ body {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-color: white !important;
 }
 
