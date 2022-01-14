@@ -1000,13 +1000,13 @@ body {
     height: 50px;
     width: 50px;
     padding: 10px;
-    transition: .2s height, .2s width, .2s padding;
+    transition: .2s height, .2s width, .1s padding;
 }
 
 .button_img:hover,
 .narrow_button:hover .button_img,
 .wide_button:hover .button_img {
-    padding: 4px;
+    padding: 6px;
 }
 
 .disabled:hover .button_img {
