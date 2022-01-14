@@ -945,6 +945,7 @@ body {
 .narrow_button:active
 {
     background-color: var(--cb_blue);
+    box-shadow: inset 3px 3px 4px black, inset -1px -1px 4px white; 
 }
 
 .button_img {

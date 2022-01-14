@@ -304,10 +304,10 @@ $(document).ready(function() {
     annotStart.top = parseFloat($('#annot_window').css('top'));
     mouseStart.x = event.pageX;
     mouseStart.y = event.pageY;
-    $('#annot_window').on('mousemove', moveAnnotationWindow);
+    $(window).on('mousemove', moveAnnotationWindow);
   });
   $(window).on('mouseup', function(event) {
-    $('#annot_window').off('mousemove', moveAnnotationWindow);
+    $(window).off('mousemove', moveAnnotationWindow);
   });
 
   /**
