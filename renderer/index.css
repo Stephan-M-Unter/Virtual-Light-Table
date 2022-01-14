@@ -853,21 +853,14 @@ body {
     content: ")";
 }
 
-.annotation .annot_hide:before {
-    content: "-";
-}
-
-.annotation.hidden_annot .annot_hide:before {
-    content: "+";
-}
-
-.annotation.hidden_annot *:not(.annot_hide) {
-    display: none;
-}
-
 .annotation.hidden_annot {
     height: 2px;
     padding: 0px;
+    margin-bottom: 30px;
+}
+
+.annotation.hidden_annot :not(.annot_hide) {
+    display: none;
 }
 
 .annotation.shown_annot {
@@ -916,16 +909,40 @@ body {
 }
 
 .annot_hide {
-    width: 14px;
-    height: 14px;
-    line-height: 14px;
-    background-color: gray;
+    opacity: 0;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
     position: absolute;
-    bottom: -5px;
-    right: -5px;
-    text-align: center;
-    color: lightgrey;
+    top: 2px;
+    right: 2px;
     user-select: none;
+    background-image: url('../imgs/symbol_no_eye.png');
+    background-size: contain;
+    transition: all .2s;
+}
+
+.annotation.hidden_annot .annot_hide,
+.annotation.shown_annot .annot_hide {
+    background-image: url('../imgs/symbol_eye.png');
+}
+
+#annot_show {
+    border: 1px solid gray;
+    width: fit-content;
+    position: absolute;
+    top: 30px;
+    padding: 5px;
+}
+
+#annot_show:active,
+#annot_show.pressed {
+    box-shadow: inset 3px 3px 2px black, inset 2px 2px 4px white;
+}
+
+.annotation:hover .annot_hide,
+.annotation.hidden_annot .annot_hide {
+    opacity: 1;
 }
 
 #fit_to_screen {

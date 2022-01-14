@@ -511,6 +511,16 @@ ipcMain.on('server-remove-annotation', (event, data) => {
   tableManager.removeAnnotation(data.tableID, data.aID);
 });
 
+// server-update-annotation | data -> data.tableID, data.aData
+ipcMain.on('server-update-annotation', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-update-annotation] from client for table '+data.tableID);
+  }
+  console.log("data:", data);
+  tableManager.updateAnnotation(data.tableID, data.aData);
+});
+
 // server-open-upload
 ipcMain.on('server-open-upload', (event, tableID) => {
   if (devMode) {

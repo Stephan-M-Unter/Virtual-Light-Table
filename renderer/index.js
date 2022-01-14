@@ -295,6 +295,15 @@ $(document).ready(function() {
       controller.sendAnnotation($(event.target).attr('target'));
     }
   });
+  $('#annot_show').click(function() {
+    if ($('#annot_show').hasClass('pressed')) {
+      $('#annot_show').removeClass('pressed');
+      controller.hideHiddenAnnotations();
+    } else {
+      $('#annot_show').addClass('pressed');
+      controller.showHiddenAnnotations();
+    }
+  });
 
   const annotStart = {};
   const mouseStart = {};

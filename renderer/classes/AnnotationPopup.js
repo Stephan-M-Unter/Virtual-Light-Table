@@ -98,7 +98,18 @@ class AnnotationPopup {
    * TODO
    */
   _createHideButton() {
+    // create DOM elements
+    const hideElement = document.createElement('div');
+    // const hideImg = document.createElement('img');
 
+    // DOM attributes
+    hideElement.setAttribute('class', 'annot_hide');
+    // hideImg.src = '../imgs/symbol_eye.png';
+
+    // DOM hierarchy
+    // hideElement.appendChild(hideImg);
+
+    return hideElement;
   }
 
   /**
@@ -141,6 +152,11 @@ class AnnotationPopup {
 
         const annotation = this._createAnnotationElement(annotId,
             annot.text, annot.editor, Util.convertTime(annot.time));
+        const hideButton = this._createHideButton();
+        hideButton.addEventListener('click', (event) => {
+          this.hideAnnotation(event);
+        });
+        annotation.appendChild(hideButton);
 
         if (annot.hidden) {
           annotation.setAttribute('class', 'annotation hidden_annot');
@@ -268,13 +284,30 @@ class AnnotationPopup {
    */
   hideAnnotation(event) {
     const annotation = $(event.target).parent();
-    if (annotation.hasClass('hidden_annot')) {
+    const id = annotation.attr('id');
+    if (annotation.hasClass('hidden_annot') || annotation.hasClass('shown_annot')) {
+      // unhide annotation
       annotation.removeClass('hidden_annot');
-      annotation.addClass('shown_annot');
-    } else {
       annotation.removeClass('shown_annot');
+      $(event.target).css('background-image', 'url("../imgs/symbol_no_eye.png")');
+    } else {
+      // hide annotation
       annotation.addClass('hidden_annot');
+      $(event.target).css('background-image', 'url("../imgs/symbol_eye.png")');
     }
+    const aData = {
+      id: id,
+      hidden: $('#'+id).hasClass('hidden_annot') || $('#'+id).hasClass('shown_annot'),
+    };
+    this._updateToServer(aData);
+  }
+
+  showHidden() {
+    $('.hidden_annot').removeClass('hidden_annot').addClass('shown_annot');
+  }
+
+  hideHidden() {
+    $('.shown_annot').removeClass('shown_annot').addClass('hidden_annot');
   }
 
   /**
@@ -324,6 +357,14 @@ class AnnotationPopup {
     };
 
     this.controller.sendToServer('server-write-annotation', data);
+  }
+
+  _updateToServer(aData) {
+    const data = {
+      tableID: this.controller.getActiveTable(),
+      aData: aData,
+    }
+    this.controller.sendToServer('server-update-annotation', data);
   }
 
   /**

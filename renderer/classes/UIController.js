@@ -877,6 +877,14 @@ class UIController {
   updateFilename(saveData) {
     this.topbar.updateFilename(saveData);
   }
+
+  showHiddenAnnotations() {
+    this.annotationPopup.showHidden();
+  }
+
+  hideHiddenAnnotations() {
+    this.annotationPopup.hideHidden();
+  }
 }
 
 module.exports.UIController = UIController;
