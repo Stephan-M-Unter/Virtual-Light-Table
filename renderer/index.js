@@ -308,6 +308,16 @@ $(document).ready(function() {
   });
   $(window).on('mouseup', function(event) {
     $(window).off('mousemove', moveAnnotationWindow);
+    $(window).off('mousemove', resizeAnnotationWindow);
+  });
+
+  $('#annot_resize').on('mousedown', function(event) {
+    event.stopPropagation();
+    annotStart.left = parseFloat($('#annot_window').css('left'));
+    annotStart.top = parseFloat($('#annot_window').css('top'));
+    mouseStart.x = event.pageX;
+    mouseStart.y = event.pageY;
+    $(window).on('mousemove', resizeAnnotationWindow);
   });
 
   /**
@@ -322,6 +332,11 @@ $(document).ready(function() {
     const newTop = annotStart.top - distance.y;
     $('#annot_window').css('left', newLeft);
     $('#annot_window').css('top', newTop);
+  }
+
+  function resizeAnnotationWindow(event) {
+    $('#annot_window').css('width', event.pageX - annotStart.left);
+    $('#annot_window').css('height', event.pageY - annotStart.top);
   }
 
   // Zoom Slider
