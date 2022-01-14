@@ -310,16 +310,34 @@ body {
 }
 
 .delete_button {
-    top: 5px;
-    right: 5px;
-    background-color: red;
-    background-image: url("../imgs/symbol_bin.png");
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 0px;
+    right: 0px;
+    transition: all .2s;
+    opacity: 0.5;
+    background-image: url('../imgs/symbol_x.png');
+    background-size: contain;
+}
+
+.delete_button:hover,
+.goto_button:hover {
+    opacity: 1;
+    width: 30px;
+    height: 30px;
 }
 
 .goto_button {
-    bottom: 18px;
-    right: 5px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    transition: all .2s;
+    opacity: 0.5;
+    width: 20px;
+    height: 20px;
     background-image: url("../imgs/symbol_target.png");
+    background-size: contain;
 }
 
 .details_button {
