@@ -263,7 +263,12 @@ $(document).ready(function() {
   // Annotation Button
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
-      $('#annot_window').css('display', 'none');
+      $('#annot_window').css('animation-name', 'fadeOut');
+      $('#annot_window').bind('animationend', function() {
+        $('#annot_window').css('display', 'none');
+        $('#annot_window').unbind('animationend');
+        $('#annot_window').css('animation-name', 'fadeIn');
+      });
       controller.setPermission('hotkeys', true);
     } else {
       $('#annot_window').css('display', 'flex');
@@ -271,7 +276,12 @@ $(document).ready(function() {
     }
   });
   $('#annot_close').click(function() {
-    $('#annot_window').css('display', 'none');
+    $('#annot_window').css('animation-name', 'fadeOut');
+    $('#annot_window').bind('animationend', function() {
+      $('#annot_window').css('display', 'none');
+      $('#annot_window').unbind('animationend');
+      $('#annot_window').css('animation-name', 'fadeIn');
+    });
     controller.setPermission('hotkeys', true);
   });
   $('#annot_text').keyup(function(event) {
