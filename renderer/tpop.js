@@ -23,8 +23,7 @@ $(document).ready(() => {
 function requestBatch() {
   const pageEnd = (currentPage+1)*maxPageSize-1;
   if (lastIndex == pageEnd) {
-    // füge NEXT PAGE button hinzu
-    console.log("Jetzt den Button bitte!");
+    // TODO füge NEXT PAGE button hinzu
   } else if (!requesting) {
     requesting = true;
     let endIndex = lastIndex+batchSize;
@@ -145,10 +144,6 @@ function updateSelectedScrollers() {
   const w_scroll = $('#loading-view').prop('scrollWidth');
   const w_div = $('#loading-view').width();
   const scroll_pos = $('#loading-view').scrollLeft();
-
-  console.log("scrollWidth", w_scroll);
-  console.log("width", w_div);
-  console.log("scroll pos", scroll_pos);
 
   if (w_scroll > w_div) {
     if (scroll_pos > 0) {
@@ -354,7 +349,7 @@ ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
 });
 
 ipcRenderer.on('tpop-json-failed', () => {
-  // show error message
+  // TODO show error message
   // show options to close or retry
   console.log('json failed');
 });
