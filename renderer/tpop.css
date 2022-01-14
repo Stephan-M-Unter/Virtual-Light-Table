@@ -359,24 +359,3 @@ body {
     color: white;
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        top: 40px;
-    }
-    to {
-        opacity: 1;
-        top: 0px;
-    }
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 1;
-        top: 0px;
-    }
-    to {
-        opacity: 0;
-        top: 40px;
-    }
-}
