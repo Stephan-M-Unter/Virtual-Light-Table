@@ -254,8 +254,8 @@ function handlePressMove(event, sidename) {
 }
 
 /**
- * 
- * @param {*} event 
+ *
+ * @param {*} event
  */
 function handleMousewheel(event) {
   const zoomDirection = Math.sign(event.originalEvent.wheelDelta);
@@ -490,6 +490,15 @@ $('#tutorial_shadow').on('click', (event) => {
   $('#tutorial_region').addClass('unrendered');
 });
 
+$('html').keydown(function(event) {
+  if (event.keyCode == 27) {
+    // ESC
+    if (!$('tutorial_region').hasClass('unrendered')) {
+      $('#tutorial_region').addClass('unrendered');
+    }
+  }
+});
+
 $('.list_item').on('click', (event) => {
   const list = $('.list');
   if (list.hasClass('open')) {
@@ -503,7 +512,7 @@ $('.list_item').on('click', (event) => {
     maskMode = listItem.attr('mask_mode');
     $('.mask_controls.'+maskMode).addClass('selected');
     $('.mask_explanation.'+maskMode).addClass('selected');
-    console.log("Mask Mode:", maskMode);
+    console.log('Mask Mode:', maskMode);
   } else {
     list.addClass('open');
   }
