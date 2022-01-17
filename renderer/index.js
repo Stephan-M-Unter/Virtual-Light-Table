@@ -459,8 +459,8 @@ $(document).ready(function() {
         // Ctrl + L -> Load
         controller.loadTable();
       } else if (event.keyCode == 78) {
-        // Ctrl + N -> Table Clear
-        controller.clearTable();
+        // Ctrl + N -> New Table
+        controller.newTable();
       } else if (event.keyCode == 90) {
         // Ctrl + Z -> Undo Step
         controller.sendToServer('server-undo-step', controller.getActiveTable());
@@ -476,6 +476,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 81) {
         // Ctrl + Q -> DevMode, ask for everything
         controller.sendToServer('server-send-all');
+      } else if (event.keyCode == 67) {
+        // Ctrl + C -> Clear Table
+        controller.clearTable();
       }
     } else {
       if (event.keyCode == 46) {
@@ -516,10 +519,14 @@ $(document).ready(function() {
           controller.sendToServer('server-open-upload', controller.getActiveTable());
         }
       } else if (event.keyCode == 79) {
+        // O -> change fragment
         controller.changeFragment();
       } else if (event.keyCode == 116) {
         // F5 -> update Stage
         controller.update();
+      } else if (event.keyCode == 67) {
+        // C -> Calibration Tool
+        controller.sendToServer('server-open-calibration');
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

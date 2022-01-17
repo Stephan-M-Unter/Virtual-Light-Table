@@ -104,6 +104,7 @@ class AnnotationPopup {
 
     // DOM attributes
     hideElement.setAttribute('class', 'annot_hide');
+    hideElement.setAttribute('title', 'Hide annotation');
     // hideImg.src = '../imgs/symbol_eye.png';
 
     // DOM hierarchy
@@ -160,6 +161,7 @@ class AnnotationPopup {
 
         if (annot.hidden) {
           annotation.setAttribute('class', 'annotation hidden_annot');
+          hideButton.setAttribute('title', 'Show annotation');
         }
 
         document.getElementById('annot_view').appendChild(annotation);
@@ -290,10 +292,12 @@ class AnnotationPopup {
       annotation.removeClass('hidden_annot');
       annotation.removeClass('shown_annot');
       $(event.target).css('background-image', 'url("../imgs/symbol_no_eye.png")');
+      $(event.target).attr('title', 'Hide annotation');
     } else {
       // hide annotation
       annotation.addClass('hidden_annot');
       $(event.target).css('background-image', 'url("../imgs/symbol_eye.png")');
+      $(event.target).attr('title', 'Show annotation');
     }
     const aData = {
       id: id,

@@ -268,6 +268,10 @@ body {
     text-align: center;
     width: 100%;
     line-height: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 .fragment_list_item_active {
@@ -687,7 +691,7 @@ body {
     display: none;
     flex-flow: column;
     left: 20%;
-    top: 20%;
+    top: 10%;
     width: 50%;
     height: 80%;
     background-color: rgb(255, 252, 206);
@@ -1373,6 +1377,11 @@ body {
     width: 30px;
     display: none;
     background-color: rgba(0, 0, 0, 0.5);
+    transition: all .2s;
+}
+
+.table_renew_screenshot:hover {
+    background-color: rgba(200,200,200,0.9);
 }
 
 .table_renew_screenshot img {
@@ -1382,8 +1391,8 @@ body {
 }
 
 .table_renew_screenshot:hover img {
-    width: 90%;
-    height: 90%;
+    width: 80%;
+    height: 80%;
 }
 
 .table_item.activeTable .table_renew_screenshot {
@@ -1403,4 +1412,19 @@ body {
 
 .table_item.unsaved .unsaved_dot {
     display: block;
+}
+
+.underline {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+}
+
+.underline_double {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+}
+
+.underline_dotted {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
 }
