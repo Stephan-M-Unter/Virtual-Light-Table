@@ -9,6 +9,9 @@ const dialogs = new Dialogs();
 let currentUpload = null;
 let mode = $('.active_mode').attr('mode');
 let maskMode = 'no_mask';
+let scaleMode = null;
+let scalePoint = null;
+let scale = 1;
 const mousestart = {};
 
 let recto = {
@@ -220,6 +223,9 @@ function readExifPPI(image, sidename) {
  */
 function handleMouseDown(event, sidename) {
   const side = getSide(sidename);
+  if (sidename == scaleMode) {
+    doScaling(event.stageX, event.stageY);
+  }
   mousestart.x = event.stageX;
   mousestart.y = event.stageY;
   mousestart.offsetX = event.stageX - side.content.x;
@@ -258,18 +264,40 @@ function handlePressMove(event, sidename) {
  * @param {*} event
  */
 function handleMousewheel(event) {
-  const zoomDirection = Math.sign(event.originalEvent.wheelDelta);
+  const zoomStep = 0.05;
+  const zoomDirection = Math.sign(event.originalEvent.wheelDelta); // positive: zoom in; negative: zoom out
   if (recto.content.filepath != null || verso.content.filepath != null) {
+    // only zoom if at least one canvas has content
     // TODO zooming
-    if (recto.content.img) {
-      recto.content.img.scale = recto.content.img_bg.scale = recto.content.img.scale + (0.1 * zoomDirection);
+    if ((scale > zoomStep && zoomDirection < 0) || zoomDirection > 0) {
+      scale = scale + (zoomStep * zoomDirection);
+      scale = Math.round(scale*100)/100;
+      if (recto.content.img) {
+        let rectoPPI = $('#recto_ppi').val();
+        if (rectoPPI == '') {
+          rectoPPI = 96;
+        }
+        let rectoScale = (96 * (96/rectoPPI) * scale) / 96;
+        rectoScale = Math.round(rectoScale*100) / 100;
+        recto.content.img.scale = rectoScale;
+        recto.content.img_bg.scale = rectoScale;
+        console.log("Recto:", recto.content.img.scale);
+      }
+      if (verso.content.img) {
+        let versoPPI = $('#verso_ppi').val();
+        if (versoPPI == '') {
+          versoPPI = 96;
+        }
+        let versoScale = (96 * (96/versoPPI) * scale) / 96;
+        versoScale = Math.round(versoScale*100) / 100;
+        verso.content.img.scale = versoScale;
+        verso.content.img_bg.scale = versoScale;
+        console.log("Verso:", verso.content.img.scale);
+      }
+      recto.stage.update();
+      verso.stage.update();
+      console.log("Scale:", scale);
     }
-    if (verso.content.img) {
-      verso.content.img.scale = verso.content.img_bg.scale = verso.content.img.scale + (0.1 * zoomDirection);
-    }
-    recto.stage.update();
-    verso.stage.update();
-    console.log(recto.content.img.scale);
   }
 }
 
@@ -424,6 +452,68 @@ function rotateToAngle(targetAngle, sidename) {
   draw(sidename);
 }
 
+/**
+ * 
+ * @param {'recto'|'verso'} target 
+ */
+function startScaling(target) {
+  scaleMode = target;
+  console.log("Starting Scale Mode for:", scaleMode);
+
+}
+
+function endScaling() {
+  console.log("Ending Scale Mode for:", scaleMode);
+  scaleMode = null;
+  scalePoint = null;
+  $('.measure').removeClass('active');
+  $('canvas').removeClass('scale');
+
+}
+
+function doScaling(x, y) {
+  if (scalePoint == null) {
+    // this click determines the first point
+    console.log("First point:", x, y);
+    scalePoint = [x, y];
+  } else {
+    // this is the second point, enough to determine the distance
+    const dx = Math.abs(x - scalePoint[0]);
+    const dy = Math.abs(y - scalePoint[1]);
+    const z = Math.sqrt((dx*dx) + (dy*dy));
+    const ppi = (z*2.54)/getSide(scaleMode).content.img.scale;
+
+    $('#'+scaleMode+'_ppi').val(Math.round(ppi*100)/100);
+    scaleImages();
+    checkGUI();
+
+    endScaling();
+  }
+}
+
+function scaleImages() {
+  if (recto.content.filepath) {
+    const rectoPPI = $('#recto_ppi').val();
+    if (rectoPPI != '') {
+      const rectoScale = (96 * (96/rectoPPI) * scale) / 96;
+      // const rectoScale = 96/ (rectoPPI*scale);
+      recto.content.img.scale = rectoScale;
+      recto.content.img_bg.scale = rectoScale;
+    }
+  }
+  if (verso.content.filepath) {
+    const versoPPI = $('#verso_ppi').val();
+    if (versoPPI != '') {
+      const versoScale = (96 * (96/versoPPI) * scale) / 96;
+      // const versoScale = 96 / (versoPPI*scale);
+      verso.content.img.scale = versoScale;
+      verso.content.img_bg.scale = versoScale;
+    }
+  }
+  recto.stage.update();
+  verso.stage.update();
+}
+
 
 /* INTERACTIVE ELEMENTS */
 
@@ -463,8 +553,20 @@ $('.rotate_90').on('click', (event) => {
   rotateByAngle(90, canvas);
 });
 $('.measure').on('click', (event) => {
-  const canvas = $(event.target).attr('canvas');
-  console.log('Measure', canvas);
+  const target = $(event.target).attr('canvas');
+  const button = $(event.target).parent();
+  $('.measure').removeClass('active');
+  $('canvas').removeClass('scale');
+
+  if (button.hasClass('active')) {
+    // (this) scale mode was active, deactivate
+    endScaling();
+  } else {
+    // (this) scale mode was inactive, activate it
+    button.addClass('active');
+    $('#'+target+'_canvas').addClass('scale');
+    startScaling(target);
+  }
 });
 $('#move').on('click', (event) => {
   $('.active_mode').removeClass('active_mode');
@@ -522,6 +624,7 @@ $('.list_item').on('click', (event) => {
 
 $('.input_ppi').on('input', (event) => {
   checkRequiredFields();
+  scaleImages();
 });
 
 

@@ -72,7 +72,8 @@ body {
 }
 
 .button:active:not(.disabled),
-.button.active_mode:not(.disabled) {
+.button.active_mode:not(.disabled),
+.button.active:not(.disabled) {
     box-shadow: inset 2px 2px 3px black, inset -1px -1px 2px #333333 !important;
     background-color: var(--cb_blue) !important;
 }
@@ -161,6 +162,10 @@ canvas {
 
 canvas.active {
     background-color: white;
+}
+
+canvas.scale {
+    cursor: url('../imgs/symbol_measure_cursor.png'), auto;
 }
 
 .upload_wrapper {
