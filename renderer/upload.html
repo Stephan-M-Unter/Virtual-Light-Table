@@ -121,14 +121,32 @@
                 </div>
                 <div id="mask_control_region">
                     <div class="mask_controls selected no_mask"></div>
-                    <div class="mask_controls boundingbox"></div>
-                    <div class="mask_controls polygon"></div>
+                    <div class="mask_controls boundingbox">
+                        <div title="Reset bounding box" id="mask_control_box_reset" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_rotate.png" class="square_button_img"/>
+                        </div>
+                    </div>
+                    <div class="mask_controls polygon">
+                        <div title="Add new polygon nodes (toggle)" id="mask_control_polygon_add" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_cut.png" class="square_button_img"/>
+                        </div>
+                        <div title="Remove polygon nodes (toggle)" id="mask_control_polygon_remove" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_erase.png" class="square_button_img"/>
+                        </div>
+                        <div title="Undo last polygon node" id="mask_control_polygon_undo" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_undo.png" class="square_button_img"/>
+                        </div>
+                        <div title="Remove all polygon nodes" id="mask_control_polygon_clear" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_new_table.png" class="square_button_img"/>
+                        </div>
+                    </div>
                     <div class="mask_controls automatic"></div>
+                    <div id="mask_control_title"></div>
                 </div>
                 <div id="mask_explanation_region">
                     <div class="mask_explanation selected no_mask">No mask mode selected. Please note that correct flipping of images will only work if recto and verso are already perfectly aligned to each other.</div>
                     <div class="mask_explanation boundingbox">Move the vertices of the bounding box to define the minimal bounding rectangle for your object. Make sure for both recto and verso your object is in the selected region.</div>
-                    <div class="mask_explanation polygon">Use the pen tool and define a custom polygon around your object. Make sure that for both recto and verso your object is in the polygonal region.</div>
+                    <div class="mask_explanation polygon">Use the pen tool and add nodes to define a custom polygon around your object. Make sure that for both recto and verso your object is within the polygonal region.</div>
                     <div class="mask_explanation automatic">Select a machine learning model to automatically segment your object and register front and back to each other.</div>
                 </div>
             </div> <!-- </mask_region> -->

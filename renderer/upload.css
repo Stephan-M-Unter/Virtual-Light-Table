@@ -168,6 +168,14 @@ canvas.scale {
     cursor: url('../imgs/symbol_measure_cursor.png'), auto;
 }
 
+canvas.addPolygonNode {
+    cursor: url('../imgs/symbol_cut_cursor.png'), auto;
+}
+
+canvas.removePolygonNode {
+    cursor: url('../imgs/symbol_erase_cursor.png'), auto;
+}
+
 .upload_wrapper {
     position: absolute;
     align-self: center;
@@ -368,6 +376,9 @@ canvas.scale {
 
 #mask_control_region {
     flex-grow: 1;
+    display: flex;
+    align-items: center;
+    align-content: center;
 }
 
 .mask_controls:not(.selected) {
@@ -377,12 +388,34 @@ canvas.scale {
 .mask_explanation {
     font-size: 0.8em;
     padding: 8px 0px 0px 0px;
+    text-align: justify;
 }
 
 .mask_explanation:not(.selected) {
     display: none;
 }
 
+.mask_controls {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 2px;
+    padding: 5px 0px;
+}
+
+/* .mask_control_button {
+    height: 50px;
+    width: 50px;
+    background-color: gray;
+    box-shadow: 2px 2px 4px black;
+}
+
+.mask_control_button img {
+    max-width: 100%;
+    max-height: 100%;
+    padding: 8px;
+} */
 
 /* TUTORIAL REGION */
 
