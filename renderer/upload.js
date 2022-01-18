@@ -979,7 +979,19 @@ $('.www_upload').on('click', (event) => {
   if (currentUpload == null) {
     const canvas = $(event.target).attr('canvas');
     currentUpload = canvas;
-    console.log('WWW Upload', canvas);
+    
+    try {
+      dialogs.prompt('Enter image URL:', function(url) {
+        if (url != '' && url != null) {
+          getSide(currentUpload).content.filepath = url;
+          draw(currentUpload);
+          currentUpload = null;
+        }
+      });
+    } catch {
+      alert('Please make sure your image URL leads to an image file (jpg, png)!');
+      currentUpload = null;
+    }
   }
 });
 $('.delete').on('click', (event) => {
