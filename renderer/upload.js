@@ -830,7 +830,7 @@ function moveVertex(event, sidename, index) {
 }
 
 /**
- * 
+ *
  */
 function clearPolygon() {
   recto.mask.polygon = [];
@@ -839,7 +839,7 @@ function clearPolygon() {
 }
 
 /**
- * 
+ *
  */
 function undoPolygonNode() {
   if (recto.mask.polygon.length > 0) {
@@ -850,9 +850,9 @@ function undoPolygonNode() {
 }
 
 /**
- * 
- * @param {*} point 
- * @param {*} sidename 
+ *
+ * @param {*} point
+ * @param {*} sidename
  */
 function addPolygonNode(point, sidename) {
   let x = point[0];
@@ -860,14 +860,14 @@ function addPolygonNode(point, sidename) {
     x = recto.stage.canvas.width - x;
   }
   const y = point[1];
-  recto.mask.polygon.push([x,y]);
+  recto.mask.polygon.push([x, y]);
   updateVersoMask();
   drawMasks();
 }
 
 /**
- * 
- * @param {*} index 
+ *
+ * @param {*} index
  */
 function removePolygonNode(index) {
   recto.mask.polygon.splice(index, 1);
@@ -876,7 +876,7 @@ function removePolygonNode(index) {
 }
 
 /**
- * 
+ *
  */
 function updateVersoMask() {
   verso.mask.box = mirrorPoints(recto.mask.box);
@@ -884,7 +884,7 @@ function updateVersoMask() {
 }
 
 /**
- * 
+ *
  */
 function startAddPolygonNodes() {
   endActiveModes();
@@ -894,7 +894,7 @@ function startAddPolygonNodes() {
 }
 
 /**
- * 
+ *
  */
 function endAddPolygonNodes() {
   actionMode = null;
@@ -903,7 +903,7 @@ function endAddPolygonNodes() {
 }
 
 /**
- * 
+ *
  */
 function startRemovePolygonNodes() {
   endActiveModes();
@@ -913,7 +913,7 @@ function startRemovePolygonNodes() {
 }
 
 /**
- * 
+ *
  */
 function endRemovePolygonNodes() {
   actionMode = null;
@@ -922,7 +922,7 @@ function endRemovePolygonNodes() {
 }
 
 /**
- * 
+ *
  */
 function endActiveModes() {
   endAddPolygonNodes();
@@ -979,7 +979,7 @@ $('.www_upload').on('click', (event) => {
   if (currentUpload == null) {
     const canvas = $(event.target).attr('canvas');
     currentUpload = canvas;
-    
+
     try {
       dialogs.prompt('Enter image URL:', function(url) {
         if (url != '' && url != null) {
