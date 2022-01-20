@@ -111,10 +111,10 @@ class SaveManager {
       for (const fID in tableConfiguration.fragments) {
         if (Object.prototype.hasOwnProperty.call(tableConfiguration.fragments, fID)) {
           const fragment = tableConfiguration.fragments[fID];
-          const rectoImageDir = path.dirname(fragment.rectoURL);
-          const rectoImageName = fragment.rectoURL.split('\\').pop().split('/').pop();
-          const versoImageDir = path.dirname(fragment.versoURL);
-          const versoImageName = fragment.versoURL.split('\\').pop().split('/').pop();
+          const rectoImageDir = path.dirname(fragment.recto.url);
+          const rectoImageName = fragment.recto.url.split('\\').pop().split('/').pop();
+          const versoImageDir = path.dirname(fragment.verso.url);
+          const versoImageName = fragment.verso.url.split('\\').pop().split('/').pop();
           const rectoNewPath = path.join(imagepath, rectoImageName);
           const versoNewPath = path.join(imagepath, versoImageName);
           const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
@@ -129,7 +129,7 @@ class SaveManager {
           } else {
             if (!rectoAlreadyMoved) {
               // is image in temp folder?
-              const rectoOldPath = fragment.rectoURL.replace(/\\\\/g, '/').replace(/\\/g, '/');
+              const rectoOldPath = fragment.recto.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
               if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
                 fs.renameSync(rectoOldPath, rectoNewPath);
@@ -138,7 +138,7 @@ class SaveManager {
                 fs.copyFileSync(rectoOldPath, rectoNewPath);
               }
             }
-            tableConfiguration.fragments[fID].rectoURL = rectoNewPath;
+            tableConfiguration.fragments[fID].recto.url = rectoNewPath;
           }
 
           // is image in save_folder?
@@ -148,7 +148,7 @@ class SaveManager {
           } else {
             if (!versoAlreadyMoved) {
               // is image in temp folder?
-              const versoOldPath = fragment.versoURL.replace(/\\\\/g, '/').replace(/\\/g, '/');
+              const versoOldPath = fragment.verso.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
               if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
                 // move image from temp folder to imagepath
                 fs.renameSync(versoOldPath, versoNewPath);
@@ -157,7 +157,7 @@ class SaveManager {
                 fs.copyFileSync(versoOldPath, versoNewPath);
               }
             }
-            tableConfiguration.fragments[fID].versoURL = versoNewPath;
+            tableConfiguration.fragments[fID].verso.url = versoNewPath;
           }
         }
       }
@@ -270,8 +270,8 @@ class SaveManager {
         for (const fID in savefile.fragments) {
           if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
             const fragment = savefile.fragments[fID];
-            const recto = path.resolve(fragment.rectoURL).split('\\').pop().split('/').pop();
-            const verso = path.resolve(fragment.versoURL).split('\\').pop().split('/').pop();
+            const recto = path.resolve(fragment.recto.url).split('\\').pop().split('/').pop();
+            const verso = path.resolve(fragment.verso.url).split('\\').pop().split('/').pop();
 
             while (true) {
               const index = images.indexOf(recto);
@@ -355,8 +355,8 @@ class SaveManager {
     for (const fID in savefile.fragments) {
       if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
         const fragment = savefile.fragments[fID];
-        images.push(fragment.rectoURL);
-        images.push(fragment.versoURL);
+        images.push(fragment.recto.url);
+        images.push(fragment.verso.url);
       }
     }
 
@@ -569,7 +569,7 @@ class SaveManager {
    * relative paths with a reference to the new savefile.
    * @param {String} reference - Absolute path to the current savefile.
    * @param {Object} tableConfiguration - Table configuration object. The individual fragments are located under
-   * data.fragments, each fragment has data.fragment.rectoURL and data.fragment.versoURL.
+   * data.fragments, each fragment has data.fragment.recto.url and data.fragment.verso.url.
    * @return {Object} Returns the table configuration object with converted relative image paths.
    */
   convertToRelativePaths(reference, tableConfiguration) {
@@ -578,12 +578,12 @@ class SaveManager {
     for (const fID in data.fragments) {
       if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
         const fragment = data.fragments[fID];
-        const absoluteRectoURL = fragment.rectoURL;
-        const absoluteVersoURL = fragment.versoURL;
+        const absoluteRectoURL = fragment.recto.url;
+        const absoluteVersoURL = fragment.verso.url;
         const relativeRectoURL = path.relative(reference, absoluteRectoURL);
         const relativeVersoURL = path.relative(reference, absoluteVersoURL);
-        data.fragments[fID].rectoURL = relativeRectoURL;
-        data.fragments[fID].versoURL = relativeVersoURL;
+        data.fragments[fID].recto.url = relativeRectoURL;
+        data.fragments[fID].verso.url = relativeVersoURL;
       }
     }
     return data;
@@ -594,7 +594,7 @@ class SaveManager {
    * (from reference to image) to absolute paths in the given file system.
    * @param {String} reference - Absolute path to the current savefile.
    * @param {*} tableConfiguration - Table configuration object. The individual fragments are located under
-   * data.fragments, each fragment has data.fragment.rectoURL and data.fragment.versoURL.
+   * data.fragments, each fragment has data.fragment.recto.url and data.fragment.verso.url.
    * @return {Object} Returns the table configuration object with converted absolute image paths.
    */
   convertToAbsolutePaths(reference, tableConfiguration) {
@@ -603,12 +603,12 @@ class SaveManager {
     for (const fID in data.fragments) {
       if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
         const fragment = data.fragments[fID];
-        const relativeRectoURL = fragment.rectoURL;
-        const relativeVersoURL = fragment.versoURL;
+        const relativeRectoURL = fragment.recto.url;
+        const relativeVersoURL = fragment.verso.url;
         const absoluteRectoURL = path.resolve(reference, relativeRectoURL);
         const absoluteVersoURL = path.resolve(reference, relativeVersoURL);
-        data.fragments[fID].rectoURL = absoluteRectoURL;
-        data.fragments[fID].versoURL = absoluteVersoURL;
+        data.fragments[fID].recto.url = absoluteRectoURL;
+        data.fragments[fID].verso.url = absoluteVersoURL;
       }
     }
     return data;

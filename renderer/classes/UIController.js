@@ -337,7 +337,11 @@ class UIController {
    * @param {*} fragmentData
    */
   addFragment(fragmentData) {
-    this.stage._loadFragments({'upload': fragmentData});
+    if (fragmentData.id == null) {
+      this.stage._loadFragments({'upload': fragmentData});
+    } else {
+      this.stage._loadFragments({'edit': fragmentData});
+    }
     this.updateSidebarFragmentList();
     $('.arrow.down').removeClass('down');
     $('.expanded').removeClass('expanded');

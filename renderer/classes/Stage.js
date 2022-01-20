@@ -84,7 +84,7 @@ class Stage {
     });
     this.loadqueue.on('complete', () => {
       this.controller.finishedLoading();
-      this.fitToScreen();
+      // this.fitToScreen();
       this.update();
       this.controller.saveToModel(true);
     });
@@ -533,12 +533,18 @@ class Stage {
   _loadFragments(imageList) {
     for (const id in imageList) {
       if (Object.prototype.hasOwnProperty.call(imageList, id)) {
-        let url = imageList[id].rectoURL;
-        if (!imageList[id].recto) {
-          url = imageList[id].versoURL;
+        const fragmentData = imageList[id];
+        let url;
+        if (fragmentData.showRecto) {
+          url = fragmentData.recto.url;
+        } else {
+          url = fragmentData.verso.url;
         }
-        this.loadqueue.loadManifest([{id: id, src: url,
-          properties: imageList[id]}], false);
+        this.loadqueue.loadManifest([{
+          id: id,
+          src: url,
+          properties: imageList[id],
+        }]);
       }
     }
     // TODO: necessary to check that image can only be added once?
@@ -581,8 +587,11 @@ class Stage {
   _createFragment(event) {
     let newId;
     if (event.item.id && event.item.id != 'upload') {
-      newId = event.item.id;
+      // set ID and remove old graphical representation of fragment
+      newId = event.item.properties.id;
+      this.removeFragment(newId);
     } else {
+      // create a new fragment on the table
       newId = this.getNewFragmentId();
     }
     const newFragment = new Fragment(this.controller, newId, event);
@@ -876,15 +885,16 @@ class Stage {
    * @param {*} deltaY
    */
   moveStage(deltaX, deltaY) {
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        const fragment = this.fragmentList[idx];
-        fragment.moveByDistance(deltaX, deltaY);
+    if (!isNaN(deltaX) && !isNaN(deltaY)) {
+      for (const idx in this.fragmentList) {
+        if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
+          const fragment = this.fragmentList[idx];
+          fragment.moveByDistance(deltaX, deltaY);
+        }
       }
+      this._updateBb();
+      this.update();
     }
-
-    this._updateBb();
-    this.update();
   }
 
   /**
@@ -1248,6 +1258,10 @@ class Stage {
     }
   }
 
+  getOffset() {
+    return this.offset;
+  }
+
   /**
    * TODO
    * @param {*} horizontal
@@ -1302,7 +1316,11 @@ class Stage {
   getMBR() {
     const dimensions = {};
 
-    let left; let top; let right; let bottom;
+    let left;
+    let top;
+    let right;
+    let bottom;
+
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
         const fragment = this.fragmentList[idx];
@@ -1357,6 +1375,7 @@ class Stage {
     }
 
     dimensions = this.getMBR();
+    console.log("d", dimensions);
     const center = this.getCenter();
     let distX = center.x - dimensions.center.x;
     if (includeSidebar) distX += sidebar/2;

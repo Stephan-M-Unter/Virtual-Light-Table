@@ -561,20 +561,21 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
 
   if (!activeTables.uploading) {
+    // if no table is currently associated with the upload, create a new table
     const tableID = tableManager.createNewTable();
     const tableData = tableManager.getTable(tableID);
     const newTableData = {
       tableID: tableID,
       tableData: tableData,
     };
+    // tell client to open the newly created table
     sendMessage(mainWindow, 'client-load-model', newTableData);
   }
 
   activeTables.uploading = null;
-  console.log(data);
-  mainWindow.send('client-add-upload', data);
   localUploadWindow.close();
   localUploadWindow = null;
+  mainWindow.send('client-add-upload', data);
 });
 
 // server-upload-image | triggers a file dialog for the user to select a fragment
@@ -622,12 +623,12 @@ ipcMain.on('server-change-fragment', (event, data) => {
   localUploadWindow.removeMenu();
   localUploadWindow.once('ready-to-show', () => {
     localUploadWindow.show();
+    sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
   });
   localUploadWindow.on('close', function() {
     localUploadWindow = null;
     activeTables.uploading = null;
   });
-  sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
 });
 
 // server-confirm-autosave | confirmation -> Boolean

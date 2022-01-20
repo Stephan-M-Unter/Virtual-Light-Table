@@ -14,11 +14,14 @@ let actionMode = null;
 let scalePoint = null;
 let scale = 1;
 const mousestart = {};
+let id = null;
 
 let recto;
 let verso;
 createEmptySide('recto');
 createEmptySide('verso');
+
+let editData;
 
 /* DOCUMENT READY */
 
@@ -68,6 +71,8 @@ function createEmptySide(sidename) {
       'img': null,
       'img_bg': null,
       'rotation': 0,
+      'x': null,
+      'y': null,
     },
     'mask': {
       'group': null,
@@ -171,8 +176,10 @@ function createImage(sidename) {
     side.content.img = image;
     side.content.img_bg = imageBackground;
 
-    side.content.x = side.stage.canvas.width / 2;
-    side.content.y = side.stage.canvas.height / 2;
+    if (side.content.x == null) {
+      side.content.x = side.stage.canvas.width / 2;
+      side.content.y = side.stage.canvas.height / 2;
+    }
 
     // register event listeners
     side.content.img.on('mousedown', (event) => {
@@ -608,16 +615,16 @@ function drawBoxMask() {
     const b3vs = createVertex(verso.mask.box[2]);
     const b4vs = createVertex(verso.mask.box[3]);
     b1vs.on('pressmove', (event) => {
-      resizeBox(event, 'verso', 'nw');
+      resizeBox(event, 'verso', 'ne');
     });
     b2vs.on('pressmove', (event) => {
-      resizeBox(event, 'verso', 'sw');
-    });
-    b3vs.on('pressmove', (event) => {
       resizeBox(event, 'verso', 'se');
     });
+    b3vs.on('pressmove', (event) => {
+      resizeBox(event, 'verso', 'sw');
+    });
     b4vs.on('pressmove', (event) => {
-      resizeBox(event, 'verso', 'ne');
+      resizeBox(event, 'verso', 'nw');
     });
     verso.mask.group.removeAllChildren();
     verso.mask.group.addChild(b1vs, b2vs, b3vs, b4vs);
@@ -952,6 +959,118 @@ function clearMask() {
   }
 }
 
+/**
+ *
+ */
+function uploadData() {
+  const data = {};
+
+  // RECTO
+  if (recto.content.img) {
+    const dataRecto = {};
+
+    dataRecto.rotation = recto.content.img.rotation;
+    dataRecto.url = recto.content.filepath;
+    dataRecto.ppi = $('#recto_ppi').val();
+    dataRecto.cx = recto.content.img.x;
+    dataRecto.cy = recto.content.img.y;
+    dataRecto.box = canvasToImage(recto.content.img, recto.mask.box);
+    dataRecto.polygon = canvasToImage(recto.content.img, recto.mask.polygon);
+
+    dataRecto.upload = {
+      box: recto.mask.box,
+      polygon: recto.mask.polygon,
+      x: recto.content.img.x,
+      y: recto.content.img.y,
+    };
+
+    data.recto = dataRecto;
+  }
+
+  // VERSO
+  if (verso.content.img) {
+    const dataVerso = {};
+
+    dataVerso.rotation = verso.content.img.rotation;
+    dataVerso.url = verso.content.filepath;
+    dataVerso.ppi = $('#verso_ppi').val();
+    dataVerso.cx = verso.content.img.x;
+    dataVerso.cy = verso.content.img.y;
+    dataVerso.box = canvasToImage(verso.content.img, verso.mask.box);
+    dataVerso.box_upload = verso.mask.box;
+    dataVerso.polygon = canvasToImage(verso.content.img, verso.mask.polygon);
+    dataVerso.polygon_upload = verso.mask.polygon;
+
+    dataVerso.upload = {
+      box: verso.mask.box,
+      polygon: verso.mask.polygon,
+      x: verso.content.img.x,
+      y: verso.content.img.y,
+    };
+
+    data.verso = dataVerso;
+  }
+
+  // RELATION
+  if (recto.content.img && verso.content.img) {
+    const dataRelation = {};
+
+    dataRelation.d_rotation = verso.content.img.rotation - recto.content.img.rotation;
+    dataRelation.d_cx = verso.content.img.x - recto.content.img.x;
+    dataRelation.d_cy = verso.content.img.y - recto.content.img.y;
+
+    data.relation = dataRelation;
+  }
+
+  data.name = $('#objectname').val();
+  if (recto.content.img) {
+    data.showRecto = true;
+  } else {
+    data.showRecto = false;
+  }
+
+  data.maskMode = maskMode;
+  
+  if (editData) {
+    data.id = editData.id;
+    data.x = editData.x;
+    data.y = editData.y;
+    data.baseX = editData.baseX;
+    data.baseY = editData.baseY;
+    data.rotation = editData.rotation;
+  }
+
+  ipcRenderer.send('server-upload-ready', data);
+}
+
+/**
+ *
+ * @param {*} image
+ * @param {*} pointArray
+ * @return {*}
+ */
+function canvasToImage(image, pointArray) {
+  const result = [];
+  if (pointArray.length > 0) {
+    pointArray.forEach((p) => {
+      const imagePoint = image.globalToLocal(p[0], p[1]);
+      result.push(imagePoint);
+    });
+  }
+  return result;
+}
+
+function activateMaskMode(mode) {
+  if (maskMode == 'polygon' && mode != 'polygon') {
+    endAddPolygonNodes();
+  }
+  $('.selected').removeClass('selected');
+  maskMode = mode;
+  $('.list_item.'+maskMode).addClass('selected');
+  $('.mask_controls.'+maskMode).addClass('selected');
+  $('.mask_explanation.'+maskMode).addClass('selected');
+  drawMasks();
+}
 
 /* INTERACTIVE ELEMENTS */
 
@@ -992,6 +1111,7 @@ $('.www_upload').on('click', (event) => {
       alert('Please make sure your image URL leads to an image file (jpg, png)!');
       currentUpload = null;
     }
+    currentUpload = null;
   }
 });
 $('.delete').on('click', (event) => {
@@ -1055,19 +1175,11 @@ $('.list_item').on('click', (event) => {
   const list = $('.list');
   if (list.hasClass('open')) {
     list.removeClass('open');
-    $('.selected').removeClass('selected');
     let listItem = $(event.target);
     if (!listItem.hasClass('list_item')) {
       listItem = listItem.parent();
     }
-    listItem.addClass('selected');
-    if (maskMode == 'polygon' && listItem.attr('mask_mode') != 'polygon') {
-      endAddPolygonNodes();
-    }
-    maskMode = listItem.attr('mask_mode');
-    $('.mask_controls.'+maskMode).addClass('selected');
-    $('.mask_explanation.'+maskMode).addClass('selected');
-    drawMasks();
+    activateMaskMode(listItem.attr('mask_mode'));
   } else {
     list.addClass('open');
   }
@@ -1095,6 +1207,12 @@ $('#mask_control_polygon_remove').click(() => {
     endRemovePolygonNodes();
   } else {
     startRemovePolygonNodes();
+  }
+});
+
+$('#upload_button').click(() => {
+  if (!$('#upload_button').hasClass('disabled')) {
+    uploadData();
   }
 });
 
@@ -1127,9 +1245,41 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
   }
 });
 
-// TODO: umbenennen auf 'upload-edit-fragment'
 // Event triggered if window is opened to edit an already existing fragment, providing
 // the necessary data/information about the fragment.
-ipcRenderer.on('upload-change-fragment', (event, fragment) => {
+ipcRenderer.on('upload-edit-fragment', (event, data) => {
+  console.log('Receiving Edit Information:', data);
+  $('#upload_button').find('.large_button_label').html('Update object');
 
+  editData = data;
+
+  // LOADING RECTO
+  if (data.recto) {
+    recto.mask.box = data.recto.upload.box;
+    recto.mask.polygon = data.recto.upload.polygon;
+    $('#recto_ppi').val(data.recto.ppi);
+    recto.content.rotation = data.recto.rotation;
+    recto.content.filepath = data.recto.url;
+    recto.content.x = data.recto.upload.x;
+    recto.content.y = data.recto.upload.y;
+  }
+
+  // LOADING VERSO
+  if (data.verso) {
+    verso.mask.box = data.verso.upload.box;
+    verso.mask.polygon = data.verso.upload.polygon;
+    $('#verso_ppi').val(data.verso.ppi);
+    verso.content.rotation = data.verso.rotation;
+    verso.content.filepath = data.verso.url;
+    verso.content.x = data.verso.upload.x;
+    verso.content.y = data.verso.upload.y;
+  }
+
+  $('#objectname').val(data.name);
+  maskMode = data.maskMode;
+
+  draw('recto');
+  draw('verso');
+  activateMaskMode(maskMode);
+  drawMasks();
 });
