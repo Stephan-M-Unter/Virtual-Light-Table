@@ -187,6 +187,12 @@ function chooseTile(tile) {
     $('#load-'+id).css('animation-name', 'slideDown');
     $('#load-'+id).bind('animationend', () => {
       $('#load-'+id).remove();
+      const n_selected = +$('#loading-view').children().length;
+      if (n_selected > 0) {
+        $('#loading-tile-view').find('.rotated-title').html('Selected ('+n_selected+')');
+      } else {
+        $('#loading-tile-view').find('.rotated-title').html('Selected');
+      }
       updateLoadButton();
     });
   } else {
@@ -213,10 +219,17 @@ function chooseTile(tile) {
       $('#load-'+id).css('animation-name', 'slideDown');
       $('#load-'+id).bind('animationend', () => {
         $('#load-'+id).remove();
+        const n_selected = +$('#loading-view').children().length;
+        if (n_selected > 0) {
+          $('#loading-tile-view').find('.rotated-title').html('Selected ('+n_selected+')');
+        } else {
+          $('#loading-tile-view').find('.rotated-title').html('Selected');
+        }
         updateLoadButton();
       });
     });
     $('#loading-view').append(tileClone);
+    $('#loading-tile-view').find('.rotated-title').html('Selected ('+$('#loading-view').children().length+')');
   }
   updateLoadButton();
   updateSelectedScrollers();
