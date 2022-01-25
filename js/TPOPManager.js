@@ -257,108 +257,6 @@ class TPOPManager {
     this.tpopData = this.tpopData.filter((x) => {
       return x !== null;
     });
-    /*
-    console.log(filters);
-    console.log("Data before filtering:", this.tpopData.length);
-
-    let i = 0;
-
-    for (i = 0; i < this.tpopData.length; i++) {
-      let obj = this.tpopData[i];
-
-      for (const filter of filters) {
-        if (obj == null) continue;
-        const attribute = filter.attribute;
-        const operator = filter.operator;
-        const filter_value = filter.value;
-        var obj_value;
-        var removable = false;
-        try {
-          obj_value = obj[attribute];
-        } catch {
-          console.log('ERROR:', obj);
-        }
-        const type = this.filterTypes.find((filter) => {
-          return filter.attribute === attribute;
-        }).type;
-
-        if (operator == 'contains') {
-          if (type == 'string') {
-            // ex. 'abc' in 'object_value'
-            if (!obj_value.includes(filter_value)) {
-              removable = true;
-            }
-          } else if (type == 'list') {
-            // ex. 'abc' in ['value1', 'value2', 'value3']
-            const list = this.tpopData[i][attribute];
-            let contained = false;
-            for (const entry of list) {
-              if (entry.includes(filter_value)) {
-                contained = true;
-              }
-            }
-            if (!contained) {
-              removable = true;
-            }
-          }
-        } else if (operator == 'contains not') {
-          if (type == 'string') {
-            // ex. 'abc' not in 'object_value'
-            if (obj_value.includes(filter_value)) {
-              removable = true;
-            }
-          } else if (type == 'list') {
-            // ex. 'abc' not in ['value1', 'value2', 'value3']
-            const list = this.tpopData[i][attribute];
-            for (const entry of list) {
-              if (entry.includes(filter_value)) {
-                removable = true;
-              }
-            }
-          }
-        } else if (operator == '<') {
-          if (obj_value == null || !(obj_value < filter_value)) {
-            removable = true;
-          }
-        } else if (operator == '<=') {
-          if (obj_value == null || !(obj_value <= filter_value)) {
-            removable = true;
-          }
-        } else if (operator == '==') {
-          if (obj_value == null || !(obj_value == filter_value)) {
-            removable = true;
-          }
-        } else if (operator == '>=') {
-          if (obj_value == null || !(obj_value >= filter_value)) {
-            removable = true;
-          }
-        } else if (operator == '>') {
-          if (obj_value == null || !(obj_value > filter_value)) {
-            removable = true;
-          }
-        } else if (operator == true) {
-          if (obj_value == null || obj_value == false) {
-            removable = true;
-          }
-        } else if (operator == false) {
-          if (obj_value == null || obj_value == true) {
-            removable = true;
-          }
-        }
-        if (removable) {
-          this.tpopData[i] = null;
-          obj = null;
-          break;
-        }
-      }
-    }
-    this.tpopData = this.tpopData.filter((x) => {
-      return x !== null;
-    });
-    console.log('All Data:', this.allTPOPData.length);
-    console.log('Active Data:', this.tpopData.length);
-    console.log("Removed Items:", this.allTPOPData.length - this.tpopData.length);
-    */
   };
 
   getAllWritings(object) {
@@ -424,8 +322,8 @@ class TPOPManager {
       if (!(objectValue < filterValue)) return 0;
     } else if (op == '<=') {
       if (!(objectValue <= filterValue)) return 0;
-    } else if (op == '==') {
-      if (!(objectValue == filterValue)) return 0;
+    } else if (op == '=') {
+      if (objectValue != filterValue) return 0;
     } else if (op == '>=') {
       if (!(objectValue >= filterValue)) return 0;
     } else if (op == '>') {
