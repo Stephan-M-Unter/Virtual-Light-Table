@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+.hidden {
+    display: none !important;
+}
+
 body {
     background-color: purple;
     overflow: hidden;
@@ -93,6 +97,10 @@ body {
 
 .filter-delete:hover {
     color: black;
+}
+
+.filter-descriptor {
+    padding-right: 8px;
 }
 
 #main-area {
@@ -235,7 +243,7 @@ body {
 }
 
 .tile.selected {
-    border: 2px solid orange;
+    border: 4px solid orange;
     background-color: #444;
 }
 
@@ -299,6 +307,23 @@ body {
     overflow-x: hidden;
 }
 
+#detail-name {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.detail-symbol {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    transition: all .2s;
+    cursor: pointer;
+}
+
+.detail-symbol:hover {
+    width: 15px;
+    height: 15px;
+}
 
 .detail-image {
     max-width: 100%;
@@ -308,6 +333,13 @@ body {
 
 .detail-image:hover {
     max-height: 30vh;
+}
+
+.warning {
+    background-color: rgb(255, 228, 228);
+    border: 2px solid red;
+    color: red;
+    padding: 5px 0px;
 }
 
 .area {
@@ -359,3 +391,136 @@ body {
     color: white;
 }
 
+.autocomplete {
+    position: relative;
+    display: inline-block;
+}
+
+.flex-vert {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+.flex-hor {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+.filter-title {
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.filter-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-input {
+    height: 30px;
+    width: 350px;
+}
+
+#filter-attribute-dropdown {
+    height: 30px;
+    width: 20px;
+    background-color: gray;
+}
+
+#attribute-autocomplete-items {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    top: calc(50% + 25px);
+    left: 0;
+    font-size: 0.8em;
+}
+
+#attribute-autocomplete-items div:hover {
+    font-size: 1.2em;
+    transition: all .2s;
+}
+
+.autocomplete-highlight {
+    background-color: yellow;
+    font-weight: bold;
+    color: black;
+}
+
+#filter-attribute-list {
+    background-color: white;
+    color: black;
+    position: absolute;
+    top: calc(50% + 15px);
+    left: 0;
+    width: 350px;
+    max-height: 50%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#filter-attribute-list div {
+    border-bottom: 1px solid black;
+    font-size: 0.9em;
+    padding: 1px 0px 1px 5px;
+}
+
+#filter-attribute-list div:hover {
+    background-color: gray;
+    font-weight: bold;
+}
+
+#filter-operator-container {
+    margin: 0px 20px;
+}
+
+#filter-operator-wheel div {
+    padding: 2px 5px;
+    background-color: white;
+    color: black;
+}
+
+#filter-operator-wheel div:hover {
+    background-color: gray;
+}
+
+#filter-operator-wheel .operator-selected {
+    background-color: darkgreen;
+}
+
+#filter-operator-container,
+#filter-value-container {
+    animation-name: slideUp;
+    animation-duration: .2s;
+}
+
+#filter-add-button {
+    padding: 10px 20px;
+    background-color: white;
+    box-shadow: 2px 2px 4px #333;
+    font-variant: small-caps;
+    font-size: 1.2em;
+    color: black;
+    transition: all .2s;
+}
+
+#filter-add-button:hover {
+    background-color: #aaa;
+}
+
+#filter-add-button:active {
+    box-shadow: none;
+    background-color: #666;
+}

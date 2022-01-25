@@ -16,12 +16,7 @@
                 <div id="filter-add" class="no-select">
                     <img src="../imgs/symbol_plus_zoom.png"/>
                 </div>
-                <div id="filter-list">
-                    <div class="filter" data-attribute="a_a" data-operator="<" data-value="srtjr">
-                        <div class="filter-descriptor">a_a &lt; 22</div>
-                        <div class="filter-delete no-select">x</div>
-                    </div>
-                </div>
+                <div id="filter-list"></div>
             </div>
             <div id="suggestion-section" class="sidebar-section">
                 <hr>
@@ -57,39 +52,76 @@
         <div id="right-resize-slider" class="resize-slider no-select"></div>
 
         <div id="detail-view" class="area">
-            <div class="title">Detailed Information</div>
+            <div class="title">Detail Information</div>
             <div id="detail-name" class="subtitle"></div>
-            <div class="subtitle">Recto</div>
+            <a id="detail-link" title="Open in TPOP (new window)" target="_blank" href="#"><img class="detail-symbol hidden" src="../imgs/symbol_extern.png"/></a>
+            <!-- <div id="detail-find" title="Find in fragment grid"> -->
+                <img id="detail-find" class="detail-symbol hidden" title="Find page in fragment grid" src="../imgs/symbol_magnifier.png"/>
+            <!-- </div> -->
+            <div id="detail-page-warning" class="warning hidden">Fragment not contained in filtered fragment list</div>
+            <div class="subtitle hidden">Recto</div>
             <img id="detail-recto" src="" class="detail-image"/>
-            <div class="subtitle">Verso</div>
+            <div class="subtitle hidden">Verso</div>
             <img id="detail-verso" src="" class="detail-image"/>
-            <div id="detail-meta"></div>
+            <div id="detail-meta">
+                <div id="detail-joins" class="hidden">
+                    <div class="subtitle">TPOP Joins</div>
+                    <div id="detail-joins-list"></div>
+                </div>
+            </div>
         </div>
 
+        <div id="filter-overlay" class="no-select flex-vert">
+            <div class="no-select flex-hor">
+                <div class="title">Select a New Filter Criterion:</div>
+            </div>
+            <div id="filter-attribute-container" class="no-select flex-hor">
+                <div class="no-select filter-container">
+                    <div class="filter-title">Filter Attribute</div>
+                    <div class="no-select flex-hor">
+                        <input id="filter-attribute" class="filter-input" placeholder="Query Attribute:">
+                        <div id="filter-attribute-list" class="hidden"></div>
+                        <div id="filter-attribute-dropdown"></div>
+                    </div>
+                </div>
+                <div id="filter-operator-container" class="no-select hidden filter-container">
+                    <div class="filter-title">Operator</div>
+                    <div class="no-select flex-hor">
+                        <div id="filter-operator-wheel">
+                            <div>contains</div>
+                            <div>contains not</div>
+                            <div>empty</div>
+                            <div>not empty</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="filter-value-container" class="no-select hidden filter-container">
+                    <div class="filter-title">Filter Value</div>
+                    <div class="no-select flex-hor">
+                        <input id="filter-value" class="filter-input" placeholder="Query Input:">
+                    </div>
+                </div>
+            </div>
+            <div class="no-select flex-hor">
+                <div id="filter-add-button" class="">Apply Filter</div>
+            </div>
+            <div id="filter-close">x</div>
+        </div>
+
+        <!--
         <div id="filter-overlay" class="no-select">
             <div class="title">Add a new filter:</div>
             <form id="filter-form">
-                <select id="filter-attribute">
-                    <option value="a_a">Attribute A</option>
-                    <option value="a_b">Attribute B</option>
-                    <option value="a_c">Attribute C</option>
-                    <option value="a_d">Attribute D</option>
-                </select>
-                <select id="filter-operator">
-                    <option value="<">lower than</option>
-                    <option value="<=">lower than or equal to</option>
-                    <option value="==">equal to</option>
-                    <option value=">=">greater than or equal to</option>
-                    <option value=">">greater than</option>
-                    <option value="contain">contains</option>
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                </select>
+                <div class="autocomplete">
+                    <input id="filter-attribute" type="text" placeholder="Attribute:"></input>
+                </div>
+                <select id="filter-operator"></select>
                 <input id="filter-input">
                 <div id="filter-add-button">Add</div>
                 <div id="filter-close">x</div>
             </form>
         </div>
+        -->
 
         <script src="./tpop.js"></script>
     </body>

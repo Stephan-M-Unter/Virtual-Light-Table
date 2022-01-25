@@ -22,6 +22,7 @@ const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
+const { send } = require('process');
 
 // Settings
 const devMode = true;
@@ -900,6 +901,15 @@ ipcMain.on('server-tpop-details', (event, id) => {
   sendMessage(tpopWindow, 'tpop-details', details);
 });
 
+ipcMain.on('server-tpop-filter', (event, filters) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-filter] from TPOP window');
+  }
+  tpopManager.filterData(filters);
+  sendMessage(tpopWindow, 'tpop-filtered');
+});
+
 
 ipcMain.on('server-close-tpop', () => {
   if (devMode) {
@@ -908,4 +918,13 @@ ipcMain.on('server-close-tpop', () => {
   }
   tpopWindow.close();
   tpopWindow = null;
+});
+
+ipcMain.on('server-tpop-position', (event, tpopID) => {
+  const pos = tpopManager.getPosition(tpopID);
+  const data = {
+    tpopID: tpopID,
+    pos: pos,
+  };
+  sendMessage(tpopWindow, 'tpop-position', data);
 });
