@@ -921,10 +921,23 @@ ipcMain.on('server-close-tpop', () => {
 });
 
 ipcMain.on('server-tpop-position', (event, tpopID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-position] from TPOP window for id '+tpopID);
+  }
   const pos = tpopManager.getPosition(tpopID);
   const data = {
     tpopID: tpopID,
     pos: pos,
   };
   sendMessage(tpopWindow, 'tpop-position', data);
+});
+
+ipcMain.on('server-tpop-basic-info', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-basic-info] from TPOP window');
+  }
+  const result = tpopManager.getBasicInfo(data);
+  sendMessage(tpopWindow, 'tpop-basic-info', result);
 });

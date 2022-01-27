@@ -50,7 +50,7 @@ class TPOPManager {
               nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
             }
 
-            if (nameA > nameB) {
+            if (nameA.toLowerCase() > nameB.toLowerCase()) {
               return 1;
             } else {
               return -1;
@@ -343,6 +343,28 @@ class TPOPManager {
    */
   getPosition(id) {
     return this.tpopData.map((e) => e.TPOPid).indexOf(id);
+  }
+
+  /**
+   * 
+   * @param {*} idList 
+   * @returns 
+   */
+  getBasicInfo(idList) {
+    const result = [];
+    for (const tpopID of idList) {
+      const obj = this.loadDetails(tpopID);
+      if (obj) {
+        const entry = {
+          'id': obj['TPOPid'],
+          'name': obj['InventoryNumber'],
+          'urlRecto': '../imgs/examples/dummy.jpg',
+          'urlVerso': '../imgs/examples/dummy.jpg',
+        };
+        result.push(entry);
+      }
+    }
+    return result;
   }
 
   checkForTPOPUpdate() {};
