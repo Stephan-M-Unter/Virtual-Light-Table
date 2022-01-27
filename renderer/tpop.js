@@ -119,6 +119,11 @@ function displayDetails(details) {
   $('#detail-find').attr('data-id', details.TPOPid);
   $('#detail-joins-list').empty();
 
+  const id = details['TPOPid'];
+  $('.selected').removeClass('selected');
+  $('#'+id).addClass('selected');
+  $('#load-'+id).addClass('selected');
+
   if (details['TPOPidsJoins']) {
     if (details['TPOPidsJoins'].length == 0) {
       // object has no joins registered
@@ -219,9 +224,6 @@ function selectTile(id, d_name, url) {
 
   tile.click(function(event) {
     const id = $(event.target).attr('data-id');
-    $('.selected').removeClass('selected');
-    $('#'+id).addClass('selected');
-    $('#load-'+id).addClass('selected');
     requestDetails(id);
   });
 
@@ -391,10 +393,6 @@ function addTile(idx, n_objects, tpopJson) {
 
     tile.click(function(event) {
       const dataId = $(event.target).attr('data-id');
-      const tempDataId = dataId.replace('/', '\\/');
-      $('.selected').removeClass('selected');
-      $('#'+tempDataId).addClass('selected');
-      $('#load-'+tempDataId).addClass('selected');
       requestDetails(dataId);
     });
 
@@ -747,7 +745,9 @@ ipcRenderer.on('tpop-position', (event, data) => {
   } else {
     const tpopID = data.tpopID;
     const page = Math.ceil(data.pos/maxPageSize)-1;
-    loadPage(page);
+    if (page != currentPage) {
+      loadPage(page);
+    }
   }
 });
 
@@ -792,7 +792,14 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
       addItemImage.attr('src', '../imgs/symbol_minus_zoom.png');
     }
 
-    addItemButton.click(function() {
+    joinItem.click(function() {
+      const id = $(this).attr('data-id');
+      requestDetails(id);
+      requestPosition(id);
+    });
+
+    addItemButton.click(function(event) {
+      event.stopPropagation();
       const id = $(this).parent().attr('data-id');
       if ($(this).parent().hasClass('loading')) {
         deselectTile(id);
