@@ -135,20 +135,11 @@ function displayDetails(details) {
  */
 function loadPage(newPageNumber) {
   if (!requesting) {
-    if (newPageNumber <= 0) {
-      $('#tpop-left-arrow').addClass('inactive');
-    } else {
-      $('#tpop-left-arrow').removeClass('inactive');
-    }
-    if (newPageNumber+1 > maxIndex / maxPageSize) {
-      $('#tpop-right-arrow').addClass('inactive');
-    } else {
-      $('#tpop-right-arrow').removeClass('inactive');
-    }
     if (newPageNumber >= 0 && newPageNumber <= maxIndex/maxPageSize) {
       $('#tile-view').empty();
       lastIndex = newPageNumber * maxPageSize - 1;
       currentPage = newPageNumber;
+      updateTPOPScrollers();
       requestBatch();
     }
   }
@@ -173,6 +164,24 @@ function updateLoadButton() {
   } else {
     $('#load-text').html('Select fragments');
     $('#load').addClass('inactive');
+  }
+}
+
+/**
+ * 
+ */
+function updateTPOPScrollers() {
+  const maxPage = Math.floor(maxIndex / maxPageSize);
+  console.log("Updating TPOP Scrollers; current page:", currentPage, "max page:", maxPage);
+  if (currentPage <= 0) {
+    $('#tpop-left-arrow').addClass('inactive');
+  } else {
+    $('#tpop-left-arrow').removeClass('inactive');
+  }
+  if (currentPage >= maxPage) {
+    $('#tpop-right-arrow').addClass('inactive');
+  } else {
+    $('#tpop-right-arrow').removeClass('inactive');
   }
 }
 
@@ -304,6 +313,7 @@ function resetFilterSelection() {
   $('#filter-attribute').val('');
   $('#filter-operator-container').addClass('hidden');
   $('#filter-value-container').addClass('hidden');
+  $('#filter-add-button').addClass('hidden');
 }
 
 /**
@@ -655,15 +665,13 @@ ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
     $('#filter-attribute-list').append(filterItem);
   }
 
-  maxIndex = tpopJson.maxObjects;
+  if (maxIndex == null || maxIndex != tpopJson.maxObjects) {
+    maxIndex = tpopJson.maxObjects;
+    updateTPOPScrollers();
+  }
   let text = 'TPOP Fragments ('+maxIndex+' fragments)';
   text += ' - Page '+(currentPage+1)+'/'+Math.ceil(maxIndex/maxPageSize);
   $('#tpop-tile-view').find('.rotated-title').html(text);
-  if (maxIndex < maxPageSize) {
-    $('#tpop-right-arrow').addClass('inactive');
-  } else {
-    $('#tpop-right-arrow').removeClass('inactive');
-  }
   const n_objects = objects.length;
   if (n_objects > 0) {
     addTile(0, n_objects, objects);
