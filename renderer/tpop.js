@@ -100,7 +100,6 @@ function requestPosition(tpopID) {
  * @param {*} id
  */
 function requestDetails(id) {
-  console.log('Sending [server-tpop-details] for id '+id);
   ipcRenderer.send('server-tpop-details', id);
 }
 
@@ -125,7 +124,7 @@ function displayDetails(details) {
   $('#load-'+id).addClass('selected');
 
   if (details['TPOPidsJoins']) {
-    if (details['TPOPidsJoins'].length == 0) {
+    if (!details['TPOPidsJoins'] || details['TPOPidsJoins'].length == 0) {
       // object has no joins registered
       $('#detail-joins').addClass('hidden');
       $('#detail-joins').find('.subtitle').html('');
@@ -181,7 +180,6 @@ function updateLoadButton() {
  */
 function updateTPOPScrollers() {
   const maxPage = Math.floor(maxIndex / maxPageSize);
-  console.log('Updating TPOP Scrollers; current page:', currentPage, 'max page:', maxPage);
   if (currentPage <= 0) {
     $('#tpop-left-arrow').addClass('inactive');
   } else {
@@ -254,7 +252,6 @@ function selectTile(id, d_name, url) {
  * @param {*} id 
  */
 function deselectTile(id) {
-  console.log("Deselect Tile");
   $('#join-'+id).removeClass('loading');
   $('#join-'+id).find('img').attr('src', '../imgs/symbol_plus_zoom.png');
   $('#'+id).removeClass('loading');
@@ -731,7 +728,7 @@ ipcRenderer.on('tpop-json-failed', () => {
 });
 
 ipcRenderer.on('tpop-details', (event, details) => {
-  console.log('Receiving details:', details);
+  console.log("Received detail information:", details);
   displayDetails(details);
 });
 
