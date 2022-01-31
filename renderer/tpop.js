@@ -683,6 +683,10 @@ $('#filter-attribute-dropdown').click(function() {
 });
 
 $('#detail-add-joins').click(function() {
+  const selectedID = $('#detail-find').attr('data-id');
+  const selectedName = $('#detail-name').html();
+  const selectedURL = $('#detail-recto').attr('src');
+  selectTile(selectedID, selectedName, selectedURL);
   const buttons = $('.detail-join-item:not(.loading) .detail-join-add-item');
   for (const button of buttons) {
     $(button).click();
