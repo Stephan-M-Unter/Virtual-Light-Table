@@ -38,7 +38,7 @@ const config = {};
 // Managers
 const tableManager = new TableManager();
 const imageManager = new ImageManager();
-const tpopManager = new TPOPManager();
+let tpopManager;
 let saveManager;
 // Windows
 let mainWindow; // main window containing the light table itself
@@ -90,6 +90,7 @@ function main() {
   }
 
   saveManager = new SaveManager(vltFolder);
+  tpopManager = new TPOPManager(vltFolder);
 
   mainWindow = new Window({
     file: './renderer/index.html',

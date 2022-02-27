@@ -5,76 +5,107 @@
 'use strict';
 
 const fs = require('fs');
-const {remove} = require('jszip');
+const path = require('path');
+const https = require('https');
 
 /**
  * TODO
  */
 class TPOPManager {
   /**
-     * TODO
+     * @param {String} vltFolder - Path to the application data directory provided by the operating
+     *                           system. If no "Virtual Light Table" subfolder is present, a new one
+     *                           will be created.
      */
-  constructor() {
+  constructor(vltFolder) {
+    this.tpopFolder = path.join(vltFolder, 'tpop');
+    this.vltjson = path.join(this.tpopFolder, 'vltdata.json');
+    if (!fs.existsSync(this.tpopFolder)) {
+      fs.mkdirSync(this.tpopFolder);
+    }
     this.checkedForUpdates = false;
     this.allTPOPData = null;
     this.tpopData = null;
     this.filterTypes = null;
+
+    this.initialiseVLTdata();
   };
+
+  /**
+   *
+   * @param {*} reload
+   */
+  initialiseVLTdata(reload=false) {
+    if (this.tpopData == null || reload == true) {
+      console.log('TPOP data not yet loaded.');
+      if (fs.existsSync(this.vltjson)) {
+        const creationDate = fs.statSync(this.vltjson)['birthtime'];
+        console.log('VLTdata was created on:', creationDate);
+        // TODO: CHECK DATE LAST MODIFIED
+        // IF OLDER THAN THRESHOLD - REDOWNLOAD
+        try {
+          let tpopFile = fs.readFileSync(this.vltjson, 'utf8');
+          if (tpopFile.charCodeAt(0) === 0xFEFF) {
+            tpopFile = tpopFile.substring(1);
+          }
+          this.tpopData = JSON.parse(tpopFile);
+        } catch (e) {
+          console.log(e);
+        }
+        this.allTPOPData = this.tpopData['objects'];
+        this.tpopData = this.tpopData['objects'];
+        this.tpopData.sort((a, b) => {
+          let nameA = a['InventoryNumber'];
+          let nameB = b['InventoryNumber'];
+
+          if (nameA.indexOf('CP') == 0) {
+            const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
+            const missingDigitsA = 4 - String(folderA).length;
+            nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
+          }
+          if (nameB.indexOf('CP') == 0) {
+            const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
+            const missingDigitsB = 4 - String(folderB).length;
+            nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
+          }
+
+          if (nameA.toLowerCase() > nameB.toLowerCase()) {
+            return 1;
+          } else {
+            return -1;
+          }
+        });
+        console.log('Loaded TPOP data from local JSON.');
+      } else {
+        console.log('Trying to load the JSON from the Museo Egizio...');
+        const requestURL = 'https://vlt.museoegizio.it/api/srv/vltdata?api_key=app.4087936422844370a7758639269652b9';
+        const request = https.get(requestURL, (res) => {
+          const filePath = fs.createWriteStream(this.vltjson);
+          res.pipe(filePath);
+          filePath.on('finish', () => {
+            filePath.close();
+            console.log('Finished downloading VLTdata.');
+          });
+        });
+          // JSON nicht lokal vorhanden
+          // HTTP-REQUEST an das ME
+          // Datei herunterladen und an this.vltjson speichern
+          // Daten wie oben angegeben laden
+      }
+    }
+  }
 
   /**
    *
    * @param {*} startIndex
    * @param {*} endIndex
+   * @return {*}
    */
   loadData(startIndex, endIndex) {
-    if (this.tpopData == null) {
-      console.log('TPOP data not yet loaded.');
-      try {
-        if (fs.existsSync('./tpop.json')) {
-          // this.tpopData = JSON.parse(fs.readFileSync('./tpop.json'));
-          this.tpopData = JSON.parse(fs.readFileSync('./basilea_vlt.json'));
-          this.allTPOPData = this.tpopData['objects'];
-          this.tpopData = this.tpopData['objects'];
-          this.tpopData.sort((a, b) => {
-            let nameA = a['InventoryNumber'];
-            let nameB = b['InventoryNumber'];
-
-            if (nameA.indexOf('CP') == 0) {
-              const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
-              const missingDigitsA = 4 - String(folderA).length;
-              nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
-            }
-            if (nameB.indexOf('CP') == 0) {
-              const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
-              const missingDigitsB = 4 - String(folderB).length;
-              nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
-            }
-
-            if (nameA.toLowerCase() > nameB.toLowerCase()) {
-              return 1;
-            } else {
-              return -1;
-            }
-          });
-          console.log('Loaded TPOP data from local JSON.');
-        }
-      } catch (err) {
-        console.log(err);
-      }
-      // 2.1 falls nicht: json lokal vorhanden?
-      // 2.2 connection zum ME-Server möglich?
-      // falls ja: Update erforderlich?
-      // falls ja: runterladen und datei ersetzn
-      // falls nein: vorhandenes JSON laden
-      // falls keines vorhanden: Fehlermeldung
-      // neu geladenes JSON nach namen sortieren
-    } else {
-      console.log('We already have the data available! :)');
-      console.log('All TPOP entries:', this.allTPOPData.length);
-      console.log('Active Selection entries:', this.tpopData.length);
+    if (!this.tpopData) {
+      this.initialiseVLTdata(reload=true);
+      return null;
     }
-    // sobald ein JSON geladen ist (oder schon war):
-    // angegebenen Bereich reduziert ausspucken
 
     const start = startIndex || 0;
     const end = endIndex || Object.keys(this.tpopData).length-1;
@@ -124,25 +155,27 @@ class TPOPManager {
     while (i < this.tpopData.length && filtersTypeUnknown.length > 0) {
       const obj = this.tpopData[i];
       for (const idx in filtersTypeUnknown) {
-        const attribute = filtersTypeUnknown[idx];
-        const value = obj[attribute];
-        const type = this.getFilterType(value);
-        const filterData = {};
+        if (Object.prototype.hasOwnProperty.call(filtersTypeUnknown, idx)) {
+          const attribute = filtersTypeUnknown[idx];
+          const value = obj[attribute];
+          const type = this.getFilterType(value);
+          const filterData = {};
 
-        if (type == null) {
-          // no entry
-          continue;
-        } else if (type == 'object') {
-          // entry is an object, not a list
-          filtersTypeObject.push(attribute);
-          filtersTypeUnknown[idx] = null;
-        } else {
-          // lists, strings, booleans, numbers
-          filterData.attribute = attribute;
-          filterData.type = type;
-          filterData.parent = null;
-          filterAttributes.push(filterData);
-          filtersTypeUnknown[idx] = null;
+          if (type == null) {
+            // no entry
+            continue;
+          } else if (type == 'object') {
+            // entry is an object, not a list
+            filtersTypeObject.push(attribute);
+            filtersTypeUnknown[idx] = null;
+          } else {
+            // lists, strings, booleans, numbers
+            filterData.attribute = attribute;
+            filterData.type = type;
+            filterData.parent = null;
+            filterAttributes.push(filterData);
+            filtersTypeUnknown[idx] = null;
+          }
         }
       }
       filtersTypeUnknown = filtersTypeUnknown.filter((x) => {
@@ -152,8 +185,8 @@ class TPOPManager {
     }
 
     // DETERMINE SUB_OBJECTS
-    for (const top_attribute of filtersTypeObject) {
-      if (top_attribute == 'Writings') {
+    for (const topAttribute of filtersTypeObject) {
+      if (topAttribute == 'Writings') {
         let obj = null;
         let writingsObject = null;
         i = 0;
@@ -188,6 +221,11 @@ class TPOPManager {
     return filterAttributes;
   }
 
+  /**
+   *
+   * @param {*} value
+   * @return {*}
+   */
   getFilterType(value) {
     if (value == null) {
       return null;
@@ -203,7 +241,7 @@ class TPOPManager {
   /**
    *
    * @param {*} id
-   * @returns
+   * @return {*}
    */
   loadDetails(id) {
     const result = this.allTPOPData.find((obj) => {
@@ -215,41 +253,44 @@ class TPOPManager {
   /**
    *
    * @param {*} filters
+   * @return {*}
    */
   filterData(filters) {
     // TODO: one could also check if a filter is added or removed; additional filters
     // will never expand the list of potential candidates, so the number of
     // calculations could be reduced; depends on the performance if this is needed or not
     if (this.allTPOPData == null) return false;
-    
+
     this.tpopData = this.allTPOPData.slice(0);
 
     for (const idx in this.tpopData) {
-      const object = this.tpopData[idx];
-      for (const filter of filters) {
-        let queryObjects;
-        let queryResult = 0;
+      if (Object.prototype.hasOwnProperty.call(this.tpopData, idx)) {
+        const object = this.tpopData[idx];
+        for (const filter of filters) {
+          let queryObjects;
+          let queryResult = 0;
 
-        // Define Query Object
-        // IF parent == null (top level), only whole object
-        // IF parent == "Writings", all writings objects
-        if (filter.parent == null) {
-          queryObjects = [object];
-        } else if (filter.parent == 'Writings') {
-          queryObjects = this.getAllWritings(object);
-        }
+          // Define Query Object
+          // IF parent == null (top level), only whole object
+          // IF parent == "Writings", all writings objects
+          if (filter.parent == null) {
+            queryObjects = [object];
+          } else if (filter.parent == 'Writings') {
+            queryObjects = this.getAllWritings(object);
+          }
 
-        // check every query object for validity against the filter
-        for (const queryObject of queryObjects) {
-          const objectValue = queryObject[filter.attribute];
-          const query = this.checkValueAgainstFilter(objectValue, filter);
-          queryResult += query;
-        }
+          // check every query object for validity against the filter
+          for (const queryObject of queryObjects) {
+            const objectValue = queryObject[filter.attribute];
+            const query = this.checkValueAgainstFilter(objectValue, filter);
+            queryResult += query;
+          }
 
-        // if all queries were negative, the result will be 0
-        // which means the object can be removed from the selection
-        if (queryResult == 0) {
-          this.tpopData[idx] = null;
+          // if all queries were negative, the result will be 0
+          // which means the object can be removed from the selection
+          if (queryResult == 0) {
+            this.tpopData[idx] = null;
+          }
         }
       }
     }
@@ -259,6 +300,11 @@ class TPOPManager {
     });
   };
 
+  /**
+   *
+   * @param {*} object
+   * @return {*}
+   */
   getAllWritings(object) {
     const rectoWritings = object['Writings']['recto'];
     const versoWritings = object['Writings']['verso'];
@@ -270,7 +316,8 @@ class TPOPManager {
    *
    * @param {*} objectValue
    * @param {*} filter
-   * @returns
+   * @param {*} caseSensitive
+   * @return {*}
    */
   checkValueAgainstFilter(objectValue, filter, caseSensitive=false) {
     let filterValue = filter.value;
@@ -338,17 +385,18 @@ class TPOPManager {
   };
 
   /**
-   * 
-   * @param {*} id 
+   *
+   * @param {*} id
+   * @return {*}
    */
   getPosition(id) {
     return this.tpopData.map((e) => e.TPOPid).indexOf(id);
   }
 
   /**
-   * 
-   * @param {*} idList 
-   * @returns 
+   *
+   * @param {*} idList
+   * @return {*}
    */
   getBasicInfo(idList) {
     const result = [];
@@ -360,6 +408,14 @@ class TPOPManager {
           'name': obj['InventoryNumber'],
           'urlRecto': '../imgs/examples/dummy.jpg',
           'urlVerso': '../imgs/examples/dummy.jpg',
+          'features': {
+            'recto': {
+              'triplet': this.createRandomVector(20),
+            },
+            'verso': {
+              'triplet': this.createRandomVector(20),
+            },
+          },
         };
         result.push(entry);
       }
@@ -369,6 +425,15 @@ class TPOPManager {
 
   checkForTPOPUpdate() {};
   connectToTPOP() {};
+
+  /**
+   *
+   * @param {*} length
+   * @return {*}
+   */
+  createRandomVector(length) {
+    return Array.from({length: length}, () => Math.random());
+  }
 }
 
 module.exports = TPOPManager;

@@ -27,7 +27,7 @@ class SaveManager {
   /**
      * TODO
      * @param {String} vltFolder - Path to the application data directory provided by the operating
-     *                           system. If not "Virtual Light Table" subfolder is present, a new one
+     *                           system. If no "Virtual Light Table" subfolder is present, a new one
      *                           will be created.
      */
   constructor(vltFolder) {
