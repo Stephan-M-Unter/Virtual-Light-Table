@@ -942,3 +942,12 @@ ipcMain.on('server-tpop-basic-info', (event, data) => {
   const result = tpopManager.getBasicInfo(data);
   sendMessage(tpopWindow, 'tpop-basic-info', result);
 });
+
+ipcMain.on('server-calculate-distances', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-calculate-distances] from TPOP window');
+  }
+  tpopManager.sortByDistance(data);
+  sendMessage(tpopWindow, 'tpop-calculation-done');
+});

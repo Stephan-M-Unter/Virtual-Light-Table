@@ -113,8 +113,8 @@ function displayDetails(details) {
   $('#detail-page-warning').addClass('hidden');
   $('#detail-link').attr('href', details.permalink);
   $('#detail-name').html(details.InventoryNumber);
-  $('#detail-recto').attr('src', '../imgs/examples/dummy.jpg');
-  $('#detail-verso').attr('src', '../imgs/examples/dummy.jpg');
+  $('#detail-recto').attr('src', details.ObjectImageRecto);
+  $('#detail-verso').attr('src', details.ObjectImageVerso);
   $('#detail-find').attr('data-id', details.TPOPid);
   $('#detail-joins-list').empty();
 
@@ -169,9 +169,11 @@ function updateLoadButton() {
   if (objectsToLoad > 0) {
     $('#load-text').html('Add '+objectsToLoad+' fragment(s) to table');
     $('#load').removeClass('inactive');
+    $('#ml_calculate').removeClass('inactive');
   } else {
     $('#load-text').html('Select fragments');
     $('#load').addClass('inactive');
+    $('#ml_calculate').addClass('inactive');
   }
 }
 
@@ -193,10 +195,10 @@ function updateTPOPScrollers() {
 }
 
 /**
- * 
- * @param {*} id 
- * @param {*} d_name 
- * @param {*} url 
+ *
+ * @param {*} id
+ * @param {*} d_name
+ * @param {*} url
  */
 function selectTile(id, d_name, url) {
   $('#'+id).addClass('loading');
@@ -248,8 +250,8 @@ function selectTile(id, d_name, url) {
 }
 
 /**
- * 
- * @param {*} id 
+ *
+ * @param {*} id
  */
 function deselectTile(id) {
   $('#join-'+id).removeClass('loading');
@@ -693,6 +695,24 @@ $('#detail-add-joins').click(function() {
   }
 });
 
+$('#ml_calculate').click(function() {
+  if (!$('#ml_calculate').hasClass('inactive')) {
+    const tpopids = [];
+    const weights = {
+      'rgb': $('#ml_rgb').val(),
+      'snn': $('#ml_snn').val(),
+    };
+    for (const el of $('#loading-view .loading')) {
+      tpopids.push($(el).attr('data-id'));
+    }
+    const data = {
+      'weights': weights,
+      'ids': tpopids,
+    };
+    ipcRenderer.send('server-calculate-distances', data);
+  }
+});
+
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
   // show data
   const objects = tpopJson.objects;
@@ -732,7 +752,7 @@ ipcRenderer.on('tpop-json-failed', () => {
 });
 
 ipcRenderer.on('tpop-details', (event, details) => {
-  console.log("Received detail information:", details);
+  console.log('Received detail information:', details);
   displayDetails(details);
 });
 
@@ -814,4 +834,8 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
 
     $('#detail-joins-list').append(joinItem);
   }
+});
+
+ipcRenderer.on('tpop-calculation-done', () => {
+  loadPage(0);
 });

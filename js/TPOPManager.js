@@ -52,29 +52,14 @@ class TPOPManager {
         } catch (e) {
           console.log(e);
         }
-        this.allTPOPData = this.tpopData['objects'];
-        this.tpopData = this.tpopData['objects'];
-        this.tpopData.sort((a, b) => {
-          let nameA = a['InventoryNumber'];
-          let nameB = b['InventoryNumber'];
-
-          if (nameA.indexOf('CP') == 0) {
-            const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
-            const missingDigitsA = 4 - String(folderA).length;
-            nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
-          }
-          if (nameB.indexOf('CP') == 0) {
-            const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
-            const missingDigitsB = 4 - String(folderB).length;
-            nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
-          }
-
-          if (nameA.toLowerCase() > nameB.toLowerCase()) {
-            return 1;
-          } else {
-            return -1;
-          }
+        this.allTPOPData = this.tpopData['objects'].filter((el) => {
+          return el !== null && typeof el !== 'undefined';
         });
+        this.initialiseFeatures();
+        this.tpopData = this.allTPOPData.slice(0);
+
+        this.sortByName();
+
         console.log('Loaded TPOP data from local JSON.');
       } else {
         console.log('Trying to load the JSON from the Museo Egizio...');
@@ -97,12 +82,188 @@ class TPOPManager {
 
   /**
    *
+   */
+  initialiseFeatures() {
+    for (let i = 0; i < this.allTPOPData.length; i++) {
+      const features = {
+        'rgb': [],
+        'snn': [],
+      };
+      for (let j = 0; j < 10; j++) {
+        const v = Array.from({length: 20}, () => Math.random());
+        const v_rgb = Array.from({length: 18}, () => Math.random());
+        features['rgb'].push(v_rgb);
+        features['snn'].push(v);
+      }
+      this.allTPOPData[i]['features'] = features;
+    }
+  }
+
+  /**
+   *
+   */
+  sortByName() {
+    this.allTPOPData.sort((a, b) => {
+      let nameA = a['InventoryNumber'];
+      let nameB = b['InventoryNumber'];
+
+      if (nameA.indexOf('CP') == 0) {
+        const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
+        const missingDigitsA = 4 - String(folderA).length;
+        nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
+      }
+      if (nameB.indexOf('CP') == 0) {
+        const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
+        const missingDigitsB = 4 - String(folderB).length;
+        nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
+      }
+
+
+      if (nameA.toLowerCase() > nameB.toLowerCase()) {
+        // e.g. nameA is "z" and nameB is "a"
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+
+    this.tpopData.sort((a, b) => {
+      let nameA = a['InventoryNumber'];
+      let nameB = b['InventoryNumber'];
+
+      if (nameA.indexOf('CP') == 0) {
+        const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
+        const missingDigitsA = 4 - String(folderA).length;
+        nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
+      }
+      if (nameB.indexOf('CP') == 0) {
+        const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
+        const missingDigitsB = 4 - String(folderB).length;
+        nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
+      }
+
+
+      if (nameA.toLowerCase() > nameB.toLowerCase()) {
+        // e.g. nameA is "z" and nameB is "a"
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  }
+
+  /**
+   *
+   * @param {*} data
+   */
+  sortByDistance(data) {
+    const weights = data.weights;
+    const ids = data.ids;
+
+    const avg_distances = [];
+    const min_distances = [];
+
+    const vecs = {
+      'rgb': [],
+      'snn': [],
+    };
+
+    for (const id of ids) {
+      const features = this.loadDetails(id);
+      vecs['rgb'] = vecs['rgb'].concat(features['rgb']);
+      vecs['snn'] = vecs['snn'].concat(features['snn']);
+    };
+
+    vecs['rgb_avg'] = this.avgvector(vecs['rgb']);
+    vecs['snn_avg'] = this.avgvector(vecs['snn']);
+
+    for (let obj of this.tpopData) {
+      const rgb = obj['features']['rgb'];
+      const rgb_avg = this.avgvector(rgb);
+      const snn = obj['features']['rgb'];
+      const snn_avg = this.avgvector(snn);
+
+      let d_rgb = this.eucDistance(vecs['rgb_avg'], rgb_avg);
+      let d_snn = this.eucDistance(vecs['snn_avg'], snn_avg);
+      let d = d_rgb * weights['rgb'] + d_snn * weights['snn'];
+      avg_distances.push(d);
+    }
+
+    this.tpopData.sort((a, b) => {
+      let idxA = this.tpopData.indexOf(a);
+      let idxB = this.tpopData.indexOf(b);
+      let dA = avg_distances[idxA];
+      let dB = avg_distances[idxB];
+
+      if (dA > dB) {
+        return 1;
+      } else if (dA < dB) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+  }
+
+  /**
+   *
+   * @param {*} a
+   * @param {*} b
+   * @return {*}
+   */
+  addvector(a, b) {
+    return a.map((e, i) => e + b[i]);
+  }
+
+  /**
+   *
+   * @param {*} v
+   * @return {*}
+   */
+  addvectors(v) {
+    let v0 = v[0];
+    for (let i = 1; i < v.length; i++) {
+      v0 = this.addvector(v0, v[i]);
+    }
+    return v0;
+  }
+
+  /**
+   *
+   * @param {*} v
+   * @return {*}
+   */
+  avgvector(v) {
+    const l = v.length;
+    if (l == 0) return null;
+    if (l == 1) return v;
+    let r = this.addvectors(v);
+    r = r.map((x) => x / l);
+    return r;
+  }
+
+  /**
+   *
+   * @param {*} a
+   * @param {*} b
+   * @return {*}
+   */
+  eucDistance(a, b) {
+    return a
+        .map((x, i) => Math.abs( x - b[i] ) ** 2) // square the difference
+        .reduce((sum, now) => sum + now) ** // sum
+        (1/2);
+  }
+
+  /**
+   *
    * @param {*} startIndex
    * @param {*} endIndex
    * @return {*}
    */
   loadData(startIndex, endIndex) {
     if (!this.tpopData) {
+      console.log('Reloading Data...');
       this.initialiseVLTdata(reload=true);
       return null;
     }
@@ -119,8 +280,8 @@ class TPOPManager {
       const entry = {
         'id': obj['TPOPid'],
         'name': obj['InventoryNumber'],
-        'urlRecto': '../imgs/examples/dummy.jpg',
-        'urlVerso': '../imgs/examples/dummy.jpg',
+        'urlRecto': obj['ObjectImageRectoLo'],
+        'urlVerso': obj['ObjectImageVersoLo'],
       };
       objects.push(entry);
     }
@@ -406,8 +567,8 @@ class TPOPManager {
         const entry = {
           'id': obj['TPOPid'],
           'name': obj['InventoryNumber'],
-          'urlRecto': '../imgs/examples/dummy.jpg',
-          'urlVerso': '../imgs/examples/dummy.jpg',
+          'urlRecto': obj['ObjectImageRectoLo'],
+          'urlVerso': obj['ObjectImageVersoLo'],
           'features': {
             'recto': {
               'triplet': this.createRandomVector(20),

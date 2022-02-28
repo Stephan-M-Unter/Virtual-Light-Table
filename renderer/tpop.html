@@ -21,7 +21,15 @@
             <div id="suggestion-section" class="sidebar-section">
                 <hr>
                 <div class="title">Suggestion Weights</div>
-                <p>Section for future automatic suggestion feature; should contain sliders for users to interactively indicate the weight of specific attributes of a fragment to look for similar occurrences</p>
+                <div>
+                    <input type="text" id='ml_snn' class='ml_weight' value="1">
+                    <label>Triplet Space Weight</label>
+                </div>
+                <div>
+                    <input type="text" id='ml_rgb' class='ml_weight' value="1">
+                    <label>Colour Space Weight</label>
+                </div>
+                <div class="inactive" id="ml_calculate">Calculate Suggestions</div>
             </div>
         </div>
         <div id="left-resize-slider" class="resize-slider no-select"></div>
