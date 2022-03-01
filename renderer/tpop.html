@@ -9,7 +9,12 @@
     </head>
     <body>
         <div id="sidebar" class="area">
-            <div id="version">Data Version: <span id="data-version">unknown</span> (<span id="data-date">unknown</span>)</div>
+            <div>
+                <div id="version">Data Version: <span id="data-ctime"></span></br> (last download: <span id="data-mtime"></span>)</div>
+                <div id="reload-json">
+                    <img src="../imgs/symbol_reload.png">
+                </div>
+            </div>
             <div id="filter-section" class="sidebar-section">
                 <hr>
                 <div class="title">Filters</div>
@@ -30,6 +35,7 @@
                     <label>Colour Space Weight</label>
                 </div>
                 <div class="inactive" id="ml_calculate">Calculate Suggestions</div>
+                <div class="inactive" id="ml_reset">Reset Sorting</div>
             </div>
         </div>
         <div id="left-resize-slider" class="resize-slider no-select"></div>
@@ -54,6 +60,9 @@
                 <div id="load" class="button inactive">
                     <img/>
                     <div id="load-text" class="button-text">Select fragments</div>
+                </div>
+                <div id="flip-grid" class="">
+                    <img src="../imgs/symbol_vertical_flip.png">
                 </div>
             </div>
         </div>

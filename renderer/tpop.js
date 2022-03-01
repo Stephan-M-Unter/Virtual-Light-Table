@@ -6,6 +6,7 @@ let lastIndex = -1;
 let currentPage = 0;
 const maxPageSize = 200;
 let filters = [];
+let gridView = 'recto';
 const filterOperators = {
   'list': ['contains', 'contains not', 'empty', 'not empty'],
   'boolean': ['true', 'false'],
@@ -345,6 +346,23 @@ function resetFilterSelection() {
 
 /**
  *
+ */
+function flipGrid() {
+  if (gridView == 'recto') {
+    gridView = 'verso';
+  } else {
+    gridView = 'recto';
+  }
+  for (const el of $('.tile img')) {
+    const op = $(el).attr('data-opposite');
+    const src = $(el).attr('src');
+    $(el).attr('data-opposite', src);
+    $(el).attr('src', op);
+  }
+}
+
+/**
+ *
  * @param {*} type
  */
 function setFilterOperators(type) {
@@ -369,9 +387,18 @@ function addTile(idx, n_objects, tpopJson) {
   setTimeout(function() {
     const data = tpopJson[idx];
     const tile = $('<div id="'+data.id+'" class="tile no-select" data-id="'+data.id+'"></div>');
-    const img = $('<img src="'+data.urlRecto+'" data-id="'+data.id+'"/>');
+    let img;
+    if (gridView == 'recto') {
+      img = $('<img src="'+data.urlRecto+'" data-id="'+data.id+'" data-opposite="'+data.urlVerso+'"/>');
+    } else {
+      img = $('<img src="'+data.urlVerso+'" data-id="'+data.id+'" data-opposite="'+data.urlRecto+'"/>');
+    }
     const name = $('<div class="name" data-id="'+data.id+'">'+data.name+'</div>');
-    const distance = $('<div class="distance">xx.xxxx</div>');
+    let d = '';
+    if (data.distance) {
+      d = data.distance;
+    }
+    const distance = $('<div class="distance">'+d+'</div>');
     const multibox = $('<div class="multibox" data-id="'+data.id+'"></div>');
 
     if ($('#loading-view').find('#load-'+data.id).length > 0) {
@@ -391,7 +418,7 @@ function addTile(idx, n_objects, tpopJson) {
     $('#tile-view').append(tile);
 
     tile.click(function(event) {
-      const dataId = $(event.target).attr('data-id');
+      const dataId = $(tile).attr('data-id');
       requestDetails(dataId);
     });
 
@@ -713,6 +740,20 @@ $('#ml_calculate').click(function() {
   }
 });
 
+$('#ml_reset').click(function() {
+  ipcRenderer.send('server-reset-sorting');
+});
+
+$('#reload-json').click(() => {
+  if (!requesting) {
+    $('#reload-json img').attr('src', '../imgs/loading.gif');
+    requesting = true;
+    ipcRenderer.send('server-reload-json');
+    $('.filter').remove();
+    filters = [];
+  }
+});
+
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
   // show data
   const objects = tpopJson.objects;
@@ -730,6 +771,10 @@ ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
     $('#filter-attribute-list').append(filterItem);
   }
 
+  $('#data-mtime').html(tpopJson.mtime);
+  $('#data-ctime').html(tpopJson.ctime);
+  $('#reload-json img').attr('src', '../imgs/symbol_reload.png');
+
   if (maxIndex == null || maxIndex != tpopJson.maxObjects) {
     maxIndex = tpopJson.maxObjects;
     updateTPOPScrollers();
@@ -743,6 +788,10 @@ ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
   } else {
     requesting = false;
   }
+});
+
+$('#flip-grid').click(() => {
+  flipGrid();
 });
 
 ipcRenderer.on('tpop-json-failed', () => {
@@ -837,5 +886,6 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
 });
 
 ipcRenderer.on('tpop-calculation-done', () => {
+  requesting = false;
   loadPage(0);
 });

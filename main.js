@@ -951,3 +951,22 @@ ipcMain.on('server-calculate-distances', (event, data) => {
   tpopManager.sortByDistance(data);
   sendMessage(tpopWindow, 'tpop-calculation-done');
 });
+
+ipcMain.on('server-reload-json', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-reload-json] from TPOP window');
+  }
+  tpopManager.initialiseVLTdata(true, () => {
+    sendMessage(tpopWindow, 'tpop-calculation-done');
+  });
+});
+
+ipcMain.on('server-reset-sorting', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-reset-sorting] from TPOP window');
+  }
+  tpopManager.sortByName();
+  sendMessage(tpopWindow, 'tpop-calculation-done');
+});

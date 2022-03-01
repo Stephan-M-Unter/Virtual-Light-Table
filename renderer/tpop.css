@@ -30,6 +30,7 @@ body {
 }
 
 #sidebar {
+    position: relative;
     background-color: #aaa;
     width: 250px;
     max-width: 300px;
@@ -150,6 +151,7 @@ body {
 }
 
 #load-area {
+    position: relative;
     display: flex;
     flex-shrink: 0;
     height: 60px;
@@ -252,6 +254,14 @@ body {
     background-color: #666;
 }
 
+.tile:hover .name {
+    background-color: rgba(0,0,0,0.5);
+}
+
+.tile:hover .distance {
+    background-color: rgba(255,255,255,0.5);
+}
+
 .tile.selected {
     border: 4px solid orange;
     background-color: #444;
@@ -271,6 +281,8 @@ body {
     left: 50%;
     transform: translateX(-50%);
     bottom: 2px;
+    padding: 0px 5px;
+    transition: all .2s;
 }
 
 .tile .distance {
@@ -279,6 +291,8 @@ body {
     right: 1px;
     color: green;
     font-size: 0.7em;
+    padding: 0px 5px;
+    transition: all .2s;
 }
 
 .multibox {
@@ -595,4 +609,31 @@ body {
 #filter-add-button:active {
     box-shadow: none;
     background-color: #666;
+}
+
+#reload-json {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: green;
+}
+
+#reload-json img {
+    width: 100%;
+    height: 100%;
+}
+
+#flip-grid {
+    position: absolute;
+    right: 5px;
+    height: 50px;
+    width: 50px;
+    background-color: #ccc;
+}
+
+#flip-grid img {
+    width: 50px;
+    height: 50px;
 }

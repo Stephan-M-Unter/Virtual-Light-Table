@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const {SCHED_NONE} = require('cluster');
 
 /**
  * TODO
@@ -27,6 +28,8 @@ class TPOPManager {
     this.allTPOPData = null;
     this.tpopData = null;
     this.filterTypes = null;
+    this.ctime = 'unknown';
+    this.mtime = 'unknown';
 
     this.initialiseVLTdata();
   };
@@ -35,12 +38,14 @@ class TPOPManager {
    *
    * @param {*} reload
    */
-  initialiseVLTdata(reload=false) {
+  initialiseVLTdata(reload, callback) {
     if (this.tpopData == null || reload == true) {
       console.log('TPOP data not yet loaded.');
-      if (fs.existsSync(this.vltjson)) {
-        const creationDate = fs.statSync(this.vltjson)['birthtime'];
-        console.log('VLTdata was created on:', creationDate);
+      if (fs.existsSync(this.vltjson) && !reload) {
+        this.ctime = fs.statSync(this.vltjson)['birthtime'];
+        this.mtime = fs.statSync(this.vltjson).mtime;
+        console.log('VLTdata was created on:', this.ctime);
+        console.log('VLTdata was last modified on:', this.mtime);
         // TODO: CHECK DATE LAST MODIFIED
         // IF OLDER THAN THRESHOLD - REDOWNLOAD
         try {
@@ -61,6 +66,9 @@ class TPOPManager {
         this.sortByName();
 
         console.log('Loaded TPOP data from local JSON.');
+        if (callback) {
+          callback();
+        }
       } else {
         console.log('Trying to load the JSON from the Museo Egizio...');
         const requestURL = 'https://vlt.museoegizio.it/api/srv/vltdata?api_key=app.4087936422844370a7758639269652b9';
@@ -70,12 +78,14 @@ class TPOPManager {
           filePath.on('finish', () => {
             filePath.close();
             console.log('Finished downloading VLTdata.');
+            this.tpopData = null;
+            this.initialiseVLTdata(false, callback);
           });
         });
-          // JSON nicht lokal vorhanden
-          // HTTP-REQUEST an das ME
-          // Datei herunterladen und an this.vltjson speichern
-          // Daten wie oben angegeben laden
+      }
+    } else {
+      if (callback) {
+        callback();
       }
     }
   }
@@ -142,7 +152,6 @@ class TPOPManager {
         nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
       }
 
-
       if (nameA.toLowerCase() > nameB.toLowerCase()) {
         // e.g. nameA is "z" and nameB is "a"
         return 1;
@@ -150,18 +159,25 @@ class TPOPManager {
         return -1;
       }
     });
+
+    for (const obj of this.tpopData) {
+      delete obj['distance'];
+    }
+
+    for (const obj of this.allTPOPData) {
+      delete obj['distance'];
+    }
   }
 
   /**
    *
    * @param {*} data
    */
-  sortByDistance(data) {
+  sortByDistance(data, mode='min') {
     const weights = data.weights;
     const ids = data.ids;
 
-    const avg_distances = [];
-    const min_distances = [];
+    const distances = [];
 
     const vecs = {
       'rgb': [],
@@ -169,7 +185,7 @@ class TPOPManager {
     };
 
     for (const id of ids) {
-      const features = this.loadDetails(id);
+      const features = this.loadDetails(id)['features'];
       vecs['rgb'] = vecs['rgb'].concat(features['rgb']);
       vecs['snn'] = vecs['snn'].concat(features['snn']);
     };
@@ -177,23 +193,45 @@ class TPOPManager {
     vecs['rgb_avg'] = this.avgvector(vecs['rgb']);
     vecs['snn_avg'] = this.avgvector(vecs['snn']);
 
-    for (let obj of this.tpopData) {
+    for (const obj of this.tpopData) {
       const rgb = obj['features']['rgb'];
-      const rgb_avg = this.avgvector(rgb);
-      const snn = obj['features']['rgb'];
-      const snn_avg = this.avgvector(snn);
+      const snn = obj['features']['snn'];
 
-      let d_rgb = this.eucDistance(vecs['rgb_avg'], rgb_avg);
-      let d_snn = this.eucDistance(vecs['snn_avg'], snn_avg);
-      let d = d_rgb * weights['rgb'] + d_snn * weights['snn'];
-      avg_distances.push(d);
+      let d;
+      if (mode == 'avg') {
+        const rgb_avg = this.avgvector(rgb);
+        const snn_avg = this.avgvector(snn);
+        const d_rgb_avg = this.eucDistance(vecs['rgb_avg'], rgb_avg);
+        const d_snn_avg = this.eucDistance(vecs['snn_avg'], snn_avg);
+        d = d_rgb_avg * weights['rgb'] + d_snn_avg * weights['snn'];
+      } else {
+        const rgb_min = this.minDistance(vecs['rgb'], rgb);
+        const snn_min = this.minDistance(vecs['snn'], snn);
+        d = rgb_min * weights['rgb'] + snn_min * weights['snn'];
+      }
+      distances.push(d);
+      obj['distance'] = d;
     }
 
+    this.allTPOPData.sort((a, b) => {
+      const idxA = this.tpopData.indexOf(a);
+      const idxB = this.tpopData.indexOf(b);
+      const dA = distances[idxA];
+      const dB = distances[idxB];
+
+      if (dA > dB) {
+        return 1;
+      } else if (dA < dB) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
     this.tpopData.sort((a, b) => {
-      let idxA = this.tpopData.indexOf(a);
-      let idxB = this.tpopData.indexOf(b);
-      let dA = avg_distances[idxA];
-      let dB = avg_distances[idxB];
+      const idxA = this.tpopData.indexOf(a);
+      const idxB = this.tpopData.indexOf(b);
+      const dA = distances[idxA];
+      const dB = distances[idxB];
 
       if (dA > dB) {
         return 1;
@@ -213,6 +251,27 @@ class TPOPManager {
    */
   addvector(a, b) {
     return a.map((e, i) => e + b[i]);
+  }
+
+  /**
+   * 
+   * @param {*} vecsA 
+   * @param {*} vecsB 
+   * @return {*}
+   */
+  minDistance(vecsA, vecsB) {
+    let min_d = null;
+    for (var a = 0; a < vecsA.length; a++) {
+      for (var b = 0; b < vecsB.length; b++) {
+        const vecA = vecsA[a];
+        const vecB = vecsB[b];
+        const d = this.eucDistance(vecA, vecB);
+        if (min_d == null || d < min_d) {
+          min_d = d;
+        }
+      }
+    }
+    return min_d;
   }
 
   /**
@@ -264,7 +323,7 @@ class TPOPManager {
   loadData(startIndex, endIndex) {
     if (!this.tpopData) {
       console.log('Reloading Data...');
-      this.initialiseVLTdata(reload=true);
+      this.initialiseVLTdata(true);
       return null;
     }
 
@@ -277,17 +336,30 @@ class TPOPManager {
         break;
       }
       const obj = this.tpopData[i];
+      let urlRecto = obj['ObjectImageRectoLo'];
+      let urlVerso = obj['ObjectImageVersoLo'];
+      if (urlRecto == null) {
+        urlRecto = '../imgs/symbol_no_pic.png';
+      }
+      if (urlVerso == null) {
+        urlVerso = '../imgs/symbol_no_pic.png';
+      }
       const entry = {
         'id': obj['TPOPid'],
         'name': obj['InventoryNumber'],
-        'urlRecto': obj['ObjectImageRectoLo'],
-        'urlVerso': obj['ObjectImageVersoLo'],
+        'urlRecto': urlRecto,
+        'urlVerso': urlVerso,
       };
+      if (obj['distance']) {
+        entry['distance'] = obj['distance'];
+      }
       objects.push(entry);
     }
 
     const data = {
       maxObjects: this.tpopData.length,
+      ctime: this.ctime,
+      mtime: this.mtime,
       objects: objects,
       filters: this.getFilterAttributes(),
     };
