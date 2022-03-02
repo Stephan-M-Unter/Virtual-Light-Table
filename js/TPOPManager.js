@@ -58,7 +58,11 @@ class TPOPManager {
           console.log(e);
         }
         this.allTPOPData = this.tpopData['objects'].filter((el) => {
-          return el !== null && typeof el !== 'undefined';
+          if (el == null || typeof el == 'undefined') return false;
+          const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'] || el['ObjectImages'][0];
+          const verso = el['ObjectImageVersoLo'] || el['ObjectImageVersoHi'] || el['ObjectImageVerso'] || el['ObjectImages'][1];
+          if (!recto && !verso) return false;
+          return true;
         });
         this.initialiseFeatures();
         this.tpopData = this.allTPOPData.slice(0);
@@ -99,7 +103,8 @@ class TPOPManager {
         'rgb': [],
         'snn': [],
       };
-      for (let j = 0; j < 10; j++) {
+      const n = Math.round(Math.random() * 10);
+      for (let j = 0; j < n; j++) {
         const v = Array.from({length: 20}, () => Math.random());
         const v_rgb = Array.from({length: 18}, () => Math.random());
         features['rgb'].push(v_rgb);
@@ -173,9 +178,10 @@ class TPOPManager {
    *
    * @param {*} data
    */
-  sortByDistance(data, mode='min') {
+  sortByDistance(data) {
     const weights = data.weights;
     const ids = data.ids;
+    const mode = data.mode;
 
     const distances = [];
 
@@ -336,8 +342,8 @@ class TPOPManager {
         break;
       }
       const obj = this.tpopData[i];
-      let urlRecto = obj['ObjectImageRectoLo'];
-      let urlVerso = obj['ObjectImageVersoLo'];
+      let urlRecto = obj['ObjectImageRecto'] || obj['ObjectImages'][0] || null;
+      let urlVerso = obj['ObjectImageVerso'] || obj['ObjectImages'][1] || null;
       if (urlRecto == null) {
         urlRecto = '../imgs/symbol_no_pic.png';
       }

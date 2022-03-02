@@ -114,8 +114,10 @@ function displayDetails(details) {
   $('#detail-page-warning').addClass('hidden');
   $('#detail-link').attr('href', details.permalink);
   $('#detail-name').html(details.InventoryNumber);
-  $('#detail-recto').attr('src', details.ObjectImageRecto);
-  $('#detail-verso').attr('src', details.ObjectImageVerso);
+  const imageRecto = details.ObjectImageRecto || details['ObjectImages'][0] || '../imgs/symbol_no_pic.png';
+  const imageVerso = details.ObjectImageVerso || details['ObjectImages'][1] || '../imgs/symbol_no_pic.png';
+  $('#detail-recto').attr('src', imageRecto);
+  $('#detail-verso').attr('src', imageVerso);
   $('#detail-find').attr('data-id', details.TPOPid);
   $('#detail-joins-list').empty();
 
@@ -125,7 +127,7 @@ function displayDetails(details) {
   $('#load-'+id).addClass('selected');
 
   if (details['TPOPidsJoins']) {
-    if (!details['TPOPidsJoins'] || details['TPOPidsJoins'].length == 0) {
+    if (details['TPOPidsJoins'].length == 0 || details['TPOPidsJoins'] == null) {
       // object has no joins registered
       $('#detail-joins').addClass('hidden');
       $('#detail-joins').find('.subtitle').html('');
@@ -453,7 +455,7 @@ function addTile(idx, n_objects, tpopJson) {
       requesting = false;
       checkForRequest();
     }
-  }, 20);
+  }, 10);
 }
 
 /**
@@ -732,7 +734,12 @@ $('#ml_calculate').click(function() {
     for (const el of $('#loading-view .loading')) {
       tpopids.push($(el).attr('data-id'));
     }
+    let mode = 'min';
+    if ($('#ml-toggle').is(':checked')) {
+      mode = 'avg';
+    }
     const data = {
+      'mode': mode,
       'weights': weights,
       'ids': tpopids,
     };

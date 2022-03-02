@@ -25,17 +25,26 @@
             </div>
             <div id="suggestion-section" class="sidebar-section">
                 <hr>
-                <div class="title">Suggestion Weights</div>
-                <div>
+                <div class="title">Settings for Automatic Suggestions</div>
+                <div>Select one (or more) fragments and adjust settings to query for most similar objects regarding given features.</div>
+                <div class="weight">
                     <input type="text" id='ml_snn' class='ml_weight' value="1">
-                    <label>Triplet Space Weight</label>
+                    <div>Triplet Space Weight</div>
                 </div>
-                <div>
+                <div class="weight">
                     <input type="text" id='ml_rgb' class='ml_weight' value="1">
-                    <label>Colour Space Weight</label>
+                    <div>Colour Space Weight</div>
                 </div>
-                <div class="inactive" id="ml_calculate">Calculate Suggestions</div>
-                <div class="inactive" id="ml_reset">Reset Sorting</div>
+                <div id="ml-toggle-area">
+                    <label>min Δ</label>
+                    <label class="switch">
+                        <input type="checkbox" id="ml-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <label>avg Δ</label>
+                </div>
+                <div class="button inactive" id="ml_calculate">Calculate Distances Δ</div>
+                <div class="button" id="ml_reset">Reset Sorting</div>
             </div>
         </div>
         <div id="left-resize-slider" class="resize-slider no-select"></div>

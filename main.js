@@ -847,6 +847,7 @@ ipcMain.on('server-open-tpop', (event, tableID) => {
     'Receiving code [server-open-tpop] from client for table '+tableID);
   }
 
+  tpopManager.sortByName();
   activeTables.tpop = tableID;
 
   if (!tpopWindow) {
