@@ -21,6 +21,7 @@ class TPOPManager {
   constructor(vltFolder) {
     this.tpopFolder = path.join(vltFolder, 'tpop');
     this.vltjson = path.join(this.tpopFolder, 'vltdata.json');
+    this.cbdata = path.join(this.tpopFolder, 'cbdata.json');
     if (!fs.existsSync(this.tpopFolder)) {
       fs.mkdirSync(this.tpopFolder);
     }
@@ -59,8 +60,8 @@ class TPOPManager {
         }
         this.allTPOPData = this.tpopData['objects'].filter((el) => {
           if (el == null || typeof el == 'undefined') return false;
-          const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'] || el['ObjectImages'][0];
-          const verso = el['ObjectImageVersoLo'] || el['ObjectImageVersoHi'] || el['ObjectImageVerso'] || el['ObjectImages'][1];
+          const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'];
+          const verso = el['ObjectImageVersoLo'] || el['ObjectImageVersoHi'] || el['ObjectImageVerso'];
           if (!recto && !verso) return false;
           return true;
         });
@@ -98,6 +99,52 @@ class TPOPManager {
    *
    */
   initialiseFeatures() {
+    if (fs.existsSync(this.cbdata)) {
+      try {
+        let cbdata = fs.readFileSync(this.cbdata, 'utf8');
+        if (cbdata.charCodeAt(0) === 0xFEFF) {
+          cbdata = cbdata.substring(1);
+        }
+        cbdata = JSON.parse(cbdata);
+        console.log(Object.keys(cbdata));
+        cbdata = cbdata['large-papyri'].concat(cbdata['cp-fragments']);
+        let found = 0;
+        for (const o of cbdata) {
+          let name = o['id'];
+          if (name.indexOf('F') != -1 || name.indexOf("SN") != -1 || name.indexOf("Layer") != -1) continue;
+          if (name.indexOf("tif") != -1) continue;
+          if (name.indexOf("frame") != -1) continue;
+          const f = this.allTPOPData.find((obj) => {
+            let valid = false;
+            name = name.replace('CP00', 'CP');
+            name = name.replace('CP0', 'CP');
+            name = name.replace("Provv", "Provv.");
+            if (name.slice(-1) == '_') name = name.slice(0, -1);
+            name = name.replace('_', '/');
+
+            if (obj['InventoryNumber'] === name) valid = true;
+            return valid;
+          });
+          if (f) {
+            found += 1;
+            const idx_f = this.allTPOPData.indexOf(f);
+            if (!('features' in o)) continue;
+            const f_features = {};
+            for (const feature of Object.keys(o['features'])) {
+              f_features[feature] = o['features'][feature]['recto'].concat(o['features'][feature]['verso']);
+            }
+            this.allTPOPData[idx_f]['features'] = f_features;
+          } else {
+            console.log(o['id']);
+          }
+        }
+        console.log("Entries:", cbdata.length);
+        console.log("Found:", found);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    /*
     for (let i = 0; i < this.allTPOPData.length; i++) {
       const features = {
         'rgb': [],
@@ -112,6 +159,7 @@ class TPOPManager {
       }
       this.allTPOPData[i]['features'] = features;
     }
+    */
   }
 
   /**
@@ -182,48 +230,105 @@ class TPOPManager {
     const weights = data.weights;
     const ids = data.ids;
     const mode = data.mode;
+    const queried_features = [];
 
-    const distances = [];
-
-    const vecs = {
-      'rgb': [],
-      'snn': [],
-    };
-
-    for (const id of ids) {
-      const features = this.loadDetails(id)['features'];
-      vecs['rgb'] = vecs['rgb'].concat(features['rgb']);
-      vecs['snn'] = vecs['snn'].concat(features['snn']);
-    };
-
-    vecs['rgb_avg'] = this.avgvector(vecs['rgb']);
-    vecs['snn_avg'] = this.avgvector(vecs['snn']);
-
-    for (const obj of this.tpopData) {
-      const rgb = obj['features']['rgb'];
-      const snn = obj['features']['snn'];
-
-      let d;
-      if (mode == 'avg') {
-        const rgb_avg = this.avgvector(rgb);
-        const snn_avg = this.avgvector(snn);
-        const d_rgb_avg = this.eucDistance(vecs['rgb_avg'], rgb_avg);
-        const d_snn_avg = this.eucDistance(vecs['snn_avg'], snn_avg);
-        d = d_rgb_avg * weights['rgb'] + d_snn_avg * weights['snn'];
-      } else {
-        const rgb_min = this.minDistance(vecs['rgb'], rgb);
-        const snn_min = this.minDistance(vecs['snn'], snn);
-        d = rgb_min * weights['rgb'] + snn_min * weights['snn'];
+    // determine which features need to be considered
+    for (const weight of Object.keys(weights)) {
+      if (weights[weights] != 0) {
+        queried_features.push(weight);
       }
-      distances.push(d);
-      obj['distance'] = d;
+    }
+    console.log("Queried features:", queried_features);
+
+    // const distances = [];
+
+    // initialise collection of query vectors
+    const vecs = {};
+    for (const f of queried_features) {
+      vecs[f] = [];
     }
 
+    // read features from queried objects
+    for (const id of ids) {
+      const features = this.loadDetails(id)['features'];
+      for (const f of queried_features) {
+        if (!(f in features) || features[f].length == 0) {
+          // if one query object has no required features, stop it all
+          this.sortByName();
+          return null;
+        }
+        vecs[f] = vecs[f].concat(features[f]);
+      }
+    };
+
+    // calculate average vectors for each feature space
+    for (const f of queried_features) {
+      vecs[f+'_avg'] = this.avgvector(vecs[f]);
+    }
+
+    // iterate over all objects to determine distances
+    for (const obj of this.tpopData) {
+      const components = [];
+      let invalid = false;
+
+      if (!('features' in obj)) {
+        obj['distance'] = 'INVALID';
+        continue;
+      }
+
+      for (const f of queried_features) {
+        // check if feature f is available
+        if (!(f in obj['features']) || obj['features'][f].length == 0) {
+          obj['distance'] = 'INVALID';
+          invalid = true;
+          break;
+        }
+        const w = weights[f];
+        const v = obj['features'][f];
+        if (mode == 'avg') {
+          const v_avg = this.avgvector(v);
+          const d_avg = this.eucDistance(vecs[f+'_avg'], v_avg) * w;
+          components.push(d_avg);
+        } else {
+          // mode == 'min'
+          const d_min = this.minDistance(vecs[f], v) * w;
+          components.push(d_min);
+        }
+      }
+
+      if (invalid) continue;
+
+      const distance = components.reduce((a, b) => a + b);
+      obj['distance'] = distance;
+    }
+
+
+    // for (const obj of this.tpopData) {
+    //   const rgb = obj['features']['rgb'];
+    //   const snn = obj['features']['snn'];
+
+    //   let d;
+    //   if (mode == 'avg') {
+    //     const rgb_avg = this.avgvector(rgb);
+    //     const snn_avg = this.avgvector(snn);
+    //     const d_rgb_avg = this.eucDistance(vecs['rgb_avg'], rgb_avg);
+    //     const d_snn_avg = this.eucDistance(vecs['snn_avg'], snn_avg);
+    //     d = d_rgb_avg * weights['rgb'] + d_snn_avg * weights['snn'];
+    //   } else {
+    //     const rgb_min = this.minDistance(vecs['rgb'], rgb);
+    //     const snn_min = this.minDistance(vecs['snn'], snn);
+    //     d = rgb_min * weights['rgb'] + snn_min * weights['snn'];
+    //   }
+    //   distances.push(d);
+    //   obj['distance'] = d;
+    // }
+
     this.allTPOPData.sort((a, b) => {
-      const idxA = this.tpopData.indexOf(a);
-      const idxB = this.tpopData.indexOf(b);
-      const dA = distances[idxA];
-      const dB = distances[idxB];
+      const dA = a.distance;
+      const dB = b.distance;
+
+      if (dA == 'INVALID') return 1;
+      if (dB == 'INVALID') return -1;
 
       if (dA > dB) {
         return 1;
@@ -234,10 +339,11 @@ class TPOPManager {
       }
     });
     this.tpopData.sort((a, b) => {
-      const idxA = this.tpopData.indexOf(a);
-      const idxB = this.tpopData.indexOf(b);
-      const dA = distances[idxA];
-      const dB = distances[idxB];
+      const dA = a.distance;
+      const dB = b.distance;
+
+      if (dA == 'INVALID') return 1;
+      if (dB == 'INVALID') return -1;
 
       if (dA > dB) {
         return 1;
@@ -342,8 +448,8 @@ class TPOPManager {
         break;
       }
       const obj = this.tpopData[i];
-      let urlRecto = obj['ObjectImageRecto'] || obj['ObjectImages'][0] || null;
-      let urlVerso = obj['ObjectImageVerso'] || obj['ObjectImages'][1] || null;
+      let urlRecto = obj['ObjectImageRecto'] || null;
+      let urlVerso = obj['ObjectImageVerso'] || null;
       if (urlRecto == null) {
         urlRecto = '../imgs/symbol_no_pic.png';
       }

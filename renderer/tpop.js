@@ -114,8 +114,8 @@ function displayDetails(details) {
   $('#detail-page-warning').addClass('hidden');
   $('#detail-link').attr('href', details.permalink);
   $('#detail-name').html(details.InventoryNumber);
-  const imageRecto = details.ObjectImageRecto || details['ObjectImages'][0] || '../imgs/symbol_no_pic.png';
-  const imageVerso = details.ObjectImageVerso || details['ObjectImages'][1] || '../imgs/symbol_no_pic.png';
+  const imageRecto = details.ObjectImageRecto || '../imgs/symbol_no_pic.png';
+  const imageVerso = details.ObjectImageVerso || '../imgs/symbol_no_pic.png';
   $('#detail-recto').attr('src', imageRecto);
   $('#detail-verso').attr('src', imageVerso);
   $('#detail-find').attr('data-id', details.TPOPid);
@@ -126,8 +126,23 @@ function displayDetails(details) {
   $('#'+id).addClass('selected');
   $('#load-'+id).addClass('selected');
 
-  if (details['TPOPidsJoins']) {
-    if (details['TPOPidsJoins'].length == 0 || details['TPOPidsJoins'] == null) {
+  if (details.ObjectImageRectoHi) {
+    $('#detail-recto-magnify').removeClass('hidden');
+    $('#detail-recto-magnify').attr('href', details.ObjectImageRectoHi);
+  } else {
+    $('#detail-recto-magnify').addClass('hidden');
+    $('#detail-recto-magnify').attr('href', '#');
+  }
+  if (details.ObjectImageVersoHi) {
+    $('#detail-verso-magnify').removeClass('hidden');
+    $('#detail-verso-magnify').attr('href', details.ObjectImageVersoHi);
+  } else {
+    $('#detail-verso-magnify').addClass('hidden');
+    $('#detail-verso-magnify').attr('href', '#');
+  }
+
+  if (('TPOPidsJoins' in details)) {
+    if (details['TPOPidsJoins'] == null || details['TPOPidsJoins'].length == 0) {
       // object has no joins registered
       $('#detail-joins').addClass('hidden');
       $('#detail-joins').find('.subtitle').html('');
@@ -667,14 +682,24 @@ $('#tile-view').scroll(function(event) {
   }
 });
 
-$('#tpop-left-arrow').click(function() {
+$('#tpop-left-arrow').click(function(event) {
   if (!$('#tpop-left-arrow').hasClass('inactive')) {
-    loadPage(currentPage-1);
+    if (event.ctrlKey) {
+      loadPage(Math.max(0, currentPage-10));
+    } else {
+      loadPage(currentPage-1);
+    }
   }
 });
-$('#tpop-right-arrow').click(function() {
+$('#tpop-right-arrow').click(function(event) {
   if (!$('#tpop-right-arrow').hasClass('inactive')) {
-    loadPage(currentPage+1);
+    if (event.ctrlKey) {
+      console.log(Math.ceil(maxIndex/maxPageSize)-1, currentPage+10, Math.min(Math.ceil(maxIndex/maxPageSize)+1, currentPage+10));
+      loadPage(Math.min(Math.ceil(maxIndex/maxPageSize)-1, currentPage+10));
+    } else {
+      console.log(currentPage+1);
+      loadPage(currentPage+1);
+    }
   }
 });
 
