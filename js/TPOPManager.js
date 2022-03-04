@@ -252,7 +252,7 @@ class TPOPManager {
     for (const id of ids) {
       const features = this.loadDetails(id)['features'];
       for (const f of queried_features) {
-        if (!(f in features) || features[f].length == 0) {
+        if (!features || !(f in features) || features[f].length == 0) {
           // if one query object has no required features, stop it all
           this.sortByName();
           return null;
@@ -464,6 +464,9 @@ class TPOPManager {
       };
       if (obj['distance']) {
         entry['distance'] = obj['distance'];
+      }
+      if ('features' in obj) {
+        entry['features'] = Object.keys(obj['features']);
       }
       objects.push(entry);
     }
@@ -753,15 +756,10 @@ class TPOPManager {
           'name': obj['InventoryNumber'],
           'urlRecto': obj['ObjectImageRectoLo'],
           'urlVerso': obj['ObjectImageVersoLo'],
-          'features': {
-            'recto': {
-              'triplet': this.createRandomVector(20),
-            },
-            'verso': {
-              'triplet': this.createRandomVector(20),
-            },
-          },
         };
+        if ('features' in obj) {
+          entry['features'] = Object.keys(obj['features']);
+        }
         result.push(entry);
       }
     }

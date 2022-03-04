@@ -28,12 +28,16 @@
                 <div class="title">Settings for Automatic Suggestions</div>
                 <div>Select one (or more) fragments and adjust settings to query for most similar objects regarding given features.</div>
                 <div class="weight">
-                    <input type="text" id='ml_snn' class='ml_weight' value="1">
-                    <div>Triplet Space Weight</div>
+                    <div>Triplet Space</div>
+                    <input type="checkbox" class="ml-checkbox" id="ml-check-snn">
+                    <input type="range" id='ml-snn' class='ml-weight' min="0" max="6" value="0" disabled>
+                    <label id="ml-label-snn" class="invisible"></label>
                 </div>
                 <div class="weight">
-                    <input type="text" id='ml_rgb' class='ml_weight' value="1">
-                    <div>Colour Space Weight</div>
+                    <div>Colour Space</div>
+                    <input type="checkbox" class="ml-checkbox" id="ml-check-rgb">
+                    <input type="range" id='ml-rgb' class='ml-weight' min="0" max="6" value="0" disabled>
+                    <label id="ml-label-rgb" class="invisible"></label>
                 </div>
                 <div id="ml-toggle-area">
                     <label>min Δ</label>
@@ -43,8 +47,8 @@
                     </label>
                     <label>avg Δ</label>
                 </div>
-                <div class="button inactive" id="ml_calculate">Calculate Distances Δ</div>
-                <div class="button" id="ml_reset">Reset Sorting</div>
+                <div class="button inactive" id="ml-calculate">Calculate Distances Δ</div>
+                <div class="button" id="ml-reset">Reset Sorting</div>
             </div>
         </div>
         <div id="left-resize-slider" class="resize-slider no-select"></div>

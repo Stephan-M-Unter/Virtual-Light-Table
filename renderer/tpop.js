@@ -1,5 +1,6 @@
 const {ipcRenderer} = require('electron');
 
+const rangeValues = [1, 2, 3, 4, 5, 10, 20];
 const batchSize = 30;
 let maxIndex = null;
 let lastIndex = -1;
@@ -187,11 +188,50 @@ function updateLoadButton() {
   if (objectsToLoad > 0) {
     $('#load-text').html('Add '+objectsToLoad+' fragment(s) to table');
     $('#load').removeClass('inactive');
-    $('#ml_calculate').removeClass('inactive');
   } else {
     $('#load-text').html('Select fragments');
     $('#load').addClass('inactive');
-    $('#ml_calculate').addClass('inactive');
+  }
+}
+
+/**
+ * 
+ */
+function updateMLButton() {
+  let fragments_selected = false;
+  let ml_modes_selected = false;
+  const objectsToLoad = $('#loading-view').children().length;
+
+  if (objectsToLoad > 0) {
+    fragments_selected = true;
+  }
+
+  for (const mode of $('.ml-weight')) {
+    if (!$(mode).is(':disabled')) {
+      ml_modes_selected = true;
+      break;
+    }
+  }
+  
+  if (fragments_selected && ml_modes_selected) {
+    $('#ml-calculate').removeClass('inactive');
+  } else {
+    $('#ml-calculate').addClass('inactive');
+  }
+}
+
+function updateMLSliders() {
+  for (const slider of $('.ml-weight')) {
+    const mode = $(slider).attr('id').replace('ml-', '');
+    if ($(slider).is(':disabled')) {
+      $('#ml-label-'+mode).addClass('invisible');
+      continue;
+    }
+    const sliderValue = $(slider).val();
+    const modeValue = rangeValues[sliderValue];
+    $('#ml-label-'+mode).removeClass('invisible');
+    $('#ml-label-'+mode).html(modeValue);
+
   }
 }
 
@@ -229,6 +269,8 @@ function selectTile(id, d_name, url) {
   const distance = $('<div class="distance">xx.xxxx</div>');
   const multibox = $('<div class="multibox" data-id="'+id+'"></div>');
 
+  $(tile).attr('data-features', $('#'+id).attr('data-features'));
+
   tile.addClass('loading');
   if ($('#'+id).hasClass('selected')) {
     tile.addClass('selected');
@@ -262,9 +304,11 @@ function selectTile(id, d_name, url) {
   } else {
     $('#loading-tile-view').find('.rotated-title').html('Selected ('+selectedElements+')');
   }
-
+  
+  checkAvailableMLFeatures();
   updateSelectedScrollers();
   updateLoadButton();
+  updateMLButton();
 }
 
 /**
@@ -284,7 +328,9 @@ function deselectTile(id) {
     } else {
       $('#loading-tile-view').find('.rotated-title').html('Selected');
     }
+    checkAvailableMLFeatures();
     updateLoadButton();
+    updateMLButton();
   });
   updateSelectedScrollers();
 }
@@ -417,6 +463,11 @@ function addTile(idx, n_objects, tpopJson) {
     }
     const distance = $('<div class="distance">'+d+'</div>');
     const multibox = $('<div class="multibox" data-id="'+data.id+'"></div>');
+    const ml = $('<div class="ml-indicator"></div>');
+
+    if ('features' in data) {
+      $(tile).attr('data-features', data.features);
+    }
 
     if ($('#loading-view').find('#load-'+data.id).length > 0) {
       tile.addClass('loading');
@@ -432,6 +483,7 @@ function addTile(idx, n_objects, tpopJson) {
     tile.append(name);
     tile.append(distance);
     tile.append(multibox);
+    tile.append(ml);
     $('#tile-view').append(tile);
 
     tile.click(function(event) {
@@ -468,9 +520,51 @@ function addTile(idx, n_objects, tpopJson) {
       addTile(idx, n_objects, tpopJson);
     } else {
       requesting = false;
+      updateMLIndicators();
       checkForRequest();
     }
   }, 10);
+}
+
+function checkAvailableMLFeatures() {
+  const fragmentFeatures = [];
+  for (const tile of $('.loading')) {
+    let feats = $(tile).attr('data-features');
+    console.log("Feats1", feats);
+    feats = feats.split(',');
+    console.log("Feats2", feats);
+    fragmentFeatures.concat(feats);
+    console.log("feats3", fragmentFeatures);
+  }
+  /*
+  const sliderFeatures = {};
+  for (const slider of $('.ml-weight')) {
+    sliderFeatures[$(slider).attr('id').replace('ml-', '')] = true;
+  }
+  */
+}
+
+function checkMLFeatures(tpopid) {
+  const features = $('#'+tpopid).attr('data-features');
+  const activeFeatures = [];
+  for (const slider of $('.ml-weight')) {
+    if ($(slider).is(':disabled')) continue;
+    const name = $(slider).attr('id').replace('ml-', '');
+    activeFeatures.push(name);
+  }
+  if (activeFeatures.length == 0) {
+    $('#'+tpopid).find('.ml-indicator').removeClass('negative');
+    $('#'+tpopid).find('.ml-indicator').removeClass('positive');
+    return 'noFeatures';
+  }
+  for (const feature of activeFeatures) {
+    if (!features || features.indexOf(feature) == -1) {
+      $('#'+tpopid).find('.ml-indicator').addClass('negative');
+      return false;
+    }
+  }
+  $('#'+tpopid).find('.ml-indicator').addClass('positive');
+  return true;
 }
 
 /**
@@ -545,6 +639,12 @@ function checkOperators(attributeValue) {
   } else {
     $('#filter-operator-container').addClass('hidden');
     $('#filter-operator-wheel').empty();
+  }
+}
+
+function updateMLIndicators() {
+  for (const tile of $('.tile')) {
+    checkMLFeatures($(tile).attr('data-id'));
   }
 }
 
@@ -749,13 +849,23 @@ $('#detail-add-joins').click(function() {
   }
 });
 
-$('#ml_calculate').click(function() {
-  if (!$('#ml_calculate').hasClass('inactive')) {
+$('#ml-calculate').click(function() {
+  if (!$('#ml-calculate').hasClass('inactive')) {
     const tpopids = [];
-    const weights = {
-      'rgb': $('#ml_rgb').val(),
-      'snn': $('#ml_snn').val(),
-    };
+
+    const weights = {};
+
+    for (const slider of $('.ml-weight')) {
+      const name = $(slider).attr('id').replace('ml-', '');
+      if ($(slider).is(':disabled')) {
+        weights[name] = 0;
+      } else {
+        weights[name] = rangeValues[$('#ml-'+name).val()];
+      }
+    }
+    
+    console.log(weights);
+
     for (const el of $('#loading-view .loading')) {
       tpopids.push($(el).attr('data-id'));
     }
@@ -772,7 +882,7 @@ $('#ml_calculate').click(function() {
   }
 });
 
-$('#ml_reset').click(function() {
+$('#ml-reset').click(function() {
   ipcRenderer.send('server-reset-sorting');
 });
 
@@ -784,6 +894,19 @@ $('#reload-json').click(() => {
     $('.filter').remove();
     filters = [];
   }
+});
+
+$('.ml-checkbox').click(function(event) {
+  const mode = $(event.target).attr('id').replace('ml-check-', '');
+  const mode_val = $(event.target).prop("checked");
+  $('#ml-'+mode).prop('disabled', !mode_val);
+  updateMLIndicators();
+  updateMLButton();
+  updateMLSliders();
+});
+
+$('.ml-weight').on('input', () => {
+  updateMLSliders();
 });
 
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
