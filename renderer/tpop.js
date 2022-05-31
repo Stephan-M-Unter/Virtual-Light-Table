@@ -149,7 +149,7 @@ function displayDetails(details) {
       $('#detail-joins').find('.subtitle').html('');
     } else {
       // object has registered joins
-      $('#detail-joins').removeClass('hidden');
+      // $('#detail-joins').removeClass('hidden');
       $('#detail-joins').find('.subtitle').html('Registered Joins ('+details['TPOPidsJoins'].length+' objects)');
       ipcRenderer.send('server-tpop-basic-info', details['TPOPidsJoins']);
     }
@@ -263,52 +263,54 @@ function selectTile(id, d_name, url) {
   $('#join-'+id).addClass('loading');
   $('#join-'+id).find('img').attr('src', '../imgs/symbol_minus_zoom.png');
 
-  const tile = $('<div id="load-'+id+'" class="tile no-select" data-id="'+id+'"></div>');
-  const img = $('<img src="'+url+'" data-id="'+id+'"/>');
-  const name = $('<div class="name" data-id="'+id+'">'+d_name+'</div>');
-  const distance = $('<div class="distance">xx.xxxx</div>');
-  const multibox = $('<div class="multibox" data-id="'+id+'"></div>');
-
-  $(tile).attr('data-features', $('#'+id).attr('data-features'));
-
-  tile.addClass('loading');
-  if ($('#'+id).hasClass('selected')) {
-    tile.addClass('selected');
-  }
-
-  tile.append(img);
-  tile.append(name);
-  tile.append(distance);
-  tile.append(multibox);
-  $('#loading-view').append(tile);
-
-  tile.click(function(event) {
-    const id = $(event.target).attr('data-id');
-    requestDetails(id);
-  });
-
-  tile.dblclick(function(event) {
-    const id = $(event.target).attr('data-id');
-    deselectTile(id);
-  });
-
-  multibox.click(function(event) {
-    event.stopPropagation();
-    const id = $(this).parent().attr('data-id').replace('load-', '');
-    deselectTile(id);
-  });
-
-  const selectedElements = $('#loading-view').children().length;
-  if (selectedElements == 0) {
-    $('#loading-tile-view').find('.rotated-title').html('Selected');
-  } else {
-    $('#loading-tile-view').find('.rotated-title').html('Selected ('+selectedElements+')');
-  }
+  if ($('#load-'+id).length == 0) {
+    const tile = $('<div id="load-'+id+'" class="tile no-select" data-id="'+id+'"></div>');
+    const img = $('<img src="'+url+'" data-id="'+id+'"/>');
+    const name = $('<div class="name" data-id="'+id+'">'+d_name+'</div>');
+    const distance = $('<div class="distance">xx.xxxx</div>');
+    const multibox = $('<div class="multibox" data-id="'+id+'"></div>');
   
-  checkAvailableMLFeatures();
-  updateSelectedScrollers();
-  updateLoadButton();
-  updateMLButton();
+    $(tile).attr('data-features', $('#'+id).attr('data-features'));
+  
+    tile.addClass('loading');
+    if ($('#'+id).hasClass('selected')) {
+      tile.addClass('selected');
+    }
+  
+    tile.append(img);
+    tile.append(name);
+    tile.append(distance);
+    tile.append(multibox);
+    $('#loading-view').append(tile);
+  
+    tile.click(function(event) {
+      const id = $(event.target).attr('data-id');
+      requestDetails(id);
+    });
+  
+    tile.dblclick(function(event) {
+      const id = $(event.target).attr('data-id');
+      deselectTile(id);
+    });
+  
+    multibox.click(function(event) {
+      event.stopPropagation();
+      const id = $(this).parent().attr('data-id').replace('load-', '');
+      deselectTile(id);
+    });
+  
+    const selectedElements = $('#loading-view').children().length;
+    if (selectedElements == 0) {
+      $('#loading-tile-view').find('.rotated-title').html('Selected');
+    } else {
+      $('#loading-tile-view').find('.rotated-title').html('Selected ('+selectedElements+')');
+    }
+    
+    checkAvailableMLFeatures();
+    updateSelectedScrollers();
+    updateLoadButton();
+    updateMLButton();
+  }
 }
 
 /**
@@ -530,11 +532,10 @@ function checkAvailableMLFeatures() {
   const fragmentFeatures = [];
   for (const tile of $('.loading')) {
     let feats = $(tile).attr('data-features');
-    console.log("Feats1", feats);
-    feats = feats.split(',');
-    console.log("Feats2", feats);
-    fragmentFeatures.concat(feats);
-    console.log("feats3", fragmentFeatures);
+    if (feats) {
+      feats = feats.split(',');
+      fragmentFeatures.concat(feats);
+    }
   }
   /*
   const sliderFeatures = {};
@@ -978,65 +979,71 @@ ipcRenderer.on('tpop-position', (event, data) => {
 
 ipcRenderer.on('tpop-basic-info', (event, data) => {
   $('#detail-joins-list').empty();
-  data.sort((a, b) => {
-    let nameA = a.name;
-    let nameB = b.name;
 
-    if (nameA.indexOf('CP') == 0) {
-      const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
-      const missingDigitsA = 4 - String(folderA).length;
-      nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
-    }
-    if (nameB.indexOf('CP') == 0) {
-      const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
-      const missingDigitsB = 4 - String(folderB).length;
-      nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
-    }
-
-    if (nameA.toLowerCase() > nameB.toLowerCase()) {
-      return 1;
-    } else {
-      return -1;
-    }
-  });
-  for (const obj of data) {
-    const joinItem = $('<div class="detail-join-item no-select">'+obj.name+'</div>');
-    joinItem.attr('id', 'join-'+obj.id);
-    joinItem.attr('data-name', obj.name);
-    joinItem.attr('data-url-recto', obj.urlRecto);
-    joinItem.attr('data-url-verso', obj.urlVerso);
-    joinItem.attr('data-id', obj.id);
-
-    const addItemButton = $('<div class="detail-join-add-item"></div>');
-    const addItemImage = $('<img src="../imgs/symbol_plus_zoom.png"/>');
-    addItemButton.append(addItemImage);
-    joinItem.append(addItemButton);
-
-    if ($('#load-'+obj.id).length == 1) {
-      joinItem.addClass('loading');
-      addItemImage.attr('src', '../imgs/symbol_minus_zoom.png');
-    }
-
-    joinItem.click(function() {
-      const id = $(this).attr('data-id');
-      requestDetails(id);
-      requestPosition(id);
-    });
-
-    addItemButton.click(function(event) {
-      event.stopPropagation();
-      const id = $(this).parent().attr('data-id');
-      if ($(this).parent().hasClass('loading')) {
-        deselectTile(id);
+  if (data.length == 0) {
+    $('#detail-joins').addClass('hidden');
+  } else {
+    data.sort((a, b) => {
+      let nameA = a.name;
+      let nameB = b.name;
+      
+      if (nameA.indexOf('CP') == 0) {
+        const folderA = nameA.slice(0, nameA.indexOf('/')).slice(2);
+        const missingDigitsA = 4 - String(folderA).length;
+        nameA = 'CP' + '0'.repeat(missingDigitsA) + nameA.slice(2);
+      }
+      if (nameB.indexOf('CP') == 0) {
+        const folderB = nameB.slice(0, nameB.indexOf('/')).slice(2);
+        const missingDigitsB = 4 - String(folderB).length;
+        nameB = 'CP' + '0'.repeat(missingDigitsB) + nameB.slice(2);
+      }
+      
+      if (nameA.toLowerCase() > nameB.toLowerCase()) {
+        return 1;
       } else {
-        // add item to selection
-        const name = $(this).parent().attr('data-name');
-        const url = $(this).parent().attr('data-url-recto');
-        selectTile(id, name, url);
+        return -1;
       }
     });
-
-    $('#detail-joins-list').append(joinItem);
+    for (const obj of data) {
+      const joinItem = $('<div class="detail-join-item no-select">'+obj.name+'</div>');
+      joinItem.attr('id', 'join-'+obj.id);
+      joinItem.attr('data-name', obj.name);
+      joinItem.attr('data-url-recto', obj.urlRecto);
+      joinItem.attr('data-url-verso', obj.urlVerso);
+      joinItem.attr('data-id', obj.id);
+      
+      const addItemButton = $('<div class="detail-join-add-item"></div>');
+      const addItemImage = $('<img src="../imgs/symbol_plus_zoom.png"/>');
+      addItemButton.append(addItemImage);
+      joinItem.append(addItemButton);
+      
+      if ($('#load-'+obj.id).length == 1) {
+        joinItem.addClass('loading');
+        addItemImage.attr('src', '../imgs/symbol_minus_zoom.png');
+      }
+      
+      joinItem.click(function() {
+        const id = $(this).attr('data-id');
+        requestDetails(id);
+        requestPosition(id);
+      });
+      
+      addItemButton.click(function(event) {
+        event.stopPropagation();
+        const id = $(this).parent().attr('data-id');
+        if ($(this).parent().hasClass('loading')) {
+          deselectTile(id);
+        } else {
+          // add item to selection
+          const name = $(this).parent().attr('data-name');
+          const url = $(this).parent().attr('data-url-recto');
+          selectTile(id, name, url);
+        }
+      });
+      
+      $('#detail-joins-list').append(joinItem);
+      $('#detail-joins').removeClass('hidden');
+    }
   }
 });
 
