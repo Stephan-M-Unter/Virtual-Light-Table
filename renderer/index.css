@@ -36,6 +36,10 @@ body {
     font-size: 0.9em;
 }
 
+.glass_pane {
+    backdrop-filter: saturate(180%) blur(5px);
+}
+
 
 /* Sidebar */
 
@@ -54,7 +58,7 @@ body {
 
 #left_sidebar:hover,
 #sidebar_handle:hover #left_sidebar {
-    background-color: rgba(29, 29, 27, 1);
+    background-color: rgba(29, 29, 27, 0.7);
     transition: 0.2s background-color;
 }
 
@@ -930,6 +934,10 @@ body {
     overflow: hidden;
 }
 
+.wide_button, .narrow_button {
+    border-radius: 4px;
+}
+
 .wide_button:hover,
 .narrow_button:hover,
 .small_button.hover
@@ -1134,7 +1142,7 @@ body {
 }
 
 #topbar:hover {
-    background-color: rgba(29, 29, 27, 1);
+    background-color: rgba(29, 29, 27, 0.7);
 }
 
 #table_wrapper {
