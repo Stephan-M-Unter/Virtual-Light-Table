@@ -135,7 +135,7 @@ class TPOPManager {
             }
             this.allTPOPData[idx_f]['features'] = f_features;
           } else {
-            console.log(o['id']);
+            // console.log(o['id']);
           }
         }
         console.log("Entries:", cbdata.length);
