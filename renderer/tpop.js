@@ -844,7 +844,18 @@ $('#detail-add-joins').click(function() {
   const selectedName = $('#detail-name').html();
   const selectedURL = $('#detail-recto').attr('src');
   selectTile(selectedID, selectedName, selectedURL);
-  const buttons = $('.detail-join-item:not(.loading) .detail-join-add-item');
+  const  buttons = $('.detail-join-item:not(.loading) .detail-join-add-item');
+  for (const button of buttons) {
+    $(button).click();
+  }
+});
+
+$('#detail-remove-joins').click(function() {
+  const selectedID = $('#detail-find').attr('data-id');
+  const selectedName = $('#detail-name').html();
+  const selectedURL = $('#detail-recto').attr('src');
+  deselectTile(selectedID);
+  const  buttons = $('.detail-join-item.loading .detail-join-add-item');
   for (const button of buttons) {
     $(button).click();
   }

@@ -382,21 +382,28 @@ body {
     max-height: 30vh;
 }
 
-#detail-add-joins {
-    width: 40%;
+#detail-add-joins,
+#detail-remove-joins
+{
+    width: 20%;
     background-color: var(--cb_orange);
     margin: 5px auto;
     padding: 5px 10px;
     font-variant: small-caps;
     box-shadow: 2px 2px 4px black;
     overflow: hidden;
+    display: inline-block;
 }
 
-#detail-add-joins:hover {
+#detail-add-joins:hover,
+#detail-remove-joins:hover
+{
     background-color:rgb(255, 205, 129);
 }
 
-#detail-add-joins:active {
+#detail-add-joins:active,
+#detail-remove-joins:active
+{
     background-color: var(--cb_blue);
     box-shadow: none;
 }
