@@ -981,6 +981,7 @@ ipcMain.on('server-reset-sorting', (event) => {
   }
   tpopManager.sortByName();
   sendMessage(tpopWindow, 'tpop-calculation-done');
+});
 
 ipcMain.on('server-open-load-folder', (event) => {
   if (devMode) {
