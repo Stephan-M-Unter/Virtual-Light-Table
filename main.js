@@ -22,6 +22,8 @@ const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
+const TPOPManager = require('./js/TPOPManager');
+const { send } = require('process');
 
 // Settings
 const devMode = true;
@@ -37,6 +39,7 @@ const config = {};
 // Managers
 const tableManager = new TableManager();
 const imageManager = new ImageManager();
+let tpopManager;
 let saveManager;
 // Windows
 let mainWindow; // main window containing the light table itself
@@ -45,6 +48,7 @@ let detailWindow; // TODO additional window to show fragment details
 // let filterWindow; // TODO additional window to set database filters
 let localUploadWindow;
 let calibrationWindow;
+let tpopWindow;
 
 
 const color = {
@@ -55,6 +59,7 @@ const activeTables = {
   loading: null,
   uploading: null,
   view: null,
+  tpop: null,
 };
 let autosaveChecked = false;
 
@@ -86,6 +91,7 @@ function main() {
   }
 
   saveManager = new SaveManager(vltFolder);
+  tpopManager = new TPOPManager(vltFolder);
 
   mainWindow = new Window({
     file: './renderer/index.html',
@@ -732,7 +738,7 @@ ipcMain.on('server-send-all', (event) => {
     'Receiving code [server-send-all] from client');
   }
   sendMessage(event.sender, 'client-get-all', tableManager.getTables());
-  console.log("DING", activeTables);
+  console.log('DING', activeTables);
 });
 
 ipcMain.on('server-new-session', (event) => {
@@ -845,6 +851,137 @@ ipcMain.on('server-import-file', (event) => {
   });
 });
 
+// server-open-tpop
+ipcMain.on('server-open-tpop', (event, tableID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-tpop] from client for table '+tableID);
+  }
+
+  tpopManager.sortByName();
+  activeTables.tpop = tableID;
+
+  if (!tpopWindow) {
+    tpopWindow = new Window({
+      file: './renderer/tpop.html',
+      type: 'tpop',
+      devMode: devMode,
+    });
+    tpopWindow.removeMenu();
+    tpopWindow.maximize();
+    tpopWindow.on('close', function() {
+      tpopWindow = null;
+      activeTables.tpop = null;
+    });
+  }
+});
+
+// server-load-tpop-json | data -> data.startIndex, data.endIndex
+ipcMain.on('server-load-tpop-json', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-load-tpop-json] from TPOP window.');
+  }
+
+  let tpopData;
+
+  if (data) {
+    tpopData = tpopManager.loadData(data.startIndex, data.endIndex);
+  } else {
+    tpopData = tpopManager.loadData();
+  }
+  /*
+    1. Check: ist bereits ein TPOP-Json vorhanden?
+    2. Check: Kann eine Verbindung zum ME-Server hergestellt werden?
+    3. Falls ja: muss das JSON neu heruntergeladen werden?
+    4. Übermittlung der Daten an das TPOP-Window
+    5. Falls kein JSON vorhanden: Übermittlung dass keine Daten vorhanden
+  */
+  if (tpopData == null) {
+    sendMessage(tpopWindow, 'tpop-json-failed');
+  } else {
+    sendMessage(tpopWindow, 'tpop-json-data', tpopData);
+  }
+});
+
+ipcMain.on('server-tpop-details', (event, id) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-details] from TPOP window for ID '+id);
+  }
+  const details = tpopManager.loadDetails(id);
+
+  sendMessage(tpopWindow, 'tpop-details', details);
+});
+
+ipcMain.on('server-tpop-filter', (event, filters) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-filter] from TPOP window');
+  }
+  tpopManager.filterData(filters);
+  sendMessage(tpopWindow, 'tpop-filtered');
+});
+
+
+ipcMain.on('server-close-tpop', () => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-close-tpop] from TPOP window');
+  }
+  tpopWindow.close();
+  tpopWindow = null;
+});
+
+ipcMain.on('server-tpop-position', (event, tpopID) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-position] from TPOP window for id '+tpopID);
+  }
+  const pos = tpopManager.getPosition(tpopID);
+  const data = {
+    tpopID: tpopID,
+    pos: pos,
+  };
+  sendMessage(tpopWindow, 'tpop-position', data);
+});
+
+ipcMain.on('server-tpop-basic-info', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-tpop-basic-info] from TPOP window');
+  }
+  const result = tpopManager.getBasicInfo(data);
+  sendMessage(tpopWindow, 'tpop-basic-info', result);
+});
+
+ipcMain.on('server-calculate-distances', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-calculate-distances] from TPOP window');
+  }
+  tpopManager.sortByDistance(data);
+  sendMessage(tpopWindow, 'tpop-calculation-done');
+});
+
+ipcMain.on('server-reload-json', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-reload-json] from TPOP window');
+  }
+  tpopManager.initialiseVLTdata(true, () => {
+    sendMessage(tpopWindow, 'tpop-calculation-done');
+  });
+});
+
+ipcMain.on('server-reset-sorting', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-reset-sorting] from TPOP window');
+  }
+  tpopManager.sortByName();
+  sendMessage(tpopWindow, 'tpop-calculation-done');
+
 ipcMain.on('server-open-load-folder', (event) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
@@ -852,4 +989,5 @@ ipcMain.on('server-open-load-folder', (event) => {
   }
   const folder = saveManager.getCurrentFolder();
   shell.openPath(folder);
+
 });

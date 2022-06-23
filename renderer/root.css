@@ -26,6 +26,29 @@
     display: none !important;
 }
 
+/* Scrollbars */
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.3);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cb_black);
+    background: var(--cb_darkred);
+    border-radius: 5px;
+}
+
+#table_button_wrapper {
+    position: fixed;
+    display: flex;
+    bottom: 10px;
+    right: 20px;
+}
 
 /* Animations */
 
@@ -48,7 +71,7 @@
     to {
         opacity: 0;
         top: 40px;
-    } 
+    }
 }
 
 @keyframes fadeIn {

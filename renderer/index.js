@@ -372,6 +372,9 @@ $(document).ready(function() {
   $('#upload_local').click(function() {
     controller.sendToServer('server-open-upload', controller.getActiveTable());
   });
+  $('#upload_tpop').click(function() {
+    controller.sendToServer('server-open-tpop', controller.getActiveTable());
+  });
 
   /**
      * Triggered in the case of sidebar resizing. Adds additional
@@ -476,6 +479,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 81) {
         // Ctrl + Q -> DevMode, ask for everything
         controller.sendToServer('server-send-all');
+      } else if (event.keyCode == 84) {
+        // Ctrl + T -> Open TPOP Interface
+        controller.sendToServer('server-open-tpop', controller.getActiveTable());
       } else if (event.keyCode == 67) {
         // Ctrl + C -> Clear Table
         controller.clearTable();

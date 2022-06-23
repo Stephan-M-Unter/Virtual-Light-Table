@@ -60,6 +60,18 @@ const calibrationProps = {
   },
 };
 
+const tpopProps = {
+  width: 1024,
+  height: 800,
+  frame: false,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+};
+
 /**
  * TODO
  */
@@ -77,6 +89,8 @@ class Window extends BrowserWindow {
       props = uploadProps;
     } else if (type == 'calibration') {
       props = calibrationProps;
+    } else if (type == 'tpop') {
+      props = tpopProps;
     }
     // TODO: If not main, then change props
 
