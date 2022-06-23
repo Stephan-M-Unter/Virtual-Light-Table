@@ -76,7 +76,10 @@ class Topbar {
    * @param {String} tableID ID for a table, e.g. "table_1".
    */
   removeTable(tableID) {
-    $('#'+tableID).remove();
+    $('#'+tableID).css('animation-name', 'slideDown');
+    $('#'+tableID).bind('animationend', function() {
+      $('#'+tableID).remove();
+    });
   };
 
   /**

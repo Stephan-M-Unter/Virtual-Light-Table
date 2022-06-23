@@ -109,6 +109,18 @@ body {
     margin: 10px auto;
 }
 
+input[disabled] {
+    pointer-events: none;
+}
+
+#folder-wrapper {
+    width: 100%;
+}
+
+#folder {
+    width: 100%;
+}
+
 #save_list {
     flex-grow: 1;
 }
@@ -348,3 +360,4 @@ label {
     white-space: nowrap;
     font-size: 0.8em;
 }
+

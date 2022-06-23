@@ -13,9 +13,10 @@
 'use strict';
 
 // Loading Requirements
-const {app, ipcMain, dialog} = require('electron');
+const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const {spawn} = require('child_process');
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -516,6 +517,16 @@ ipcMain.on('server-remove-annotation', (event, data) => {
   tableManager.removeAnnotation(data.tableID, data.aID);
 });
 
+// server-update-annotation | data -> data.tableID, data.aData
+ipcMain.on('server-update-annotation', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-update-annotation] from client for table '+data.tableID);
+  }
+  console.log("data:", data);
+  tableManager.updateAnnotation(data.tableID, data.aData);
+});
+
 // server-open-upload
 ipcMain.on('server-open-upload', (event, tableID) => {
   if (devMode) {
@@ -970,4 +981,13 @@ ipcMain.on('server-reset-sorting', (event) => {
   }
   tpopManager.sortByName();
   sendMessage(tpopWindow, 'tpop-calculation-done');
+
+ipcMain.on('server-open-load-folder', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-load-folder] from loadWindow');
+  }
+  const folder = saveManager.getCurrentFolder();
+  shell.openPath(folder);
+
 });

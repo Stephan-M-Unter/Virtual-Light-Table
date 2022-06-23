@@ -234,6 +234,11 @@ $('html').keyup(function(event) {
   }
 });
 
+$('#folder-wrapper').click(function(event) {
+  console.log('CLICK');
+  ipcRenderer.send('server-open-load-folder');
+});
+
 /* ##########################################
 #           SERVER/CLIENT PROTOCOL
 ###########################################*/

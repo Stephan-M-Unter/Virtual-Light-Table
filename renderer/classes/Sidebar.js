@@ -45,10 +45,10 @@ class Sidebar {
     // interface buttons
     const deleteButton = document.createElement('div');
     deleteButton.setAttribute('class',
-        'fragment_list_button delete_button hidden');
+        'delete_button hidden');
     deleteButton.setAttribute('title', 'Remove fragment from table');
     const gotoButton = document.createElement('div');
-    gotoButton.setAttribute('class', 'fragment_list_button goto_button hidden');
+    gotoButton.setAttribute('class', 'goto_button hidden');
     gotoButton.setAttribute('title', 'Go to fragment');
     const detailsButton = document.createElement('div');
     detailsButton.setAttribute('class',

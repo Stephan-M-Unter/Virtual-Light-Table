@@ -429,6 +429,15 @@ class TableManager {
     this.tables[tableID].annots[aID] = annotation;
   }
 
+  updateAnnotation(tableID, aData) {
+    const aID = aData.id;
+    for (const [key, value] of Object.entries(aData)) {
+      if (key != 'id') {
+        this.tables[tableID].annots[aID][key] = value;
+      }
+    }
+  }
+
   /**
    * Removes a specific annotation with aID from the table with tableID.
    * @param {String} tableID ID of table, e.g. "table_1".

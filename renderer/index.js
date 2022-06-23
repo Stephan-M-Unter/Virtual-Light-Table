@@ -263,7 +263,12 @@ $(document).ready(function() {
   // Annotation Button
   $('#annot_button').click(function() {
     if ($('#annot_window').css('display') == 'flex') {
-      $('#annot_window').css('display', 'none');
+      $('#annot_window').css('animation-name', 'fadeOut');
+      $('#annot_window').bind('animationend', function() {
+        $('#annot_window').css('display', 'none');
+        $('#annot_window').unbind('animationend');
+        $('#annot_window').css('animation-name', 'fadeIn');
+      });
       controller.setPermission('hotkeys', true);
     } else {
       $('#annot_window').css('display', 'flex');
@@ -271,7 +276,12 @@ $(document).ready(function() {
     }
   });
   $('#annot_close').click(function() {
-    $('#annot_window').css('display', 'none');
+    $('#annot_window').css('animation-name', 'fadeOut');
+    $('#annot_window').bind('animationend', function() {
+      $('#annot_window').css('display', 'none');
+      $('#annot_window').unbind('animationend');
+      $('#annot_window').css('animation-name', 'fadeIn');
+    });
     controller.setPermission('hotkeys', true);
   });
   $('#annot_text').keyup(function(event) {
@@ -285,6 +295,15 @@ $(document).ready(function() {
       controller.sendAnnotation($(event.target).attr('target'));
     }
   });
+  $('#annot_show').click(function() {
+    if ($('#annot_show').hasClass('pressed')) {
+      $('#annot_show').removeClass('pressed');
+      controller.hideHiddenAnnotations();
+    } else {
+      $('#annot_show').addClass('pressed');
+      controller.showHiddenAnnotations();
+    }
+  });
 
   const annotStart = {};
   const mouseStart = {};
@@ -294,10 +313,20 @@ $(document).ready(function() {
     annotStart.top = parseFloat($('#annot_window').css('top'));
     mouseStart.x = event.pageX;
     mouseStart.y = event.pageY;
-    $('#annot_window').on('mousemove', moveAnnotationWindow);
+    $(window).on('mousemove', moveAnnotationWindow);
   });
   $(window).on('mouseup', function(event) {
-    $('#annot_window').off('mousemove', moveAnnotationWindow);
+    $(window).off('mousemove', moveAnnotationWindow);
+    $(window).off('mousemove', resizeAnnotationWindow);
+  });
+
+  $('#annot_resize').on('mousedown', function(event) {
+    event.stopPropagation();
+    annotStart.left = parseFloat($('#annot_window').css('left'));
+    annotStart.top = parseFloat($('#annot_window').css('top'));
+    mouseStart.x = event.pageX;
+    mouseStart.y = event.pageY;
+    $(window).on('mousemove', resizeAnnotationWindow);
   });
 
   /**
@@ -312,6 +341,11 @@ $(document).ready(function() {
     const newTop = annotStart.top - distance.y;
     $('#annot_window').css('left', newLeft);
     $('#annot_window').css('top', newTop);
+  }
+
+  function resizeAnnotationWindow(event) {
+    $('#annot_window').css('width', event.pageX - annotStart.left);
+    $('#annot_window').css('height', event.pageY - annotStart.top);
   }
 
   // Zoom Slider
@@ -428,8 +462,8 @@ $(document).ready(function() {
         // Ctrl + L -> Load
         controller.loadTable();
       } else if (event.keyCode == 78) {
-        // Ctrl + N -> Table Clear
-        controller.clearTable();
+        // Ctrl + N -> New Table
+        controller.newTable();
       } else if (event.keyCode == 90) {
         // Ctrl + Z -> Undo Step
         controller.sendToServer('server-undo-step', controller.getActiveTable());
@@ -446,7 +480,11 @@ $(document).ready(function() {
         // Ctrl + Q -> DevMode, ask for everything
         controller.sendToServer('server-send-all');
       } else if (event.keyCode == 84) {
+        // Ctrl + T -> Open TPOP Interface
         controller.sendToServer('server-open-tpop', controller.getActiveTable());
+      } else if (event.keyCode == 67) {
+        // Ctrl + C -> Clear Table
+        controller.clearTable();
       }
     } else {
       if (event.keyCode == 46) {
@@ -487,10 +525,14 @@ $(document).ready(function() {
           controller.sendToServer('server-open-upload', controller.getActiveTable());
         }
       } else if (event.keyCode == 79) {
+        // O -> change fragment
         controller.changeFragment();
       } else if (event.keyCode == 116) {
         // F5 -> update Stage
         controller.update();
+      } else if (event.keyCode == 67) {
+        // C -> Calibration Tool
+        controller.sendToServer('server-open-calibration');
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

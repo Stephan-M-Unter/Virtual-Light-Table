@@ -50,7 +50,6 @@
     right: 20px;
 }
 
-
 /* Animations */
 
 @keyframes slideUp {
@@ -73,4 +72,14 @@
         opacity: 0;
         top: 40px;
     }
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeOut {
+    from {opacity: 1;}
+    to {opacity: 0;}
 }
