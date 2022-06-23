@@ -169,6 +169,7 @@ body {
     padding: 5px 20px;
     box-shadow: 2px 2px 3px black;
     transition: all .1s;
+    border-radius: 4px;
 }
 
 .button:hover {

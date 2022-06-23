@@ -267,7 +267,6 @@ function selectTile(id, d_name, url) {
     const tile = $('<div id="load-'+id+'" class="tile no-select" data-id="'+id+'"></div>');
     const img = $('<img src="'+url+'" data-id="'+id+'"/>');
     const name = $('<div class="name" data-id="'+id+'">'+d_name+'</div>');
-    const distance = $('<div class="distance">xx.xxxx</div>');
     const multibox = $('<div class="multibox" data-id="'+id+'"></div>');
   
     $(tile).attr('data-features', $('#'+id).attr('data-features'));
@@ -279,7 +278,6 @@ function selectTile(id, d_name, url) {
   
     tile.append(img);
     tile.append(name);
-    tile.append(distance);
     tile.append(multibox);
     $('#loading-view').append(tile);
   
@@ -583,6 +581,17 @@ function closeAllLists(exceptionElement) {
   });
 }
 
+function toggleSelected(id) {
+  const tile = $('#'+id);
+  if ($(tile).hasClass('loading')) {
+    deselectTile(id);
+  } else {
+    const name = $(tile).find('.name').html();
+    const url = $(tile).find('img').attr('src');
+    selectTile(id, name, url);
+  }
+}
+
 /**
  *
  */
@@ -646,6 +655,18 @@ function checkOperators(attributeValue) {
 function updateMLIndicators() {
   for (const tile of $('.tile')) {
     checkMLFeatures($(tile).attr('data-id'));
+  }
+}
+
+function moveSelectionLeftRight(direction) {
+  if ($('.selected').length > 0) {
+    var newID;
+    if (direction > 0) {
+      newID = $('.selected').next().attr('id');
+    } else {
+      newID = $('.selected').prev().attr('id');
+    }
+    $('#'+newID).click();
   }
 }
 
@@ -771,6 +792,18 @@ $('html').keydown(function(event) {
   if (event.keyCode == 27) {
     // ESC -> close filter view
     $('#filter-overlay').css('display', 'none');
+  } else if (event.keyCode == 37) {
+    // Left Arrow -> Move selection left
+    moveSelectionLeftRight(-1);
+  } else if (event.keyCode == 39) {
+    // Right Arrow -> Move selection right
+    moveSelectionLeftRight(1);
+  } else if (event.keyCode == 32) {
+    // Space -> select/deselect tile
+    event.preventDefault();
+    if ($('.selected').length > 0) {
+      toggleSelected($('.selected').attr('id'));
+    }
   }
 });
 
