@@ -1005,6 +1005,7 @@ function uploadData() {
   data.verso = dataVerso;
 
   // RELATION
+  /*
   if (recto.content.img && verso.content.img) {
     const dataRelation = {};
 
@@ -1014,6 +1015,7 @@ function uploadData() {
 
     data.relation = dataRelation;
   }
+  */
 
   data.name = $('#objectname').val();
   if (recto.content.img) {

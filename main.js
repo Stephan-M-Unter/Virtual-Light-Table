@@ -298,30 +298,24 @@ function preprocess_fragment(data) {
     }
   }
 
-  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror';
-  else filename = path.basename(imageURL).split('.')[0]+'_frag';
-  let extension = path.basename(imageURL).split('.').pop();
-  console.log(filename);
+  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror.png';
+  else filename = path.basename(imageURL).split('.')[0]+'_frag.png';
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask"]);
-      filename = filename + '.png';
     }
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints)]);
-      extension = 'png';
     }
-    else python = spawn('python', ['./python-scripts/cut_image_box.py', imageURL, JSON.stringify(boxPoints)]);
-    filename = filename + '.' + extension;
+    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints)]);
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints)]);
     } else {
       python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints)]);
     }
-    filename = filename + '.png';
   } else if (data.maskMode == 'automatic') {
     // TODO
   }

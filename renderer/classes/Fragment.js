@@ -471,6 +471,7 @@ class Fragment {
     }
 
     // RELATION
+    /*
     if (this.recto && this.verso && this.recto.url && this.verso.url) {
       const dataRelation = {};
 
@@ -480,6 +481,7 @@ class Fragment {
 
       data.relation = dataRelation;
     }
+    */
 
     // GENERAL
     data.id = this.id;
