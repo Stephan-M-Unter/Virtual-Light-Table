@@ -417,17 +417,15 @@ $(document).ready(function() {
 
   $('.sidebar_header').click(function(event) {
     // only react if the clicked element is not yet expanded
-    if (!$(this).parent().hasClass('expanded') &&
-            !$(this).parent().hasClass('disabled')) {
+    const expanded = $(this).parent().hasClass('expanded');
+    const disabled = $(this).parent().hasClass('disabled');
+    if (!expanded && !disabled) {
       // first, retotate down-arrow back and remove expanded label
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
-      // second, rotate arrow down and expand clicked segment
+    // second, rotate arrow down and expand clicked segment
       $(this).find('.arrow').addClass('down');
       $(this).parent().addClass('expanded');
-    } else {
-      $('.arrow.down').removeClass('down');
-      $('.expanded').removeClass('expanded');
     }
   });
 
