@@ -23,7 +23,6 @@ const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
-const { send } = require('process');
 
 // Settings
 const devMode = true;
@@ -62,6 +61,8 @@ const activeTables = {
   tpop: null,
 };
 let autosaveChecked = false;
+
+const loadingQueue = [];
 
 /* ##############################################################
 ###
@@ -214,6 +215,128 @@ function createNewTable() {
     tableData: tableManager.getTable(tableID),
   };
   return data;
+}
+
+/**
+ *
+ * @param {*} data
+ * @returns
+ */
+function preprocess_fragment(data) {
+  let rectoProcessed = false;
+  let versoProcessed = false;
+  
+  // if a side contains the "url_view" property, it must already
+  // have been processed
+  if ('url_view' in data.recto) rectoProcessed = true;
+  if ('url_view' in data.verso) versoProcessed = true;
+
+  if (data.maskMode == 'no_mask' && 'url' in data.recto) rectoProcessed = true;
+  if (data.maskMode == 'no_mask' && 'url' in data.verso) versoProcessed = true;
+  
+  // IF recto and verso have been processed, send data to mainWindow
+  if (rectoProcessed && versoProcessed) {
+    console.log(data);
+    mainWindow.send('client-add-upload', data);
+    return;
+  }
+
+
+  // now we know that there is cropping to do:
+  // maskMode in ['boundingbox', 'polygon', 'automatic']
+  // and that there is a fragment side that has not yet been processed
+
+  let python;
+  let imageURL;
+  let boxPoints;
+  let polygonPoints;
+  let filename;
+  let mirror = false;
+
+  // in the following, we first check if the first side has to be processed; if so,
+  // the corresponding python script will be called, and as this is an async process,
+  // we need to call the process_fragment method again once this extraction is done.
+  // in the second run the second side will be processed (if available) and again
+  // we wait for the python script to be finished before re-calling the method. In the third
+  // and final run both sides should be processed and therefore the data can be sent to the
+  // main window.
+
+  // at least one side must still be to be processed at this point, otherwise the data
+  // would already have been sent to the main window
+
+  if (!rectoProcessed) {
+    // we are processing the recto side
+    if ('url' in data.recto) {
+      // recto data available
+      imageURL = data.recto.url;
+      boxPoints = data.recto.box;
+      polygonPoints = data.recto.polygon;
+    } else {
+      // no recto data available, thus we use the verso data and
+      // set the mirror flag to true
+      mirror = true;
+      imageURL = data.verso.url;
+      boxPoints = data.verso.box;
+      polygonPoints = data.verso.polygon;
+      data.recto.ppi = data.verso.ppi;
+    }
+  } else {
+    // we are processing the verso side
+    if ('url' in data.verso) {
+      // verso data available
+      imageURL = data.verso.url;
+      boxPoints = data.verso.box;
+      polygonPoints = data.verso.polygon;
+    } else {
+      // no verso data available, thus we use the recto data and
+      // set the mirror flag to true
+      mirror = true;
+      imageURL = data.recto.url;
+      boxPoints = data.recto.box;
+      polygonPoints = data.recto.polygon;
+      data.verso.ppi = data.recto.ppi;
+    }
+  }
+
+  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror';
+  else filename = path.basename(imageURL).split('.')[0]+'_frag';
+  let extension = path.basename(imageURL).split('.').pop();
+  console.log(filename);
+
+  if (data.maskMode == 'no_mask') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask"]);
+      filename = filename + '.png';
+    }
+  } else if (data.maskMode == 'boundingbox') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints)]);
+      extension = 'png';
+    }
+    else python = spawn('python', ['./python-scripts/cut_image_box.py', imageURL, JSON.stringify(boxPoints)]);
+    filename = filename + '.' + extension;
+  } else if (data.maskMode == 'polygon') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints)]);
+    } else {
+      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints)]);
+    }
+    filename = filename + '.png';
+  } else if (data.maskMode == 'automatic') {
+    // TODO
+  }
+  const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
+  if (!rectoProcessed) {
+    data.recto.url_view = newURL;
+  } else {
+    data.verso.url_view = newURL;
+  }
+  python.on('close', function(code) {
+    console.log(`Python finished (code ${code}), restarting...`);
+    preprocess_fragment(data);
+  });
+  python.stderr.pipe(process.stderr);
+  python.stdout.pipe(process.stdout);
 }
 
 /* ##############################################################
@@ -523,7 +646,7 @@ ipcMain.on('server-update-annotation', (event, data) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-update-annotation] from client for table '+data.tableID);
   }
-  console.log("data:", data);
+  console.log('data:', data);
   tableManager.updateAnnotation(data.tableID, data.aData);
 });
 
@@ -575,7 +698,8 @@ ipcMain.on('server-upload-ready', (event, data) => {
   activeTables.uploading = null;
   localUploadWindow.close();
   localUploadWindow = null;
-  mainWindow.send('client-add-upload', data);
+
+  data = preprocess_fragment(data);
 });
 
 // server-upload-image | triggers a file dialog for the user to select a fragment
@@ -991,5 +1115,22 @@ ipcMain.on('server-open-load-folder', (event) => {
   }
   const folder = saveManager.getCurrentFolder();
   shell.openPath(folder);
+});
 
+ipcMain.on('server-load-tpop-fragments', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-load-tpop-fragments] from TPOPWindow');
+  }
+  data = tpopManager.getBasicInfo(data);
+  
+  for (const fragment of data) {
+    const entry = {
+      'table': activeTables.tpop,
+      'fragment': fragment,
+    };
+    loadingQueue.push(entry);
+  }
+  
+  tpopWindow.close();
 });

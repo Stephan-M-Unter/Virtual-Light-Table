@@ -533,6 +533,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 67) {
         // C -> Calibration Tool
         controller.sendToServer('server-open-calibration');
+      } else if (event.key == '<') {
+        // < -> test key
+        controller.sendToServer('test');
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

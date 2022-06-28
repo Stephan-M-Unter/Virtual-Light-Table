@@ -16,10 +16,8 @@ let scale = 1;
 const mousestart = {};
 let id = null;
 
-let recto;
-let verso;
-createEmptySide('recto');
-createEmptySide('verso');
+let recto = createEmptySide('recto');
+let verso = createEmptySide('verso');
 
 let editData;
 
@@ -58,8 +56,8 @@ function getSide(sidename) {
 }
 
 /**
- *
  * @param {'recto'|'verso'} sidename
+ * @returns {Object}
  */
 function createEmptySide(sidename) {
   const newSide = {
@@ -89,11 +87,7 @@ function createEmptySide(sidename) {
   newSide.mask.group = maskGroup;
   newSide.stage.addChild(maskGroup);
 
-  if (sidename == 'recto') {
-    recto = newSide;
-  } else if (sidename == 'verso') {
-    verso = newSide;
-  }
+  return newSide;
 }
 
 /**
@@ -215,11 +209,14 @@ function readExifPPI(image, sidename) {
         $('#'+sidename+'_ppi').val(ppi);
         checkRequiredFields();
       } else {
-        console.log('Input image has no EXIF data.');
+        console.log(`Input image (${sidename}) has no EXIF data.`);
+        // REMOVE
+        $('#'+sidename+'_ppi').val(400);
+        checkRequiredFields();
       }
     });
   } catch {
-    console.log('Input image has no EXIF data.');
+    console.log(`Input image (${sidename}) has no EXIF data.`);
   }
 }
 
@@ -316,9 +313,9 @@ function handleMousewheel(event) {
 function clearCanvas(sidename) {
   // remove data
   if (sidename == 'recto') {
-    createEmptySide('recto');
+    recto = createEmptySide('recto');
   } else if (sidename == 'verso') {
-    createEmptySide('verso');
+    verso = createEmptySide('verso');
   }
 
   // clearing fields
@@ -966,9 +963,8 @@ function uploadData() {
   const data = {};
 
   // RECTO
+  const dataRecto = {};
   if (recto.content.img) {
-    const dataRecto = {};
-
     dataRecto.rotation = recto.content.img.rotation;
     dataRecto.url = recto.content.filepath;
     dataRecto.ppi = $('#recto_ppi').val();
@@ -983,14 +979,12 @@ function uploadData() {
       x: recto.content.img.x,
       y: recto.content.img.y,
     };
-
-    data.recto = dataRecto;
   }
+  data.recto = dataRecto;
 
   // VERSO
+  const dataVerso = {};
   if (verso.content.img) {
-    const dataVerso = {};
-
     dataVerso.rotation = verso.content.img.rotation;
     dataVerso.url = verso.content.filepath;
     dataVerso.ppi = $('#verso_ppi').val();
@@ -1007,9 +1001,8 @@ function uploadData() {
       x: verso.content.img.x,
       y: verso.content.img.y,
     };
-
-    data.verso = dataVerso;
   }
+  data.verso = dataVerso;
 
   // RELATION
   if (recto.content.img && verso.content.img) {
@@ -1039,7 +1032,6 @@ function uploadData() {
     data.baseY = editData.baseY;
     data.rotation = editData.rotation;
   }
-
   ipcRenderer.send('server-upload-ready', data);
 }
 

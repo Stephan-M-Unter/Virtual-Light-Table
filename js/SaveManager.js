@@ -111,53 +111,58 @@ class SaveManager {
       for (const fID in tableConfiguration.fragments) {
         if (Object.prototype.hasOwnProperty.call(tableConfiguration.fragments, fID)) {
           const fragment = tableConfiguration.fragments[fID];
-          const rectoImageDir = path.dirname(fragment.recto.url);
-          const rectoImageName = fragment.recto.url.split('\\').pop().split('/').pop();
-          const versoImageDir = path.dirname(fragment.verso.url);
-          const versoImageName = fragment.verso.url.split('\\').pop().split('/').pop();
-          const rectoNewPath = path.join(imagepath, rectoImageName);
-          const versoNewPath = path.join(imagepath, versoImageName);
           const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
 
-          const rectoAlreadyMoved = fs.existsSync(rectoNewPath);
-          const versoAlreadyMoved = fs.existsSync(versoNewPath);
+          if ('recto' in fragment) {
+            const rectoImageDir = path.dirname(fragment.recto.url);
+            const rectoImageName = fragment.recto.url.split('\\').pop().split('/').pop();
+            const rectoNewPath = path.join(imagepath, rectoImageName);
+            const rectoAlreadyMoved = fs.existsSync(rectoNewPath);
 
-          // is image in save_folder?
-          if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
-            // nothing to do, image is already correct
-            continue;
-          } else {
-            if (!rectoAlreadyMoved) {
-              // is image in temp folder?
-              const rectoOldPath = fragment.recto.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
-              if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
-                // move image from temp folder to imagepath
-                fs.renameSync(rectoOldPath, rectoNewPath);
-              } else {
-                // image is somewhere else; copy image to imagepath
-                fs.copyFileSync(rectoOldPath, rectoNewPath);
+            // is image in save_folder?
+            if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
+              // nothing to do, image is already correct
+              continue;
+            } else {
+              if (!rectoAlreadyMoved) {
+                // is image in temp folder?
+                const rectoOldPath = fragment.recto.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
+                if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
+                  // move image from temp folder to imagepath
+                  fs.renameSync(rectoOldPath, rectoNewPath);
+                } else {
+                  // image is somewhere else; copy image to imagepath
+                  fs.copyFileSync(rectoOldPath, rectoNewPath);
+                }
               }
+              tableConfiguration.fragments[fID].recto.url = rectoNewPath;
             }
-            tableConfiguration.fragments[fID].recto.url = rectoNewPath;
           }
+          
+          if ('verso' in fragment) {
+            const versoImageDir = path.dirname(fragment.verso.url);
+            const versoImageName = fragment.verso.url.split('\\').pop().split('/').pop();
+            const versoNewPath = path.join(imagepath, versoImageName);
+            const versoAlreadyMoved = fs.existsSync(versoNewPath);
 
-          // is image in save_folder?
-          if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
-            // nothing to do, image is already correct
-            continue;
-          } else {
-            if (!versoAlreadyMoved) {
-              // is image in temp folder?
-              const versoOldPath = fragment.verso.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
-              if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
-                // move image from temp folder to imagepath
-                fs.renameSync(versoOldPath, versoNewPath);
-              } else {
-                // image is somewhere else; copy image to imagepath
-                fs.copyFileSync(versoOldPath, versoNewPath);
+            // is image in save_folder?
+            if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
+              // nothing to do, image is already correct
+              continue;
+            } else {
+              if (!versoAlreadyMoved) {
+                // is image in temp folder?
+                const versoOldPath = fragment.verso.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
+                if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
+                  // move image from temp folder to imagepath
+                  fs.renameSync(versoOldPath, versoNewPath);
+                } else {
+                  // image is somewhere else; copy image to imagepath
+                  fs.copyFileSync(versoOldPath, versoNewPath);
+                }
               }
+              tableConfiguration.fragments[fID].verso.url = versoNewPath;
             }
-            tableConfiguration.fragments[fID].verso.url = versoNewPath;
           }
         }
       }
@@ -578,12 +583,18 @@ class SaveManager {
     for (const fID in data.fragments) {
       if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
         const fragment = data.fragments[fID];
-        const absoluteRectoURL = fragment.recto.url;
-        const absoluteVersoURL = fragment.verso.url;
-        const relativeRectoURL = path.relative(reference, absoluteRectoURL);
-        const relativeVersoURL = path.relative(reference, absoluteVersoURL);
-        data.fragments[fID].recto.url = relativeRectoURL;
-        data.fragments[fID].verso.url = relativeVersoURL;
+
+        if ('recto' in fragment) {
+          const absoluteRectoURL = fragment.recto.url;
+          const relativeRectoURL = path.relative(reference, absoluteRectoURL);
+          data.fragments[fID].recto.url = relativeRectoURL;
+        }
+        
+        if ('verso' in fragment) {
+          const absoluteVersoURL = fragment.verso.url;
+          const relativeVersoURL = path.relative(reference, absoluteVersoURL);
+          data.fragments[fID].verso.url = relativeVersoURL;
+        }
       }
     }
     return data;

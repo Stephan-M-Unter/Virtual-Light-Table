@@ -66,6 +66,7 @@ class Stage {
     this.gridMode = false;
     /** @member {createjs.Container} */
     this.grid = new createjs.Container();
+    this.grid.name = "Grid";
     this.addToBackground(this.grid);
     // Scale
     /** @member {Boolean} */
@@ -536,9 +537,17 @@ class Stage {
         const fragmentData = imageList[id];
         let url;
         if (fragmentData.showRecto) {
-          url = fragmentData.recto.url;
+          if (fragmentData.recto.url_view) {
+            url = fragmentData.recto.url_view;
+          } else {
+            url = fragmentData.recto.url;
+          }
         } else {
-          url = fragmentData.verso.url;
+          if (fragmentData.verso.url_view) {
+            url = fragmentData.verso.url_view;
+          } else {
+            url = fragmentData.verso.url;
+          }
         }
         this.loadqueue.loadManifest([{
           id: id,
