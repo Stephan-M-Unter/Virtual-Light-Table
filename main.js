@@ -217,6 +217,143 @@ function createNewTable() {
   return data;
 }
 
+function preprocess_loading_fragments(data) {
+  let allProcessed = true;
+  const fragments = data.tableData.fragments;
+  let fragment;
+  let fragmentKey;
+  for (const key of Object.keys(fragments)) {
+    fragment = fragments[key];
+    if (!('processed' in fragment)) {
+      allProcessed = false,
+      fragmentKey = key;
+      break;
+    }
+  }
+
+  if (allProcessed) {
+    console.log('preprocess_loading_fragments: all fragments processed');
+    sendMessage(mainWindow, 'client-load-model', data);
+    return;
+  }
+
+  let rectoProcessed = false;
+  let versoProcessed = false;
+
+  // if a side contains the "url_view" property, it must already
+  // have been processed
+  if ('url_view' in fragment.recto) rectoProcessed = true;
+  if ('url_view' in fragment.verso) versoProcessed = true;
+
+  if (fragment.maskMode == 'no_mask' && 'url' in fragment.recto) rectoProcessed = true;
+  if (fragment.maskMode == 'no_mask' && 'url' in fragment.verso) versoProcessed = true;
+  
+  if (rectoProcessed && versoProcessed) {
+    fragment.processed = true;
+    console.log("Fragment", fragment.id, "now fully processed.");
+    data.tableData.fragments[fragmentKey] = fragment;
+    preprocess_loading_fragments(data);
+    return;
+  }
+
+  // now we know that there is cropping to do:
+  // maskMode in ['boundingbox', 'polygon', 'automatic']
+  // and that there is a fragment side that has not yet been processed
+
+  let python;
+  let imageURL;
+  let boxPoints;
+  let polygonPoints;
+  let filename;
+  let mirror = false;
+
+  if (!rectoProcessed) {
+    console.log("Processing Recto of", fragment.id);
+  } else {
+    console.log("Processing Verso of", fragment.id);
+  }
+
+  // in the following, we first check if the first side has to be processed; if so,
+  // the corresponding python script will be called, and as this is an async process,
+  // we need to call the process_fragment method again once this extraction is done.
+  // in the second run the second side will be processed (if available) and again
+  // we wait for the python script to be finished before re-calling the method. In the third
+  // and final run both sides should be processed and therefore the data can be sent to the
+  // main window.
+
+  // at least one side must still be to be processed at this point, otherwise the data
+  // would already have been sent to the main window
+
+  if (!rectoProcessed) {
+    // we are processing the recto side
+    if ('url' in fragment.recto) {
+      // recto data available
+      imageURL = fragment.recto.url;
+      boxPoints = fragment.recto.box;
+      polygonPoints = fragment.recto.polygon;
+    } else {
+      // no recto data available, thus we use the verso data and
+      // set the mirror flag to true
+      mirror = true;
+      imageURL = fragment.verso.url;
+      boxPoints = fragment.verso.box;
+      polygonPoints = fragment.verso.polygon;
+      data.recto.ppi = fragment.verso.ppi;
+    }
+  } else {
+    // we are processing the verso side
+    if ('url' in fragment.verso) {
+      // verso data available
+      imageURL = fragment.verso.url;
+      boxPoints = fragment.verso.box;
+      polygonPoints = fragment.verso.polygon;
+    } else {
+      // no verso data available, thus we use the recto data and
+      // set the mirror flag to true
+      mirror = true;
+      imageURL = fragment.recto.url;
+      boxPoints = fragment.recto.box;
+      polygonPoints = fragment.recto.polygon;
+      data.verso.ppi = fragment.recto.ppi;
+    }
+  }
+
+  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror.png';
+  else filename = path.basename(imageURL).split('.')[0]+'_frag.png';
+
+  if (fragment.maskMode == 'no_mask') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask"]);
+    }
+  } else if (fragment.maskMode == 'boundingbox') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints)]);
+    }
+    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints)]);
+  } else if (fragment.maskMode == 'polygon') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints)]);
+    } else {
+      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints)]);
+    }
+  } else if (fragment.maskMode == 'automatic') {
+    // TODO
+  }
+  const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
+  if (!rectoProcessed) {
+    fragment.recto.url_view = newURL;
+  } else {
+    fragment.verso.url_view = newURL;
+  }
+  python.on('close', function(code) {
+    console.log(`Python finished (code ${code}), restarting...`);
+    data.tableData.fragments[fragmentKey] = fragment;
+    preprocess_loading_fragments(data);
+  });
+  python.stderr.pipe(process.stderr);
+  python.stdout.pipe(process.stdout);
+}
+
 /**
  *
  * @param {*} data
@@ -482,13 +619,15 @@ ipcMain.on('server-load-file', (event, filename) => {
   };
   data.tableData['loading'] = true;
   data.tableData['filename'] = filename;
-  sendMessage(mainWindow, 'client-load-model', data);
+
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
     color: color.success,
   };
   sendMessage(mainWindow, 'client-show-feedback', feedback);
+
+  preprocess_loading_fragments(data);
 });
 
 // server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor

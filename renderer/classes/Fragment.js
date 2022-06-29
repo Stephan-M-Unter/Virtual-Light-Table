@@ -540,30 +540,32 @@ class Fragment {
    * @param {Object} data
    */
   setData(data) {
-    this.name = data['name'];
-    this.isRecto = data['recto'];
-    this.recto.url = data['rectoURL'];
-    this.verso.url = data['versoURL'];
-    this.container.x = data['xPos'];
-    this.baseX = data['baseX'];
-    this.container.y = data['yPos'];
-    this.baseY = data['baseY'];
-    this.container.rotation = data['rotation'];
-    this.recto.container.rotation = data['containerRotation'];
-    this.originalScaleRecto = data['originalScaleRecto'];
-    this.originaScaleVerso = data['originalScaleVerso'];
-    this.ppiRecto = data['ppiRecto'];
-    this.ppiVersio = data['ppiVerso'];
-    this.rectoRotation = data['rectoRotation'];
-    this.versoRotation = data['versoRotation'];
-    this.relation.d_rotation = data['relation.d_rotation'];
-    this.alignOffsetX = data['offsetX'];
-    this.alignOffsetY = data['offsetY'];
-    this.recto.container.imageWidth = data['imageWidthRecto'];
-    this.recto.container.imageHeight = data['imageHeightRecto'];
-    this.verso.container.imageWidth = data['imageWidthVerso'];
-    this.verso.container.imageHeight = data['imageHeightVerso'];
-    this.container.scale = data['scale'];
+    console.log("SETDATA", data);
+    this.name = data.name;
+    this.isRecto = data.showRecto;
+    this.recto.url = data.recto.url;
+    this.verso.url = data.verso.url;
+    this.container.x = data.x;
+    this.container.y = data.y;
+    this.baseX = data.baseX;
+    this.baseY = data.baseY;
+    this.container.rotation = data.rotation;
+    // this.recto.container.rotation = data.recto.rotation;
+
+    // this.originalScaleRecto = data['originalScaleRecto'];
+    // this.originaScaleVerso = data['originalScaleVerso'];
+    this.ppiRecto = data.recto.ppi;
+    this.ppiVersio = data.verso.ppi;
+    this.rectoRotation = data.recto.rotation;
+    this.versoRotation = data.verso.rotation;
+    // this.relation.d_rotation = data['relation.d_rotation'];
+    // this.alignOffsetX = data['offsetX'];
+    // this.alignOffsetY = data['offsetY'];
+    // this.recto.container.imageWidth = data['imageWidthRecto'];
+    // this.recto.container.imageHeight = data['imageHeightRecto'];
+    // this.verso.container.imageWidth = data['imageWidthVerso'];
+    // this.verso.container.imageHeight = data['imageHeightVerso'];
+    // this.container.scale = data['scale'];
 
     /*
     this.recto.mask = this._createMask(data['recto.mask']);

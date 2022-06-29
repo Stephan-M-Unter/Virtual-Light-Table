@@ -337,6 +337,7 @@ class UIController {
    * @param {*} fragmentData
    */
   addFragment(fragmentData) {
+    console.log("TEEEEEEST", fragmentData);
     if (fragmentData.id == null) {
       this.stage._loadFragments({'upload': fragmentData});
     } else {

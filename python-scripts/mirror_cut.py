@@ -45,3 +45,4 @@ new_path = os.path.join(vlt_folder, new_filename)
 
 mirror = Image.fromarray(mirror).convert('RGBA')
 mirror.save(new_path)
+print(f'python: saving file {new_path}')

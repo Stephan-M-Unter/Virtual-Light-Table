@@ -10,7 +10,6 @@ image_name = os.path.basename(image_path)
 image_name = image_name[:image_name.rfind(".")]
 extension = image_path[image_path.rfind(".")+1:]
 points = json.loads(sys.argv[2])
-print(points)
 xs = [int(p['x']) for p in points]
 ys = [int(p['y']) for p in points]
 left = min(xs)
@@ -23,3 +22,4 @@ new_filename = f"{image_name}_frag.{extension}"
 vlt_folder = os.path.join(os.getenv('APPDATA'), "Virtual Light Table", "temp", "imgs")
 new_path = os.path.join(vlt_folder, new_filename)
 crop.save(new_path)
+print(f'python: saving file {new_path}')

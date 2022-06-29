@@ -168,6 +168,16 @@ class SaveManager {
       }
 
       let content = this.convertToRelativePaths(filepath, tableConfiguration);
+
+      for (const key of Object.keys(content.fragments)) {
+        if ('url_view' in content.fragments[key].recto) {
+          delete content.fragments[key].recto.url_view;
+        }
+        if ('url_view' in content.fragments[key].verso) {
+          delete content.fragments[key].verso.url_view;
+        }
+      }
+      
       content = JSON.stringify(content);
       fs.writeFileSync(filepath, content, 'utf-8');
       if (autosave) console.log('**SaveManager** - Table autosaved');
@@ -244,7 +254,9 @@ class SaveManager {
     const savefiles = {};
 
     files.forEach((name) => {
-      savefiles[name] = this.loadSaveFile(folder + '/' + name);
+      try {
+        savefiles[name] = this.loadSaveFile(folder + '/' + name);
+      } catch(error) {}
     });
 
     this.cleanSavefileImages(folder, savefiles);
@@ -333,6 +345,11 @@ class SaveManager {
    * @param {*} data
    */
   saveSavefile(filepath, data) {
+    for (const key in data.tableData.fragments) {
+      delete data.tableData.fragments[key].recto.url_view;
+      delete data.tableData.fragments[key].verso.url_view;
+    }
+    console.log(data);
     const json = JSON.stringify(data);
     fs.writeFileSync(filepath, json);
   }

@@ -26,7 +26,10 @@ image = Image.open(image_path).convert('RGBA')
 mask = Image.new('L', (image.size[0], image.size[1]), 0)
 ImageDraw.Draw(mask).polygon(points, outline=1, fill=1)
 image = np.array(image)
+mask_orig = image[:,:,3] / 255.
+mask_orig = mask_orig.astype("uint8")
 image[:,:,3] = np.array(mask)*255
+image[:,:,3] *= mask_orig
 
 image = Image.fromarray(image)
 
@@ -36,3 +39,4 @@ vlt_folder = os.path.join(os.getenv('APPDATA'), "Virtual Light Table", "temp", "
 new_path = os.path.join(vlt_folder, new_filename)
 
 crop.save(new_path)
+print(f'python: saving file {new_path}')
