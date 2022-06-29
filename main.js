@@ -373,7 +373,6 @@ function preprocess_fragment(data) {
   
   // IF recto and verso have been processed, send data to mainWindow
   if (rectoProcessed && versoProcessed) {
-    console.log(data);
     mainWindow.send('client-add-upload', data);
     return;
   }

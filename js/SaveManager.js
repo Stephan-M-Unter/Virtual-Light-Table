@@ -170,10 +170,10 @@ class SaveManager {
       let content = this.convertToRelativePaths(filepath, tableConfiguration);
 
       for (const key of Object.keys(content.fragments)) {
-        if ('url_view' in content.fragments[key].recto) {
+        if ('recto' in content.fragments[key] && 'url_view' in content.fragments[key].recto) {
           delete content.fragments[key].recto.url_view;
         }
-        if ('url_view' in content.fragments[key].verso) {
+        if ('verso' in content.fragments[key] && 'url_view' in content.fragments[key].verso) {
           delete content.fragments[key].verso.url_view;
         }
       }
