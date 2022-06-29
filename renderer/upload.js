@@ -599,7 +599,7 @@ function drawBoxMask() {
       resizeBox(event, 'recto', 'ne');
     });
     recto.mask.group.removeAllChildren();
-    recto.mask.group.addChild(b1rt, b2rt, b3rt, b4rt);
+    recto.mask.group.addChild(polygonRecto, b1rt, b2rt, b3rt, b4rt);
     recto.stage.update();
   }
 
@@ -624,7 +624,7 @@ function drawBoxMask() {
       resizeBox(event, 'verso', 'nw');
     });
     verso.mask.group.removeAllChildren();
-    verso.mask.group.addChild(b1vs, b2vs, b3vs, b4vs);
+    verso.mask.group.addChild(polygonVerso, b1vs, b2vs, b3vs, b4vs);
     verso.stage.update();
   }
 }
@@ -675,6 +675,7 @@ function createPolygon(pointsArray) {
   if (pointsArray.length > 0) {
     const polygon = new createjs.Shape();
     const p0 = pointsArray[0];
+    polygon.graphics.beginStroke('black');
     polygon.graphics.moveTo(p0[0], p0[1]);
     for (let i = 1; i < pointsArray.length; i++) {
       const p = pointsArray[i];
@@ -769,6 +770,7 @@ function drawPolygonMask() {
     const polygonRecto = createPolygon(recto.mask.polygon);
     recto.content.img.mask = polygonRecto;
     recto.mask.group.removeAllChildren();
+    recto.mask.group.addChild(polygonRecto);
     recto.mask.polygon.forEach((point, index) => {
       let vertex;
       if (index == recto.mask.polygon.length - 1) {
@@ -794,6 +796,7 @@ function drawPolygonMask() {
     const polygonVerso = createPolygon(verso.mask.polygon);
     verso.content.img.mask = polygonVerso;
     verso.mask.group.removeAllChildren();
+    verso.mask.group.addChild(polygonVerso);
     verso.mask.polygon.forEach((point, index) => {
       let vertex;
       if (index == 0) {
