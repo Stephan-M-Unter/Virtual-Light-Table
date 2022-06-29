@@ -72,7 +72,7 @@ class Sidebar {
 
       if (isCtrl) {
         if (isActive) {
-          // ctrl key pressed and item has already been selected -> deselect
+          // ctrl key pressed and item has already been selected -> desedeselect
           controller.deselectFragment(id);
         } else {
           // ctrl key is pressed and item was not selected -> select
@@ -166,6 +166,9 @@ class Sidebar {
   clearSelection() {
     $('.fragment_list_item_active').removeClass('fragment_list_item_active');
     $('.fragment_list_button').addClass('hidden');
+    $('#fragment_list_content .goto_button').addClass('hidden');
+    $('#fragment_list_content .delete_button').addClass('hidden');
+    $('#fragment_list_content .details_button').addClass('hidden');
   }
 
   /**
@@ -259,6 +262,7 @@ class Sidebar {
 
     measurement.append(del);
     measurement.append(line);
+    measurement.append(distance);
     measurement.append(distance);
     del.append(delImg);
     newMeasure.before(measurement);

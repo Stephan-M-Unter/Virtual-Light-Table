@@ -1384,7 +1384,6 @@ class Stage {
     }
 
     dimensions = this.getMBR();
-    console.log("d", dimensions);
     const center = this.getCenter();
     let distX = center.x - dimensions.center.x;
     if (includeSidebar) distX += sidebar/2;

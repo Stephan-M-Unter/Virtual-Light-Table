@@ -210,9 +210,6 @@ function readExifPPI(image, sidename) {
         checkRequiredFields();
       } else {
         console.log(`Input image (${sidename}) has no EXIF data.`);
-        // REMOVE
-        $('#'+sidename+'_ppi').val(400);
-        checkRequiredFields();
       }
     });
   } catch {
@@ -533,6 +530,21 @@ function scaleImages() {
   verso.stage.update();
 }
 
+function syncMasks() {
+  if (recto.mask.box.length == 0 && verso.mask.box.length > 0) {
+    updateRectoMask();
+  }
+  if (recto.mask.polygon.length == 0 && verso.mask.polygon.length > 0) {
+    updateRectoMask();
+  }
+  if (verso.mask.box.length == 0 && recto.mask.box.length > 0) {
+    updateVersoMask();
+  }
+  if (verso.mask.polygon.length == 0 && recto.mask.polygon.length > 0) {
+    updateVersoMask();
+  }
+}
+
 /**
  *
  */
@@ -752,6 +764,7 @@ function vertexMouseOut(event) {
  *
  */
 function mirrorPoints(pointArray) {
+  console.log("temp", pointArray);
   const canvasWidth = recto.stage.canvas.width;
   const result = [];
   pointArray.forEach((point) => {
@@ -888,6 +901,11 @@ function removePolygonNode(index) {
 function updateVersoMask() {
   verso.mask.box = mirrorPoints(recto.mask.box);
   verso.mask.polygon = mirrorPoints(recto.mask.polygon);
+}
+
+function updateRectoMask() {
+  recto.mask.box = mirrorPoints(verso.mask.box);
+  recto.mask.polygon = mirrorPoints(verso.mask.polygon);
 }
 
 /**
@@ -1231,6 +1249,7 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
   updateCanvasSize();
   const side = getSide(currentUpload);
   side.content.filepath = filepath;
+  syncMasks();
   draw(currentUpload);
   currentUpload = null;
 

@@ -941,6 +941,8 @@ ipcMain.on('server-create-table', (event) => {
     const data = createNewTable();
     activeTables.view = data.tableID;
     sendMessage(event.sender, 'client-load-model', data);
+  } else {
+    sendMessage(mainWindow, 'client-confirm-autosave');
   }
 });
 

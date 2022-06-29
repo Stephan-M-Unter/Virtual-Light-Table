@@ -240,8 +240,6 @@ class Fragment {
    * @param {*} deltaAngle
    */
   rotateByAngle(deltaAngle) {
-    console.log('recto', this.recto)
-    console.log('verso', this.verso)
     if (this.recto) this.recto.container.rotation += deltaAngle;
     if (this.verso) this.verso.container.rotation += deltaAngle;
   }
@@ -268,6 +266,14 @@ class Fragment {
       const loadqueue = new createjs.LoadQueue();
       loadqueue.addEventListener('fileload', (event) => {
         this._createImage(event, this.isRecto);
+
+        let mirror_url = '';
+        if (this.isRecto && 'url_view' in this.recto) mirror_url = this.recto.url_view;
+        else if (!this.isRecto && 'url_view' in this.verso)mirror_url = this.verso.url_view;
+        if (mirror_url.indexOf('_mirror') != -1) {
+          if (this.isRecto) this.recto.img.rotation = -this.verso.img.rotation;
+          else this.verso.img.rotation = -this.recto.img.rotation;
+        }
 
         if (this.isRecto) {
           this.container.removeChild(this.verso.container);
@@ -303,7 +309,6 @@ class Fragment {
           else url = this.verso.url;
         }
       }
-      console.log("url", url);
       loadqueue.loadFile(url);
       loadqueue.load();
     
