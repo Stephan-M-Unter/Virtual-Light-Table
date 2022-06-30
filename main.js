@@ -206,10 +206,12 @@ function uploadTpopFragments() {
 
   const data = loadingQueue.pop(0);
   const fragmentData = data.fragment;
+  console.log(data);
   activeTables.uploading = data.table;
   const fragment = {
     'x': 0,
     'y': 0,
+    'name': fragmentData.name,
     'recto': {
       'ppi': 96,
       'url': fragmentData.urlRecto,
