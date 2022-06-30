@@ -1,4 +1,4 @@
-import os, sys, subprocess, json
+import os, sys, subprocess, json, urllib.request
 try:
     from PIL import Image, ImageDraw
 except ModuleNotFoundError:
@@ -11,6 +11,7 @@ except ModuleNotFoundError:
     import numpy as np
 
 image_path = sys.argv[1]
+image_extension = image_path[image_path.rfind(".")+1:]
 image_name = os.path.basename(image_path)
 image_name = image_name[:image_name.rfind(".")]
 extension = 'png'
@@ -22,7 +23,15 @@ left = min(xs)
 right = max(xs)
 upper = min(ys)
 lower = max(ys)
-image = Image.open(image_path).convert('RGBA')
+
+try:
+    image = Image.open(image_path).convert('RGBA')
+except OSError:
+    temp_url = f'temp.{image_extension}'
+    urllib.request.urlretrieve(image_path, temp_url)
+    image = Image.open(temp_url).convert('RGBA')
+    os.remove(temp_url)
+
 mask = Image.new('L', (image.size[0], image.size[1]), 0)
 ImageDraw.Draw(mask).polygon(points, outline=1, fill=1)
 image = np.array(image)

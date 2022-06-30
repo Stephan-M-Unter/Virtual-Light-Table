@@ -60,6 +60,7 @@ class Fragment {
       this.recto.polygon = data.recto.polygon;
 
       this.recto.upload = data.recto.upload;
+      this.recto.www = data.recto.www;
 
       this.framework.registerImageEvents(this.recto.img);
     } else {
@@ -106,6 +107,7 @@ class Fragment {
       this.verso.polygon = data.verso.polygon;
 
       this.verso.upload = data.verso.upload;
+      this.verso.www = data.verso.www;
 
       this.framework.registerImageEvents(this.verso.img);
     } else {
@@ -455,6 +457,7 @@ class Fragment {
       dataRecto.polygon = this.recto.polygon;
 
       dataRecto.upload = this.recto.upload;
+      dataRecto.www = this.recto.www;
 
       data.recto = dataRecto;
     }
@@ -471,6 +474,7 @@ class Fragment {
       dataVerso.polygon = this.verso.polygon;
 
       dataVerso.upload = this.verso.upload;
+      dataVerso.www = this.verso.www;
 
       data.verso = dataVerso;
     }
@@ -563,6 +567,8 @@ class Fragment {
     this.ppiVersio = data.verso.ppi;
     this.rectoRotation = data.recto.rotation;
     this.versoRotation = data.verso.rotation;
+    this.recto.www = data.recto.www;
+    this.verso.www = data.verso.www;
     // this.relation.d_rotation = data['relation.d_rotation'];
     // this.alignOffsetX = data['offsetX'];
     // this.alignOffsetY = data['offsetY'];
@@ -703,7 +709,6 @@ class Fragment {
       cx: null,
       cy: null,
     };
-
     // case 1: fragment has NO vector mask
     if (!this.getMask()) {
       fragmentBounds['type'] = 'no_mask';
@@ -718,6 +723,7 @@ class Fragment {
       fragmentBounds['height'] = bounds.height;
       fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
       fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
+      console.log("DEBUG", fragmentBounds);
     } else {
     // case 2: fragment does have vector mask (box or polygon)
       fragmentBounds['type'] = 'vector_mask';

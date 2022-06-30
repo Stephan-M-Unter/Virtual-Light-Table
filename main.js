@@ -16,6 +16,7 @@
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const request = require('request');
 const {spawn} = require('child_process');
 
 const Window = require('./js/Window');
@@ -23,6 +24,7 @@ const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
+const { resolve } = require('path');
 
 // Settings
 const devMode = true;
@@ -195,6 +197,57 @@ function loadDefaultConfig() {
   config.ppi = 96;
 }
 
+function uploadTpopFragments() {
+  if (loadingQueue.length == 0) {
+    localUploadWindow.close();
+    // localUploadWindow = null;
+    return;
+  }
+
+  const data = loadingQueue.pop(0);
+  const fragmentData = data.fragment;
+  activeTables.uploading = data.table;
+  const fragment = {
+    'x': 0,
+    'y': 0,
+    'recto': {
+      'ppi': 96,
+      'url': fragmentData.urlRecto,
+      'www': true,
+    },
+    'verso': {
+      'ppi': 96,
+      'url': fragmentData.urlVerso,
+      'www': true,
+    }
+  }
+
+  if (localUploadWindow) {
+    try {
+      localUploadWindow.close();
+    } catch {}
+    // localUploadWindow = null;
+  }
+  localUploadWindow = new Window({
+    file: './renderer/upload.html',
+    type: 'upload',
+    devMode: devMode,
+  });
+  localUploadWindow.removeMenu();
+  localUploadWindow.once('ready-to-show', () => {
+    localUploadWindow.show();
+    sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
+  });
+
+  localUploadWindow.on('close', function() {
+    uploadTpopFragments();
+  });
+
+  /*
+  const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
+  */
+}
+
 /**
  * Helper function to feed config settings into the config object and save everything to disk.
  * @param {String} key - Config attribute name.
@@ -232,7 +285,6 @@ function preprocess_loading_fragments(data) {
   }
 
   if (allProcessed) {
-    console.log('preprocess_loading_fragments: all fragments processed');
     sendMessage(mainWindow, 'client-load-model', data);
     return;
   }
@@ -250,7 +302,6 @@ function preprocess_loading_fragments(data) {
   
   if (rectoProcessed && versoProcessed) {
     fragment.processed = true;
-    console.log("Fragment", fragment.id, "now fully processed.");
     data.tableData.fragments[fragmentKey] = fragment;
     preprocess_loading_fragments(data);
     return;
@@ -266,12 +317,6 @@ function preprocess_loading_fragments(data) {
   let polygonPoints;
   let filename;
   let mirror = false;
-
-  if (!rectoProcessed) {
-    console.log("Processing Recto of", fragment.id);
-  } else {
-    console.log("Processing Verso of", fragment.id);
-  }
 
   // in the following, we first check if the first side has to be processed; if so,
   // the corresponding python script will be called, and as this is an async process,
@@ -778,7 +823,6 @@ ipcMain.on('server-update-annotation', (event, data) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-update-annotation] from client for table '+data.tableID);
   }
-  console.log('data:', data);
   tableManager.updateAnnotation(data.tableID, data.aData);
 });
 
@@ -790,6 +834,13 @@ ipcMain.on('server-open-upload', (event, tableID) => {
   }
 
   activeTables.uploading = tableID;
+  
+  if (localUploadWindow) {
+    try {
+      localUploadWindow.close();
+    } catch {};
+    // localUploadWindow = null;
+  }
 
   if (!localUploadWindow) {
     localUploadWindow = new Window({
@@ -802,8 +853,8 @@ ipcMain.on('server-open-upload', (event, tableID) => {
       localUploadWindow.show();
     });
     localUploadWindow.on('close', function() {
-      localUploadWindow = null;
-      activeTables.uploading = null;
+      // localUploadWindow = null;
+      // activeTables.uploading = null;
     });
   }
 });
@@ -826,12 +877,18 @@ ipcMain.on('server-upload-ready', (event, data) => {
     // tell client to open the newly created table
     sendMessage(mainWindow, 'client-load-model', newTableData);
   }
+  
+  // activeTables.uploading = null;
+  if (localUploadWindow) {
+    try {
+      localUploadWindow.close();
+    } catch {}
+    // localUploadWindow = null;
+  }
 
-  activeTables.uploading = null;
-  localUploadWindow.close();
-  localUploadWindow = null;
+  console.log(data);
 
-  data = preprocess_fragment(data);
+  preprocess_fragment(data);
 });
 
 // server-upload-image | triggers a file dialog for the user to select a fragment
@@ -866,7 +923,9 @@ ipcMain.on('server-change-fragment', (event, data) => {
 
   const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
   if (localUploadWindow) {
-    localUploadWindow.close();
+    try {
+      localUploadWindow.close();
+    } catch {};
   }
 
   activeTables.uploading = data.tableID;
@@ -882,8 +941,8 @@ ipcMain.on('server-change-fragment', (event, data) => {
     sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
   });
   localUploadWindow.on('close', function() {
-    localUploadWindow = null;
-    activeTables.uploading = null;
+    // localUploadWindow = null;
+    // activeTables.uploading = null;
   });
 });
 
@@ -997,7 +1056,6 @@ ipcMain.on('server-send-all', (event) => {
     'Receiving code [server-send-all] from client');
   }
   sendMessage(event.sender, 'client-get-all', tableManager.getTables());
-  console.log('DING', activeTables);
 });
 
 ipcMain.on('server-new-session', (event) => {
@@ -1258,13 +1316,57 @@ ipcMain.on('server-load-tpop-fragments', (event, data) => {
   }
   data = tpopManager.getBasicInfo(data);
   
-  for (const fragment of data) {
-    const entry = {
-      'table': activeTables.tpop,
-      'fragment': fragment,
-    };
-    loadingQueue.push(entry);
-  }
-  
+  const tableID = activeTables.tpop;
   tpopWindow.close();
+  resolveTPOPUrls(data, tableID);
 });
+
+function resolveTPOPUrls(fragments, tableID) {
+  console.log(tableID);
+  let allResolved = true;
+  let urlKey;
+  let fragmentKey;
+  let url;
+  let fragment;
+  for (const k in fragments) {
+    fragment = fragments[k];
+    if ('urlRecto' in fragment && fragment.urlRecto && !isURLResolved(fragment.urlRecto)) {
+      allResolved = false;
+      urlKey = 'urlRecto';
+      fragmentKey = k;
+      url = fragment.urlRecto;
+      break;
+    }
+    if ('urlVerso' in fragment && fragment.urlVerso && !isURLResolved(fragment.urlVerso)) {
+      allResolved = false;
+      urlKey = 'urlVerso';
+      fragmentKey = k;
+      url = fragment.urlVerso;
+      break;
+    }
+  }
+  if (allResolved) {
+    for (const f of fragments) {
+      const entry = {
+        'table': tableID,
+        'fragment': f,
+      };
+      loadingQueue.push(entry);
+    }
+    uploadTpopFragments();
+  } else {
+    var r = request(url, function(e, response) {
+      fragment[urlKey] = r.uri.href;
+      fragments[fragmentKey] = fragment;
+      resolveTPOPUrls(fragments, tableID);
+    });
+  }
+}
+
+function isURLResolved(url) {
+  const formats = ['jpg', 'jpeg', 'png', 'tif', 'tiff'];
+  for (const format of formats) {
+    if (url.indexOf('.'+format) != -1) return true;
+  }
+  return false;
+}

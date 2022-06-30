@@ -123,6 +123,9 @@ class SaveManager {
             if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
               // nothing to do, image is already correct
               continue;
+            } else if ('www' in fragment.recto && fragment.recto.www) {
+              // is image a web file?  in that case, nothing to do
+              continue;
             } else {
               if (!rectoAlreadyMoved) {
                 // is image in temp folder?
@@ -148,6 +151,9 @@ class SaveManager {
             // is image in save_folder?
             if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
               // nothing to do, image is already correct
+              continue;
+            }  else if ('www' in fragment.verso && fragment.verso.www) {
+              // is image a web file?  in that case, nothing to do
               continue;
             } else {
               if (!versoAlreadyMoved) {
@@ -287,26 +293,31 @@ class SaveManager {
         for (const fID in savefile.fragments) {
           if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
             const fragment = savefile.fragments[fID];
-            const recto = path.resolve(fragment.recto.url).split('\\').pop().split('/').pop();
-            const verso = path.resolve(fragment.verso.url).split('\\').pop().split('/').pop();
 
-            while (true) {
-              const index = images.indexOf(recto);
-              if (index !== -1) {
-                images.splice(index, 1);
-              } else {
-                break;
+            if ('recto' in fragment) {
+              const recto = path.resolve(fragment.recto.url).split('\\').pop().split('/').pop();
+              while (true) {
+                const index = images.indexOf(recto);
+                if (index !== -1) {
+                  images.splice(index, 1);
+                } else {
+                  break;
+                }
               }
             }
-
-            while (true) {
-              const index = images.indexOf(verso);
-              if (index !== -1) {
-                images.splice(index, 1);
-              } else {
-                break;
+            
+            if ('verso' in fragment) {
+              const verso = path.resolve(fragment.verso.url).split('\\').pop().split('/').pop();
+              while (true) {
+                const index = images.indexOf(verso);
+                if (index !== -1) {
+                  images.splice(index, 1);
+                } else {
+                  break;
+                }
               }
             }
+            
           }
         }
       }
@@ -349,7 +360,6 @@ class SaveManager {
       delete data.tableData.fragments[key].recto.url_view;
       delete data.tableData.fragments[key].verso.url_view;
     }
-    console.log(data);
     const json = JSON.stringify(data);
     fs.writeFileSync(filepath, json);
   }
@@ -390,7 +400,6 @@ class SaveManager {
 
     images.forEach((image) => {
       const imagename = path.basename(image);
-      console.log(imagename);
       zip.file('imgs/'+imagename, fs.createReadStream(image));
     });
 
@@ -601,13 +610,13 @@ class SaveManager {
       if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
         const fragment = data.fragments[fID];
 
-        if ('recto' in fragment) {
+        if ('recto' in fragment && !fragment.recto.www) {
           const absoluteRectoURL = fragment.recto.url;
           const relativeRectoURL = path.relative(reference, absoluteRectoURL);
           data.fragments[fID].recto.url = relativeRectoURL;
         }
         
-        if ('verso' in fragment) {
+        if ('verso' in fragment && !fragment.verso.www) {
           const absoluteVersoURL = fragment.verso.url;
           const relativeVersoURL = path.relative(reference, absoluteVersoURL);
           data.fragments[fID].verso.url = relativeVersoURL;
@@ -631,12 +640,18 @@ class SaveManager {
     for (const fID in data.fragments) {
       if (Object.prototype.hasOwnProperty.call(data.fragments, fID)) {
         const fragment = data.fragments[fID];
-        const relativeRectoURL = fragment.recto.url;
-        const relativeVersoURL = fragment.verso.url;
-        const absoluteRectoURL = path.resolve(reference, relativeRectoURL);
-        const absoluteVersoURL = path.resolve(reference, relativeVersoURL);
-        data.fragments[fID].recto.url = absoluteRectoURL;
-        data.fragments[fID].verso.url = absoluteVersoURL;
+        if ('recto' in fragment && !fragment.recto.www) {
+          const relativeRectoURL = fragment.recto.url;
+          const absoluteRectoURL = path.resolve(reference, relativeRectoURL);
+          data.fragments[fID].recto.url = absoluteRectoURL;
+        }
+
+        if ('verso' in fragment && !fragment.verso.www) {
+          const relativeVersoURL = fragment.verso.url;
+          const absoluteVersoURL = path.resolve(reference, relativeVersoURL);
+          data.fragments[fID].verso.url = absoluteVersoURL;
+        }
+          
       }
     }
     return data;

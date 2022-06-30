@@ -13,6 +13,7 @@ let scaleMode = null;
 let actionMode = null;
 let scalePoint = null;
 let scale = 1;
+let reposition = false;
 const mousestart = {};
 let id = null;
 
@@ -38,8 +39,31 @@ function updateCanvasSize() {
   recto.stage.canvas.height = recto.canvas.height();
   verso.stage.canvas.width = verso.canvas.width();
   verso.stage.canvas.height = verso.canvas.height();
+  if (reposition) {
+    centerImages();
+  }
   recto.stage.update();
   verso.stage.update();
+}
+
+function centerImages() {
+  if (recto.content.img) {
+    recto.content.x = $(recto.canvas).innerWidth() / 2;
+    recto.content.y = $(recto.canvas).innerHeight() / 2;
+    recto.content.img.x = recto.content.x;
+    recto.content.img_bg.x = recto.content.x;
+    recto.content.img.y = recto.content.y;
+    recto.content.img_bg.y = recto.content.y;
+  }
+  if (verso.content.img) {
+    verso.content.x = $(verso.canvas).innerWidth() / 2;
+    verso.content.y = $(verso.canvas).innerHeight() / 2;
+    verso.content.img.x = verso.content.x;
+    verso.content.img_bg.x = verso.content.x;
+    verso.content.img.y = verso.content.y;
+    verso.content.img_bg.y = verso.content.y;
+  }
+  reposition = false;
 }
 
 /**
@@ -71,6 +95,7 @@ function createEmptySide(sidename) {
       'rotation': 0,
       'x': null,
       'y': null,
+      'www': false,
     },
     'mask': {
       'group': null,
@@ -99,7 +124,7 @@ function draw(sidename) {
   side.stage.removeAllChildren();
   if (side.content.filepath != null) {
     if (side.content.img == null) {
-    // create a new image first from file
+      // create a new image first from file
       createImage(sidename);
     } else {
       // draw canvas
@@ -117,11 +142,23 @@ function draw(sidename) {
       // otherwise center image to canvas
       // const x = side.content.offsetX || cWidth / 2;
       // const y = side.content.offsetY || cHeight / 2;
+      
+      
+      if ('scale' in side.content && side.content.scale) {
+        side.content.img.scale = side.content.scale;
+        side.content.img_bg.scale = side.content.scale;
+      }
+      else {
+        const fittingScale = getFittingScale(side);
+        side.content.scale = fittingScale;
+        side.content.img.scale = fittingScale;
+        side.content.img_bg.scale = fittingScale;
+        reposition = true;
+      }
+      
       side.content.img.x = side.content.img_bg.x = side.content.x;
       side.content.img.y = side.content.img_bg.y = side.content.y;
       side.content.img.rotation = side.content.img_bg.rotation = side.content.rotation;
-      // side.img.scale = getFittingScale(side);
-      // side.imgBackground.scale = getFittingScale(side);
 
       // creating white "shadow" layer to visually indicate mask
       const shadow = new createjs.Shape();
@@ -148,6 +185,19 @@ function draw(sidename) {
   side.stage.update();
   drawMasks();
   checkGUI();
+}
+
+function getFittingScale(side) {
+  const canvasHeight = $(side.canvas).innerHeight();
+  const canvasWidth = $(side.canvas).innerWidth();
+  const imageHeight = side.content.img.image.height;
+  const imageWidth = side.content.img.image.width;
+
+  const scaleX = Math.min(1, (canvasWidth / imageWidth));
+  const scaleY = Math.min(1, (canvasHeight / imageHeight));
+  const scale = Math.min(scaleX, scaleY);
+
+  return scale;
 }
 
 /**
@@ -286,6 +336,7 @@ function handleMousewheel(event) {
         rectoScale = Math.round(rectoScale*100) / 100;
         recto.content.img.scale = rectoScale;
         recto.content.img_bg.scale = rectoScale;
+        recto.content.scale = rectoScale;
       }
       if (verso.content.img) {
         let versoPPI = $('#verso_ppi').val();
@@ -296,6 +347,7 @@ function handleMousewheel(event) {
         versoScale = Math.round(versoScale*100) / 100;
         verso.content.img.scale = versoScale;
         verso.content.img_bg.scale = versoScale;
+        verso.content.scale = versoScale;
       }
       recto.stage.update();
       verso.stage.update();
@@ -993,12 +1045,14 @@ function uploadData() {
     dataRecto.cy = recto.content.img.y;
     dataRecto.box = canvasToImage(recto.content.img, recto.mask.box);
     dataRecto.polygon = canvasToImage(recto.content.img, recto.mask.polygon);
+    dataRecto.www = recto.content.www;
 
     dataRecto.upload = {
       box: recto.mask.box,
       polygon: recto.mask.polygon,
       x: recto.content.img.x,
       y: recto.content.img.y,
+      scale: recto.content.img.scale,
     };
   }
   data.recto = dataRecto;
@@ -1015,12 +1069,14 @@ function uploadData() {
     dataVerso.box_upload = verso.mask.box;
     dataVerso.polygon = canvasToImage(verso.content.img, verso.mask.polygon);
     dataVerso.polygon_upload = verso.mask.polygon;
+    dataVerso.www = verso.content.www;
 
     dataVerso.upload = {
       box: verso.mask.box,
       polygon: verso.mask.polygon,
       x: verso.content.img.x,
       y: verso.content.img.y,
+      scale: verso.content.img.scale,
     };
   }
   data.verso = dataVerso;
@@ -1113,11 +1169,12 @@ $('.www_upload').on('click', (event) => {
   if (currentUpload == null) {
     const canvas = $(event.target).attr('canvas');
     currentUpload = canvas;
-
+    
     try {
       dialogs.prompt('Enter image URL:', function(url) {
         if (url != '' && url != null) {
           getSide(currentUpload).content.filepath = url;
+          getSide(currentUpload).content.www = true;
           draw(currentUpload);
           currentUpload = null;
         }
@@ -1126,7 +1183,6 @@ $('.www_upload').on('click', (event) => {
       alert('Please make sure your image URL leads to an image file (jpg, png)!');
       currentUpload = null;
     }
-    currentUpload = null;
   }
 });
 $('.delete').on('click', (event) => {
@@ -1267,32 +1323,78 @@ ipcRenderer.on('upload-edit-fragment', (event, data) => {
   console.log('Receiving Edit Information:', data);
   $('#upload_button').find('.large_button_label').html('Update object');
 
-  editData = data;
-
-  // LOADING RECTO
-  if (data.recto) {
-    recto.mask.box = data.recto.upload.box;
-    recto.mask.polygon = data.recto.upload.polygon;
-    $('#recto_ppi').val(data.recto.ppi);
-    recto.content.rotation = data.recto.rotation;
-    recto.content.filepath = data.recto.url;
-    recto.content.x = data.recto.upload.x;
-    recto.content.y = data.recto.upload.y;
+  if (!('mask' in data.recto)) {
+    if ('recto' in data) {
+      $('#recto_ppi').val(data.recto.ppi);
+      recto.content.filepath = data.recto.url;
+      recto.content.www = data.recto.www;
+      
+      if ('upload' in data.recto) {
+        recto.content.x = data.recto.upload.x;
+        recto.content.y = data.recto.upload.y;
+        recto.mask.box = data.recto.upload.box;
+        recto.mask.polygon = data.recto.upload.polygon;
+        recto.content.scale = data.recto.upload.scale;
+      } else {
+        recto.content.x = 0;
+        recto.content.y = 0;
+        recto.mask.box = [];
+        recto.mask.polygon = [];
+      }
+      
+    }
+    
+    if ('verso' in data) {
+      $('#verso_ppi').val(data.verso.ppi);
+      verso.content.filepath = data.verso.url;
+      verso.content.www = data.verso.www;
+      
+      if ('upload' in data.verso) {
+        verso.content.x = data.verso.upload.x;
+        verso.content.y = data.verso.upload.y;
+        verso.mask.box = data.verso.upload.box;
+        verso.mask.polygon = data.verso.upload.polygon;
+        verso.content.scale = data.verso.upload.scale;
+      } else {
+        verso.content.x = 0;
+        verso.content.y = 0;
+        verso.mask.box = [];
+        verso.mask.polygon = [];
+      }
+      
+    }
+  } else {
+    editData = data;
+    
+    // LOADING RECTO
+    if (data.recto) {
+      recto.mask.box = data.recto.upload.box;
+      recto.mask.polygon = data.recto.upload.polygon;
+      $('#recto_ppi').val(data.recto.ppi);
+      recto.content.rotation = data.recto.rotation;
+      recto.content.filepath = data.recto.url;
+      recto.content.x = data.recto.upload.x;
+      recto.content.y = data.recto.upload.y;
+      recto.content.www = data.recto.www;
+    }
+  
+    // LOADING VERSO
+    if (data.verso) {
+      verso.mask.box = data.verso.upload.box;
+      verso.mask.polygon = data.verso.upload.polygon;
+      $('#verso_ppi').val(data.verso.ppi);
+      verso.content.rotation = data.verso.rotation;
+      verso.content.filepath = data.verso.url;
+      verso.content.x = data.verso.upload.x;
+      verso.content.y = data.verso.upload.y;
+      verso.content.www = data.verso.www;
+    }
+  
   }
-
-  // LOADING VERSO
-  if (data.verso) {
-    verso.mask.box = data.verso.upload.box;
-    verso.mask.polygon = data.verso.upload.polygon;
-    $('#verso_ppi').val(data.verso.ppi);
-    verso.content.rotation = data.verso.rotation;
-    verso.content.filepath = data.verso.url;
-    verso.content.x = data.verso.upload.x;
-    verso.content.y = data.verso.upload.y;
-  }
-
+  
   $('#objectname').val(data.name);
-  maskMode = data.maskMode;
+  if ('maskMode' in data && data.maskMode) maskMode = data.maskMode;
+  if ('id' in data && data.id) editData = data;
 
   draw('recto');
   draw('verso');

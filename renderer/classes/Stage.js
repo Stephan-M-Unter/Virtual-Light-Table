@@ -549,6 +549,7 @@ class Stage {
             url = fragmentData.verso.url;
           }
         }
+        console.log("load", id, url);
         this.loadqueue.loadManifest([{
           id: id,
           src: url,
