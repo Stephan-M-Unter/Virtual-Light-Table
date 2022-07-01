@@ -206,19 +206,17 @@ function uploadTpopFragments() {
 
   const data = loadingQueue.pop(0);
   const fragmentData = data.fragment;
-  console.log(data);
   activeTables.uploading = data.table;
   const fragment = {
     'x': 0,
     'y': 0,
     'name': fragmentData.name,
+    'urlTPOP': fragmentData.urlTPOP,
     'recto': {
-      'ppi': 96,
       'url': fragmentData.urlRecto,
       'www': true,
     },
     'verso': {
-      'ppi': 96,
       'url': fragmentData.urlVerso,
       'www': true,
     }
@@ -286,6 +284,9 @@ function preprocess_loading_fragments(data) {
     }
   }
 
+  if (!('recto' in fragment)) fragment.recto = {};
+  if (!('verso' in fragment)) fragment.verso = {};
+
   if (allProcessed) {
     sendMessage(mainWindow, 'client-load-model', data);
     return;
@@ -296,8 +297,8 @@ function preprocess_loading_fragments(data) {
 
   // if a side contains the "url_view" property, it must already
   // have been processed
-  if ('url_view' in fragment.recto) rectoProcessed = true;
-  if ('url_view' in fragment.verso) versoProcessed = true;
+  if ('recto' in fragment && 'url_view' in fragment.recto) rectoProcessed = true;
+  if ('verso' in fragment && 'url_view' in fragment.verso) versoProcessed = true;
 
   if (fragment.maskMode == 'no_mask' && 'url' in fragment.recto) rectoProcessed = true;
   if (fragment.maskMode == 'no_mask' && 'url' in fragment.verso) versoProcessed = true;
@@ -333,7 +334,7 @@ function preprocess_loading_fragments(data) {
 
   if (!rectoProcessed) {
     // we are processing the recto side
-    if ('url' in fragment.recto) {
+    if ('recto' in fragment && 'url' in fragment.recto) {
       // recto data available
       imageURL = fragment.recto.url;
       boxPoints = fragment.recto.box;
@@ -341,6 +342,7 @@ function preprocess_loading_fragments(data) {
     } else {
       // no recto data available, thus we use the verso data and
       // set the mirror flag to true
+      data.recto = {};
       mirror = true;
       imageURL = fragment.verso.url;
       boxPoints = fragment.verso.box;
@@ -349,7 +351,7 @@ function preprocess_loading_fragments(data) {
     }
   } else {
     // we are processing the verso side
-    if ('url' in fragment.verso) {
+    if ('verso' in fragment && 'url' in fragment.verso) {
       // verso data available
       imageURL = fragment.verso.url;
       boxPoints = fragment.verso.box;
@@ -357,6 +359,7 @@ function preprocess_loading_fragments(data) {
     } else {
       // no verso data available, thus we use the recto data and
       // set the mirror flag to true
+      data.verso = {};
       mirror = true;
       imageURL = fragment.recto.url;
       boxPoints = fragment.recto.box;
@@ -888,8 +891,6 @@ ipcMain.on('server-upload-ready', (event, data) => {
     // localUploadWindow = null;
   }
 
-  console.log(data);
-
   preprocess_fragment(data);
 });
 
@@ -1324,7 +1325,6 @@ ipcMain.on('server-load-tpop-fragments', (event, data) => {
 });
 
 function resolveTPOPUrls(fragments, tableID) {
-  console.log(tableID);
   let allResolved = true;
   let urlKey;
   let fragmentKey;

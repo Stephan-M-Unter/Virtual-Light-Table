@@ -637,7 +637,7 @@ function setDefaultBox() {
  *
  */
 function drawBoxMask() {
-  if (recto.mask.box.length == 0) {
+  if (recto.mask.box.length == 0 && verso.mask.box.length == 0) {
     // no mask created so far, set default values
     setDefaultBox();
   }
@@ -816,7 +816,6 @@ function vertexMouseOut(event) {
  *
  */
 function mirrorPoints(pointArray) {
-  console.log("temp", pointArray);
   const canvasWidth = recto.stage.canvas.width;
   const result = [];
   pointArray.forEach((point) => {
@@ -1110,6 +1109,7 @@ function uploadData() {
     data.baseX = editData.baseX;
     data.baseY = editData.baseY;
     data.rotation = editData.rotation;
+    if ('urlTPOP' in editData) data.urlTPOP = editData.urlTPOP;
   }
   ipcRenderer.send('server-upload-ready', data);
 }
@@ -1323,78 +1323,50 @@ ipcRenderer.on('upload-edit-fragment', (event, data) => {
   console.log('Receiving Edit Information:', data);
   $('#upload_button').find('.large_button_label').html('Update object');
 
-  if (!('mask' in data.recto)) {
-    if ('recto' in data) {
-      $('#recto_ppi').val(data.recto.ppi);
-      recto.content.filepath = data.recto.url;
-      recto.content.www = data.recto.www;
-      
-      if ('upload' in data.recto) {
-        recto.content.x = data.recto.upload.x;
-        recto.content.y = data.recto.upload.y;
-        recto.mask.box = data.recto.upload.box;
-        recto.mask.polygon = data.recto.upload.polygon;
-        recto.content.scale = data.recto.upload.scale;
-      } else {
-        recto.content.x = 0;
-        recto.content.y = 0;
-        recto.mask.box = [];
-        recto.mask.polygon = [];
-      }
-      
-    }
+  if ('recto' in data) {
+    if ('ppi' in data.recto) $('#recto_ppi').val(data.recto.ppi);
+    recto.content.filepath = data.recto.url;
+    recto.content.www = data.recto.www;
     
-    if ('verso' in data) {
-      $('#verso_ppi').val(data.verso.ppi);
-      verso.content.filepath = data.verso.url;
-      verso.content.www = data.verso.www;
-      
-      if ('upload' in data.verso) {
-        verso.content.x = data.verso.upload.x;
-        verso.content.y = data.verso.upload.y;
-        verso.mask.box = data.verso.upload.box;
-        verso.mask.polygon = data.verso.upload.polygon;
-        verso.content.scale = data.verso.upload.scale;
-      } else {
-        verso.content.x = 0;
-        verso.content.y = 0;
-        verso.mask.box = [];
-        verso.mask.polygon = [];
-      }
-      
-    }
-  } else {
-    editData = data;
-    
-    // LOADING RECTO
-    if (data.recto) {
-      recto.mask.box = data.recto.upload.box;
-      recto.mask.polygon = data.recto.upload.polygon;
-      $('#recto_ppi').val(data.recto.ppi);
-      recto.content.rotation = data.recto.rotation;
-      recto.content.filepath = data.recto.url;
+    if ('upload' in data.recto) {
       recto.content.x = data.recto.upload.x;
       recto.content.y = data.recto.upload.y;
-      recto.content.www = data.recto.www;
+      recto.mask.box = data.recto.upload.box;
+      recto.mask.polygon = data.recto.upload.polygon;
+      recto.content.scale = data.recto.upload.scale;
+    } else {
+      recto.content.x = 0;
+      recto.content.y = 0;
+      recto.mask.box = [];
+      recto.mask.polygon = [];
     }
+    
+  }
   
-    // LOADING VERSO
-    if (data.verso) {
-      verso.mask.box = data.verso.upload.box;
-      verso.mask.polygon = data.verso.upload.polygon;
-      $('#verso_ppi').val(data.verso.ppi);
-      verso.content.rotation = data.verso.rotation;
-      verso.content.filepath = data.verso.url;
+  if ('verso' in data) {
+    if ('ppi' in data.verso) $('#verso_ppi').val(data.verso.ppi);
+    verso.content.filepath = data.verso.url;
+    verso.content.www = data.verso.www;
+    
+    if ('upload' in data.verso) {
       verso.content.x = data.verso.upload.x;
       verso.content.y = data.verso.upload.y;
-      verso.content.www = data.verso.www;
+      verso.mask.box = data.verso.upload.box;
+      verso.mask.polygon = data.verso.upload.polygon;
+      verso.content.scale = data.verso.upload.scale;
+    } else {
+      verso.content.x = 0;
+      verso.content.y = 0;
+      verso.mask.box = [];
+      verso.mask.polygon = [];
     }
-  
   }
+
   
   $('#objectname').val(data.name);
   if ('maskMode' in data && data.maskMode) maskMode = data.maskMode;
   if ('id' in data && data.id) editData = data;
+  if ('urlTPOP' in data) editData = data;
 
   draw('recto');
   draw('verso');

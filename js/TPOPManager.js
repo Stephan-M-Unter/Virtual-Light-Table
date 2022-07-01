@@ -754,8 +754,9 @@ class TPOPManager {
         const entry = {
           'id': obj['TPOPid'],
           'name': obj['InventoryNumber'],
-          'urlRecto': obj['ObjectImageRecto'],
-          'urlVerso': obj['ObjectImageVerso'],
+          'urlRecto': obj['ObjectImageRectoHi'],
+          'urlVerso': obj['ObjectImageVersoHi'],
+          'urlTPOP': obj['permalink'],
         };
         if ('features' in obj) {
           entry['features'] = Object.keys(obj['features']);

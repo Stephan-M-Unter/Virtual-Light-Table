@@ -34,6 +34,8 @@ class Fragment {
     this.recto = {};
     this.verso = {};
 
+    if ('urlTPOP' in data) this.urlTPOP = data.urlTPOP;
+
     // RECTO
     if (data.recto) {
       this.recto.url = data.recto.url;
@@ -504,6 +506,8 @@ class Fragment {
     data.baseY = this.getBaseY();
     data.rotation = this.getRotation();
 
+    if (this.urlTPOP) data.urlTPOP = this.urlTPOP;
+
     return data;
     /*
     let rectoPolygon = null;
@@ -590,6 +594,11 @@ class Fragment {
    */
   getName() {
     return this.name;
+  }
+
+  getTPOPURL() {
+    if (this.urlTPOP) return this.urlTPOP;
+    return null;
   }
 
   /**
@@ -723,7 +732,6 @@ class Fragment {
       fragmentBounds['height'] = bounds.height;
       fragmentBounds['cx'] = (fragmentBounds['left']+fragmentBounds['right'])/2;
       fragmentBounds['cy'] = (fragmentBounds['top']+fragmentBounds['bottom'])/2;
-      console.log("DEBUG", fragmentBounds);
     } else {
     // case 2: fragment does have vector mask (box or polygon)
       fragmentBounds['type'] = 'vector_mask';

@@ -18,7 +18,7 @@ class Sidebar {
    * @param {*} name
    * @param {*} imgUrl
    */
-  _addFragment(id, name, imgUrl) {
+  _addFragment(id, name, imgUrl, tpopUrl) {
     const sidebar = this;
     const controller = this.controller;
     // thumbnail wrapper
@@ -50,9 +50,18 @@ class Sidebar {
     const gotoButton = document.createElement('div');
     gotoButton.setAttribute('class', 'goto_button hidden');
     gotoButton.setAttribute('title', 'Go to fragment');
-    const detailsButton = document.createElement('div');
-    detailsButton.setAttribute('class',
-        'fragment_list_button details_button hidden');
+    const editButton = document.createElement('div');
+    editButton.setAttribute('class', 'edit_button hidden');
+    editButton.setAttribute('title', 'Edit Fragment');
+
+    let tpopButton;
+    if (tpopUrl) {
+      tpopButton = document.createElement('a');
+      tpopButton.setAttribute('target', '_blank');
+      tpopButton.setAttribute('href', tpopUrl);
+      tpopButton.setAttribute('class', 'tpop_button hidden');
+      tpopButton.setAttribute('title', 'Open in TPOP (external window)');
+    }
 
     // generating DOM structure
     fragmentThumbWrapper.appendChild(fragmentThumb);
@@ -60,7 +69,8 @@ class Sidebar {
     fragmentWrapper.appendChild(fragmentName);
     fragmentWrapper.appendChild(deleteButton);
     fragmentWrapper.appendChild(gotoButton);
-    // fragmentWrapper.appendChild(detailsButton); TODO - temporarily removed
+    fragmentWrapper.appendChild(editButton);
+    if (tpopUrl) fragmentWrapper.appendChild(tpopButton);
 
     $('#fragment_list_content').append(fragmentWrapper);
 
@@ -104,8 +114,9 @@ class Sidebar {
     gotoButton.addEventListener('click', function(event) {
       controller.centerToFragment(id);
     }, false);
-    detailsButton.addEventListener('click', function(event) {
-      controller.sendToServer('server-open-details', id);
+    editButton.addEventListener('click', function(event) {
+      const id = $(event.target).parent().attr('id');
+      controller.changeFragment(id);
     }, false);
   }
 
@@ -120,8 +131,10 @@ class Sidebar {
     if (!$.isEmptyObject(fragmentList)) {
       for (const id in fragmentList) {
         if (Object.prototype.hasOwnProperty.call(fragmentList, id)) {
-          this._addFragment(id, fragmentList[id].getName(),
-              fragmentList[id].getImageURL());
+          const name = fragmentList[id].getName();
+          const imageUrl = fragmentList[id].getImageURL();
+          const tpopURL = fragmentList[id].getTPOPURL();
+          this._addFragment(id, name, imageUrl, tpopURL);
         }
       }
 
@@ -168,7 +181,8 @@ class Sidebar {
     $('.fragment_list_button').addClass('hidden');
     $('#fragment_list_content .goto_button').addClass('hidden');
     $('#fragment_list_content .delete_button').addClass('hidden');
-    $('#fragment_list_content .details_button').addClass('hidden');
+    $('#fragment_list_content .edit_button').addClass('hidden');
+    $('#fragment_list_content .tpop_button').addClass('hidden');
   }
 
   /**
@@ -197,7 +211,8 @@ class Sidebar {
     const wrapper = $('div[id="'+id+'"]');
     $(wrapper).find('.delete_button').removeClass('hidden');
     $(wrapper).find('.goto_button').removeClass('hidden');
-    $(wrapper).find('.details_button').removeClass('hidden');
+    $(wrapper).find('.edit_button').removeClass('hidden');
+    $(wrapper).find('.tpop_button').removeClass('hidden');
   }
 
   /**
@@ -207,8 +222,9 @@ class Sidebar {
   removeFragmentListButtons(id) {
     const wrapper = $('div[id="'+id+'"]');
     $(wrapper).find('.delete_button').addClass('hidden');
-    $(wrapper).find('.details_button').addClass('hidden');
+    $(wrapper).find('.edit_button').addClass('hidden');
     $(wrapper).find('.goto_button').addClass('hidden');
+    $(wrapper).find('.tpop_button').addClass('hidden');
   }
 
   /**
