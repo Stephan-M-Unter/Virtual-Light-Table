@@ -11,6 +11,7 @@ except ModuleNotFoundError:
     import numpy as np
 
 image_path = sys.argv[1]
+vlt_folder = sys.argv[3]
 image_extension = image_path[image_path.rfind(".")+1:]
 image_name = os.path.basename(image_path)
 image_name = image_name[:image_name.rfind(".")]
@@ -62,7 +63,7 @@ else:
 
 mirror = mirror.astype("uint8")
 new_filename = f"{image_name}_mirror.{extension}"
-vlt_folder = os.path.join(os.getenv('APPDATA'), "Virtual Light Table", "temp", "imgs")
+vlt_folder = os.path.join(vlt_folder, "temp", "imgs")
 new_path = os.path.join(vlt_folder, new_filename)
 
 mirror = Image.fromarray(mirror).convert('RGBA')

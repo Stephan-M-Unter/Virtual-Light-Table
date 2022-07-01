@@ -199,7 +199,9 @@ function loadDefaultConfig() {
 
 function uploadTpopFragments() {
   if (loadingQueue.length == 0) {
-    localUploadWindow.close();
+    try {
+      localUploadWindow.close();
+    } catch {}
     // localUploadWindow = null;
     return;
   }
@@ -489,18 +491,18 @@ function preprocess_fragment(data) {
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask"]);
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
     }
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints)]);
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints)]);
+    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints)]);
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
     } else {
-      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints)]);
+      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
     }
   } else if (data.maskMode == 'automatic') {
     // TODO
