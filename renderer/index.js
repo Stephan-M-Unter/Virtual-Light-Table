@@ -488,6 +488,9 @@ $(document).ready(function() {
       if (event.keyCode == 46) {
         // DEL -> Delete Fragment(s)
         controller.removeFragments();
+      }else if (event.keyCode == 8) {
+        // BACKSPACE -> Delete Fragment(s)
+        controller.removeFragments();
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
         if (hotkeysOn) {
