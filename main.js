@@ -238,6 +238,8 @@ function uploadTpopFragments() {
   localUploadWindow.removeMenu();
   localUploadWindow.once('ready-to-show', () => {
     localUploadWindow.show();
+  });
+  localUploadWindow.once('show', () => {
     sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
   });
 
