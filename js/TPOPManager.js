@@ -754,8 +754,8 @@ class TPOPManager {
         const entry = {
           'id': obj['TPOPid'],
           'name': obj['InventoryNumber'],
-          'urlRecto': obj['ObjectImageRectoHi'],
-          'urlVerso': obj['ObjectImageVersoHi'],
+          'urlRecto': obj['ObjectImageRecto'],
+          'urlVerso': obj['ObjectImageVerso'],
           'urlTPOP': obj['permalink'],
         };
         if ('features' in obj) {
