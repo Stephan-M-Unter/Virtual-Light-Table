@@ -292,8 +292,10 @@ body {
     align-items: center;
     gap: 10px;
     height: 100%;
-    width: 20px;
+    width: 30px;
     background-color: white;
+    border: 1px solid #ddd;
+    padding: 5px;
 }
 
 .fragment_list_item_active .fragment_list_item_thumb_wrapper {
@@ -317,25 +319,6 @@ body {
     line-height: 50px;
     font-size: 1.2em;
     margin: auto;
-}
-
-.fragment_list_button {
-    border-radius: 50%;
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    background-color: lightgray;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 70%;
-    overflow: hidden;
-    opacity: 0.8;
-}
-
-.fragment_list_button:hover {
-    opacity: 1;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
-    transition: 0.2s all;
 }
 
 .fragment_list_button:active {
@@ -364,15 +347,18 @@ body {
 }
 
 .fragment_list_item_button {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
     transition: all .2s;
     opacity: 0.5;
     cursor: pointer;
 }
 
-.fragment_list_item_button:hover {
+.fragment_list_item:hover .fragment_list_item_button {
     opacity: 1;
+}
+
+.fragment_list_item_button:hover {
     width: 20px;
     height: 20px;
 }
