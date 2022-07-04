@@ -47,23 +47,21 @@ function updateCanvasSize() {
 }
 
 function centerImages() {
-  if (recto.content.img) {
-    recto.content.x = $(recto.canvas).innerWidth() / 2;
-    recto.content.y = $(recto.canvas).innerHeight() / 2;
-    recto.content.img.x = recto.content.x;
-    recto.content.img_bg.x = recto.content.x;
-    recto.content.img.y = recto.content.y;
-    recto.content.img_bg.y = recto.content.y;
-  }
-  if (verso.content.img) {
-    verso.content.x = $(verso.canvas).innerWidth() / 2;
-    verso.content.y = $(verso.canvas).innerHeight() / 2;
-    verso.content.img.x = verso.content.x;
-    verso.content.img_bg.x = verso.content.x;
-    verso.content.img.y = verso.content.y;
-    verso.content.img_bg.y = verso.content.y;
-  }
+  centerImage(recto);
+  centerImage(verso);
   reposition = false;
+}
+
+function centerImage(side) {
+  if (side.content.img) {
+    side.content.x = $(side.canvas).innerWidth() / 2;
+    side.content.y = $(side.canvas).innerHeight() / 2;
+    side.content.img.x = side.content.x;
+    side.content.img_bg.x = side.content.x;
+    side.content.img.y = side.content.y;
+    side.content.img_bg.y = side.content.y;
+  }
+  side.stage.update();
 }
 
 /**
@@ -1192,6 +1190,10 @@ $('.delete').on('click', (event) => {
 $('.rotate_90').on('click', (event) => {
   const canvas = $(event.target).attr('canvas');
   rotateByAngle(90, canvas);
+});
+$('.center').on('click', (event) => {
+  const side = getSide($(event.target).attr('canvas'));
+  centerImage(side);
 });
 $('.measure').on('click', (event) => {
   const target = $(event.target).attr('canvas');
