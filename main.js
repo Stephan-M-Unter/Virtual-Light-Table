@@ -848,7 +848,7 @@ ipcMain.on('server-open-upload', (event, tableID) => {
     try {
       localUploadWindow.close();
     } catch {};
-    // localUploadWindow = null;
+    localUploadWindow = null;
   }
 
   if (!localUploadWindow) {

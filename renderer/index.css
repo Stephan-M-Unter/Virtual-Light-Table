@@ -236,9 +236,10 @@ body {
 
 .fragment_list_item {
     position: relative;
-    display: inline-block;
+    display: flex;
+    justify-content: space-between;
     vertical-align: middle;
-    width: 150px;
+    width: 175px;
     height: 150px;
     background-color: white;
     text-align: center;
@@ -247,22 +248,25 @@ body {
     transition: 0.2s all;
     overflow: hidden;
     color: var(--cb_black);
+    padding: 5px;
 }
 
-.fragment_list_item_thumbwrapper {
-    position: absolute;
-    height: calc(100% - 20px);
-    width: 100%;
+.fragment_list_item_thumb_wrapper {
+    position: relative;
+    display: inline-block;
+    height: 100%;
+    width: calc(100% - 35px);
+    transition: all .2s;
     vertical-align: middle;
 }
 
-.fragment_list_item_img {
+.fragment_list_item_thumbnail {
     position: absolute;
     margin: auto;
     top: 50%;
     vertical-align: middle;
-    max-height: calc(100% - 10px);
-    max-width: calc(100% - 10px);
+    max-height: 100%;
+    max-width: 100%;
     transform: translate(-50%, -50%);
 }
 
@@ -275,15 +279,37 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: white;
+    background-color: rgba(0,0,0,0.5);
     width: 100%;
+    padding: 0px 4px;
 }
 
-.fragment_list_item_active {
+.fragment_list_item_button_wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+    width: 20px;
+    background-color: white;
+}
+
+.fragment_list_item_active .fragment_list_item_thumb_wrapper {
     background-color: var(--cb_orange);
 }
 
-.fragment_list_item_highlighted {
+.fragment_list_item_active {
+    border: 5px solid var(--cb_orange);
+}
+
+.fragment_list_item_highlighted .fragment_list_item_thumb_wrapper {
     background-color: #a4042a;
+}
+
+.fragment_list_item_highlighted {
+    border: 5px solid #a4042a;
 }
 
 #fragment_list_nocontent {
@@ -317,61 +343,38 @@ body {
     box-shadow: none;
 }
 
-.delete_button {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    top: 0px;
-    right: 0px;
-    transition: all .2s;
-    opacity: 0.5;
+.fragment_list_item_button_remove {
     background-image: url('../imgs/symbol_x.png');
     background-size: contain;
 }
 
-.delete_button:hover,
-.goto_button:hover,
-.edit_button:hover,
-.tpop_button:hover {
-    opacity: 1;
-    width: 30px;
-    height: 30px;
-}
-
-.goto_button {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    transition: all .2s;
-    opacity: 0.5;
-    width: 20px;
-    height: 20px;
+.fragment_list_item_button_goto {
     background-image: url("../imgs/symbol_target.png");
     background-size: contain;
 }
 
-.tpop_button {
-    position: absolute;
-    left: 0px;
-    bottom: 18px;
-    transition: all .2s;
-    opacity: 0.5;
-    width: 20px;
-    height: 20px;
+.fragment_list_item_button_tpop {
     background-image: url("../imgs/symbol_extern.png");
     background-size: contain;
 }
 
-.edit_button {
-    position: absolute;
-    width: 20px;
-    transition: all .2s;
-    opacity: 0.5;
-    height: 20px;
-    bottom: 18px;
-    right: 0px;
+.fragment_list_item_button_edit {
     background-image: url("../imgs/symbol_edit.png");
     background-size: contain;
+}
+
+.fragment_list_item_button {
+    width: 15px;
+    height: 15px;
+    transition: all .2s;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.fragment_list_item_button:hover {
+    opacity: 1;
+    width: 20px;
+    height: 20px;
 }
 
 .hidden {

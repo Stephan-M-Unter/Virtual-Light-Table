@@ -21,68 +21,81 @@ class Sidebar {
   _addFragment(id, name, imgUrl, tpopUrl) {
     const sidebar = this;
     const controller = this.controller;
-    // thumbnail wrapper
-    const fragmentWrapper = document.createElement('div');
-    fragmentWrapper.setAttribute('class', 'fragment_list_item');
-    fragmentWrapper.setAttribute('title', name);
-    fragmentWrapper.setAttribute('id', id);
 
-    // thumbnail description
-    const fragmentName = document.createElement('div');
-    fragmentName.setAttribute('class', 'fragment_list_item_name');
-    const text = document.createTextNode(name);
-    fragmentName.append(text);
+    // creating elements
+    const fragmentListItem = document.createElement('div');
+    const fragmentItemThumbWrapper = document.createElement('div');
+    const fragmentItemThumbnail = document.createElement('img');
+    const fragmentItemName = document.createElement('div');
+    const fragmentItemButtonWrapper = document.createElement('div');
+    const fragmentItemButtonRemove = document.createElement('div');
+    const fragmentItemButtonGoto = document.createElement('div');
+    const fragmentItemButtonEdit = document.createElement('div');
+    const fragmentItemNameText = document.createTextNode(name);
+    
+    // setting attributes
+    fragmentListItem.setAttribute('class', 'fragment_list_item');
+    fragmentListItem.setAttribute('title', name);
+    fragmentListItem.setAttribute('id', id);
+    fragmentItemThumbWrapper.setAttribute('class', 'fragment_list_item_thumb_wrapper');
+    fragmentItemThumbnail.setAttribute('class', 'fragment_list_item_thumbnail');
+    fragmentItemThumbnail.src = imgUrl;
+    fragmentItemName.setAttribute('class', 'fragment_list_item_name');
+    fragmentItemButtonWrapper.setAttribute('class', 'fragment_list_item_button_wrapper');
+    fragmentItemButtonRemove.setAttribute('class', 'fragment_list_item_button_remove fragment_list_item_button');
+    fragmentItemButtonRemove.setAttribute('title', 'Remove fragment');
+    fragmentItemButtonGoto.setAttribute('class', 'fragment_list_item_button_goto fragment_list_item_button');
+    fragmentItemButtonGoto.setAttribute('title', 'Go to fragment');
+    fragmentItemButtonEdit.setAttribute('class', 'fragment_list_item_button_edit fragment_list_item_button');
+    fragmentItemButtonEdit.setAttribute('title', 'Edit fragment');
 
-    // thumbnail itself
-    const fragmentThumbWrapper = document.createElement('div');
-    fragmentThumbWrapper.setAttribute('class',
-        'fragment_list_item_thumbwrapper');
+    // chain DOM structure
 
-    const fragmentThumb = document.createElement('img');
-    fragmentThumb.setAttribute('class', 'fragment_list_item_img');
-    fragmentThumb.src = imgUrl;
+    /*
+        List Item
+        -- Thumbwrapper
+        ------ Thumbnail
+        ------ Name
+        ---------- Textnode
+        -- Buttonwrapper
+        ------ Remove Button
+        ------ Goto Button
+        ------ Edit Button
+        ------ [TPOP Button]
+    */
 
-    // interface buttons
-    const deleteButton = document.createElement('div');
-    deleteButton.setAttribute('class',
-        'delete_button hidden');
-    deleteButton.setAttribute('title', 'Remove fragment from table');
-    const gotoButton = document.createElement('div');
-    gotoButton.setAttribute('class', 'goto_button hidden');
-    gotoButton.setAttribute('title', 'Go to fragment');
-    const editButton = document.createElement('div');
-    editButton.setAttribute('class', 'edit_button hidden');
-    editButton.setAttribute('title', 'Edit Fragment');
+    fragmentListItem.appendChild(fragmentItemThumbWrapper);
+    fragmentListItem.appendChild(fragmentItemButtonWrapper);
 
-    let tpopButton;
+    fragmentItemThumbWrapper.appendChild(fragmentItemThumbnail);
+    fragmentItemThumbWrapper.appendChild(fragmentItemName);
+    fragmentItemName.appendChild(fragmentItemNameText);
+
+    fragmentItemButtonWrapper.appendChild(fragmentItemButtonRemove);
+    fragmentItemButtonWrapper.appendChild(fragmentItemButtonGoto);
+    fragmentItemButtonWrapper.appendChild(fragmentItemButtonEdit);
+
+    let fragmentItemButtonTpop;
     if (tpopUrl) {
-      tpopButton = document.createElement('a');
-      tpopButton.setAttribute('target', '_blank');
-      tpopButton.setAttribute('href', tpopUrl);
-      tpopButton.setAttribute('class', 'tpop_button hidden');
-      tpopButton.setAttribute('title', 'Open in TPOP (external window)');
+      fragmentItemButtonTpop = document.createElement('a');
+      fragmentItemButtonTpop.setAttribute('target', '_blank');
+      fragmentItemButtonTpop.setAttribute('href', tpopUrl);
+      fragmentItemButtonTpop.setAttribute('class', 'fragment_list_item_button_tpop fragment_list_item_button');
+      fragmentItemButtonTpop.setAttribute('title', 'Open in TPOP (external window)');
+      fragmentItemButtonWrapper.appendChild(fragmentItemButtonTpop);
     }
 
-    // generating DOM structure
-    fragmentThumbWrapper.appendChild(fragmentThumb);
-    fragmentWrapper.appendChild(fragmentThumbWrapper);
-    fragmentWrapper.appendChild(fragmentName);
-    fragmentWrapper.appendChild(deleteButton);
-    fragmentWrapper.appendChild(gotoButton);
-    fragmentWrapper.appendChild(editButton);
-    if (tpopUrl) fragmentWrapper.appendChild(tpopButton);
-
-    $('#fragment_list_content').append(fragmentWrapper);
+    $('#fragment_list_content').append(fragmentListItem);
 
 
     // Interactions
-    fragmentWrapper.addEventListener('click', function(event) {
+    fragmentListItem.addEventListener('click', function(event) {
       const isActive = $(event.target).hasClass('fragment_list_item_active');
       const isCtrl = event.ctrlKey;
 
       if (isCtrl) {
         if (isActive) {
-          // ctrl key pressed and item has already been selected -> desedeselect
+          // ctrl key pressed and item has already been selected -> deselect
           controller.deselectFragment(id);
         } else {
           // ctrl key is pressed and item was not selected -> select
@@ -97,24 +110,24 @@ class Sidebar {
         }
       }
     });
-    fragmentWrapper.addEventListener('mouseenter', function(event) {
+    fragmentListItem.addEventListener('mouseenter', function(event) {
       controller.highlightFragment(id);
       sidebar.addFragmentListButtons(id);
     });
-    fragmentWrapper.addEventListener('mouseleave', function(event) {
+    fragmentListItem.addEventListener('mouseleave', function(event) {
       controller.unhighlightFragment(id);
       if (!$(event.target).hasClass('fragment_list_item_active')) {
         sidebar.removeFragmentListButtons(id);
       }
     });
 
-    deleteButton.addEventListener('click', function(event) {
+    fragmentItemButtonRemove.addEventListener('click', function(event) {
       controller.removeFragment(id);
     }, false);
-    gotoButton.addEventListener('click', function(event) {
+    fragmentItemButtonGoto.addEventListener('click', function(event) {
       controller.centerToFragment(id);
     }, false);
-    editButton.addEventListener('click', function(event) {
+    fragmentItemButtonEdit.addEventListener('click', function(event) {
       const id = $(event.target).parent().attr('id');
       controller.changeFragment(id);
     }, false);
