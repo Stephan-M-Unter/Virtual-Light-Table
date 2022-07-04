@@ -205,7 +205,7 @@ function uploadTpopFragments() {
     // localUploadWindow = null;
     return;
   }
-
+  
   const data = loadingQueue.pop(0);
   const fragmentData = data.fragment;
   activeTables.uploading = data.table;
@@ -244,6 +244,7 @@ function uploadTpopFragments() {
   });
 
   localUploadWindow.on('close', function() {
+    localUploadWindow = null;
     uploadTpopFragments();
   });
 

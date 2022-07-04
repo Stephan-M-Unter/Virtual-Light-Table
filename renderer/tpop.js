@@ -828,10 +828,8 @@ $('#tpop-left-arrow').click(function(event) {
 $('#tpop-right-arrow').click(function(event) {
   if (!$('#tpop-right-arrow').hasClass('inactive')) {
     if (event.ctrlKey) {
-      console.log(Math.ceil(maxIndex/maxPageSize)-1, currentPage+10, Math.min(Math.ceil(maxIndex/maxPageSize)+1, currentPage+10));
       loadPage(Math.min(Math.ceil(maxIndex/maxPageSize)-1, currentPage+10));
     } else {
-      console.log(currentPage+1);
       loadPage(currentPage+1);
     }
   }
