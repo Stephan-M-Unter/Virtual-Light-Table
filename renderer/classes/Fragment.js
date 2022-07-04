@@ -44,10 +44,10 @@ class Fragment {
       }
       this.recto.rotation = data.recto.rotation;
       this.recto.ppi = data.recto.ppi;
-
+      
       this.recto.container = new createjs.Container();
       this.recto.container.name = 'Inner Container - Recto';
-
+      
       this.recto.img = new createjs.Bitmap();
       this.recto.img.id = id;
       this.recto.img.name = 'Image - Recto';
@@ -55,15 +55,21 @@ class Fragment {
       this.recto.img.x = 0;
       this.recto.img.y = 0;
       this.recto.img.rotation = this.recto.rotation;
-      this.recto.img.scale = 96 / this.recto.ppi;
+      
+      if ('ppi' in this.recto && this.recto.ppi) {
+        this.recto.img.scale = 96 / this.recto.ppi;
+      } else {
+        this.recto.img.scale = 96 / data.verso.ppi;
+      }
+      
       this.recto.container.addChild(this.recto.img);
-
+      
       this.recto.box = data.recto.box;
       this.recto.polygon = data.recto.polygon;
-
+      
       this.recto.upload = data.recto.upload;
       this.recto.www = data.recto.www;
-
+      
       this.framework.registerImageEvents(this.recto.img);
     } else {
       // in this case, there IS no real recto - instead we only have an object
@@ -78,7 +84,7 @@ class Fragment {
       this.recto.img.cursor = 'pointer';
       this.recto.img.x = 0;
       this.recto.img.y = 0;
-      this.recto.img.scale = 96 / this.recto.ppi;
+      this.recto.img.scale = 96 / this.verso.ppi;
       this.recto.container.addChild(this.recto.img);
       this.framework.registerImageEvents(this.recto.img);
     }
@@ -91,10 +97,10 @@ class Fragment {
       }
       this.verso.rotation = data.verso.rotation;
       this.verso.ppi = data.verso.ppi;
-
+      
       this.verso.container = new createjs.Container();
       this.verso.container.name = 'Inner Container - Verso';
-
+      
       this.verso.img = new createjs.Bitmap();
       this.verso.img.id = id;
       this.verso.img.name = 'Image - Verso';
@@ -102,15 +108,21 @@ class Fragment {
       this.verso.img.x = 0;
       this.verso.img.y = 0;
       this.verso.img.rotation = this.verso.rotation;
-      this.verso.img.scale = 96 / this.verso.ppi;
+      
+      if ('ppi' in this.verso && this.verso.ppi) {
+        this.verso.img.scale = 96 / this.verso.ppi;
+      } else {
+        this.verso.img.scale = 96 / data.recto.ppi;
+      }
+      
       this.verso.container.addChild(this.verso.img);
-
+      
       this.verso.box = data.verso.box;
       this.verso.polygon = data.verso.polygon;
-
+      
       this.verso.upload = data.verso.upload;
       this.verso.www = data.verso.www;
-
+      
       this.framework.registerImageEvents(this.verso.img);
     } else {
       // in this case, there IS no real verso - instead we only have an object
@@ -125,11 +137,11 @@ class Fragment {
       this.verso.img.cursor = 'pointer';
       this.verso.img.x = 0;
       this.verso.img.y = 0;
-      this.verso.img.scale = 96 / this.verso.ppi;
+      this.verso.img.scale = 96 / this.recto.ppi;
       this.verso.container.addChild(this.verso.img);
       this.framework.registerImageEvents(this.verso.img);
     }
-
+    
     this._createImage(eventData, this.isRecto);
 
     // create the fragment container
