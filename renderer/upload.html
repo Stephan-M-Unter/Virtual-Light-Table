@@ -7,8 +7,200 @@
         <script src="../js/libs/jquery-3.6.0.min.js"></script>
         <script>window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');</script>
     </head>
-    <body>
-        
+    <body> <!-- Level 0 -->
+        <div class="wrapper" id="upper_region"> <!-- Level 1 -->
+            <div class="wrapper" id="canvas_region"> <!-- Level 2 -->
+                <div class="wrapper canvas_wrapper" id="recto_canvas_region"> <!-- Level 3 -->
+                    <canvas id="recto_canvas"></canvas>
+                    <div class="wrapper upload_wrapper" id="recto_upload_wrapper">
+                        <div class="label upload_label">Upload Recto Image</div>
+                        <div title="Upload a local image file from your computer" class="button large_button local_upload" canvas="recto">
+                            <img draggable="false" src="../imgs/symbol_upload_local.png" class="large_button_img" canvas="recto">
+                            <div class="large_button_label" canvas="recto">Local File</div>
+                        </div>
+                        <div title="Specify a URL to an image on the internet" class="button large_button www_upload" canvas="recto">
+                            <img draggable="false" src="../imgs/symbol_www.png" class="large_button_img" canvas="recto">
+                            <div class="large_button_label" canvas="recto">Web Image/URL</div>
+                        </div>
+                    </div>
+                </div> <!-- </recto_canvas_region> -->
+                <div class="wrapper canvas_wrapper" id="verso_canvas_region"> <!-- Level 3 -->
+                    <canvas id="verso_canvas"></canvas>
+                    <div class="wrapper upload_wrapper" id="verso_upload_wrapper">
+                        <div class="label upload_label">Upload Verso Image</div>
+                        <div title="Upload a local image file from your computer" class="button large_button local_upload" canvas="verso">
+                            <img draggable="false" src="../imgs/symbol_upload_local.png" class="large_button_img" canvas="verso">
+                            <div class="large_button_label" canvas="verso">Local File</div>
+                        </div>
+                        <div title="Specify a URL to an image on the internet" class="button large_button www_upload" canvas="verso">
+                            <img draggable="false" src="../imgs/symbol_www.png" class="large_button_img" canvas="verso">
+                            <div class="large_button_label" canvas="verso">Web Image/URL</div>
+                        </div>
+                    </div>
+                </div> <!-- </verso_canvas_region> -->
+            </div> <!-- </canvas_region> -->
+            <div class="wrapper hidden" id="button_region"> <!-- Level 2 -->
+                <div class="wrapper hidden" id="recto_button_region">
+                    <div title="Remove image (doesn't delete any files on your computer)" class="button square_button delete" canvas="recto">
+                        <img draggable="false" src="../imgs/symbol_bin.png" class="square_button_img" canvas="recto">
+                    </div>
+                    <div title="Rotate image by 90°" class="button square_button rotate_90" canvas="recto">
+                        <img draggable="false" src="../imgs/symbol_rotate90-large.png" class="square_button_img" canvas="recto">
+                    </div>
+                    <div title="Measure PPI - Specify the distance of 1cm in the image" class="button square_button measure" canvas="recto">
+                        <img draggable="false" src="../imgs/symbol_measure_cursor.png" class="square_button_img" canvas="recto">
+                    </div>
+                    <div class="ppi_wrapper">
+                        <input type="text" class="input_ppi missing" id="recto_ppi" canvas="recto">
+                        <div class="label label_ppi">ppi</div>
+                    </div>
+                    <div class="label canvas_title">Recto</div>
+                </div>
+                <div class="wrapper" id="general_button_region">
+                    <div title="Activate move mode for images" class="button square_button active_mode" id="move" mode="move">
+                        <img draggable="false" src="../imgs/symbol_move.png" class="square_button_img">
+                    </div>
+                    <div title="Swap images for Recto and Verso" class="button square_button" id="swap">
+                        <img draggable="false" src="../imgs/symbol_switch.png" class="square_button_img">
+                    </div>
+                    <div title="Activate rotation mode for images" class="button square_button" id="rotate">
+                        <img draggable="false" src="../imgs/symbol_rotate.png" class="square_button_img" mode="rotate">
+                    </div>
+                </div>
+                <div class="wrapper hidden" id="verso_button_region">
+                    <div class="label canvas_title">Verso</div>
+                    <div class="ppi_wrapper">
+                        <input type="text" class="input_ppi missing" id="verso_ppi" canvas="verso">
+                        <div class="label label_ppi">ppi</div>
+                    </div>
+                    <div title="Measure PPI - Specify the distance of 1cm in the image" class="button square_button measure" canvas="verso">
+                        <img draggable="false" src="../imgs/symbol_measure_cursor.png" class="square_button_img" canvas="verso">
+                    </div>
+                    <div title="Rotate image by 90°" class="button square_button rotate_90" canvas="verso">
+                        <img draggable="false" src="../imgs/symbol_rotate90-large.png" class="square_button_img" canvas="verso">
+                    </div>
+                    <div title="Remove image (doesn't delete any files on your computer)" class="button square_button delete" canvas="verso">
+                        <img draggable="false" src="../imgs/symbol_bin.png" class="square_button_img" canvas="verso">
+                    </div>
+                </div>
+            </div> <!-- </button_region> -->
+        </div> <!-- </upper_region> -->
+        <div class="wrapper" id="lower_region"> <!-- Level 1 -->
+            <div class="wrapper" id="manual_region"> <!-- Level 2 -->
+                <div class="header">Upload Custom Fragment</div>
+                <div id="manual_text">
+                    <ul>
+                        <li>CREATE front and back with local or web images,</li>
+                        <li>RESIZE to bring objects to scale,</li>
+                        <li>ALIGN front and back to each other,</li>
+                        <li>NAME your object,</li>
+                        <li>LOAD your object to the lighttable.</li>
+                        <li><span class="red_text">Red fields</span> are obligatory.</li>
+                    </ul>
+                </div>
+                <div class="button large_button" id="manual_instructions">
+                    <img draggable="false" src="../imgs/symbol_question.png" class="large_button_img">
+                    <div class="large_button_label">Instructions</div>
+                </div>
+            </div> <!-- </manual_region> -->
+            <div class="wrapper unrendered" id="mask_region"> <!-- Level 2 -->
+                <div class="header">Mask & Register</div>
+                <div id="mask_selection_region">
+                    <div class="label" id="mask_selection_label">Select masking mode:</div>
+                    <div class="list" id="mask_selection">
+                        <div class="list_item selected no_mask" id="mask_none" mask_mode="no_mask">
+                            <img draggable="false" src="../imgs/symbol_x.png" class="">
+                            <div class="list_item_label label">No Mask</div>
+                        </div>
+                        <div class="list_item boundingbox" id="mask_boundingbox" mask_mode="boundingbox">
+                            <img draggable="false" src="../imgs/symbol_crop.png" class="">
+                            <div class="list_item_label label">Bounding Box</div>
+                        </div>
+                        <div class="list_item polygon" id="mask_polygon" mask_mode="polygon">
+                            <img draggable="false" src="../imgs/symbol_cut.png" class="">
+                            <div class="list_item_label label">Polygon</div>
+                        </div>
+                        <div class="list_item automatic" id="mask_automatic" mask_mode="automatic">
+                            <img draggable="false" src="../imgs/symbol_ml.png" class="">
+                            <div class="list_item_label label">Automatic</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="mask_control_region">
+                    <div class="mask_controls selected no_mask"></div>
+                    <div class="mask_controls boundingbox">
+                        <div title="Reset bounding box" id="mask_control_box_reset" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_rotate.png" class="square_button_img"/>
+                        </div>
+                    </div>
+                    <div class="mask_controls polygon">
+                        <div title="Add new polygon nodes (toggle)" id="mask_control_polygon_add" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_cut.png" class="square_button_img"/>
+                        </div>
+                        <div title="Remove polygon nodes (toggle)" id="mask_control_polygon_remove" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_erase.png" class="square_button_img"/>
+                        </div>
+                        <div title="Undo last polygon node" id="mask_control_polygon_undo" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_undo.png" class="square_button_img"/>
+                        </div>
+                        <div title="Remove all polygon nodes" id="mask_control_polygon_clear" class="mask_control_button button square_button">
+                            <img src="../imgs/symbol_new_table.png" class="square_button_img"/>
+                        </div>
+                    </div>
+                    <div class="mask_controls automatic"></div>
+                    <div id="mask_control_title"></div>
+                </div>
+                <div id="mask_explanation_region">
+                    <div class="mask_explanation selected no_mask">No mask mode selected. Please note that correct flipping of images will only work if recto and verso are already perfectly aligned to each other.</div>
+                    <div class="mask_explanation boundingbox">Move the vertices of the bounding box to define the minimal bounding rectangle for your object. Make sure for both recto and verso your object is in the selected region.</div>
+                    <div class="mask_explanation polygon">Use the pen tool and add nodes to define a custom polygon around your object. Make sure that for both recto and verso your object is within the polygonal region.</div>
+                    <div class="mask_explanation automatic">Select a machine learning model to automatically segment your object and register front and back to each other.</div>
+                </div>
+            </div> <!-- </mask_region> -->
+            <div class="wrapper unrendered" id="load_region"> <!-- Level 2 -->
+                <div class="header">Load Fragment</div>
+                <div class="wrapper" id="load_region_wrapper">
+                    <input class="missing" type="text" id="objectname">
+                    <div class="label">Object Name</div>
+                    <div title="Finish upload and add fragment to table" class="button large_button disabled" id="upload_button">
+                        <img draggable="false" src="../imgs/symbol_plus_zoom.png" class="large_button_img">
+                        <div class="large_button_label">Add to Table</div>
+                    </div> 
+                </div>
+            </div> <!-- </load_region> -->
+        </div> <!-- </lower_region> -->
+
+        <div class="unrendered" id="tutorial_region"> <!-- Level 1 -->
+            <div id="tutorial_shadow"></div>
+            <div id="tutorial_box">
+                <div id="tutorial_close">
+                    <img src="../imgs/symbol_x.png">
+                </div>
+                <div class="header">Create a Custom Fragment</div>
+                <div class="tutorial_image"></div>
+                <div class="tutorial_header">Select Images for Recto and/or Verso</div>
+                <div class="tutorial_text">
+                    Choose images for your recto and/or verso by either selecting local images from your hard drive or entering a URL to an image on the web. You can confine yourself to only one side - in this case, the fragment will not be flipped on the table.
+                </div>
+                <div class="tutorial_image"></div>
+                <div class="tutorial_header">Determine Image Resolution</div>
+                <div class="tutorial_text">
+                    To ensure consistent scaling between fragments, you need to define the images' resolution (how many pixels constitute one centimeter). If not extracted automatically from EXIF data, you can either type the values into the text fields, or determine the correct resolution with the measurement tool. Just select the tool and then click on two spots in the image that have a distance of exactly 1cm.</div>
+                <div class="tutorial_image"></div>
+                <div class="tutorial_header">Register Recto and Verso</div>
+                <div class="tutorial_text">
+                    The VLT can only flip fragments correctly and crop the image to the important fragment if it knows where the fragment is and how recto and verso need to be aligned to each other. To achieve this, you can choose from different masking methods. With <b>bounding boxes</b> you can define a minimal bounding rectangle for your fragment. The <b>polygon</b> tool lets you define a custom polygon shape for more precise cropping of the fragment. For alignment, ensure that for both recto and verso the desired fragment is completely encompassed by the polygonal region. The <b>automatic</b> version uses machine learning to segment the image, choose the fragment and automatically align recto and verso to each other.
+                </div>
+                <div class="tutorial_image"></div>
+                <div class="tutorial_header">Provide Name and Upload</div>
+                <div class="tutorial_text">
+                    As a final step, adapt (or define, if not yet filled in) the name of your custom fragment to your wishes and press "Add to Table". The fragment will now be loaded to the Virtual Light Table.
+                </div>
+            </div>
+
+        </div> <!-- </tutorial_region> -->
+
+        <!--
         <div id="canvas_wrapper">
             <div id="recto_canvas_wrapper">
                 <div class="canvas_label" id="recto_canvas_label">Recto</div>
@@ -109,11 +301,11 @@
                 <label>Cut / Polygon</label>
             </div>
             <div id="select_auto" class="button select_button no_select development" mode="auto">
-                <!-- TODO -->
                 <img src="../imgs/symbol_ml.png">
                 <label>Auto</label>
             </div>
         </div>
+    -->
 
 
         <script src="../js/libs/createjs.min.js"></script>

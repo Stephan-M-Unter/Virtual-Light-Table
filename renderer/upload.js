@@ -4,1263 +4,1372 @@ const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
 const dialogs = new Dialogs();
 
-const recto = {
-  'name': 'recto',
-  'stage': null,
-  'cropbox': new createjs.Shape(),
-  'crop_nw': new createjs.Shape(),
-  'crop_ne': new createjs.Shape(),
-  'crop_sw': new createjs.Shape(),
-  'crop_se': new createjs.Shape(),
-  'url': null,
-  'offsetX': 0,
-  'offsetY': 0,
-  'rotation': 0,
-  'polygon': new createjs.Shape(),
-  'img': null,
-  'imgBack': null,
-  'scaleActive': false,
-  'scaleGroup': new createjs.Container(),
-  'scalePoints': [],
-  'ppi_field': $('#recto_resolution'),
-};
+/* Variables */
 
-const verso = {
-  'name': 'verso',
-  'stage': null,
-  'cropbox': new createjs.Shape(),
-  'crop_nw': new createjs.Shape(),
-  'crop_ne': new createjs.Shape(),
-  'crop_sw': new createjs.Shape(),
-  'crop_se': new createjs.Shape(),
-  'url': null,
-  'offsetX': null,
-  'offsetY': null,
-  'rotation': 0,
-  'polygon': new createjs.Shape(),
-  'img': null,
-  'imgBack': null,
-  'scaleActive': false,
-  'scaleGroup': new createjs.Container(),
-  'scalePoints': [],
-  'ppi_field': $('#verso_resolution'),
-};
+let currentUpload = null;
+let mode = $('.active_mode').attr('mode');
+let maskMode = 'no_mask';
+let scaleMode = null;
+let actionMode = null;
+let scalePoint = null;
+let scale = 1;
+let reposition = false;
+const mousestart = {};
+let id = null;
 
-let name;
-let isNameSuggested = false;
-let mode = 'none';
-let action = 'none';
-let lastUpload = null;
-let cropX; let cropY; let cropW; let cropH;
-let polygon = [];
-let mousestartX; let mousestartY;
+let recto = createEmptySide('recto');
+let verso = createEmptySide('verso');
+
+let editData;
+
+/* DOCUMENT READY */
+
+$(document).ready(function() {
+  updateCanvasSize();
+});
+
+/* FUNCTIONS */
 
 /**
- * TODO
+ * Reading the current width and height of the canvas DOM element and feeding it into
+ * the createjs.Stage().canvas object.
  */
-function checkIfReady() {
-  if ($('#name').val() == '') $('#name').addClass('empty');
-  else $('#name').removeClass('empty');
-
-  if ($('#recto_resolution').val() == '') $('#recto_resolution').addClass('empty');
-  else $('#recto_resolution').removeClass('empty');
-
-  if ($('#verso_resolution').val() == '') $('#verso_resolution').addClass('empty');
-  else $('#verso_resolution').removeClass('empty');
-
-  if (
-    $('#verso_resolution').val() != '' &&
-    $('#recto_resolution').val() != ''
-  ) {
-    adjustSizes();
+function updateCanvasSize() {
+  recto.stage.canvas.width = recto.canvas.width();
+  recto.stage.canvas.height = recto.canvas.height();
+  verso.stage.canvas.width = verso.canvas.width();
+  verso.stage.canvas.height = verso.canvas.height();
+  if (reposition) {
+    centerImages();
   }
-
-  if (
-    recto.url &&
-    verso.url &&
-    $('#name').val() != '' &&
-    $('#verso_resolution').val() != '' &&
-    $('#recto_resolution').val() != ''
-  ) {
-    $('#load_button').removeClass('disabled');
-  } else {
-    $('#load_button').addClass('disabled');
-  }
-}
-
-/**
- * TODO
- */
-function adjustSizes() {
-  const ppiRecto = $('#recto_resolution').val();
-  const ppiVerso = $('#verso_resolution').val();
-  const ratio = ppiRecto / ppiVerso;
-  if (ratio < 1) {
-    // ppi of recto are smaller => reduce size of verso
-    recto.img.scale = recto.imgBack.scale = 1;
-    verso.img.scale = ratio;
-    verso.imgBack.scale = ratio;
-    verso.scalePoints = [];
-    drawScale(verso);
-    verso.stage.update();
-  } else if (ratio > 1) {
-    // ppi of recto are larger => reduce size of recto
-    verso.img.scale = verso.imgBack.scale = 1;
-    recto.img.scale = 1/ratio;
-    recto.imgBack.scale = 1/ratio;
-    recto.scalePoints = [];
-    drawScale(recto);
-    recto.stage.update();
-  } else {
-    // ppi are the same, no need for changes
-    const ratioRecto = getFittingScale(recto);
-    const ratioVerso = getFittingScale(verso);
-    const ratio = Math.min(1, ratioRecto, ratioVerso);
-    recto.img.scale = recto.imgBack.scale = ratio;
-    verso.img.scale = verso.imgBack.scale = ratio;
-  }
-}
-
-/**
- * TODO
- * @param {*} wrapper
- */
-function deactivateCanvas(wrapper) {
-  // background -> grau
-  wrapper.find('.canvas').css('backgroundColor', 'rgb(50,50,50)');
-  // upload_button -> her
-  wrapper.find('.upload_button').removeClass('unrendered');
-  // button_wrapper -> weg
-  wrapper.find('.button_wrapper').addClass('hidden');
-  wrapper.find('.resolution_wrapper').addClass('hidden');
-
-  if (!recto.url && !verso.url) {
-    $('#mode_wrapper').addClass('hidden');
-    $('#switch_wrapper').addClass('hidden');
-    $('#name').val('');
-    clearPolygon();
-    resetCropbox();
-  }
-}
-
-/**
- * TODO
- * @param {*} wrapper
- */
-function activateCanvas(wrapper) {
-  // background -> white
-  wrapper.find('.canvas').css('backgroundColor', 'white');
-  // upload_button -> weg
-  wrapper.find('.upload_button').addClass('unrendered');
-  // button_wrapper -> her
-  wrapper.find('.button_wrapper').removeClass('hidden');
-  wrapper.find('.resolution_wrapper').removeClass('hidden');
-
-  // activate mode selector
-  $('#mode_wrapper').removeClass('hidden');
-  // activate middle buttons
-  $('#switch_wrapper').removeClass('hidden');
-}
-
-/**
- * TODO
- * @param {*} stage
- */
-function clearCanvas(stage) {
-  stage.removeAllChildren();
-  stage.update();
-}
-
-/**
- * TODO
- */
-function clearPolygon() {
-  recto.stage.removeChild(recto.polygon);
-  verso.stage.removeChild(verso.polygon);
-  recto.polygon = new createjs.Shape();
-  verso.polygon = new createjs.Shape();
-  polygon = [];
-  if (recto.img) recto.img.mask = null;
-  if (verso.img) verso.img.mask = null;
   recto.stage.update();
   verso.stage.update();
 }
 
-/**
- * TODO
- */
-function draw() {
-  clearCanvas(recto.stage);
-  clearCanvas(verso.stage);
-  if (recto.url) drawCanvas(recto);
-  if (verso.url) drawCanvas(verso);
-  drawMasks();
-  drawScale(recto);
-  drawScale(verso);
-  checkIfReady();
+function centerImages() {
+  if (recto.content.img) {
+    recto.content.x = $(recto.canvas).innerWidth() / 2;
+    recto.content.y = $(recto.canvas).innerHeight() / 2;
+    recto.content.img.x = recto.content.x;
+    recto.content.img_bg.x = recto.content.x;
+    recto.content.img.y = recto.content.y;
+    recto.content.img_bg.y = recto.content.y;
+  }
+  if (verso.content.img) {
+    verso.content.x = $(verso.canvas).innerWidth() / 2;
+    verso.content.y = $(verso.canvas).innerHeight() / 2;
+    verso.content.img.x = verso.content.x;
+    verso.content.img_bg.x = verso.content.x;
+    verso.content.img.y = verso.content.y;
+    verso.content.img_bg.y = verso.content.y;
+  }
+  reposition = false;
 }
 
 /**
- * @return {*}
+ * Helper function to declutter code a little bit.
+ * @param {'recto'|'verso'} sidename
+ * @return {Object}
  */
-function mirrorPolygon() {
-  const polyVerso = [];
-  const temp = [...polygon];
-  for (const node in temp) {
-    if (Object.prototype.hasOwnProperty.call(temp, node)) {
-      const coord = temp[node];
-      coord[0] = verso.stage.canvas.width - temp[node][0];
-      polyVerso.push(coord);
-    }
+function getSide(sidename) {
+  if (sidename == 'recto') {
+    return recto;
+  } else if (sidename == 'verso') {
+    return verso;
   }
-  return polyVerso;
 }
 
 /**
- * TODO
- * @param {*} side
+ * @param {'recto'|'verso'} sidename
+ * @returns {Object}
  */
-function drawCanvas(side) {
-  const canvas = $(`#${side.name}_canvas`);
-  side.stage.canvas.width = canvas.width();
-  side.stage.canvas.height = canvas.height();
+function createEmptySide(sidename) {
+  const newSide = {
+    'stage': new createjs.Stage(sidename+'_canvas'),
+    'canvas': $('#'+sidename+'_canvas'),
+    'sidename': sidename,
+    'content': {
+      'filepath': null,
+      'img': null,
+      'img_bg': null,
+      'rotation': 0,
+      'x': null,
+      'y': null,
+      'www': false,
+    },
+    'mask': {
+      'group': null,
+      'box': [],
+      'polygon': [],
+      'auto': {},
+    },
+  };
+  newSide.stage.sidename = sidename;
+  newSide.stage.enableMouseOver();
 
-  if (!side.img) {
-    // images still need to load
-    const newImage = new Image();
-    newImage.src = side.url;
-    newImage.onload = function() {
-      const imgBack = new createjs.Bitmap(newImage);
-      const img = new createjs.Bitmap(newImage);
-      side.img = img;
-      side.imgBack = imgBack;
-      readExifPPI(newImage, side);
+  const maskGroup = new createjs.Container();
+  maskGroup.name = 'mask container';
+  newSide.mask.group = maskGroup;
+  newSide.stage.addChild(maskGroup);
 
-      // register event listeners
-      side.img.on('mousedown', (event) => {
-        handleMouseDown(event);
-      });
-      side.imgBack.on('mousedown', (event) => {
-        handleMouseDown(event);
-      });
-      side.img.on('pressmove', (event) => {
-        handlePressMove(event);
-      });
-      side.imgBack.on('pressmove', (event) => {
-        handlePressMove(event);
-      });
+  return newSide;
+}
 
-      drawCanvas(side);
-    };
-  } else {
-    // images have already been loaded
-    side.img.side = side;
-    side.imgBack.side = side;
+/**
+ *
+ * @param {'recto'|'verso'} sidename - String indicating which canvas needs to be initialised.
+*/
+function draw(sidename) {
+  const side = getSide(sidename);
+  side.stage.removeAllChildren();
+  if (side.content.filepath != null) {
+    if (side.content.img == null) {
+      // create a new image first from file
+      createImage(sidename);
+    } else {
+      // draw canvas
+      // get width/height of image and canvas
+      const iWidth = side.content.img.image.width;
+      const iHeight = side.content.img.image.height;
+      const cWidth = side.stage.canvas.width;
+      const cHeight = side.stage.canvas.height;
 
-    // get width/height of image and canvas
-    const iWidth = side.img.image.width;
-    const iHeight = side.img.image.height;
-    const cWidth = side.stage.canvas.width;
-    const cHeight = side.stage.canvas.height;
+      // setting regCoordinates for img and img_bg
+      side.content.img_bg.regX = side.content.img.regX = iWidth / 2;
+      side.content.img_bg.regY = side.content.img.regY = iHeight / 2;
 
-    // setting regCoordinates for img and imgBack
-    side.imgBack.regX = side.img.regX = iWidth / 2;
-    side.imgBack.regY = side.img.regY = iHeight / 2;
-
-    // set x, y - if there is an offset, take it,
-    // otherwise center image to canvas
-    let x = cWidth / 2;
-    if (side.offsetX) x = side.offsetX;
-    let y = cHeight / 2;
-    if (side.offsetY) y = side.offsetY;
-    side.img.x = side.imgBack.x = x;
-    side.img.y = side.imgBack.y = y;
-    side.img.rotation = side.imgBack.rotation = side.rotation;
-
-    side.img.scale = getFittingScale(side);
-    side.imgBack.scale = getFittingScale(side);
-
-    // creating white "shadow" layer to visually indicate mask
-    const shadow = new createjs.Shape();
-    shadow.graphics.beginFill('white')
-        .drawRect(0, 0, cWidth, cHeight)
-        .endFill();
-    shadow.alpha = 0.7;
-    shadow.side = side;
-
-    // shadow event listeners
-    shadow.on('mousedown', (event) => {
-      handleMouseDown(event);
-    });
-    shadow.on('pressmove', (event) => {
-      handlePressMove(event);
-    });
-
-    side.stage.addChildAt(side.imgBack, shadow, side.img, 0);
-    drawMasks();
-    side.stage.update();
-  }
-
-  /**
-     * TODO
-     * @param {*} event
-     */
-  function handlePressMove(event) {
-    const currentSide = event.target.side;
-    // don't react if scaling mode is active
-    if (!currentSide.scaleActive) {
-      // if mode is rotate, image should be rotated, not moved
-      if (action == 'rotate') {
-        rotateImage(event, currentSide);
-      } else if (action == 'move') {
-        // if mode is move, move the image
-        moveImage(event, currentSide);
+      // set x, y - if there is an offset, take it,
+      // otherwise center image to canvas
+      // const x = side.content.offsetX || cWidth / 2;
+      // const y = side.content.offsetY || cHeight / 2;
+      
+      
+      if ('scale' in side.content && side.content.scale) {
+        side.content.img.scale = side.content.scale;
+        side.content.img_bg.scale = side.content.scale;
       }
+      else {
+        const fittingScale = getFittingScale(side);
+        side.content.scale = fittingScale;
+        side.content.img.scale = fittingScale;
+        side.content.img_bg.scale = fittingScale;
+        reposition = true;
+      }
+      
+      side.content.img.x = side.content.img_bg.x = side.content.x;
+      side.content.img.y = side.content.img_bg.y = side.content.y;
+      side.content.img.rotation = side.content.img_bg.rotation = side.content.rotation;
+
+      // creating white "shadow" layer to visually indicate mask
+      const shadow = new createjs.Shape();
+      shadow.name = 'Shadow';
+      shadow.graphics.beginFill('white')
+          .drawRect(0, 0, cWidth, cHeight)
+          .endFill();
+      shadow.alpha = 0.8;
+      shadow.side = side;
+
+      // shadow event listeners
+      shadow.on('mousedown', (event) => {
+        handleMouseDown(event, event.target.side.sidename);
+      });
+      shadow.on('pressmove', (event) => {
+        handlePressMove(event, event.target.side.sidename);
+      });
+
+      side.stage.addChildAt(side.content.img_bg, shadow, side.content.img, side.mask.group, 0);
+      // side.canvas.attr('title', side.content.filepath);
+      //   drawMasks();
     }
   }
+  side.stage.update();
+  drawMasks();
+  checkGUI();
+}
 
-  /**
-     * TODO
-     * @param {*} event
-     */
-  function handleMouseDown(event) {
-    const target = event.target.side.imgBack;
-    target.offsetX = event.stageX - target.x;
-    target.offsetY = event.stageY - target.y;
-    mousestartX = event.stageX;
-    mousestartY = event.stageY;
-  }
+function getFittingScale(side) {
+  const canvasHeight = $(side.canvas).innerHeight();
+  const canvasWidth = $(side.canvas).innerWidth();
+  const imageHeight = side.content.img.image.height;
+  const imageWidth = side.content.img.image.width;
+
+  const scaleX = Math.min(1, (canvasWidth / imageWidth));
+  const scaleY = Math.min(1, (canvasHeight / imageHeight));
+  const scale = Math.min(scaleX, scaleY);
+
+  return scale;
 }
 
 /**
- * TODO
- * @param {*} image
- * @param {*} side
+ *
+ * @param {*} sidename
  */
-function readExifPPI(image, side) {
-  if (side.ppi_field.val() != '') {
-    // if there is already a value given, don't change anything
-    return;
-  }
+function createImage(sidename) {
+  const side = getSide(sidename);
+  const newImage = new Image();
+  newImage.src = side.content.filepath;
+  newImage.onload = function() {
+    // extract PPI from EXIF if possible
+    readExifPPI(newImage, sidename);
 
+    // create new Bitmap objects
+    const image = new createjs.Bitmap(newImage);
+    image.name = 'image';
+    const imageBackground = new createjs.Bitmap(newImage);
+    imageBackground.name = 'image_background';
+    side.content.img = image;
+    side.content.img_bg = imageBackground;
+
+    if (side.content.x == null) {
+      side.content.x = side.stage.canvas.width / 2;
+      side.content.y = side.stage.canvas.height / 2;
+    }
+
+    // register event listeners
+    side.content.img.on('mousedown', (event) => {
+      handleMouseDown(event, event.target.parent.sidename);
+    });
+    side.content.img_bg.on('mousedown', (event) => {
+      handleMouseDown(event, event.target.parent.sidename);
+    });
+    side.content.img.on('pressmove', (event) => {
+      handlePressMove(event, event.target.parent.sidename);
+    });
+    side.content.img_bg.on('pressmove', (event) => {
+      handlePressMove(event, event.target.parent.sidename);
+    });
+
+    // now recursively restart startCanvas() as now an image is available
+    draw(sidename);
+  };
+}
+
+/**
+ * Reading PPI resolution from EXIF data if available. If so, the result will be added
+ * to the input field connected to the given side (recto/verso).
+ * @param {Image} image
+ * @param {'recto'|'verso'} sidename
+ */
+function readExifPPI(image, sidename) {
   try {
     EXIF.getData(image, function() {
       const exifs = EXIF.getAllTags(image);
       if (exifs.XResolution) {
         const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-        side.ppi_field.val(ppi);
-        checkIfReady();
+        $('#'+sidename+'_ppi').val(ppi);
+        checkRequiredFields();
       } else {
-        console.log('Input image has no EXIF data.');
+        console.log(`Input image (${sidename}) has no EXIF data.`);
       }
     });
   } catch {
-    console.log('Input image has no EXIF data.');
+    console.log(`Input image (${sidename}) has no EXIF data.`);
   }
 }
 
 /**
- * TODO
- * @param {*} side
+ *
+ * @param {*} event
+ * @param {*} sidename
  */
-function drawPolygon(side) {
-  if (!side.url) {
-    return;
+function handleMouseDown(event, sidename) {
+  const side = getSide(sidename);
+  if (actionMode == 'scale' && sidename == scaleMode) {
+    doScaling(event.stageX, event.stageY);
+  } else if (actionMode == 'polygon') {
+    addPolygonNode([event.stageX, event.stageY], sidename);
   }
-  if (!side.url || polygon.length == 0) return;
+  mousestart.x = event.stageX;
+  mousestart.y = event.stageY;
+  mousestart.offsetX = event.stageX - side.content.x;
+  mousestart.offsetY = event.stageY - side.content.y;
+}
 
-  side.stage.removeChild(side.polygon);
+/**
+ *
+ * @param {*} event
+ * @param {*} sidename
+ */
+function handlePressMove(event, sidename) {
+  const side = getSide(sidename);
+  const mouse = {x: event.stageX, y: event.stageY};
+  const mouseDistance = {x: mouse.x - mousestart.offsetX, y: mouse.y - mousestart.offsetY};
 
-  const poly= new createjs.Shape();
-  poly.graphics.beginStroke('green');
+  if (actionMode == null) {
+    if (mode == 'move') {
+      side.content.x = mouseDistance.x;
+      side.content.y = mouseDistance.y;
+    } else if (mode == 'rotate') {
+      const radsOld = Math.atan2(mousestart.y - side.content.img.y,
+          mousestart.x - side.content.img.x);
+      const radsNew = Math.atan2(mouse.y - side.content.img.y,
+          mouse.x - side.content.img.x);
+      const rads = radsNew - radsOld;
+      const deltaAngle = rads * (180 / Math.PI);
+      rotateByAngle(deltaAngle, sidename);
+      mousestart.x = mouse.x;
+      mousestart.y = mouse.y;
+    }
+    draw(sidename);
+  }
+}
 
-  let started = false;
-
-  polygon.push(polygon[0]);
-
-  for (const node in polygon) {
-    if (Object.prototype.hasOwnProperty.call(polygon, node)) {
-      let x;
-      if (side.name == 'recto') {
-        x = polygon[node][0];
-      } else {
-        x = verso.stage.canvas.width - polygon[node][0];
+/**
+ *
+ * @param {*} event
+ */
+function handleMousewheel(event) {
+  const zoomStep = 0.05;
+  const zoomDirection = Math.sign(event.originalEvent.wheelDelta); // positive: zoom in; negative: zoom out
+  if (recto.content.filepath != null || verso.content.filepath != null) {
+    // only zoom if at least one canvas has content
+    // TODO zooming
+    if ((scale > zoomStep && zoomDirection < 0) || zoomDirection > 0) {
+      scale = scale + (zoomStep * zoomDirection);
+      scale = Math.round(scale*100)/100;
+      if (recto.content.img) {
+        let rectoPPI = $('#recto_ppi').val();
+        if (rectoPPI == '') {
+          rectoPPI = 96;
+        }
+        let rectoScale = (96 * (96/rectoPPI) * scale) / 96;
+        rectoScale = Math.round(rectoScale*100) / 100;
+        recto.content.img.scale = rectoScale;
+        recto.content.img_bg.scale = rectoScale;
+        recto.content.scale = rectoScale;
       }
-      const y = polygon[node][1];
-      if (!started) {
-        started = true;
-        poly.graphics.moveTo(x, y);
-      } else {
-        poly.graphics.lineTo(x, y);
+      if (verso.content.img) {
+        let versoPPI = $('#verso_ppi').val();
+        if (versoPPI == '') {
+          versoPPI = 96;
+        }
+        let versoScale = (96 * (96/versoPPI) * scale) / 96;
+        versoScale = Math.round(versoScale*100) / 100;
+        verso.content.img.scale = versoScale;
+        verso.content.img_bg.scale = versoScale;
+        verso.content.scale = versoScale;
       }
+      recto.stage.update();
+      verso.stage.update();
     }
   }
-
-  polygon.pop();
-  side.polygon = poly;
-  if (side.img) side.stage.addChild(side.polygon);
 }
 
 /**
- * TODO
- * @param {*} event
- * @param {*} side
+ *
+ * @param {'recto'|'verso'} sidename - String indicating which canvas needs to be cleared.
  */
-function rotateImage(event, side) {
-  const radsOld = Math.atan2(mousestartY - side.stage.canvas.height/2,
-      mousestartX - side.stage.canvas.width/2);
-  const radsNew = Math.atan2(event.stageY - side.stage.canvas.height/2,
-      event.stageX - side.stage.canvas.width/2);
-  const rads = radsNew - radsOld;
-  const deltaAngle = rads * (180 / Math.PI);
-
-  side.imgBack.rotation = (side.imgBack.rotation + deltaAngle)%360;
-  side.img.rotation = (side.img.rotation + deltaAngle)%360;
-
-  mousestartX = event.stageX;
-  mousestartY = event.stageY;
-
-  side.rotation = side.img.rotation;
-  side.stage.update();
-}
-
-/**
- * TODO
- * @param {*} side
- */
-function rotate90Degree(side) {
-  side.imgBack.rotation = (side.imgBack.rotation + 90)%360;
-  side.img.rotation = (side.img.rotation + 90)%360;
-  side.rotation = side.img.rotation;
-  side.stage.update();
-}
-
-/**
- * TODO
- * @param {*} event
- * @param {*} side
- */
-function moveImage(event, side) {
-  side.imgBack.x = side.img.x = event.stageX - side.imgBack.offsetX;
-  side.imgBack.y = side.img.y = event.stageY - side.imgBack.offsetY;
-  side.offsetX = side.imgBack.x;
-  side.offsetY = side.imgBack.y;
-  side.stage.update();
-}
-
-/**
- * TODO
- * @param {*} side
- */
-function drawCropBox(side) {
-  if (!side.url) {
-    return;
+function clearCanvas(sidename) {
+  // remove data
+  if (sidename == 'recto') {
+    recto = createEmptySide('recto');
+  } else if (sidename == 'verso') {
+    verso = createEmptySide('verso');
   }
 
-  let cropSideX = cropX;
-  if (side.name == 'verso') {
-    cropSideX = side.stage.canvas.width - cropX - cropW;
-  }
-
-  side.stage.removeChild(side.cropbox, side.crop_nw,
-      side.crop_ne, side.crop_sw, side.crop_se);
-
-  side.cropbox.graphics.clear();
-  side.cropbox.graphics.setStrokeStyle(1);
-  side.cropbox.graphics.beginStroke('red');
-  side.cropbox.graphics.drawRect(cropSideX, cropY, cropW, cropH);
-
-  side.crop_nw.graphics.clear();
-  side.crop_nw.graphics.beginFill('darkred');
-  side.crop_nw.graphics.drawRect(cropSideX-5, cropY-5, 10, 10);
-  side.crop_nw.graphics.endFill();
-
-  side.crop_ne.graphics.clear();
-  side.crop_ne.graphics.beginFill('darkred');
-  side.crop_ne.graphics.drawRect(cropSideX+cropW-5, cropY-5, 10, 10);
-  side.crop_ne.graphics.endFill();
-
-  side.crop_sw.graphics.clear();
-  side.crop_sw.graphics.beginFill('darkred');
-  side.crop_sw.graphics.drawRect(cropSideX-5, cropY+cropH-5, 10, 10);
-  side.crop_sw.graphics.endFill();
-
-  side.crop_se.graphics.clear();
-  side.crop_se.graphics.beginFill('darkred');
-  side.crop_se.graphics.drawRect(cropSideX+cropW-5, cropY+cropH-5, 10, 10);
-  side.crop_se.graphics.endFill();
-
-  side.stage.addChild(side.cropbox, side.crop_nw,
-      side.crop_ne, side.crop_sw, side.crop_se);
-  side.stage.update();
+  // clearing fields
+  $('#'+sidename+'_ppi').val('');
+  draw(sidename);
 }
 
-
 /**
- * TODO
- * @param {*} event
- * @param {*} loc
- * @param {*} side
+ *
  */
-function cropSize(event, loc, side) {
-  let dx = cropX - event.stageX;
-  const dy = cropY - event.stageY;
-  if (side == 'rt') {
-    if (loc == 'nw') {
-      cropX = Math.min(event.stageX, cropX + cropW);
-      cropY = Math.min(event.stageY, cropY+cropH);
-      cropW = Math.max(cropW + dx, 0);
-      cropH = Math.max(cropH + dy, 0);
-    } else if (loc == 'ne') {
-      cropY = Math.min(event.stageY, cropY+cropH);
-      cropH = Math.max(cropH + dy, 0);
-      cropW = Math.max(-dx, 0);
-    } else if (loc == 'sw') {
-      cropX = Math.min(event.stageX, cropX + cropW);
-      cropW = Math.max(cropW + dx, 0);
-      cropH = Math.max(-dy, 0);
-    } else if (loc == 'se') {
-      cropW = Math.max(-dx, 0);
-      cropH = Math.max(-dy, 0);
-    }
-  } else {
-    const l = verso.stage.canvas.width - cropX - cropW;
-    dx = l - event.stageX;
-    if (loc == 'nw') {
-      cropW = Math.max(cropW + dx, 0);
-      cropX = Math.max(recto.stage.canvas.width - event.stageX - cropW, cropX);
-      cropY = Math.min(event.stageY, cropY+cropH);
-      cropH = Math.max(cropH + dy, 0);
-    } else if (loc == 'ne') {
-      cropW = Math.max(-dx, 0);
-      cropX = Math.min(recto.stage.canvas.width - event.stageX, cropX+cropW);
-      cropY = Math.min(event.stageY, cropY+cropH);
-      cropH = Math.max(cropH + dy, 0);
-    } else if (loc == 'sw') {
-      cropW = Math.max(cropW + dx, 0);
-      cropX = Math.max(recto.stage.canvas.width - event.stageX - cropW, cropX);
-      cropH = Math.max(-dy, 0);
-    } else if (loc == 'se') {
-      cropW = Math.max(-dx, 0);
-      cropX = Math.min(recto.stage.canvas.width - event.stageX, cropX+cropW);
-      cropH = Math.max(-dy, 0);
-    }
-  }
+function swap() {
+  // swap side data
+  let temp = recto.content;
+  recto.content = verso.content;
+  verso.content = temp;
 
+  // swap masks
+  temp = recto.mask;
+  recto.mask = verso.mask;
+  verso.mask = temp;
   drawMasks();
+
+  // swap ppi
+  temp = $('#recto_ppi').val();
+  $('#recto_ppi').val($('#verso_ppi').val());
+  $('#verso_ppi').val(temp);
+
+  draw('recto');
+  draw('verso');
 }
 
 /**
-   * TODO
-   * @param {*} side
-   * @return {*}
-   */
-function getFittingScale(side) {
-  const iWidth = side.img.image.width;
-  const iHeight = side.img.image.height;
-  const cWidth = side.stage.canvas.width;
-  const cHeight = side.stage.canvas.height;
-
-  // determining max ratio for width and height
-  const rWidth = iWidth / cWidth;
-  const rHeight = iHeight / cHeight;
-  const ratio = Math.max(rWidth, rHeight);
-
-  if (ratio > 1) {
-    return 1 / ratio;
+ *
+ */
+function checkRequiredFields() {
+  let rectoFulfilled = true;
+  let versoFulfilled = true;
+  let nameFulfilled = true;
+  if (recto.content.filepath) {
+    if ($('#recto_ppi').val() == null) {
+      rectoFulfilled = false;
+      $('#recto_ppi').addClass('missing');
+    }
+    if ($('#recto_ppi').val() == '') {
+      rectoFulfilled = false;
+      $('#recto_ppi').addClass('missing');
+    }
+    if (isNaN($('#recto_ppi').val())) {
+      rectoFulfilled = false;
+      $('#recto_ppi').addClass('missing');
+    }
+    if (rectoFulfilled) {
+      $('#recto_ppi').removeClass('missing');
+    }
+  }
+  if (verso.content.filepath) {
+    if ($('#verso_ppi').val() == null) {
+      versoFulfilled = false;
+      $('#verso_ppi').addClass('missing');
+    }
+    if ($('#verso_ppi').val() == '') {
+      versoFulfilled = false;
+      $('#verso_ppi').addClass('missing');
+    }
+    if (isNaN($('#verso_ppi').val())) {
+      versoFulfilled = false;
+      $('#verso_ppi').addClass('missing');
+    }
+    if (versoFulfilled) {
+      $('#verso_ppi').removeClass('missing');
+    }
+  }
+  if ($('#objectname').val() == null || $('#objectname').val() == '') {
+    nameFulfilled = false;
+    $('#objectname').addClass('missing');
   } else {
-    return 1;
+    $('#objectname').removeClass('missing');
+  }
+
+  if (rectoFulfilled && versoFulfilled && nameFulfilled) {
+    $('#upload_button').removeClass('disabled');
+  } else {
+    $('#upload_button').addClass('disabled');
   }
 }
 
 /**
- * TODO
+ *
+ */
+function checkGUI() {
+  // show/hide side GUI elements according to the status of the connected side
+  if (recto.content.filepath) {
+    $('#recto_button_region').removeClass('hidden');
+    $('#button_region').removeClass('hidden');
+    $('#load_region').removeClass('unrendered');
+    $('#mask_region').removeClass('unrendered');
+    $('#recto_canvas').addClass('active');
+    $('#recto_upload_wrapper').addClass('unrendered');
+  } else {
+    $('#recto_canvas').removeClass('active');
+    $('#recto_upload_wrapper').removeClass('unrendered');
+    $('#recto_button_region').addClass('hidden');
+  }
+  if (verso.content.filepath) {
+    $('#verso_button_region').removeClass('hidden');
+    $('#button_region').removeClass('hidden');
+    $('#load_region').removeClass('unrendered');
+    $('#mask_region').removeClass('unrendered');
+    $('#verso_upload_wrapper').addClass('unrendered');
+    $('#verso_canvas').addClass('active');
+  } else {
+    $('#verso_canvas').removeClass('active');
+    $('#verso_upload_wrapper').removeClass('unrendered');
+    $('#verso_button_region').addClass('hidden');
+  }
+  // hide full GUI if both sides are empty
+  if (recto.content.filepath == null && verso.content.filepath == null) {
+    $('#button_region').addClass('hidden');
+    $('#load_region').addClass('unrendered');
+    $('#mask_region').addClass('unrendered');
+  }
+  checkRequiredFields();
+}
+
+/**
+ *
+ * @param {*} deltaAngle
+ * @param {*} sidename
+ */
+function rotateByAngle(deltaAngle, sidename) {
+  const side = getSide(sidename);
+  side.content.rotation += deltaAngle;
+  side.content.rotation = side.content.rotation % 360;
+  draw(sidename);
+}
+
+/**
+ *
+ * @param {*} targetAngle
+ * @param {*} sidename
+ */
+function rotateToAngle(targetAngle, sidename) {
+  const side = getSide(sidename);
+  side.content.rotation = (targetAngle%360);
+  draw(sidename);
+}
+
+/**
+ *
+ * @param {'recto'|'verso'} target
+ */
+function startScaling(target) {
+  actionMode = 'scale';
+  scaleMode = target;
+}
+
+/**
+ *
+ */
+function endScaling() {
+  actionMode = null;
+  scaleMode = null;
+  scalePoint = null;
+  $('.measure').removeClass('active');
+  $('canvas').removeClass('scale');
+}
+
+/**
+ *
+ * @param {*} x
+ * @param {*} y
+ */
+function doScaling(x, y) {
+  if (scalePoint == null) {
+    // this click determines the first point
+    scalePoint = [x, y];
+  } else {
+    // this is the second point, enough to determine the distance
+    const dx = Math.abs(x - scalePoint[0]);
+    const dy = Math.abs(y - scalePoint[1]);
+    const z = Math.sqrt((dx*dx) + (dy*dy));
+    const ppi = (z*2.54)/getSide(scaleMode).content.img.scale;
+
+    $('#'+scaleMode+'_ppi').val(Math.round(ppi*100)/100);
+    scaleImages();
+    checkGUI();
+
+    endScaling();
+  }
+}
+
+/**
+ *
+ */
+function scaleImages() {
+  if (recto.content.filepath) {
+    const rectoPPI = $('#recto_ppi').val();
+    if (rectoPPI != '') {
+      const rectoScale = (96 * (96/rectoPPI) * scale) / 96;
+      // const rectoScale = 96/ (rectoPPI*scale);
+      recto.content.img.scale = rectoScale;
+      recto.content.img_bg.scale = rectoScale;
+    }
+  }
+  if (verso.content.filepath) {
+    const versoPPI = $('#verso_ppi').val();
+    if (versoPPI != '') {
+      const versoScale = (96 * (96/versoPPI) * scale) / 96;
+      // const versoScale = 96 / (versoPPI*scale);
+      verso.content.img.scale = versoScale;
+      verso.content.img_bg.scale = versoScale;
+    }
+  }
+  recto.stage.update();
+  verso.stage.update();
+}
+
+function syncMasks() {
+  if (recto.mask.box.length == 0 && verso.mask.box.length > 0) {
+    updateRectoMask();
+  }
+  if (recto.mask.polygon.length == 0 && verso.mask.polygon.length > 0) {
+    updateRectoMask();
+  }
+  if (verso.mask.box.length == 0 && recto.mask.box.length > 0) {
+    updateVersoMask();
+  }
+  if (verso.mask.polygon.length == 0 && recto.mask.polygon.length > 0) {
+    updateVersoMask();
+  }
+}
+
+/**
+ *
  */
 function drawMasks() {
-  recto.stage.removeChild(recto.crop_ne, recto.crop_nw,
-      recto.crop_se, recto.crop_sw, recto.cropbox);
-  recto.stage.removeChild(recto.polygon);
-  verso.stage.removeChild(verso.crop_ne, verso.crop_nw,
-      verso.crop_se, verso.crop_sw, verso.cropbox);
-  verso.stage.removeChild(verso.polygon);
-  if (mode == 'cut') {
-    drawPolygon(recto);
-    if (recto.img) recto.img.mask = recto.polygon;
-    drawPolygon(verso);
-    if (verso.img) verso.img.mask = verso.polygon;
-  } else if (mode == 'crop') {
-    drawCropBox(recto);
-    if (recto.img) recto.img.mask = recto.cropbox;
-    drawCropBox(verso);
-    if (verso.img) verso.img.mask = verso.cropbox;
+  if (maskMode == 'boundingbox') {
+    // display boundingbox
+    drawBoxMask();
+  } else if (maskMode == 'polygon') {
+    // display polygonal mask
+    drawPolygonMask();
+  } else if (maskMode == 'automatic') {
+    // use ML result
+    drawAutoMask();
   } else {
-    if (recto.img) recto.img.mask = null;
-    if (verso.img) verso.img.mask = null;
+    // no mask -> un-display all masks
+    clearMask();
+  }
+}
+
+/**
+ *
+ */
+function setDefaultBox() {
+  // no mask created so far, set default values
+  const canvasWidth = recto.stage.canvas.width;
+  const canvasHeight = recto.stage.canvas.height;
+  const x = canvasWidth * 0.25;
+  const y = canvasHeight * 0.25;
+  const w = canvasWidth * 0.5;
+  const h = canvasHeight * 0.5;
+
+  // nw, sw, se, ne
+  recto.mask.box = [[x, y], [x, y+h], [x+w, y+h], [x+w, y]];
+  updateVersoMask();
+}
+
+/**
+ *
+ */
+function drawBoxMask() {
+  if (recto.mask.box.length == 0 && verso.mask.box.length == 0) {
+    // no mask created so far, set default values
+    setDefaultBox();
+  }
+
+  // RECTO
+  if (recto.content.img) {
+    const polygonRecto = createPolygon(recto.mask.box);
+    recto.content.img.mask = polygonRecto;
+    const b1rt = createVertex(recto.mask.box[0]);
+    const b2rt = createVertex(recto.mask.box[1]);
+    const b3rt = createVertex(recto.mask.box[2]);
+    const b4rt = createVertex(recto.mask.box[3]);
+    b1rt.on('pressmove', (event) => {
+      resizeBox(event, 'recto', 'nw');
+    });
+    b2rt.on('pressmove', (event) => {
+      resizeBox(event, 'recto', 'sw');
+    });
+    b3rt.on('pressmove', (event) => {
+      resizeBox(event, 'recto', 'se');
+    });
+    b4rt.on('pressmove', (event) => {
+      resizeBox(event, 'recto', 'ne');
+    });
+    recto.mask.group.removeAllChildren();
+    recto.mask.group.addChild(polygonRecto, b1rt, b2rt, b3rt, b4rt);
+    recto.stage.update();
+  }
+
+  // VERSO
+  if (verso.content.img) {
+    const polygonVerso = createPolygon(verso.mask.box);
+    verso.content.img.mask = polygonVerso;
+    const b1vs = createVertex(verso.mask.box[0]);
+    const b2vs = createVertex(verso.mask.box[1]);
+    const b3vs = createVertex(verso.mask.box[2]);
+    const b4vs = createVertex(verso.mask.box[3]);
+    b1vs.on('pressmove', (event) => {
+      resizeBox(event, 'verso', 'ne');
+    });
+    b2vs.on('pressmove', (event) => {
+      resizeBox(event, 'verso', 'se');
+    });
+    b3vs.on('pressmove', (event) => {
+      resizeBox(event, 'verso', 'sw');
+    });
+    b4vs.on('pressmove', (event) => {
+      resizeBox(event, 'verso', 'nw');
+    });
+    verso.mask.group.removeAllChildren();
+    verso.mask.group.addChild(polygonVerso, b1vs, b2vs, b3vs, b4vs);
+    verso.stage.update();
+  }
+}
+
+/**
+ *
+ * @param {*} event
+ * @param {*} sidename
+ * @param {*} compass
+ */
+function resizeBox(event, sidename, compass) {
+  let mouseX = event.stageX;
+  if (sidename == 'verso') {
+    mouseX = recto.stage.canvas.width - mouseX;
+  }
+  const mouseY = event.stageY;
+
+  let x = recto.mask.box[0][0];
+  let y = recto.mask.box[0][1];
+  let w = recto.mask.box[2][0];
+  let h = recto.mask.box[2][1];
+
+  if (compass == 'nw') {
+    x = Math.min(mouseX, w);
+    y = Math.min(mouseY, h);
+  } else if (compass == 'sw') {
+    x = Math.min(mouseX, w);
+    h = Math.max(y, mouseY);
+  } else if (compass == 'se') {
+    w = Math.max(mouseX, x);
+    h = Math.max(mouseY, y);
+  } else if (compass == 'ne') {
+    w = Math.max(mouseX, x);
+    y = Math.min(mouseY, h);
+  }
+
+  recto.mask.box = [[x, y], [x, h], [w, h], [w, y]];
+  updateVersoMask();
+  drawBoxMask();
+}
+
+/**
+ *
+ * @param {*} pointsArray
+ * @returns
+ */
+function createPolygon(pointsArray) {
+  if (pointsArray.length > 0) {
+    const polygon = new createjs.Shape();
+    const p0 = pointsArray[0];
+    polygon.graphics.beginStroke('black');
+    polygon.graphics.moveTo(p0[0], p0[1]);
+    for (let i = 1; i < pointsArray.length; i++) {
+      const p = pointsArray[i];
+      polygon.graphics.lineTo(p[0], p[1]);
+    }
+    polygon.graphics.lineTo(p0[0], p0[1]);
+    return polygon;
+  } else {
+    return null;
+  }
+}
+
+/**
+ *
+ * @param {*} point
+ * @param {*} circle
+ * @returns
+ */
+function createVertex(point, circle=false) {
+  const size = 10;
+  const x = point[0] - size/2;
+  const y = point[1] - size/2;
+  const vertex = new createjs.Shape();
+  vertex.graphics.setStrokeStyle(1).beginStroke('green');
+  vertex.graphics.beginFill('lightgreen');
+  if (circle) {
+    vertex.graphics.drawCircle(point[0], point[1], size*0.66);
+  } else {
+    vertex.graphics.drawRect(x, y, size, size);
+  }
+
+  vertex.on('mouseover', vertexMouseIn);
+  vertex.on('mouseout', vertexMouseOut);
+
+  return vertex;
+}
+
+/**
+ *
+ * @param {*} event
+ */
+function vertexMouseIn(event) {
+  const c = event.target.graphics.command;
+  event.target.graphics.clear();
+  event.target.graphics.beginFill('green');
+  if ('radius' in c) {
+    event.target.graphics.drawCircle(c.x, c.y, c.radius);
+  } else {
+    event.target.graphics.drawRect(c.x, c.y, c.w, c.h);
   }
   recto.stage.update();
   verso.stage.update();
 }
 
 /**
- * TODO
- * @param {*} side
- */
-function handleScaleButton(side) {
-  side.scalePoints = [];
-  side.scaleGroup.removeAllChildren();
-
-  if (side.scaleActive) {
-    side.scaleActive = false;
-    $(side.stage.canvas).removeClass('scale');
-    side.scalePoints = [];
-  } else {
-    side.scaleActive = true;
-    $(side.stage.canvas).addClass('scale');
-  }
-  side.stage.update();
-}
-
-/**
- * TODO
+ *
  * @param {*} event
- * @param {*} side
  */
-function addPolygonNode(event, side) {
-  let node;
-  if (side == 'rt') {
-    node = [event.stageX, event.stageY];
+function vertexMouseOut(event) {
+  const c = event.target.graphics.command;
+  event.target.graphics.clear();
+  event.target.graphics.beginFill('lightgreen');
+  event.target.graphics.setStrokeStyle(1).beginStroke('green');
+  if ('radius' in c) {
+    event.target.graphics.drawCircle(c.x, c.y, c.radius);
   } else {
-    node = [verso.stage.canvas.width - event.stageX, event.stageY];
+    event.target.graphics.drawRect(c.x, c.y, c.w, c.h);
   }
-  polygon.push(node);
-  drawMasks();
+  recto.stage.update();
+  verso.stage.update();
 }
 
 /**
- * TODO
- * @param {*} event
- * @param {*} inputSide
+ *
  */
-function addScalePoint(event, inputSide) {
-  const point = [event.stageX, event.stageY];
-  let side;
-
-  if (inputSide == 'rt') {
-    side = recto;
-  } else {
-    side = verso;
-  }
-
-  side.scalePoints.push(point);
-
-  if (side.scalePoints.length == 1) {
-    const point1 = side.scalePoints[0];
-    const node = new createjs.Shape();
-    node.graphics.beginFill('blue').drawCircle(0, 0, 5);
-    node.x = point1[0];
-    node.y = point1[1];
-    side.scaleGroup.addChild(node);
-    side.stage.addChild(side.scaleGroup);
-    // zeichne eine linie, die dem mauszeiger folgt
-    // zeichne ein 1cm schildchen, das immer an der linie hängt
-    side.stage.update();
-  } else if (side.scalePoints.length == 2) {
-    side.scaleActive = false;
-    $(side.stage.canvas).removeClass('scale');
-    drawScale(side);
-    checkIfReady();
-  }
+function mirrorPoints(pointArray) {
+  const canvasWidth = recto.stage.canvas.width;
+  const result = [];
+  pointArray.forEach((point) => {
+    result.push([canvasWidth-point[0], point[1]]);
+  });
+  result.reverse();
+  return result;
 }
 
 /**
- * TODO
- * @param {*} side
+ *
  */
-function drawScale(side) {
-  side.scaleGroup.removeAllChildren();
-
-  if (side.scalePoints.length == 0) {
-    side.stage.update();
-    return;
-  }
-
-  const p1 = side.scalePoints[0];
-
-  const sPoint1 = new createjs.Shape();
-  sPoint1.graphics.beginFill('blue').drawCircle(0, 0, 5);
-  sPoint1.x = p1[0];
-  sPoint1.y = p1[1];
-  side.scaleGroup.addChild(sPoint1);
-
-  /*
-
-  // This feature has been currently removed, as this adds
-  // uncertainty to the scene.
-
-  sPoint1.on('pressmove', (event) => {
-    const point = [event.stageX, event.stageY];
-    side.scalePoints[0] = point;
-    drawScale(side);
-  });
-  sPoint1.on('pressup', () => {
-    checkIfReady();
-  });
-  */
-
-  if (side.scalePoints.length == 1) {
-    side.stage.update();
-    return;
-  }
-
-  const p2 = side.scalePoints[1];
-
-  const sPoint2 = new createjs.Shape();
-  sPoint2.graphics.beginFill('blue').drawCircle(0, 0, 5);
-  sPoint2.x = p2[0];
-  sPoint2.y = p2[1];
-  side.scaleGroup.addChild(sPoint2);
-
-  /*
-
-  // This feature has been currently removed, as this adds
-  // uncertainty to the scene.
-
-  sPoint2.on('pressmove', (event) => {
-    const point = [event.stageX, event.stageY];
-    side.scalePoints[1] = point;
-    drawScale(side);
-  });
-  sPoint2.on('pressup', () => {
-    checkIfReady();
-  });
-  */
-
-  const line = new createjs.Shape();
-  line.graphics.setStrokeStyle(2)
-      .beginStroke('blue')
-      .moveTo(p1[0], p1[1])
-      .lineTo(p2[0], p2[1])
-      .endStroke();
-
-  side.scaleGroup.addChildAt(line, 0);
-
-  const sText = new createjs.Text('1 cm');
-  sText.scale = 1.5;
-  const sTextBounds = sText.getBounds();
-  sText.x = (p1[0] + (p2[0]-p1[0])/2) - sTextBounds.width * sText.scale/3;
-  sText.y = (p1[1] + (p2[1]-p1[1])/2) + 10;
-
-  const sTextShadow = new createjs.Text('1 cm', '', 'grey');
-  sTextShadow.scale = 1.5;
-  sTextShadow.x = sText.x + 1;
-  sTextShadow.y = sText.y + 1;
-
-  side.scaleGroup.addChild(sTextShadow);
-  side.scaleGroup.addChild(sText);
-
-  const dx = p1[0] - p2[0];
-  const dy = p1[1] - p2[1];
-  const distance = Math.sqrt((dx*dx + dy*dy));
-  const distanceInCm = distance / side.img.scale;
-  const distanceInInch = distanceInCm * 2.54;
-  side['ppi_field'].val(Math.floor(distanceInInch));
-
-  side.stage.removeChild(side.scaleGroup);
-  side.stage.addChild(side.scaleGroup);
-
-  side.stage.update();
-
-  $('#'+side.name+'_scale_button').removeClass('active');
-}
-
-/**
- * TODO
- */
-function updateModeButtons() {
-  // check for mode - if crop, hide cut buttons, if cut, show them
-  if (mode == 'crop' || mode == 'auto' || mode == 'none') {
-    $('#cut_button').addClass('hidden');
-    $('#clear_polygon').addClass('hidden');
-    $('#undo_button').addClass('hidden');
-  } else if (mode == 'cut') {
-    $('#cut_button').removeClass('hidden');
-    $('#clear_polygon').removeClass('hidden');
-    $('#undo_button').removeClass('hidden');
-  }
-
-  // add class to canvas for cursor design
-  $(recto.stage.canvas).removeClass('move rotate cut');
-  $(verso.stage.canvas).removeClass('move rotate cut');
-  if (action == 'move') {
-    $(recto.stage.canvas).addClass('move');
-    $(verso.stage.canvas).addClass('move');
-  } else if (action == 'rotate') {
-    $(recto.stage.canvas).addClass('rotate');
-    $(verso.stage.canvas).addClass('rotate');
-  } else if (action == 'cut') {
-    $(recto.stage.canvas).addClass('cut');
-    $(verso.stage.canvas).addClass('cut');
-  }
-
-  // check for action and color according button
-  $('.active').removeClass('active');
-  if (action == 'move') {
-    $('#move_button').addClass('active');
-  } else if (action == 'rotate') {
-    $('#rotate_button').addClass('active');
-  } else if (action == 'cut') {
-    $('#cut_button').addClass('active');
-  }
-}
-
-$(document).ready(function() {
-  recto.stage = new createjs.Stage('recto_canvas');
-  recto.stage.name = 'recto';
-  verso.stage = new createjs.Stage('verso_canvas');
-  verso.stage.name = 'verso';
-
-  mode = $('.select_button.selected').attr('mode');
-  updateModeButtons();
-
-  recto.stage.on('click', function(event) {
-    if (recto.scaleActive) {
-      addScalePoint(event, 'rt');
-    } else if (mode == 'cut' && action == 'cut') {
-      addPolygonNode(event, 'rt');
-    }
-  }, true);
-  verso.stage.on('click', function(event) {
-    if (verso.scaleActive) {
-      addScalePoint(event, 'vs');
-    } else if (mode == 'cut' && action == 'cut') {
-      addPolygonNode(event, 'vs');
-    }
-  }, true);
-
-  recto.crop_nw.on('pressmove', (event)=>{
-    cropSize(event, 'nw', 'rt');
-  });
-  recto.crop_ne.on('pressmove', (event)=>{
-    cropSize(event, 'ne', 'rt');
-  });
-  recto.crop_sw.on('pressmove', (event)=>{
-    cropSize(event, 'sw', 'rt');
-  });
-  recto.crop_se.on('pressmove', (event)=>{
-    cropSize(event, 'se', 'rt');
-  });
-
-  verso.crop_nw.on('pressmove', (event)=>{
-    cropSize(event, 'nw', 'vs');
-  });
-  verso.crop_ne.on('pressmove', (event)=>{
-    cropSize(event, 'ne', 'vs');
-  });
-  verso.crop_sw.on('pressmove', (event)=>{
-    cropSize(event, 'sw', 'vs');
-  });
-  verso.crop_se.on('pressmove', (event)=>{
-    cropSize(event, 'se', 'vs');
-  });
-
-  resetCropbox();
-});
-
-/**
- * TODO
- */
-function resetCropbox() {
-  cropW = Math.floor($('#recto_canvas').width()/2);
-  cropH = Math.floor($('#recto_canvas').height()/2);
-  cropX = cropW/2;
-  cropY = cropH/2;
-}
-
-$('.rotate_button').click(function(event) {
-  let side;
-
-  if ($(this).attr('id') == 'recto_rotate_button') {
-    side = recto;
-  } else {
-    side = verso;
-  }
-
-  rotate90Degree(side);
-});
-
-$('.bin_button').click(function() {
-  const wrapper = $(this).parent().parent();
-  let side;
-
-  if ($(this).attr('id') == 'recto_bin_button') {
-    side = recto;
-  } else {
-    side = verso;
-  }
-  side.url = null;
-  side.img = null;
-  side.imgBack = null;
-  side.offsetX = null;
-  side.offsetY = null;
-  side.rotation = 0;
-  side.ppi_field.val('');
-  side.scalePoints = [];
-  clearCanvas(side.stage);
-
-  deactivateCanvas(wrapper);
-  checkIfReady();
-});
-
-$('.local_upload_button').click(function() {
-  if ($(this).attr('id') == 'recto_local_upload') {
-    lastUpload = 'recto';
-  } else {
-    lastUpload = 'verso';
-  }
-
-  ipcRenderer.send('server-upload-image');
-});
-
-$('#verso_resolution').on('focusout', function() {
-  verso.scalePoints = [];
-  drawScale(verso);
-  if ($('#recto_resolution').val() == '') {
-    $('#recto_resolution').val($(this).val());
-  }
-  checkIfReady();
-});
-$('#verso_resolution').on('input', function() {
-  checkIfReady();
-});
-$('#recto_resolution').on('focusout', function() {
-  recto.scalePoints = [];
-  drawScale(recto);
-  if ($('#verso_resolution').val() == '') {
-    $('#verso_resolution').val($(this).val());
-  }
-  checkIfReady();
-});
-$('#recto_resolution').on('input', function() {
-  checkIfReady();
-});
-
-$('#clear_polygon').click(function() {
-  if (mode == 'cut') {
-    clearPolygon();
-  }
-});
-
-$('#name').on('focusout', function() {
-  if ($('#name').val() == '') {
-    isNameSuggested = false;
-  } else {
-    isNameSuggested = true;
-  }
-  checkIfReady();
-});
-
-$('.www_upload_button').click(function() {
-  if ($(this).attr('id') == 'recto_www_upload') {
-    lastUpload = 'recto';
-  } else {
-    lastUpload = 'verso';
-  }
-
-  try {
-    dialogs.prompt('Enter Image-URL:', function(url) {
-      if (url != '' && url != null) {
-        if (lastUpload == 'recto') {
-          recto.url = url;
-          activateCanvas($('#recto_canvas_wrapper'));
-        } else {
-          verso.url = url;
-          activateCanvas($('#verso_canvas_wrapper'));
-        }
-        draw();
-        lastUpload = null;
-        checkIfReady();
+function drawPolygonMask() {
+  // RECTO
+  if (recto.content.img) {
+    const polygonRecto = createPolygon(recto.mask.polygon);
+    recto.content.img.mask = polygonRecto;
+    recto.mask.group.removeAllChildren();
+    recto.mask.group.addChild(polygonRecto);
+    recto.mask.polygon.forEach((point, index) => {
+      let vertex;
+      if (index == recto.mask.polygon.length - 1) {
+        vertex = createVertex(point, true);
+      } else {
+        vertex = createVertex(point);
       }
+      vertex.on('pressmove', (event) => {
+        moveVertex(event, 'recto', index);
+      });
+      vertex.on('click', () => {
+        if (actionMode == 'polygon_remove') {
+          removePolygonNode(index);
+        }
+      });
+      recto.mask.group.addChild(vertex);
     });
-  } catch {
-    alert('Please make sure your image URL leads to an image file (jpg, png)!');
+    recto.stage.update();
   }
-});
 
-
-$('#load_button').click(function() {
-  if (!$('#load_button').hasClass('disabled')) {
-    /*
-    3. alle polygonpunkte müssten umgerechnet werden
-    in relation zum eigentlichen bild
-    */
-    let polygonRecto = [];
-    let polygonVerso = [];
-    let versoLocalCenter = {x: 0, y: 0};
-
-    if (mode == 'crop') {
-      // cropMode is active - infer polygon nodes from vertices
-      const xRecto = cropX - recto.img.x + recto.img.image.width/2;
-      const yRecto = cropY - recto.img.y + recto.img.image.height/2;
-      polygonRecto.push([xRecto, yRecto]);
-      polygonRecto.push([xRecto, yRecto+cropH]);
-      polygonRecto.push([xRecto+cropW, yRecto+cropH]);
-      polygonRecto.push([xRecto+cropW, yRecto]);
-      polygonRecto.push([xRecto, yRecto]);
-
-      const xVerso = verso.stage.canvas.width - cropX - cropW -
-        verso.img.x + verso.img.image.width/2;
-      const yVerso = cropY - verso.img.y + verso.img.image.height/2;
-      polygonVerso.push([xVerso, yVerso]);
-      polygonVerso.push([xVerso, yVerso+cropH]);
-      polygonVerso.push([xVerso+cropW, yVerso+cropH]);
-      polygonVerso.push([xVerso+cropW, yVerso]);
-      polygonVerso.push([xVerso, yVerso]);
-
-      const versoCenterX = verso.stage.canvas.width - cropX - (cropW / 2);
-      const versoCenterY = cropY + (cropH / 2);
-      versoLocalCenter = verso.img.globalToLocal(versoCenterX, versoCenterY);
-    } else if (mode == 'cut') {
-      // cutMode is active
-      let temp = [...polygon];
-      temp.push(temp[0]);
-      for (const node in temp) {
-        if (Object.prototype.hasOwnProperty.call(temp, node)) {
-          const coord = temp[node];
-          polygonRecto.push([coord[0]-recto.img.x+recto.img.image.width/2,
-            coord[1]-recto.img.y+recto.img.image.height/2]);
-        }
+  // VERSO
+  if (verso.content.img) {
+    const polygonVerso = createPolygon(verso.mask.polygon);
+    verso.content.img.mask = polygonVerso;
+    verso.mask.group.removeAllChildren();
+    verso.mask.group.addChild(polygonVerso);
+    verso.mask.polygon.forEach((point, index) => {
+      let vertex;
+      if (index == 0) {
+        vertex = createVertex(point, true);
+      } else {
+        vertex = createVertex(point);
       }
-
-      let versoCenterX = [];
-      let versoCenterY = [];
-
-      temp = mirrorPolygon();
-      temp.push(temp[0]);
-      for (const node in temp) {
-        if (Object.prototype.hasOwnProperty.call(temp, node)) {
-          if (Object.prototype.hasOwnProperty.call(temp, node)) {
-            const coord = temp[node];
-            const newX = coord[0]-verso.img.x+verso.img.image.width/2;
-            const newY = coord[1]-verso.img.y+verso.img.image.height/2;
-            polygonVerso.push([newX, newY]);
-            versoCenterX.push(coord[0]);
-            versoCenterY.push(coord[1]);
-          }
+      vertex.on('pressmove', (event) => {
+        moveVertex(event, 'verso', verso.mask.polygon.length-index-1);
+      });
+      vertex.on('click', () => {
+        if (actionMode == 'polygon_remove') {
+          removePolygonNode(verso.mask.polygon.length-index-1);
         }
-      }
+      });
+      verso.mask.group.addChild(vertex);
+    });
+    verso.stage.update();
+  }
+}
 
-      versoCenterX = (Math.max(...versoCenterX) + Math.min(...versoCenterX)) / 2;
-      versoCenterY = (Math.max(...versoCenterY) + Math.min(...versoCenterY)) / 2;
-      versoLocalCenter = verso.img.globalToLocal(versoCenterX, versoCenterY);
-    } else {
-      polygonRecto = null;
-      polygonVerso = null;
-    }
+/**
+ *
+ * @param {*} event
+ * @param {*} sidename
+ * @param {*} index
+ */
+function moveVertex(event, sidename, index) {
+  let mouseX = event.stageX;
+  if (sidename == 'verso') {
+    mouseX = recto.stage.canvas.width - mouseX;
+  }
+  const mouseY = event.stageY;
 
-    let originalScaleRecto = 1;
-    let originalScaleVerso = 1;
-    if (recto.img.scale < 1) originalScaleRecto = recto.img.scale;
-    if (verso.img.scale < 1) originalScaleVerso = verso.img.scale;
+  recto.mask.polygon[index] = [mouseX, mouseY];
+  updateVersoMask();
+  drawMasks();
+}
 
-    const fragmentData = {
-      'rectoURL': recto.url,
-      'versoURL': verso.url,
-      'recto': true,
-      'name': $('#name').val(),
-      'rectoRotation': recto.rotation,
-      'versoRotation': verso.rotation,
-      'rotationDistance': recto.rotation - verso.rotation,
-      'maskRecto': polygonRecto,
-      'maskVerso': polygonVerso,
-      'ppiRecto': $('#recto_resolution').val(),
-      'ppiVerso': $('#verso_resolution').val(),
-      'offsetX': versoLocalCenter.x,
-      'offsetY': versoLocalCenter.y,
-      'originalScaleRecto': originalScaleRecto,
-      'originalScaleVerso': originalScaleVerso,
-      'imageWidthRecto': recto.img.image.width,
-      'imageWidthVerso': verso.img.image.width,
-      'imageHeightRecto': recto.img.image.height,
-      'imageHeightVerso': verso.img.image.height,
+/**
+ *
+ */
+function clearPolygon() {
+  recto.mask.polygon = [];
+  verso.mask.polygon = [];
+  drawMasks();
+}
+
+/**
+ *
+ */
+function undoPolygonNode() {
+  if (recto.mask.polygon.length > 0) {
+    recto.mask.polygon.pop();
+    updateVersoMask();
+  }
+  drawMasks();
+}
+
+/**
+ *
+ * @param {*} point
+ * @param {*} sidename
+ */
+function addPolygonNode(point, sidename) {
+  let x = point[0];
+  if (sidename == 'verso') {
+    x = recto.stage.canvas.width - x;
+  }
+  const y = point[1];
+  recto.mask.polygon.push([x, y]);
+  updateVersoMask();
+  drawMasks();
+}
+
+/**
+ *
+ * @param {*} index
+ */
+function removePolygonNode(index) {
+  recto.mask.polygon.splice(index, 1);
+  updateVersoMask();
+  drawMasks();
+}
+
+/**
+ *
+ */
+function updateVersoMask() {
+  verso.mask.box = mirrorPoints(recto.mask.box);
+  verso.mask.polygon = mirrorPoints(recto.mask.polygon);
+}
+
+function updateRectoMask() {
+  recto.mask.box = mirrorPoints(verso.mask.box);
+  recto.mask.polygon = mirrorPoints(verso.mask.polygon);
+}
+
+/**
+ *
+ */
+function startAddPolygonNodes() {
+  endActiveModes();
+  actionMode = 'polygon';
+  $('#mask_control_polygon_add').addClass('active');
+  $('canvas').addClass('addPolygonNode');
+}
+
+/**
+ *
+ */
+function endAddPolygonNodes() {
+  actionMode = null;
+  $('.addPolygonNode').removeClass('addPolygonNode');
+  $('#mask_control_polygon_add').removeClass('active');
+}
+
+/**
+ *
+ */
+function startRemovePolygonNodes() {
+  endActiveModes();
+  actionMode = 'polygon_remove';
+  $('#mask_control_polygon_remove').addClass('active');
+  $('canvas').addClass('removePolygonNode');
+}
+
+/**
+ *
+ */
+function endRemovePolygonNodes() {
+  actionMode = null;
+  $('.removePolygonNode').removeClass('removePolygonNode');
+  $('#mask_control_polygon_remove').removeClass('active');
+}
+
+/**
+ *
+ */
+function endActiveModes() {
+  endAddPolygonNodes();
+  endRemovePolygonNodes();
+}
+
+/**
+ *
+ */
+function drawAutoMask() {
+
+}
+
+/**
+ *
+ */
+function clearMask() {
+  if (recto.content.img) {
+    recto.content.img.mask = null;
+    recto.mask.group.removeAllChildren();
+    recto.stage.update();
+  }
+  if (verso.content.img) {
+    verso.content.img.mask = null;
+    verso.mask.group.removeAllChildren();
+    verso.stage.update();
+  }
+}
+
+/**
+ *
+ */
+function uploadData() {
+  const data = {};
+
+  // RECTO
+  const dataRecto = {};
+  if (recto.content.img) {
+    dataRecto.rotation = recto.content.img.rotation;
+    dataRecto.url = recto.content.filepath;
+    dataRecto.ppi = $('#recto_ppi').val();
+    dataRecto.cx = recto.content.img.x;
+    dataRecto.cy = recto.content.img.y;
+    dataRecto.box = canvasToImage(recto.content.img, recto.mask.box);
+    dataRecto.polygon = canvasToImage(recto.content.img, recto.mask.polygon);
+    dataRecto.www = recto.content.www;
+
+    dataRecto.upload = {
+      box: recto.mask.box,
+      polygon: recto.mask.polygon,
+      x: recto.content.img.x,
+      y: recto.content.img.y,
+      scale: recto.content.img.scale,
     };
-    ipcRenderer.send('server-upload-ready', fragmentData);
   }
-});
+  data.recto = dataRecto;
 
+  // VERSO
+  const dataVerso = {};
+  if (verso.content.img) {
+    dataVerso.rotation = verso.content.img.rotation;
+    dataVerso.url = verso.content.filepath;
+    dataVerso.ppi = $('#verso_ppi').val();
+    dataVerso.cx = verso.content.img.x;
+    dataVerso.cy = verso.content.img.y;
+    dataVerso.box = canvasToImage(verso.content.img, verso.mask.box);
+    dataVerso.box_upload = verso.mask.box;
+    dataVerso.polygon = canvasToImage(verso.content.img, verso.mask.polygon);
+    dataVerso.polygon_upload = verso.mask.polygon;
+    dataVerso.www = verso.content.www;
 
-$('#switch_button').click(function() {
-  // don't allow a context switch when scaling is active
-  if (recto.scaleActive || verso.scaleActive) {
-    return;
+    dataVerso.upload = {
+      box: verso.mask.box,
+      polygon: verso.mask.polygon,
+      x: verso.content.img.x,
+      y: verso.content.img.y,
+      scale: verso.content.img.scale,
+    };
   }
-  // switch image URL
-  let temp = recto.url;
-  recto.url = verso.url;
-  verso.url = temp;
+  data.verso = dataVerso;
 
-  // switch offset
-  temp = recto.offsetX;
-  recto.offsetX = verso.offsetX;
-  verso.offsetX = temp;
+  // RELATION
+  /*
+  if (recto.content.img && verso.content.img) {
+    const dataRelation = {};
 
-  // switch offsets
-  temp = recto.offsetY;
-  recto.offsetY = verso.offsetY;
-  verso.offsetY = temp;
+    dataRelation.d_rotation = verso.content.img.rotation - recto.content.img.rotation;
+    dataRelation.d_cx = verso.content.img.x - recto.content.img.x;
+    dataRelation.d_cy = verso.content.img.y - recto.content.img.y;
 
-  // switch rotation of images
-  temp = recto.rotation;
-  recto.rotation = verso.rotation;
-  verso.rotation = temp;
-
-  // switch imgs (which is the top image layer)
-  temp = recto.img;
-  recto.img = verso.img;
-  verso.img = temp;
-
-  temp = recto.imgBack;
-  recto.imgBack = verso.imgBack;
-  verso.imgBack = temp;
-
-  // switch ppi values
-  temp = $('#recto_resolution').val();
-  $('#recto_resolution').val($('#verso_resolution').val());
-  $('#verso_resolution').val(temp);
-
-  // switch polygons
-  temp = recto.polygon;
-  recto.polygon = verso.polygon;
-  verso.polygon = temp;
-
-  // switch scaling elements
-  temp = recto.scaleGroup;
-  recto.scaleGroup = verso.scaleGroup;
-  verso.scaleGroup = temp;
-  temp = recto.scalePoints;
-  recto.scalePoints = verso.scalePoints;
-  verso.scalePoints = temp;
-
-  // crop_x is the only thing changing when mirroring the
-  // canvas horizontally; thus, it must be converted
-  cropX = recto.stage.canvas.width - cropX - cropW;
-
-  const newPolygon = [];
-  for (const idx in polygon) {
-    if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
-      // const x = verso.stage.canvas.width - polygon[idx][0];
-      const x = $('#verso_canvas').width() - polygon[idx][0];
-      const y = polygon[idx][1];
-      newPolygon.push([x, y]);
-    }
+    data.relation = dataRelation;
   }
-  polygon = newPolygon;
+  */
 
-  deactivateCanvas($('#recto_canvas_wrapper'));
-  deactivateCanvas($('#verso_canvas_wrapper'));
-  if (recto.url) activateCanvas($('#recto_canvas_wrapper'));
-  if (verso.url) activateCanvas($('#verso_canvas_wrapper'));
-  draw();
-});
-
-$('#cut_button').click(function() {
-  action = 'cut';
-  updateModeButtons();
-  if (recto.img) recto.img.mask = recto.polygon;
-  if (verso.img) verso.img.mask = verso.polygon;
-  drawMasks();
-});
-
-$('#cropcut_button').click(function() {
-  if (mode == 'crop') {
-    // switch to cut mode
-    mode = 'cut';
-    if (polygon.length == 0) {
-      action = 'cut';
-    }
-    $('#cropcut_button img').attr('src', '../imgs/symbol_cut.png');
+  data.name = $('#objectname').val();
+  if (recto.content.img) {
+    data.showRecto = true;
   } else {
-    // switch to crop mode
-    mode = 'crop';
-    action = 'move';
-    $('#cropcut_button img').attr('src', '../imgs/symbol_crop.png');
+    data.showRecto = false;
   }
-  updateModeButtons();
-  drawMasks();
-});
 
-$('.select_button').click(function(event) {
-  $('.select_button.selected').removeClass('selected');
-  $(this).addClass('selected');
-  mode = $('.select_button.selected').attr('mode');
-  if (mode == 'cut') {
-    action = 'cut';
-  } else if (mode == 'crop') {
-    action = 'move';
-  } else if (mode == 'auto') {
-    action = 'move';
-  } else if (mode == 'none') {
-    action = 'none';
+  data.maskMode = maskMode;
+  
+  if (editData) {
+    data.id = editData.id;
+    data.x = editData.x;
+    data.y = editData.y;
+    data.baseX = editData.baseX;
+    data.baseY = editData.baseY;
+    data.rotation = editData.rotation;
+    if ('urlTPOP' in editData) data.urlTPOP = editData.urlTPOP;
   }
-  updateModeButtons();
+  ipcRenderer.send('server-upload-ready', data);
+}
+
+/**
+ *
+ * @param {*} image
+ * @param {*} pointArray
+ * @return {*}
+ */
+function canvasToImage(image, pointArray) {
+  const result = [];
+  if (pointArray.length > 0) {
+    pointArray.forEach((p) => {
+      const imagePoint = image.globalToLocal(p[0], p[1]);
+      result.push(imagePoint);
+    });
+  }
+  return result;
+}
+
+function activateMaskMode(mode) {
+  if (maskMode == 'polygon' && mode != 'polygon') {
+    endAddPolygonNodes();
+  }
+  $('.selected').removeClass('selected');
+  maskMode = mode;
+  $('.list_item.'+maskMode).addClass('selected');
+  $('.mask_controls.'+maskMode).addClass('selected');
+  $('.mask_explanation.'+maskMode).addClass('selected');
+  drawMasks();
+}
+
+/* INTERACTIVE ELEMENTS */
+
+$(window).on('keyup', (event) => {
+  checkRequiredFields();
+});
+
+$(window).on('resize', (event) => {
+  updateCanvasSize();
+});
+
+$(window).on('mousewheel', (event) => {
+  handleMousewheel(event);
+});
+
+/* Buttons */
+$('.local_upload').on('click', (event) => {
+  if (currentUpload == null) {
+    const canvas = $(event.target).attr('canvas');
+    currentUpload = canvas;
+    ipcRenderer.send('server-upload-image');
+  }
+});
+$('.www_upload').on('click', (event) => {
+  if (currentUpload == null) {
+    const canvas = $(event.target).attr('canvas');
+    currentUpload = canvas;
+    
+    try {
+      dialogs.prompt('Enter image URL:', function(url) {
+        if (url != '' && url != null) {
+          getSide(currentUpload).content.filepath = url;
+          getSide(currentUpload).content.www = true;
+          draw(currentUpload);
+          currentUpload = null;
+        }
+      });
+    } catch {
+      alert('Please make sure your image URL leads to an image file (jpg, png)!');
+      currentUpload = null;
+    }
+  }
+});
+$('.delete').on('click', (event) => {
+  const canvas = $(event.target).attr('canvas');
+  clearCanvas(canvas);
+});
+$('.rotate_90').on('click', (event) => {
+  const canvas = $(event.target).attr('canvas');
+  rotateByAngle(90, canvas);
+});
+$('.measure').on('click', (event) => {
+  const target = $(event.target).attr('canvas');
+  const button = $(event.target).parent();
+  $('.measure').removeClass('active');
+  $('canvas').removeClass('scale');
+
+  if (button.hasClass('active')) {
+    // (this) scale mode was active, deactivate
+    endScaling();
+  } else {
+    // (this) scale mode was inactive, activate it
+    button.addClass('active');
+    $('#'+target+'_canvas').addClass('scale');
+    startScaling(target);
+  }
+});
+$('#move').on('click', (event) => {
+  $('.active_mode').removeClass('active_mode');
+  $('#move').addClass('active_mode');
+  mode = 'move';
+});
+$('#swap').on('click', (event) => {
+  swap();
+});
+$('#rotate').on('click', (event) => {
+  $('.active_mode').removeClass('active_mode');
+  $('#rotate').addClass('active_mode');
+  mode = 'rotate';
+});
+
+$('#manual_instructions').on('click', (event) => {
+  $('#tutorial_region').removeClass('unrendered');
+});
+$('#tutorial_close').on('click', (event) => {
+  $('#tutorial_region').addClass('unrendered');
+});
+$('#tutorial_shadow').on('click', (event) => {
+  $('#tutorial_region').addClass('unrendered');
+});
+
+$('html').keydown(function(event) {
+  if (event.keyCode == 27) {
+    // ESC
+    if (!$('tutorial_region').hasClass('unrendered')) {
+      $('#tutorial_region').addClass('unrendered');
+    }
+  }
+});
+
+$('.list_item').on('click', (event) => {
+  const list = $('.list');
+  if (list.hasClass('open')) {
+    list.removeClass('open');
+    let listItem = $(event.target);
+    if (!listItem.hasClass('list_item')) {
+      listItem = listItem.parent();
+    }
+    activateMaskMode(listItem.attr('mask_mode'));
+  } else {
+    list.addClass('open');
+  }
+});
+
+$('#mask_control_box_reset').click(() => {
+  setDefaultBox();
   drawMasks();
 });
-
-$('#move_button').click(function() {
-  action = 'move';
-  updateModeButtons();
+$('#mask_control_polygon_undo').click(() => {
+  undoPolygonNode();
+});
+$('#mask_control_polygon_clear').click(() => {
+  clearPolygon();
+});
+$('#mask_control_polygon_add').click(() => {
+  if ($('#mask_control_polygon_add').hasClass('active')) {
+    endAddPolygonNodes();
+  } else {
+    startAddPolygonNodes();
+  }
+});
+$('#mask_control_polygon_remove').click(() => {
+  if ($('#mask_control_polygon_remove').hasClass('active')) {
+    endRemovePolygonNodes();
+  } else {
+    startRemovePolygonNodes();
+  }
 });
 
-$('#rotate_button').click(function() {
-  action ='rotate';
-  updateModeButtons();
+$('#upload_button').click(() => {
+  if (!$('#upload_button').hasClass('disabled')) {
+    uploadData();
+  }
 });
 
-$('#undo_button').click(function() {
-  polygon.pop();
-  drawMasks();
+/* Input Fields */
+
+$('.input_ppi').on('input', (event) => {
+  checkRequiredFields();
+  scaleImages();
 });
 
-$('#recto_scale_button').click(() => {
-  $('#recto_scale_button').toggleClass('active');
-  handleScaleButton(recto);
-});
-$('#verso_scale_button').click(() => {
-  $('#verso_scale_button').toggleClass('active');
-  handleScaleButton(verso);
-});
 
+/* List */
+
+
+/* IP-COMMUNICATION */
+
+// Event receiving the filepath to an image, be it local or from the internet.
 ipcRenderer.on('upload-receive-image', (event, filepath) => {
-  name = filepath.split('\\').pop().split('/').pop();
-  name = name.replace(/\.[^/.]+$/, '');
+  updateCanvasSize();
+  const side = getSide(currentUpload);
+  side.content.filepath = filepath;
+  syncMasks();
+  draw(currentUpload);
+  currentUpload = null;
 
-  if (!isNameSuggested) {
-    $('#name').val(name);
-    isNameSuggested = true;
+  if ($('#objectname').val() == '') {
+    let name = filepath.split('\\').pop().split('/').pop();
+    name = name.replace(/\.[^/.]+$/, '');
+    $('#objectname').val(name);
+    checkRequiredFields();
   }
-
-  if (lastUpload == 'recto') {
-    recto.url = filepath;
-    activateCanvas($('#recto_canvas_wrapper'));
-  } else {
-    verso.url = filepath;
-    activateCanvas($('#verso_canvas_wrapper'));
-  }
-  draw();
-  lastUpload = null;
-  checkIfReady();
 });
 
-ipcRenderer.on('upload-change-fragment', (event, fragment) => {
-  console.log('upload-change-fragment', fragment);
-  recto.url = fragment.rectoURL;
-  verso.url = fragment.versoURL;
-  recto.rotation = fragment.rectoRotation;
-  verso.rotation = fragment.versoRotation;
-  polygon = fragment.maskRecto;
-  if ($('#recto_resolution').val() == '') $('#recto_resolution').val(fragment.ppiRecto);
-  if ($('#versoo_resolution').val() == '') $('#verso_resolution').val(fragment.ppiVerso);
-  $('#name').val(fragment.name);
-  activateCanvas($('#recto_canvas_wrapper'));
-  activateCanvas($('#verso_canvas_wrapper'));
-  draw();
+// Event triggered if window is opened to edit an already existing fragment, providing
+// the necessary data/information about the fragment.
+ipcRenderer.on('upload-edit-fragment', (event, data) => {
+  console.log('Receiving Edit Information:', data);
+  $('#upload_button').find('.large_button_label').html('Update object');
+
+  if ('recto' in data) {
+    if ('ppi' in data.recto) $('#recto_ppi').val(data.recto.ppi);
+    recto.content.filepath = data.recto.url;
+    recto.content.www = data.recto.www;
+    
+    if ('upload' in data.recto) {
+      recto.content.x = data.recto.upload.x;
+      recto.content.y = data.recto.upload.y;
+      recto.mask.box = data.recto.upload.box;
+      recto.mask.polygon = data.recto.upload.polygon;
+      recto.content.scale = data.recto.upload.scale;
+    } else {
+      recto.content.x = 0;
+      recto.content.y = 0;
+      recto.mask.box = [];
+      recto.mask.polygon = [];
+    }
+    
+  }
+  
+  if ('verso' in data) {
+    if ('ppi' in data.verso) $('#verso_ppi').val(data.verso.ppi);
+    verso.content.filepath = data.verso.url;
+    verso.content.www = data.verso.www;
+    
+    if ('upload' in data.verso) {
+      verso.content.x = data.verso.upload.x;
+      verso.content.y = data.verso.upload.y;
+      verso.mask.box = data.verso.upload.box;
+      verso.mask.polygon = data.verso.upload.polygon;
+      verso.content.scale = data.verso.upload.scale;
+    } else {
+      verso.content.x = 0;
+      verso.content.y = 0;
+      verso.mask.box = [];
+      verso.mask.polygon = [];
+    }
+  }
+
+  
+  $('#objectname').val(data.name);
+  if ('maskMode' in data && data.maskMode) maskMode = data.maskMode;
+  if ('id' in data && data.id) editData = data;
+  if ('urlTPOP' in data) editData = data;
+
+  draw('recto');
+  draw('verso');
+  activateMaskMode(maskMode);
+  drawMasks();
 });

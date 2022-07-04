@@ -417,17 +417,15 @@ $(document).ready(function() {
 
   $('.sidebar_header').click(function(event) {
     // only react if the clicked element is not yet expanded
-    if (!$(this).parent().hasClass('expanded') &&
-            !$(this).parent().hasClass('disabled')) {
+    const expanded = $(this).parent().hasClass('expanded');
+    const disabled = $(this).parent().hasClass('disabled');
+    if (!expanded && !disabled) {
       // first, retotate down-arrow back and remove expanded label
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
-      // second, rotate arrow down and expand clicked segment
+    // second, rotate arrow down and expand clicked segment
       $(this).find('.arrow').addClass('down');
       $(this).parent().addClass('expanded');
-    } else {
-      $('.arrow.down').removeClass('down');
-      $('.expanded').removeClass('expanded');
     }
   });
 
@@ -490,6 +488,9 @@ $(document).ready(function() {
       if (event.keyCode == 46) {
         // DEL -> Delete Fragment(s)
         controller.removeFragments();
+      }else if (event.keyCode == 8) {
+        // BACKSPACE -> Delete Fragment(s)
+        controller.removeFragments();
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
         if (hotkeysOn) {
@@ -533,6 +534,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 67) {
         // C -> Calibration Tool
         controller.sendToServer('server-open-calibration');
+      } else if (event.key == '<') {
+        // < -> test key
+        controller.sendToServer('test');
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

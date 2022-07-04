@@ -16,6 +16,7 @@
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const request = require('request');
 const {spawn} = require('child_process');
 
 const Window = require('./js/Window');
@@ -23,7 +24,7 @@ const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
-const { send } = require('process');
+const { resolve } = require('path');
 
 // Settings
 const devMode = true;
@@ -62,6 +63,8 @@ const activeTables = {
   tpop: null,
 };
 let autosaveChecked = false;
+
+const loadingQueue = [];
 
 /* ##############################################################
 ###
@@ -194,6 +197,61 @@ function loadDefaultConfig() {
   config.ppi = 96;
 }
 
+function uploadTpopFragments() {
+  if (loadingQueue.length == 0) {
+    try {
+      localUploadWindow.close();
+    } catch {}
+    // localUploadWindow = null;
+    return;
+  }
+
+  const data = loadingQueue.pop(0);
+  const fragmentData = data.fragment;
+  activeTables.uploading = data.table;
+  const fragment = {
+    'x': 0,
+    'y': 0,
+    'name': fragmentData.name,
+    'urlTPOP': fragmentData.urlTPOP,
+    'recto': {
+      'url': fragmentData.urlRecto,
+      'www': true,
+    },
+    'verso': {
+      'url': fragmentData.urlVerso,
+      'www': true,
+    }
+  }
+
+  if (localUploadWindow) {
+    try {
+      localUploadWindow.close();
+    } catch {}
+    // localUploadWindow = null;
+  }
+  localUploadWindow = new Window({
+    file: './renderer/upload.html',
+    type: 'upload',
+    devMode: devMode,
+  });
+  localUploadWindow.removeMenu();
+  localUploadWindow.once('ready-to-show', () => {
+    localUploadWindow.webContents.once('did-finish-load', () => {
+      sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
+      localUploadWindow.show();
+    });
+  });
+
+  localUploadWindow.on('close', function() {
+    uploadTpopFragments();
+  });
+
+  /*
+  const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
+  */
+}
+
 /**
  * Helper function to feed config settings into the config object and save everything to disk.
  * @param {String} key - Config attribute name.
@@ -214,6 +272,255 @@ function createNewTable() {
     tableData: tableManager.getTable(tableID),
   };
   return data;
+}
+
+function preprocess_loading_fragments(data) {
+  let allProcessed = true;
+  const fragments = data.tableData.fragments;
+  let fragment;
+  let fragmentKey;
+  for (const key of Object.keys(fragments)) {
+    fragment = fragments[key];
+    if (!('processed' in fragment)) {
+      allProcessed = false,
+      fragmentKey = key;
+      break;
+    }
+  }
+
+  if (!('recto' in fragment)) fragment.recto = {};
+  if (!('verso' in fragment)) fragment.verso = {};
+
+  if (allProcessed) {
+    sendMessage(mainWindow, 'client-load-model', data);
+    return;
+  }
+
+  let rectoProcessed = false;
+  let versoProcessed = false;
+
+  // if a side contains the "url_view" property, it must already
+  // have been processed
+  if ('recto' in fragment && 'url_view' in fragment.recto) rectoProcessed = true;
+  if ('verso' in fragment && 'url_view' in fragment.verso) versoProcessed = true;
+
+  if (fragment.maskMode == 'no_mask' && 'url' in fragment.recto) rectoProcessed = true;
+  if (fragment.maskMode == 'no_mask' && 'url' in fragment.verso) versoProcessed = true;
+  
+  if (rectoProcessed && versoProcessed) {
+    fragment.processed = true;
+    data.tableData.fragments[fragmentKey] = fragment;
+    preprocess_loading_fragments(data);
+    return;
+  }
+
+  // now we know that there is cropping to do:
+  // maskMode in ['boundingbox', 'polygon', 'automatic']
+  // and that there is a fragment side that has not yet been processed
+
+  let python;
+  let imageURL;
+  let boxPoints;
+  let polygonPoints;
+  let filename;
+  let mirror = false;
+
+  // in the following, we first check if the first side has to be processed; if so,
+  // the corresponding python script will be called, and as this is an async process,
+  // we need to call the process_fragment method again once this extraction is done.
+  // in the second run the second side will be processed (if available) and again
+  // we wait for the python script to be finished before re-calling the method. In the third
+  // and final run both sides should be processed and therefore the data can be sent to the
+  // main window.
+
+  // at least one side must still be to be processed at this point, otherwise the data
+  // would already have been sent to the main window
+
+  if (!rectoProcessed) {
+    // we are processing the recto side
+    if ('recto' in fragment && 'url' in fragment.recto) {
+      // recto data available
+      imageURL = fragment.recto.url;
+      boxPoints = fragment.recto.box;
+      polygonPoints = fragment.recto.polygon;
+    } else {
+      // no recto data available, thus we use the verso data and
+      // set the mirror flag to true
+      data.recto = {};
+      mirror = true;
+      imageURL = fragment.verso.url;
+      boxPoints = fragment.verso.box;
+      polygonPoints = fragment.verso.polygon;
+      data.recto.ppi = fragment.verso.ppi;
+    }
+  } else {
+    // we are processing the verso side
+    if ('verso' in fragment && 'url' in fragment.verso) {
+      // verso data available
+      imageURL = fragment.verso.url;
+      boxPoints = fragment.verso.box;
+      polygonPoints = fragment.verso.polygon;
+    } else {
+      // no verso data available, thus we use the recto data and
+      // set the mirror flag to true
+      data.verso = {};
+      mirror = true;
+      imageURL = fragment.recto.url;
+      boxPoints = fragment.recto.box;
+      polygonPoints = fragment.recto.polygon;
+      data.verso.ppi = fragment.recto.ppi;
+    }
+  }
+
+  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror.png';
+  else filename = path.basename(imageURL).split('.')[0]+'_frag.png';
+
+  if (fragment.maskMode == 'no_mask') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
+    }
+  } else if (fragment.maskMode == 'boundingbox') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+    }
+    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+  } else if (fragment.maskMode == 'polygon') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+    } else {
+      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+    }
+  } else if (fragment.maskMode == 'automatic') {
+    // TODO
+  }
+  const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
+  if (!rectoProcessed) {
+    fragment.recto.url_view = newURL;
+  } else {
+    fragment.verso.url_view = newURL;
+  }
+  python.on('close', function(code) {
+    console.log(`Python finished (code ${code}), restarting...`);
+    data.tableData.fragments[fragmentKey] = fragment;
+    preprocess_loading_fragments(data);
+  });
+  python.stderr.pipe(process.stderr);
+  python.stdout.pipe(process.stdout);
+}
+
+/**
+ *
+ * @param {*} data
+ * @returns
+ */
+function preprocess_fragment(data) {
+  let rectoProcessed = false;
+  let versoProcessed = false;
+  
+  // if a side contains the "url_view" property, it must already
+  // have been processed
+  if ('url_view' in data.recto) rectoProcessed = true;
+  if ('url_view' in data.verso) versoProcessed = true;
+
+  if (data.maskMode == 'no_mask' && 'url' in data.recto) rectoProcessed = true;
+  if (data.maskMode == 'no_mask' && 'url' in data.verso) versoProcessed = true;
+  
+  // IF recto and verso have been processed, send data to mainWindow
+  if (rectoProcessed && versoProcessed) {
+    mainWindow.send('client-add-upload', data);
+    return;
+  }
+
+
+  // now we know that there is cropping to do:
+  // maskMode in ['boundingbox', 'polygon', 'automatic']
+  // and that there is a fragment side that has not yet been processed
+
+  let python;
+  let imageURL;
+  let boxPoints;
+  let polygonPoints;
+  let filename;
+  let mirror = false;
+
+  // in the following, we first check if the first side has to be processed; if so,
+  // the corresponding python script will be called, and as this is an async process,
+  // we need to call the process_fragment method again once this extraction is done.
+  // in the second run the second side will be processed (if available) and again
+  // we wait for the python script to be finished before re-calling the method. In the third
+  // and final run both sides should be processed and therefore the data can be sent to the
+  // main window.
+
+  // at least one side must still be to be processed at this point, otherwise the data
+  // would already have been sent to the main window
+
+  if (!rectoProcessed) {
+    // we are processing the recto side
+    if ('url' in data.recto) {
+      // recto data available
+      imageURL = data.recto.url;
+      boxPoints = data.recto.box;
+      polygonPoints = data.recto.polygon;
+    } else {
+      // no recto data available, thus we use the verso data and
+      // set the mirror flag to true
+      mirror = true;
+      imageURL = data.verso.url;
+      boxPoints = data.verso.box;
+      polygonPoints = data.verso.polygon;
+      data.recto.ppi = data.verso.ppi;
+    }
+  } else {
+    // we are processing the verso side
+    if ('url' in data.verso) {
+      // verso data available
+      imageURL = data.verso.url;
+      boxPoints = data.verso.box;
+      polygonPoints = data.verso.polygon;
+    } else {
+      // no verso data available, thus we use the recto data and
+      // set the mirror flag to true
+      mirror = true;
+      imageURL = data.recto.url;
+      boxPoints = data.recto.box;
+      polygonPoints = data.recto.polygon;
+      data.verso.ppi = data.recto.ppi;
+    }
+  }
+
+  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror.png';
+  else filename = path.basename(imageURL).split('.')[0]+'_frag.png';
+
+  if (data.maskMode == 'no_mask') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
+    }
+  } else if (data.maskMode == 'boundingbox') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+    }
+    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+  } else if (data.maskMode == 'polygon') {
+    if (mirror) {
+      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+    } else {
+      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+    }
+  } else if (data.maskMode == 'automatic') {
+    // TODO
+  }
+  const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
+  if (!rectoProcessed) {
+    data.recto.url_view = newURL;
+  } else {
+    data.verso.url_view = newURL;
+  }
+  python.on('close', function(code) {
+    console.log(`Python finished (code ${code}), restarting...`);
+    preprocess_fragment(data);
+  });
+  python.stderr.pipe(process.stderr);
+  python.stdout.pipe(process.stdout);
 }
 
 /* ##############################################################
@@ -365,13 +672,15 @@ ipcMain.on('server-load-file', (event, filename) => {
   };
   data.tableData['loading'] = true;
   data.tableData['filename'] = filename;
-  sendMessage(mainWindow, 'client-load-model', data);
+
   const feedback = {
     title: 'Table Loaded',
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
     color: color.success,
   };
   sendMessage(mainWindow, 'client-show-feedback', feedback);
+
+  preprocess_loading_fragments(data);
 });
 
 // server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor
@@ -523,7 +832,6 @@ ipcMain.on('server-update-annotation', (event, data) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-update-annotation] from client for table '+data.tableID);
   }
-  console.log("data:", data);
   tableManager.updateAnnotation(data.tableID, data.aData);
 });
 
@@ -535,6 +843,13 @@ ipcMain.on('server-open-upload', (event, tableID) => {
   }
 
   activeTables.uploading = tableID;
+  
+  if (localUploadWindow) {
+    try {
+      localUploadWindow.close();
+    } catch {};
+    // localUploadWindow = null;
+  }
 
   if (!localUploadWindow) {
     localUploadWindow = new Window({
@@ -547,8 +862,8 @@ ipcMain.on('server-open-upload', (event, tableID) => {
       localUploadWindow.show();
     });
     localUploadWindow.on('close', function() {
-      localUploadWindow = null;
-      activeTables.uploading = null;
+      // localUploadWindow = null;
+      // activeTables.uploading = null;
     });
   }
 });
@@ -561,20 +876,26 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
 
   if (!activeTables.uploading) {
+    // if no table is currently associated with the upload, create a new table
     const tableID = tableManager.createNewTable();
     const tableData = tableManager.getTable(tableID);
     const newTableData = {
       tableID: tableID,
       tableData: tableData,
     };
+    // tell client to open the newly created table
     sendMessage(mainWindow, 'client-load-model', newTableData);
   }
+  
+  // activeTables.uploading = null;
+  if (localUploadWindow) {
+    try {
+      localUploadWindow.close();
+    } catch {}
+    // localUploadWindow = null;
+  }
 
-  activeTables.uploading = null;
-  console.log(data);
-  mainWindow.send('client-add-upload', data);
-  localUploadWindow.close();
-  localUploadWindow = null;
+  preprocess_fragment(data);
 });
 
 // server-upload-image | triggers a file dialog for the user to select a fragment
@@ -609,7 +930,9 @@ ipcMain.on('server-change-fragment', (event, data) => {
 
   const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
   if (localUploadWindow) {
-    localUploadWindow.close();
+    try {
+      localUploadWindow.close();
+    } catch {};
   }
 
   activeTables.uploading = data.tableID;
@@ -622,12 +945,12 @@ ipcMain.on('server-change-fragment', (event, data) => {
   localUploadWindow.removeMenu();
   localUploadWindow.once('ready-to-show', () => {
     localUploadWindow.show();
+    sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
   });
   localUploadWindow.on('close', function() {
-    localUploadWindow = null;
-    activeTables.uploading = null;
+    // localUploadWindow = null;
+    // activeTables.uploading = null;
   });
-  sendMessage(localUploadWindow, 'upload-change-fragment', fragment);
 });
 
 // server-confirm-autosave | confirmation -> Boolean
@@ -684,6 +1007,8 @@ ipcMain.on('server-create-table', (event) => {
     const data = createNewTable();
     activeTables.view = data.tableID;
     sendMessage(event.sender, 'client-load-model', data);
+  } else {
+    sendMessage(mainWindow, 'client-confirm-autosave');
   }
 });
 
@@ -738,7 +1063,6 @@ ipcMain.on('server-send-all', (event) => {
     'Receiving code [server-send-all] from client');
   }
   sendMessage(event.sender, 'client-get-all', tableManager.getTables());
-  console.log('DING', activeTables);
 });
 
 ipcMain.on('server-new-session', (event) => {
@@ -990,5 +1314,65 @@ ipcMain.on('server-open-load-folder', (event) => {
   }
   const folder = saveManager.getCurrentFolder();
   shell.openPath(folder);
-
 });
+
+ipcMain.on('server-load-tpop-fragments', (event, data) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-load-tpop-fragments] from TPOPWindow');
+  }
+  data = tpopManager.getBasicInfo(data);
+  
+  const tableID = activeTables.tpop;
+  tpopWindow.close();
+  resolveTPOPUrls(data, tableID);
+});
+
+function resolveTPOPUrls(fragments, tableID) {
+  let allResolved = true;
+  let urlKey;
+  let fragmentKey;
+  let url;
+  let fragment;
+  for (const k in fragments) {
+    fragment = fragments[k];
+    if ('urlRecto' in fragment && fragment.urlRecto && !isURLResolved(fragment.urlRecto)) {
+      allResolved = false;
+      urlKey = 'urlRecto';
+      fragmentKey = k;
+      url = fragment.urlRecto;
+      break;
+    }
+    if ('urlVerso' in fragment && fragment.urlVerso && !isURLResolved(fragment.urlVerso)) {
+      allResolved = false;
+      urlKey = 'urlVerso';
+      fragmentKey = k;
+      url = fragment.urlVerso;
+      break;
+    }
+  }
+  if (allResolved) {
+    for (const f of fragments) {
+      const entry = {
+        'table': tableID,
+        'fragment': f,
+      };
+      loadingQueue.push(entry);
+    }
+    uploadTpopFragments();
+  } else {
+    var r = request(url, function(e, response) {
+      fragment[urlKey] = r.uri.href;
+      fragments[fragmentKey] = fragment;
+      resolveTPOPUrls(fragments, tableID);
+    });
+  }
+}
+
+function isURLResolved(url) {
+  const formats = ['jpg', 'jpeg', 'png', 'tif', 'tiff'];
+  for (const format of formats) {
+    if (url.indexOf('.'+format) != -1) return true;
+  }
+  return false;
+}
