@@ -337,7 +337,11 @@ class UIController {
    * @param {*} fragmentData
    */
   addFragment(fragmentData) {
-    this.stage._loadFragments({'upload': fragmentData});
+    if (fragmentData.id == null) {
+      this.stage._loadFragments({'upload': fragmentData});
+    } else {
+      this.stage._loadFragments({'edit': fragmentData});
+    }
     this.updateSidebarFragmentList();
     $('.arrow.down').removeClass('down');
     $('.expanded').removeClass('expanded');
@@ -714,15 +718,23 @@ class UIController {
    * other versions, changing the masks or the ppi information. This only works if exactly one fragment is selected (because otherwise
    * it is unclear which fragment to change). The request together with the necessary fragment data will be sent to the server.
    */
-  changeFragment() {
-    const selectionList = this.stage.getSelectedList();
-    if (Object.keys(selectionList).length == 1) {
-      const fragmentID = Object.keys(selectionList)[0];
+  changeFragment(id) {
+    if (id) {
       const data = {
         tableID: this.activeTable,
-        fragmentID: fragmentID,
-      };
+        fragmentID: id,
+      }
       this.sendToServer('server-change-fragment', data);
+    } else {
+      const selectionList = this.stage.getSelectedList();
+      if (Object.keys(selectionList).length == 1) {
+        const fragmentID = Object.keys(selectionList)[0];
+        const data = {
+          tableID: this.activeTable,
+          fragmentID: fragmentID,
+        };
+        this.sendToServer('server-change-fragment', data);
+      }
     }
   }
 

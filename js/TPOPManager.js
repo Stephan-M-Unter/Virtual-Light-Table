@@ -31,6 +31,7 @@ class TPOPManager {
     this.filterTypes = null;
     this.ctime = 'unknown';
     this.mtime = 'unknown';
+    this.reloadSpan = 800000000;
 
     this.initialiseVLTdata();
   };
@@ -45,9 +46,18 @@ class TPOPManager {
       if (fs.existsSync(this.vltjson) && !reload) {
         this.ctime = fs.statSync(this.vltjson)['birthtime'];
         this.mtime = fs.statSync(this.vltjson).mtime;
+        this.ctimeMs = fs.statSync(this.vltjson)['ctimeMs']
+        this.mtimeMs = fs.statSync(this.vltjson)['mtimeMs']
         console.log('VLTdata was created on:', this.ctime);
         console.log('VLTdata was last modified on:', this.mtime);
         // TODO: CHECK DATE LAST MODIFIED
+        if (this.ctimeMs < Date.now() - this.reloadSpan) {
+          console.log("JSON outdated, reload necessary!");
+          this.initialiseVLTdata(true, callback);
+          return;
+        } else {
+          console.log("VLTdata still up-to-date.");
+        }
         // IF OLDER THAN THRESHOLD - REDOWNLOAD
         try {
           let tpopFile = fs.readFileSync(this.vltjson, 'utf8');
@@ -754,8 +764,9 @@ class TPOPManager {
         const entry = {
           'id': obj['TPOPid'],
           'name': obj['InventoryNumber'],
-          'urlRecto': obj['ObjectImageRectoLo'],
-          'urlVerso': obj['ObjectImageVersoLo'],
+          'urlRecto': obj['ObjectImageRecto'],
+          'urlVerso': obj['ObjectImageVerso'],
+          'urlTPOP': obj['permalink'],
         };
         if ('features' in obj) {
           entry['features'] = Object.keys(obj['features']);

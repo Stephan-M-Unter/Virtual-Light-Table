@@ -1,5 +1,7 @@
 'use strict';
 
+const {getAllTags} = require('exif-js');
+
 /**
  * TODO
  */
@@ -12,32 +14,7 @@ class Fragment {
      */
   constructor(controller, id, eventData) {
     if (controller.isDevMode()) console.log('New Fragment:', eventData);
-    /*
-      List of Properties (alphabetical):
 
-      - this.baseX
-      - this.baseY
-      - this.container
-      - this.controller
-      - this.framework
-      - this.id
-      - this.image
-      - this.imageRecto
-      - this.imageVerso
-      - this.isBothSidesLoaded
-      - this.isSelected
-      - this.isRecto
-      - this.maskRecto
-      - this.maskVerso
-      - this.name
-      - this.ppiRecto
-      - this.ppiVerso
-      - this.rectoRotation
-      - this.rotationDistance
-      - this.stage
-      - this.urlRecto
-      - this.urlVerso
-    */
     // control and framework elements
     this.controller = controller;
     this.framework = this.controller.getStage();
@@ -45,97 +22,135 @@ class Fragment {
 
     const data = eventData.item.properties;
 
-    // basic fragment data
+    // basic fragment data (and default assumptions)
     this.id = id;
     this.isBothSidesLoaded = false;
     this.isSelected = false;
-    this.isRecto = data.recto;
-    this.urlRecto = data.rectoURL;
-    this.urlVerso = data.versoURL;
+    this.isTwoSided = false;
+    this.isRecto = data.showRecto;
     this.name = data.name;
+    this.maskMode = data.maskMode;
 
-    this.rotationDistance = 0;
-    this.tempRotation = 0;
+    this.recto = {};
+    this.verso = {};
 
-    // fragment masks (crop boxes, polygons...)
-    if (data.maskRecto) {
-      this.maskRecto = this._createMask(data.maskRecto);
+    if ('urlTPOP' in data) this.urlTPOP = data.urlTPOP;
+
+    // RECTO
+    if (data.recto) {
+      this.recto.url = data.recto.url;
+      if (data.recto.url_view) {
+        this.recto.url_view = data.recto.url_view;
+      }
+      this.recto.rotation = data.recto.rotation;
+      this.recto.ppi = data.recto.ppi;
+      
+      this.recto.container = new createjs.Container();
+      this.recto.container.name = 'Inner Container - Recto';
+      
+      this.recto.img = new createjs.Bitmap();
+      this.recto.img.id = id;
+      this.recto.img.name = 'Image - Recto';
+      this.recto.img.cursor = 'pointer';
+      this.recto.img.x = 0;
+      this.recto.img.y = 0;
+      this.recto.img.rotation = this.recto.rotation;
+      
+      if ('ppi' in this.recto && this.recto.ppi) {
+        this.recto.img.scale = 96 / this.recto.ppi;
+      } else {
+        this.recto.img.scale = 96 / data.verso.ppi;
+      }
+      
+      this.recto.container.addChild(this.recto.img);
+      
+      this.recto.box = data.recto.box;
+      this.recto.polygon = data.recto.polygon;
+      
+      this.recto.upload = data.recto.upload;
+      this.recto.www = data.recto.www;
+      
+      this.framework.registerImageEvents(this.recto.img);
+    } else {
+      // in this case, there IS no real recto - instead we only have an object
+      // with verso information, so we create an empty recto object that loads
+      // all information from the verso needed to mirror the verso
+      this.recto.ppi = data.verso.ppi;
+      this.recto.container = new createjs.Container();
+      this.recto.container.name = 'Inner Container - Recto';
+      this.recto.img = new createjs.Bitmap();
+      this.recto.img.id = id;
+      this.recto.img.name = "Image - Recto (mirrored)";
+      this.recto.img.cursor = 'pointer';
+      this.recto.img.x = 0;
+      this.recto.img.y = 0;
+      this.recto.img.scale = 96 / this.verso.ppi;
+      this.recto.container.addChild(this.recto.img);
+      this.framework.registerImageEvents(this.recto.img);
     }
-    if (data.maskVerso) {
-      this.maskVerso = this._createMask(data.maskVerso);
+
+    // VERSO
+    if (data.verso) {
+      this.verso.url = data.verso.url;
+      if (data.verso.url_view) {
+        this.verso.url_view = data.verso.url_view;
+      }
+      this.verso.rotation = data.verso.rotation;
+      this.verso.ppi = data.verso.ppi;
+      
+      this.verso.container = new createjs.Container();
+      this.verso.container.name = 'Inner Container - Verso';
+      
+      this.verso.img = new createjs.Bitmap();
+      this.verso.img.id = id;
+      this.verso.img.name = 'Image - Verso';
+      this.verso.img.cursor = 'pointer';
+      this.verso.img.x = 0;
+      this.verso.img.y = 0;
+      this.verso.img.rotation = this.verso.rotation;
+      
+      if ('ppi' in this.verso && this.verso.ppi) {
+        this.verso.img.scale = 96 / this.verso.ppi;
+      } else {
+        this.verso.img.scale = 96 / data.recto.ppi;
+      }
+      
+      this.verso.container.addChild(this.verso.img);
+      
+      this.verso.box = data.verso.box;
+      this.verso.polygon = data.verso.polygon;
+      
+      this.verso.upload = data.verso.upload;
+      this.verso.www = data.verso.www;
+      
+      this.framework.registerImageEvents(this.verso.img);
+    } else {
+      // in this case, there IS no real verso - instead we only have an object
+      // with recto information, so we create an empty verso object that loads
+      // all information from the recto needed to mirror the recto
+      this.verso.ppi = data.recto.ppi;
+      this.verso.container = new createjs.Container();
+      this.verso.container.name = 'Inner Container - Verso';
+      this.verso.img = new createjs.Bitmap();
+      this.verso.img.id = id;
+      this.verso.img.name = "Image - Verso (mirrored)";
+      this.verso.img.cursor = 'pointer';
+      this.verso.img.x = 0;
+      this.verso.img.y = 0;
+      this.verso.img.scale = 96 / this.recto.ppi;
+      this.verso.container.addChild(this.verso.img);
+      this.framework.registerImageEvents(this.verso.img);
     }
-
-    this.originalScaleRecto = 1;
-    this.originalScaleVerso = 1;
-    if (data.originalScaleRecto) this.originalScaleRecto = data.originalScaleRecto;
-    if (data.originalScaleVerso) this.originalScaleVerso = data.originalScaleVerso;
-
-    // rotation distance (between recto and verso)
-    this.rectoRotation = data.rectoRotation;
-    this.versoRotation = data.versoRotation;
-    this.rotationDistance = data.rotationDistance;
-    if (data.containerRotation) this.containerRotation = data.containerRotation;
-
-    // ppi information
-    if (data.ppiRecto) {
-      this.ppiRecto = data.ppiRecto;
-    }
-    if (data.ppiVerso) {
-      this.ppiVerso = data.ppiVerso;
-    }
-
-    // alignment offsets
-    this.alignOffsetX = this.alignOffsetY = 0;
-    if (data.offsetX &&
-      data.offsetY) {
-      this.alignOffsetX = data.offsetX;
-      this.alignOffsetY = data.offsetY;
-    }
-
-    // create inner Containers for images
-    this.containerRecto = new createjs.Container();
-    this.containerRecto.name = 'Inner Container - Recto';
-    if (this.containerRotation) this.containerRecto.rotation = this.containerRotation;
-    this.containerVerso = new createjs.Container();
-    this.containerVerso.name = 'Inner Container - Verso';
-    if (this.containerRotation) this.containerVerso.rotation = this.containerRotation;
-
-    if (data.imageWidthRecto) this.containerRecto.imageWidth = data.imageWidthRecto;
-    if (data.imageHeightRecto) this.containerRecto.imageHeight = data.imageHeightRecto;
-    if (data.imageWidthVerso) this.containerVerso.imageWidth = data.imageWidthVerso;
-    if (data.imageHeightVerso) this.containerVerso.imageHeight = data.imageHeightVerso;
-
-    // create the image for the displayed side
-    this.imageRecto = new createjs.Bitmap();
-    this.imageRecto.id = id;
-    this.imageRecto.cursor = 'pointer';
-    this.imageRecto.x = 0;
-    this.imageRecto.y = 0;
-    this.imageRecto.name = 'Image - Recto';
-    this.imageRecto.originalScale = this.originalScaleRecto;
-    this.framework.registerImageEvents(this.imageRecto);
-    this.containerRecto.addChild(this.imageRecto);
-    if (this.rectoRotation) this.imageRecto.rotation = this.rectoRotation;
-    if (this.ppiRecto) this.imageRecto.scale = 96 / this.ppiRecto;
-
-    this.imageVerso = new createjs.Bitmap();
-    this.imageVerso.id = id;
-    this.imageVerso.cursor = 'pointer';
-    this.imageVerso.x = 0;
-    this.imageVerso.y = 0;
-    this.imageVerso.name = 'Image - Verso';
-    this.imageVerso.originalScale = this.originalScaleVerso;
-    this.framework.registerImageEvents(this.imageVerso);
-    this.containerVerso.addChild(this.imageVerso);
-    if (this.versoRotation) this.imageVerso.rotation = this.versoRotation;
-    if (this.ppiVerso) this.imageVerso.scale = 96 / this.ppiVerso;
-
+    
     this._createImage(eventData, this.isRecto);
 
     // create the fragment container
     this.container = this._createContainer(data, id);
-    if (this.isRecto) this.container.addChild(this.containerRecto);
-    else this.container.addChild(this.containerVerso);
+    if (data.x) this.moveToPixel(data.x, data.y);
+    if (data.rotation) this.rotateToAngle(data.rotation);
+
+    if (this.isRecto) this.container.addChild(this.recto.container);
+    else this.container.addChild(this.verso.container);
 
     if (data.baseX) {
       this.baseX = data.baseX;
@@ -165,98 +180,37 @@ class Fragment {
   _createImage(eventData, isRecto) {
     let image;
     if (isRecto) {
-      image = this.imageRecto;
+      image = this.recto.img;
     } else {
-      image = this.imageVerso;
+      image = this.verso.img;
     }
     const loading = new createjs.Bitmap(eventData.result);
     image.image = loading.image;
     image.regX = image.image.width / 2;
     image.regY = image.image.height / 2;
 
-    if (this.isRecto) {
-      if (this.maskRecto) {
-        image.mask = this.maskRecto;
-        this.maskRecto.regX = this.maskRecto.cx;
-        this.maskRecto.regY = this.maskRecto.cy;
-        this.maskRecto.scale = image.scale / this.originalScaleRecto;
-        image.x = (image.regX - this.maskRecto.cx) * this.maskRecto.scale;
-        image.y = (image.regY - this.maskRecto.cy) * this.maskRecto.scale;
-      }
-    } else {
-      if (this.maskVerso) {
-        image.mask = this.maskVerso;
-        this.maskVerso.regX = this.maskVerso.cx;
-        this.maskVerso.regY = this.maskVerso.cy;
-        this.maskVerso.scaleX *= Math.abs(image.scale) / this.originalScaleVerso;
-        this.maskVerso.scaleY = Math.abs(image.scale) / this.originalScaleVerso;
-
-        image.regX = this.alignOffsetX;
-        image.regY = this.alignOffsetY;
-      }
-    }
-
     return image;
   }
 
   /**
    * TODO
-   * @param {*} polygon
-   * @return {*}
-   */
-  _createMask(polygon) {
-    if (!polygon) return null;
-    const mask = new createjs.Shape();
-    let started = false;
-
-    let l; let r; let t; let b;
-
-    for (const node in polygon) {
-      if (Object.prototype.hasOwnProperty.call(polygon, node)) {
-        const x = polygon[node][0];
-        const y = polygon[node][1];
-
-        (!l ? l = x : l = Math.min(l, x));
-        (!r ? r = x : r = Math.max(r, x));
-        (!t ? t = y : t = Math.min(t, y));
-        (!b ? b = y : b = Math.max(b, y));
-
-        if (!started) {
-          started = true;
-          mask.graphics.moveTo(x, y);
-        } else {
-          mask.graphics.lineTo(x, y);
-        }
-      }
-    }
-    mask.polygon = polygon;
-    mask.w = r-l,
-    mask.h = b-t,
-    mask.cx = (l+r)/2;
-    mask.cy = (b+t)/2;
-
-    return mask;
-  }
-
-  /**
-   * TODO
-   * @param {*} imageProperties
+   * @param {*} data
    * @param {*} id
    * @return {*}
    */
-  _createContainer(imageProperties, id) {
+  _createContainer(data, id) {
     const container = new createjs.Container();
     container.scale = this.stage.scaling / 100;
 
-    if (imageProperties.xPos && imageProperties.yPos) {
-      container.x = imageProperties.xPos;
-      container.y = imageProperties.yPos;
+    if (data.xPos && data.yPos) {
+      container.x = data.xPos;
+      container.y = data.yPos;
     } else {
       const canvasCenter = this.controller.getCanvasCenter();
       container.x = canvasCenter.x;
       container.y = canvasCenter.y;
     }
-    container.name = 'Container';
+    container.name = 'Container (fragment '+id+')';
     container.id = id;
 
     return container;
@@ -293,8 +247,8 @@ class Fragment {
    * @param {*} targetAngle
    */
   rotateToAngle(targetAngle) {
-    this.containerRecto.rotation = targetAngle%360;
-    this.containerVerso.rotation = targetAngle%360;
+    if (this.recto) this.recto.container.rotation = targetAngle%360;
+    if (this.verso) this.verso.container.rotation = targetAngle%360;
   }
 
   /**
@@ -302,8 +256,8 @@ class Fragment {
    * @param {*} deltaAngle
    */
   rotateByAngle(deltaAngle) {
-    this.containerRecto.rotation += deltaAngle;
-    this.containerVerso.rotation += deltaAngle;
+    if (this.recto) this.recto.container.rotation += deltaAngle;
+    if (this.verso) this.verso.container.rotation += deltaAngle;
   }
 
   /**
@@ -313,6 +267,8 @@ class Fragment {
   scaleToValue(scaling) {
     this.container.scale = scaling;
   }
+
+
 
   /**
    * TODO
@@ -326,25 +282,62 @@ class Fragment {
       const loadqueue = new createjs.LoadQueue();
       loadqueue.addEventListener('fileload', (event) => {
         this._createImage(event, this.isRecto);
+
+        let mirror_url = '';
+        if (this.isRecto && 'url_view' in this.recto) mirror_url = this.recto.url_view;
+        else if (!this.isRecto && 'url_view' in this.verso)mirror_url = this.verso.url_view;
+        if (mirror_url.indexOf('_mirror') != -1) {
+          if (this.isRecto) this.recto.img.rotation = -this.verso.img.rotation;
+          else this.verso.img.rotation = -this.recto.img.rotation;
+        }
+
+        if (this.isRecto) {
+          this.container.removeChild(this.verso.container);
+          this.container.addChild(this.recto.container);
+        } else {
+          this.container.removeChild(this.recto.container);
+          this.container.addChild(this.verso.container);
+        }
+
+        // this.getImage().x = 0;
+        // this.getImage().y = 0;
+        // this.getInnerContainer.regX = this.relation.d_cx;
+        // this.getInnerContainer.regY += this.relation.d_cy;
         this.isBothSidesLoaded = true;
         this.framework._updateBb();
         this.stage.update();
       });
       let url;
-      if (this.isRecto) url = this.urlRecto;
-      else url = this.urlVerso;
+      if (this.isRecto) {
+        // RECTO
+        if (!('url' in this.recto)) url = this.recto.url_view;
+        else {
+          // if this side is existent, try to load the cropped version, if there is none, load the original
+          if ('url_view' in this.recto) url = this.recto.url_view;
+          else url = this.recto.url;
+        }
+      } else {
+        // VERSO
+        if (!('url' in this.verso)) url = this.verso.url_view;
+        else {
+          // if this side is existent, try to load the cropped version, if there is none, load the original
+          if ('url_view' in this.verso) url = this.verso.url_view;
+          else url = this.verso.url;
+        }
+      }
       loadqueue.loadFile(url);
       loadqueue.load();
-    }
-
-    if (this.isRecto) {
-      this.container.removeChild(this.containerVerso);
-      this.container.addChild(this.containerRecto);
+    
     } else {
-      this.container.removeChild(this.containerRecto);
-      this.container.addChild(this.containerVerso);
+      if (this.isRecto) {
+        this.container.removeChild(this.verso.container);
+        this.container.addChild(this.recto.container);
+      } else {
+        this.container.removeChild(this.recto.container);
+        this.container.addChild(this.verso.container);
+      }
+      if (!inverted) this.controller.updateSidebarFragmentList();
     }
-    if (!inverted) this.controller.updateSidebarFragmentList();
   }
 
   /**
@@ -373,15 +366,15 @@ class Fragment {
   translateRotation(inverted) {
     if (inverted) {
       if (this.isRecto) {
-        this.container.rotation += this.rotationDistance;
+        this.container.rotation += this.relation.d_rotation;
       } else {
-        this.container.rotation -= this.rotationDistance;
+        this.container.rotation -= this.relation.d_rotation;
       }
     } else {
       if (this.isRecto) {
-        this.container.rotation -= this.rotationDistance;
+        this.container.rotation -= this.relation.d_rotation;
       } else {
-        this.container.rotation += this.rotationDistance;
+        this.container.rotation += this.relation.d_rotation;
       }
     }
   }
@@ -400,9 +393,9 @@ class Fragment {
    */
   getImage() {
     if (this.isRecto) {
-      return this.imageRecto;
+      return this.recto.img;
     } else {
-      return this.imageVerso;
+      return this.verso.img;
     }
   }
 
@@ -412,9 +405,9 @@ class Fragment {
    */
   getHiddenImage() {
     if (this.isRecto) {
-      return this.imageVerso;
+      return this.verso.img;
     } else {
-      return this.imageRecto;
+      return this.recto.img;
     }
   }
 
@@ -423,10 +416,10 @@ class Fragment {
    * @return {*}
    */
   getMask() {
-    if (!this.isRecto && this.maskRecto) {
-      return this.maskRecto;
-    } else if (this.isRecto && this.maskVerso) {
-      return this.maskVerso;
+    if (!this.isRecto && this.recto.mask) {
+      return this.recto.mask;
+    } else if (this.isRecto && this.verso.mask) {
+      return this.verso.mask;
     } else {
       return null;
     }
@@ -438,9 +431,9 @@ class Fragment {
    */
   getInnerContainer() {
     if (this.isRecto) {
-      return this.containerRecto;
+      return this.recto.container;
     } else {
-      return this.containerVerso;
+      return this.verso.container;
     }
   }
 
@@ -450,9 +443,11 @@ class Fragment {
    */
   getImageURL() {
     if (this.isRecto) {
-      return this.urlRecto;
+      if (this.recto.url_view) return this.recto.url_view;
+      else return this.recto.url;
     } else {
-      return this.urlVerso;
+      if (this.verso.url_view) return this.verso.url_view;
+      else return this.verso.url;
     }
   }
 
@@ -461,42 +456,108 @@ class Fragment {
    * @return {*}
    */
   getData() {
+    const data = {};
+
+    // RECTO
+    if (this.recto && this.recto.url) {
+      const dataRecto = {};
+
+      dataRecto.rotation = this.recto.rotation;
+      dataRecto.url = this.recto.url;
+      if (this.recto.url_view) dataRecto.url_view = this.recto.url_view;
+
+      dataRecto.ppi = this.recto.ppi;
+      dataRecto.box = this.recto.box;
+      dataRecto.polygon = this.recto.polygon;
+
+      dataRecto.upload = this.recto.upload;
+      dataRecto.www = this.recto.www;
+
+      data.recto = dataRecto;
+    }
+
+    // VERSO
+    if (this.verso && this.verso.url) {
+      const dataVerso = {};
+
+      dataVerso.rotation = this.verso.rotation;
+      dataVerso.url = this.verso.url;
+      if (this.verso.url_view) dataVerso.url_view = this.verso.url_view;
+      dataVerso.ppi = this.verso.ppi;
+      dataVerso.box = this.verso.box;
+      dataVerso.polygon = this.verso.polygon;
+
+      dataVerso.upload = this.verso.upload;
+      dataVerso.www = this.verso.www;
+
+      data.verso = dataVerso;
+    }
+
+    // RELATION
+    /*
+    if (this.recto && this.verso && this.recto.url && this.verso.url) {
+      const dataRelation = {};
+
+      dataRelation.d_rotation = this.relation.d_rotation;
+      dataRelation.d_cx = this.relation.d_cx;
+      dataRelation.d_cy = this.relation.d_cy;
+
+      data.relation = dataRelation;
+    }
+    */
+
+    // GENERAL
+    data.id = this.id;
+    data.showRecto = this.isRecto;
+    data.name = this.name;
+    data.maskMode = this.maskMode;
+
+    data.x = this.getX();
+    data.baseX = this.getBaseX();
+    data.y = this.getY();
+    data.baseY = this.getBaseY();
+    data.rotation = this.getRotation();
+
+    if (this.urlTPOP) data.urlTPOP = this.urlTPOP;
+
+    return data;
+    /*
     let rectoPolygon = null;
     let versoPolygon = null;
-    if (this.maskRecto) {
-      rectoPolygon = this.maskRecto.polygon;
+    if (this.recto.mask) {
+      rectoPolygon = this.recto.mask.polygon;
     }
-    if (this.maskVerso) {
-      versoPolygon = this.maskVerso.polygon;
+    if (this.verso.mask) {
+      versoPolygon = this.verso.mask.polygon;
     }
     return {
       'name': this.name,
       'recto': this.isRecto,
-      'rectoURL': this.urlRecto,
-      'versoURL': this.urlVerso,
+      'rectoURL': this.recto.url,
+      'versoURL': this.verso.url,
       'xPos': this.container.x,
       'baseX': this.baseX,
       'yPos': this.container.y,
       'baseY': this.baseY,
       'rotation': this.container.rotation,
-      'containerRotation': this.containerRecto.rotation,
-      'maskRecto': rectoPolygon,
-      'maskVerso': versoPolygon,
+      'containerRotation': this.recto.container.rotation,
+      'recto.mask': rectoPolygon,
+      'verso.mask': versoPolygon,
       'originalScaleRecto': this.originalScaleRecto,
       'originalScaleVerso': this.originalScaleVerso,
       'ppiRecto': this.ppiRecto,
       'ppiVerso': this.ppiVerso,
       'rectoRotation': this.rectoRotation,
       'versoRotation': this.versoRotation,
-      'rotationDistance': this.rotationDistance,
+      'relation.d_rotation': this.relation.d_rotation,
       'offsetX': this.alignOffsetX,
       'offsetY': this.alignOffsetY,
-      'imageWidthRecto': this.containerRecto.imageWidth,
-      'imageHeightRecto': this.containerRecto.imageHeight,
-      'imageWidthVerso': this.containerVerso.imageWidth,
-      'imageHeightVerso': this.containerVerso.imageHeight,
+      'imageWidthRecto': this.recto.container.imageWidth,
+      'imageHeightRecto': this.recto.container.imageHeight,
+      'imageWidthVerso': this.verso.container.imageWidth,
+      'imageHeightVerso': this.verso.container.imageHeight,
       'scale': this.container.scale,
-    };
+    };*/
   }
 
   /**
@@ -504,33 +565,39 @@ class Fragment {
    * @param {Object} data
    */
   setData(data) {
-    this.name = data['name'];
-    this.isRecto = data['recto'];
-    this.urlRecto = data['rectoURL'];
-    this.urlVerso = data['versoURL'];
-    this.container.x = data['xPos'];
-    this.baseX = data['baseX'];
-    this.container.y = data['yPos'];
-    this.baseY = data['baseY'];
-    this.container.rotation = data['rotation'];
-    this.containerRecto.rotation = data['containerRotation'];
-    this.originalScaleRecto = data['originalScaleRecto'];
-    this.originaScaleVerso = data['originalScaleVerso'];
-    this.ppiRecto = data['ppiRecto'];
-    this.ppiVersio = data['ppiVerso'];
-    this.rectoRotation = data['rectoRotation'];
-    this.versoRotation = data['versoRotation'];
-    this.rotationDistance = data['rotationDistance'];
-    this.alignOffsetX = data['offsetX'];
-    this.alignOffsetY = data['offsetY'];
-    this.containerRecto.imageWidth = data['imageWidthRecto'];
-    this.containerRecto.imageHeight = data['imageHeightRecto'];
-    this.containerVerso.imageWidth = data['imageWidthVerso'];
-    this.containerVerso.imageHeight = data['imageHeightVerso'];
-    this.container.scale = data['scale'];
+    console.log("SETDATA", data);
+    this.name = data.name;
+    this.isRecto = data.showRecto;
+    this.recto.url = data.recto.url;
+    this.verso.url = data.verso.url;
+    this.container.x = data.x;
+    this.container.y = data.y;
+    this.baseX = data.baseX;
+    this.baseY = data.baseY;
+    this.container.rotation = data.rotation;
+    // this.recto.container.rotation = data.recto.rotation;
 
-    this.maskRecto = this._createMask(data['maskRecto']);
-    this.maskVerso = this._createMask(data['maskVerso']);
+    // this.originalScaleRecto = data['originalScaleRecto'];
+    // this.originaScaleVerso = data['originalScaleVerso'];
+    this.ppiRecto = data.recto.ppi;
+    this.ppiVersio = data.verso.ppi;
+    this.rectoRotation = data.recto.rotation;
+    this.versoRotation = data.verso.rotation;
+    this.recto.www = data.recto.www;
+    this.verso.www = data.verso.www;
+    // this.relation.d_rotation = data['relation.d_rotation'];
+    // this.alignOffsetX = data['offsetX'];
+    // this.alignOffsetY = data['offsetY'];
+    // this.recto.container.imageWidth = data['imageWidthRecto'];
+    // this.recto.container.imageHeight = data['imageHeightRecto'];
+    // this.verso.container.imageWidth = data['imageWidthVerso'];
+    // this.verso.container.imageHeight = data['imageHeightVerso'];
+    // this.container.scale = data['scale'];
+
+    /*
+    this.recto.mask = this._createMask(data['recto.mask']);
+    this.verso.mask = this._createMask(data['verso.mask']);
+    */
   }
 
   /**
@@ -539,6 +606,11 @@ class Fragment {
    */
   getName() {
     return this.name;
+  }
+
+  getTPOPURL() {
+    if (this.urlTPOP) return this.urlTPOP;
+    return null;
   }
 
   /**
@@ -589,17 +661,17 @@ class Fragment {
    * @return {*}
    */
   getRotation() {
-    return this.containerRecto.rotation;
+    return this.getInnerContainer().rotation;
   }
 
   /**
    * @return {*}
    */
   getMask() {
-    if (this.isRecto && this.maskRecto) {
-      return this.maskRecto;
-    } else if (!this.isRecto && this.maskVerso) {
-      return this.maskVerso;
+    if (this.isRecto && this.recto.mask) {
+      return this.recto.mask;
+    } else if (!this.isRecto && this.verso.mask) {
+      return this.verso.mask;
     } else {
       return null;
     }
@@ -658,7 +730,6 @@ class Fragment {
       cx: null,
       cy: null,
     };
-
     // case 1: fragment has NO vector mask
     if (!this.getMask()) {
       fragmentBounds['type'] = 'no_mask';
@@ -683,7 +754,7 @@ class Fragment {
 
       for (const idx in polygon) {
         if (Object.prototype.hasOwnProperty.call(polygon, idx)) {
-          let node = {x: polygon[idx][0], y: polygon[idx][1]};
+          let node = {x: polygon[idx].x, y: polygon[idx].y};
           if (this.getImage().rotation != 0) {
             let maskCenter = {x: this.getMask().cx, y: this.getMask().cy};
 
@@ -717,6 +788,7 @@ class Fragment {
           ys.push(nodeGlobal.y);
         }
       }
+
 
       let xMin = Math.min(...xs);
       let xMax = Math.max(...xs);
@@ -791,3 +863,35 @@ class Fragment {
 }
 
 module.exports.Fragment = Fragment;
+
+
+(function () {
+  "use strict";
+  function ColorMaskFilter(color) {
+    this.color = color;
+  }
+  var p = createjs.extend(ColorMaskFilter, createjs.Filter);
+  p.applyFilter = function (ctx, x, y, width, height, targetCtx, targetX, targetY) {
+    if (!this.color) { return true; }
+    targetCtx = targetCtx || ctx;
+    if (targetX == null) { targetX = x; }
+    if (targetY == null) { targetY = y; }
+ 
+    targetCtx.save();
+    if (ctx != targetCtx) {
+      return false;
+    }
+ 
+    targetCtx.globalCompositeOperation = "source-out"; // Use source-in to fill the shape instead
+    targetCtx.fillStyle = this.color;
+    targetCtx.rect(targetX,targetY,width,height);
+    targetCtx.fill();
+    
+    targetCtx.restore();
+    return true;
+  };
+  p.clone = function () {
+    return new AlphaMaskFilter(this.color);
+  }; 
+  createjs.ColorMaskFilter = createjs.promote(ColorMaskFilter, "Filter");
+}());

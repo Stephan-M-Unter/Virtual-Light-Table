@@ -954,6 +954,14 @@ $('.ml-weight').on('input', () => {
   updateMLSliders();
 });
 
+$('#load').on('click', (event) => {
+  const selectedFragments = [];
+  for (const fragment of $('#loading-view .loading')) {
+    selectedFragments.push($(fragment).attr('id').replace('load-', ''));
+  }
+  ipcRenderer.send('server-load-tpop-fragments', selectedFragments);
+});
+
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
   // show data
   const objects = tpopJson.objects;
