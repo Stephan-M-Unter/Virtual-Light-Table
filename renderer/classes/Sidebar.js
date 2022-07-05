@@ -268,8 +268,8 @@ class Sidebar {
 
   resetGraphicsFilters() {
     $('.flip-button').removeClass('inverted');
-    $('#graphics-brightness').val(0);
-    $('#graphics-contrast').val(0);
+    $('#graphics-brightness').val(1);
+    $('#graphics-contrast').val(1);
   }
 
   /**

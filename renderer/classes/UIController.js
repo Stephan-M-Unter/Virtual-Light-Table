@@ -408,6 +408,7 @@ class UIController {
 
     const data = {
       tableID: this.activeTable,
+      urls: this.stage.getActiveFragmentUrls(),
       filters: filters,
     }
    

@@ -664,6 +664,24 @@ class Fragment {
     return this.getInnerContainer().rotation;
   }
 
+  getActiveUrls() {
+    const urls = [];
+
+    if ('url_view' in this.recto && this.recto.url_view) {
+      urls.push(this.recto.url_view);
+    } else if ('url' in this.recto && this.recto.url) {
+      urls.push(this.recto.url);
+    }
+
+    if ('url_view' in this.verso && this.verso.url_view) {
+      urls.push(this.verso.url_view);
+    } else if ('url' in this.verso && this.verso.url) {
+      urls.push(this.verso);
+    }
+
+    return urls;
+  }
+
   /**
    * @return {*}
    */

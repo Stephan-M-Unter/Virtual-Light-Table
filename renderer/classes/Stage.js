@@ -46,6 +46,8 @@ class Stage {
     /** @member {double} */
     this.ppi = 96;
 
+    this.graphicFilters = false;
+
     /** @constant {Object} */
     this.lines = {
       'horizontal': null,
@@ -338,6 +340,12 @@ class Stage {
     this._clearTable();
     this.controller.clearMeasurements();
 
+    if ('filter' in data && data.filter) {
+      this.graphicFilters = true;
+    } else {
+      this.graphicFilters = false;
+    }
+
     if (data && data.fragments) {
       this._loadFragments(data.fragments);
     }
@@ -549,7 +557,13 @@ class Stage {
             url = fragmentData.verso.url;
           }
         }
-        console.log("load", id, url);
+
+        if (this.graphicFilters && url.indexOf('_mirror.') == -1) {
+          const dot = url.indexOf(".");
+          url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
+        }
+        console.log(url);
+
         this.loadqueue.loadManifest([{
           id: id,
           src: url,
@@ -1395,6 +1409,15 @@ class Stage {
       y: distY,
       scale: oldScaling,
     };
+  }
+
+  getActiveFragmentUrls() {
+    let urls = [];
+    for (const fragmentKey of Object.keys(this.fragmentList)) {
+      const fragment = this.fragmentList[fragmentKey];
+      urls = urls.concat(fragment.getActiveUrls());
+    }
+    return urls;
   }
 }
 

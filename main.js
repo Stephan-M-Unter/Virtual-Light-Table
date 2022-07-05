@@ -1382,3 +1382,22 @@ ipcMain.on('server-display-folders', function(event) {
   const data = tpopManager.getFolders();
   sendMessage(event.sender, 'tpop-display-folders', data);
 });
+
+ipcMain.on('server-graphics-filter', function(event, data) {
+  const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
+  const jsonContent = JSON.stringify(data);
+  fs.writeFileSync(jsonPath, jsonContent, 'utf8');
+
+  const python = spawn('python', ['./python-scripts/filter_images.py', vltFolder, jsonPath]);
+  python.stderr.pipe(process.stderr);
+  python.stdout.pipe(process.stdout);
+  python.on('close', function(code) {
+    console.log(`Filtering finished with code ${code}.`)
+    const response = {
+      tableID: data['tableID'],
+      tableData: tableManager.getTable(data['tableID']),
+    };
+    response.tableData.filter = true;
+    sendMessage(event.sender, 'client-load-model', response);
+  });
+});
