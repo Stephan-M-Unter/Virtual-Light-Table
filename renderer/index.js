@@ -227,6 +227,35 @@ $(document).ready(function() {
     controller.toggleFibreMode();
   });
 
+  $('#fibre-wrapper').on('click', function() {
+    controller.toggleFibreMode();
+  });
+  $('#light-wrapper').on('click', function() {
+    controller.toggleLight();
+  });
+  $('#scale-wrapper').on('click', function() {
+    controller.toggleScaleMode();
+  });
+  $('#grid-wrapper').on('click', function() {
+    controller.toggleGridMode();
+  });
+
+  // Graphical Filter Buttons
+  $('#graphics-reset').on('click', function(event) {
+    controller.resetGraphicsFilters();
+  });
+  $('#graphics-brightness').on('change', function(event) {
+    controller.sendGraphicsFilterToServer();
+  });
+  $('#graphics-contrast').on('change', function(event) {
+    controller.sendGraphicsFilterToServer();
+  });
+  $('.flip-button').on('click', function(event) {
+    const button = $(event.target);
+    const color = $(button).attr('data');
+    controller.toggleColorInversion(color);
+  });
+
   // Fit to Screen
   $('#fit_to_screen').click(function(event) {
     controller.fitToScreen();

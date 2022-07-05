@@ -1452,3 +1452,100 @@ body {
     text-decoration-line: underline;
     text-decoration-style: dotted;
 }
+
+input[type='checkbox'] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid black;
+    border-radius: 5px;
+}
+
+.displayWrapper:hover input[type='checkbox']:not(:checked) {
+    background-color: var(--cb_orange);
+}
+
+input[type='checkbox']:checked {
+    background-color: var(--cb_darkred);
+}
+
+.flip-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.flip-button {
+    width: 40px;
+    height: 50px;
+    line-height: 50px;
+    color: black;
+    font-size: 1.4em;
+    font-weight: bold;
+    transition: all .2s;
+}
+
+.flip-button.R {
+    background-color: rgb(238, 76, 76);
+}
+
+.flip-button.R.inverted {
+    background-color: gray;
+    color: rgb(151, 0, 0);
+}
+
+.flip-button.G {
+    background-color: rgb(86, 224, 86);
+}
+
+.flip-button.G.inverted {
+    background-color: gray;
+    color: rgb(86, 224, 86);
+}
+
+.flip-button.B {
+    background-color: rgb(102, 102, 209);
+}
+
+.flip-button.B.inverted {
+    background-color: gray;
+    color: rgb(10, 10, 128);
+}
+
+.flip-button.inverted {
+    box-shadow: inset 3px 3px 2px black, inset 2px 2px 4px white;
+}
+
+#graphics-reset:not(:hover) {
+    background-color: var(--cb_orange);
+}
+
+#left_sidebar input[type='range'] {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 80%; /* Full-width */
+    height: 5px; /* Specified height */
+    background: #eee; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+  }
+
+  #left_sidebar input[type='range']:hover {
+    opacity: 1;
+  }
+
+  #left_sidebar input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 12px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: var(--cb_orange); /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 2px;
+  }
+  
+  .graphics-filter {
+    margin-bottom: 20px;
+  }

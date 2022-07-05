@@ -257,6 +257,21 @@ class Sidebar {
     }
   }
 
+  toggleColorInversion(color) {
+    const button = $('.flip-button.'+color);
+    if ($(button).hasClass('inverted')) {
+      $(button).removeClass('inverted');
+    } else {
+      $(button).addClass('inverted');
+    }
+  }
+
+  resetGraphicsFilters() {
+    $('.flip-button').removeClass('inverted');
+    $('#graphics-brightness').val(0);
+    $('#graphics-contrast').val(0);
+  }
+
   /**
    * TODO
    * @param {*} id

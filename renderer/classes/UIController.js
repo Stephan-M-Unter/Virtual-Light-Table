@@ -387,6 +387,33 @@ class UIController {
     // TODO Not yet implemented
   }
 
+  toggleColorInversion(color) {
+    this.sidebar.toggleColorInversion(color);
+    this.sendGraphicsFilterToServer();
+  }
+
+  resetGraphicsFilters() {
+    this.sidebar.resetGraphicsFilters();
+    this.sendToServer('server-reset-graphics', this.activeTable);
+  }
+
+  sendGraphicsFilterToServer() {
+    const filters = {
+      'brightness': $('#graphics-brightness').val(),
+      'contrast': $('#graphics-contrast').val(),
+      'invertR': $('.flip-button.R').hasClass('inverted'),
+      'invertG': $('.flip-button.G').hasClass('inverted'),
+      'invertB': $('.flip-button.B').hasClass('inverted'),
+    };
+
+    const data = {
+      tableID: this.activeTable,
+      filters: filters,
+    }
+   
+    this.sendToServer('server-graphics-filter', data);
+  }
+
   /**
    * TODO
    * @return {*}
