@@ -788,6 +788,38 @@ class TPOPManager {
   createRandomVector(length) {
     return Array.from({length: length}, () => Math.random());
   }
+
+  getFolders() {
+    const folders = [];
+    
+    const counter = {};
+
+    for (const entry of this.allTPOPData) {
+      let folderName = entry['InventoryNumber'];
+      if (folderName.indexOf('Provv') != -1) {
+        folderName = 'Provv';
+      } else if (folderName.indexOf('Cat') != -1) {
+        folderName = 'Cat';
+      } else if (folderName.indexOf('CGT') != -1) {
+        folderName = 'CGT';
+      } else if (folderName.indexOf('CP') != -1) {
+        folderName = folderName.substring(0, folderName.indexOf("/")+1);
+      } else if (folderName == '') {
+        continue;
+      }
+
+      if (folderName in counter) {
+        counter[folderName] += 1;
+      } else {
+        counter[folderName] = 1;
+      }
+    }
+
+    for (const k of Object.keys(counter)) {
+      folders.push({'name': k, 'amount': counter[k]});
+    }
+    return folders;
+  }
 }
 
 module.exports = TPOPManager;

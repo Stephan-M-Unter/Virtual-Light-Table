@@ -57,6 +57,33 @@ function resetTPOPView() {
   $('#tile-view').empty();
 }
 
+function addFilter(attribute, operator, value) {
+  const filter = $('<div class="filter"></div>');
+  filter.attr('data-attribute', attribute);
+  filter.attr('data-operator', operator);
+  filter.attr('data-value', value);
+
+  if (operator == 'contains' || operator == 'contains not') {
+    value = '"' + value + '"';
+  }
+
+  const filterDescriptor = $('<div class="filter-descriptor">'+attribute+' '+operator+' '+value+'</div>');
+  const filterDelete = $('<div class="filter-delete no-select">x</div>');
+
+  filterDelete.click(function(event) {
+    $(this).parent().remove();
+    requestFilter();
+  });
+
+  filter.append(filterDescriptor);
+  filter.append(filterDelete);
+
+  $('#filter-list').append(filter);
+  $('#filter-overlay').css('display', 'none');
+
+  requestFilter();
+}
+
 /**
  *
  */
@@ -333,6 +360,39 @@ function deselectTile(id) {
     updateMLButton();
   });
   updateSelectedScrollers();
+}
+
+function displayFolders(folderList) {
+  console.log(folderList);
+  $('#folder-grid').empty();
+  $('#folder-overlay').css('display', 'flex');
+  for (const folder of folderList) {
+    const folderTile = document.createElement('div');
+    const folderImage = document.createElement('img');
+    const folderLabel = document.createElement('div');
+    const folderLabelText = document.createTextNode(folder.name);
+    const folderAmount = document.createElement('div');
+    const folderAmountText = document.createTextNode(folder.amount);
+
+    folderTile.setAttribute('class', 'folder-tile');
+    folderImage.setAttribute('class', 'folder-image');
+    folderLabel.setAttribute('class', 'folder-label');
+    folderAmount.setAttribute('class', 'folder-amount');
+    folderImage.src = "../imgs/symbol_folder.png";
+
+    folderTile.appendChild(folderImage);
+    folderTile.appendChild(folderLabel);
+    folderLabel.appendChild(folderLabelText);
+    folderTile.appendChild(folderAmount);
+    folderAmount.appendChild(folderAmountText);
+    $('#folder-grid').append(folderTile);
+
+    folderTile.addEventListener('click', function(event) {
+      $('.filter[data-attribute="InventoryNumber"]').remove();
+      addFilter('InventoryNumber', 'contains', folder.name);
+      $('#folder-overlay').css('display', 'none');
+    });
+  }
 }
 
 /**
@@ -736,6 +796,10 @@ $(window).on('mouseup', (event) => {
   $(window).off('mousemove');
 });
 
+$('#select-folder').click((event) => {
+  ipcRenderer.send('server-display-folders');
+});
+
 $('#filter-add').click((event) => {
   resetFilterSelection();
   $('#filter-overlay').css('display', 'flex');
@@ -757,30 +821,8 @@ $('#filter-add-button').click(() => {
   const attribute = $('#filter-attribute').val();
   const operator = $('.operator-selected').html();
   let value = $('#filter-value').val();
-  const filter = $('<div class="filter"></div>');
-  filter.attr('data-attribute', attribute);
-  filter.attr('data-operator', operator);
-  filter.attr('data-value', value);
 
-  if (operator == 'contains' || operator == 'contains not') {
-    value = '"' + value + '"';
-  }
-
-  const filterDescriptor = $('<div class="filter-descriptor">'+attribute+' '+operator+' '+value+'</div>');
-  const filterDelete = $('<div class="filter-delete no-select">x</div>');
-
-  filterDelete.click(function(event) {
-    $(this).parent().remove();
-    requestFilter();
-  });
-
-  filter.append(filterDescriptor);
-  filter.append(filterDelete);
-
-  $('#filter-list').append(filter);
-  $('#filter-overlay').css('display', 'none');
-
-  requestFilter();
+  addFilter(attribute, operator, value);
 });
 
 $('#filter-close').click(function(event) {
@@ -788,10 +830,15 @@ $('#filter-close').click(function(event) {
   resetFilterSelection();
 });
 
+$('#folder-close').click(function() {
+  $('#folder-overlay').css('display', 'none');
+});
+
 $('html').keydown(function(event) {
   if (event.keyCode == 27) {
-    // ESC -> close filter view
+    // ESC -> close filter and folder view
     $('#filter-overlay').css('display', 'none');
+    $('#folder-overlay').css('display', 'none');
   } else if (event.keyCode == 37) {
     // Left Arrow -> Move selection left
     moveSelectionLeftRight(-1);
@@ -1100,4 +1147,8 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
 ipcRenderer.on('tpop-calculation-done', () => {
   requesting = false;
   loadPage(0);
+});
+
+ipcRenderer.on('tpop-display-folders', (event, data) => {
+  displayFolders(data);
 });

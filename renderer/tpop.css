@@ -65,9 +65,11 @@ body {
 
 .filter {
     background-color: white;
-    margin: 5px;
+    max-width: 90%;
+    margin: 5px auto;
     padding: 2px;
     position: relative;
+    border-radius: 5px;
 }
 
 .filter-delete {
@@ -463,7 +465,76 @@ body {
     width: 8px;
 }
 
-#filter-overlay {
+#folder-grid {
+    padding: 20px;
+    background-color: #333;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+    justify-content: center;
+    height: 80vh;
+    width: 80vw;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.folder-tile {
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    width: 150px;
+    height: 150px;
+    background-color: white;
+    margin: 5px;
+    border-radius: 5px;
+    transition: all .2s;
+}
+
+.folder-tile:hover {
+    background-color: rgb(243, 226, 171);
+}
+
+.folder-image {
+    position: relative;
+    max-width: calc(100% - 25px);
+    max-height: calc(100% - 25px);
+    margin: auto;
+}
+
+.folder-amount {
+    position: absolute;
+    transition: all .2s;
+    background-color: rgb(252, 166, 166);
+    /* border: 1px solid red; */
+    height: 40px;
+    width: 40px;
+    border-radius: 20px;
+    right: 10px;
+    top: 10px;
+    line-height: 40px;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+}
+
+.folder-tile:hover .folder-amount {
+    background-color: rgb(79, 233, 79);
+}
+
+.folder-label {
+    position: absolute;
+    width: 100%;
+    background-color: rgba(0,0,0,0.9);
+    bottom: 0;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+}
+
+#filter-overlay,
+#folder-overlay {
     position: fixed;
     width: 100vw;
     height: 100vh;
@@ -482,7 +553,8 @@ body {
     font-size: 1.2em;
 }
 
-#filter-close {
+#filter-close,
+#folder-close {
     position: absolute;
     top: 10px;
     right: 20px;
@@ -747,4 +819,5 @@ input[type=text].inactive {
     width: 180px;
     height: 50px;
     padding: 5px;
+    margin-bottom: 20px;
 }

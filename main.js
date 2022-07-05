@@ -1377,3 +1377,8 @@ function isURLResolved(url) {
   }
   return false;
 }
+
+ipcMain.on('server-display-folders', function(event) {
+  const data = tpopManager.getFolders();
+  sendMessage(event.sender, 'tpop-display-folders', data);
+});
