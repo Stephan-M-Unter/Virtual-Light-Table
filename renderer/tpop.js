@@ -363,7 +363,6 @@ function deselectTile(id) {
 }
 
 function displayFolders(folderList) {
-  console.log(folderList);
   $('#folder-grid').empty();
   $('#folder-overlay').css('display', 'flex');
   for (const folder of folderList) {

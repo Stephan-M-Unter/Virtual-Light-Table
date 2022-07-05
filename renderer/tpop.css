@@ -498,8 +498,8 @@ body {
 
 .folder-image {
     position: relative;
-    max-width: calc(100% - 25px);
-    max-height: calc(100% - 25px);
+    max-width: calc(90% - 25px);
+    max-height: calc(90% - 25px);
     margin: auto;
 }
 
@@ -564,7 +564,8 @@ body {
     transition: all .1s;
 }
 
-#filter-close:hover {
+#filter-close:hover,
+#folder-close:hover {
     color: white;
 }
 
