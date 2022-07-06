@@ -1415,12 +1415,16 @@ body {
 
 .table_renew_screenshot {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
-    height: 30px;
-    width: 30px;
+    bottom: 4px;
+    right: 4px;
+    height: 25px;
+    width: 25px;
     display: none;
-    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    border-radius: 5px;
+    background-color: rgba(150, 150, 150, 0.5);
     transition: all .2s;
 }
 
@@ -1440,7 +1444,7 @@ body {
 }
 
 .table_item.activeTable .table_renew_screenshot {
-    display: block;
+    display: flex;
 }
 
 .unsaved_dot {
