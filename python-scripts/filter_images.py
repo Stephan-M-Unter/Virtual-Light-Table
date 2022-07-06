@@ -17,28 +17,25 @@ urls = filter_json['urls']
 filters = filter_json['filters']
 
 for url in urls:
-    if '_mirror.' in url:
-        continue
     image = Image.open(url)
-    image_rgb = Image.open(url)
-
-    if filters['brightness'] != 1:
-        enhancer = ImageEnhance.Brightness(image)
-        image = enhancer.enhance(float(filters['brightness']))
-    if filters['contrast'] != 1:
-        enhancer = ImageEnhance.Contrast(image)
-        image = enhancer.enhance(float(filters['contrast']))
-    image = np.array(image)
-    if filters['invertR']:
-        image[:,:,0] = 255-image[:,:,0]
-    if filters['invertG']:
-        image[:,:,1] = 255-image[:,:,1]
-    if filters['invertB']:
-        image[:,:,2] = 255-image[:,:,2]
+    if not '_mirror.' in url:
+        if filters['brightness'] != 1:
+            enhancer = ImageEnhance.Brightness(image)
+            image = enhancer.enhance(float(filters['brightness']))
+        if filters['contrast'] != 1:
+            enhancer = ImageEnhance.Contrast(image)
+            image = enhancer.enhance(float(filters['contrast']))
+        image = np.array(image)
+        if filters['invertR']:
+            image[:,:,0] = 255-image[:,:,0]
+        if filters['invertG']:
+            image[:,:,1] = 255-image[:,:,1]
+        if filters['invertB']:
+            image[:,:,2] = 255-image[:,:,2]
+        image = Image.fromarray(image)
 
     filename = os.path.basename(url)
     dot = filename.rfind(".")
     filename = f'{filename[:dot]}_filtered.{filename[dot+1:]}'
     filepath = os.path.join(vlt_folder, filename)
-    image = Image.fromarray(image)
     image.save(filepath)

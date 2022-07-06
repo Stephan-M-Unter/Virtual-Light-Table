@@ -18,7 +18,7 @@ class Sidebar {
    * @param {*} name
    * @param {*} imgUrl
    */
-  _addFragment(id, name, imgUrl, tpopUrl) {
+  _addFragment(id, name, imgUrl, tpopUrl, isRecto) {
     const sidebar = this;
     const controller = this.controller;
 
@@ -32,6 +32,7 @@ class Sidebar {
     const fragmentItemButtonGoto = document.createElement('div');
     const fragmentItemButtonEdit = document.createElement('div');
     const fragmentItemNameText = document.createTextNode(name);
+    const fragmentItemVisibleSide = document.createElement('div');
     
     // setting attributes
     fragmentListItem.setAttribute('class', 'fragment_list_item');
@@ -48,6 +49,8 @@ class Sidebar {
     fragmentItemButtonGoto.setAttribute('title', 'Go to fragment');
     fragmentItemButtonEdit.setAttribute('class', 'fragment_list_item_button_edit fragment_list_item_button');
     fragmentItemButtonEdit.setAttribute('title', 'Edit fragment');
+    if (isRecto) fragmentItemVisibleSide.setAttribute('class', 'fragment_list_item_side recto');
+    else fragmentItemVisibleSide.setAttribute('class', 'fragment_list_item_side');
 
     // chain DOM structure
 
@@ -62,10 +65,12 @@ class Sidebar {
         ------ Goto Button
         ------ Edit Button
         ------ [TPOP Button]
+        -- VisibleSide
     */
 
     fragmentListItem.appendChild(fragmentItemThumbWrapper);
     fragmentListItem.appendChild(fragmentItemButtonWrapper);
+    fragmentListItem.appendChild(fragmentItemVisibleSide);
 
     fragmentItemThumbWrapper.appendChild(fragmentItemThumbnail);
     fragmentItemThumbWrapper.appendChild(fragmentItemName);
@@ -147,7 +152,8 @@ class Sidebar {
           const name = fragmentList[id].getName();
           const imageUrl = fragmentList[id].getImageURL();
           const tpopURL = fragmentList[id].getTPOPURL();
-          this._addFragment(id, name, imageUrl, tpopURL);
+          const isRecto = fragmentList[id].showingRecto();
+          this._addFragment(id, name, imageUrl, tpopURL, isRecto);
         }
       }
 
@@ -266,7 +272,31 @@ class Sidebar {
     }
   }
 
+  updateGraphicFilters(graphicFilters) {
+    console.log("TEST", graphicFilters);
+    if (graphicFilters) {
+      if ('brightness' in graphicFilters) $('#graphics-brightness').val(graphicFilters.brightness);
+      if ('contrast' in graphicFilters) $('#graphics-contrast').val(graphicFilters.contrast);
+    
+      if ('invertR' in graphicFilters) {
+        if (graphicFilters.invertR) $('.flip-button.R').addClass('inverted');
+        else $('.flip-button.R').removeClass('inverted');
+      }
+      if ('invertG' in graphicFilters) {
+        if (graphicFilters.invertG) $('.flip-button.G').addClass('inverted');
+        else $('.flip-button.G').removeClass('inverted');
+      }
+      if ('invertB' in graphicFilters) {
+        if (graphicFilters.invertB) $('.flip-button.B').addClass('inverted');
+        else $('.flip-button.B').removeClass('inverted');
+      }
+    } else {
+      this.resetGraphicsFilters();
+    }
+  }
+
   resetGraphicsFilters() {
+    console.log("MIIIIIEP");
     $('.flip-button').removeClass('inverted');
     $('#graphics-brightness').val(1);
     $('#graphics-contrast').val(1);

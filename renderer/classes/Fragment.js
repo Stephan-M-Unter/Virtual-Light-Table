@@ -305,6 +305,7 @@ class Fragment {
         // this.getInnerContainer.regY += this.relation.d_cy;
         this.isBothSidesLoaded = true;
         this.framework._updateBb();
+        this.controller.updateSidebarFragmentList();
         this.stage.update();
       });
       let url;
@@ -325,6 +326,13 @@ class Fragment {
           else url = this.verso.url;
         }
       }
+
+      if (this.framework.graphicFilters/* && url.indexOf('_mirror.') == -1*/) {
+        const dot = url.indexOf(".");
+        url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
+      }
+      console.log(url);
+
       loadqueue.loadFile(url);
       loadqueue.load();
     
@@ -730,6 +738,10 @@ class Fragment {
     }
   }
 
+  showingRecto() {
+    return this.isRecto;
+  }
+
   /**
    *
    * @return {*}
@@ -879,6 +891,7 @@ class Fragment {
     return fragmentBounds;
   }
 }
+
 
 module.exports.Fragment = Fragment;
 

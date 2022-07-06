@@ -340,7 +340,7 @@ class Stage {
     this._clearTable();
     this.controller.clearMeasurements();
 
-    if ('filter' in data && data.filter) {
+    if ('graphicFilters' in data && data.graphicFilters) {
       this.graphicFilters = true;
     } else {
       this.graphicFilters = false;
@@ -558,7 +558,7 @@ class Stage {
           }
         }
 
-        if (this.graphicFilters && url.indexOf('_mirror.') == -1) {
+        if (this.graphicFilters/* && url.indexOf('_mirror.') == -1*/) {
           const dot = url.indexOf(".");
           url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
         }

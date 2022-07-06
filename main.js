@@ -293,7 +293,24 @@ function preprocess_loading_fragments(data) {
   if (!('verso' in fragment)) fragment.verso = {};
 
   if (allProcessed) {
-    sendMessage(mainWindow, 'client-load-model', data);
+    if ('graphicFilters' in data.tableData && data.tableData.graphicFilters) {
+      const urls = [];
+      for (const k of Object.keys(data.tableData.fragments)) {
+        console.log(k);
+        const fragment = data.tableData.fragments[k];
+        if ('recto' in fragment) {
+          if ('url_view' in fragment.recto && fragment.recto.url_view) urls.push(fragment.recto.url_view);
+          else if ('url' in fragment.recto && fragment.recto.url) urls.push(fragment.recto.url);
+        }
+        if ('verso' in fragment) {
+          if ('url_view' in fragment.verso && fragment.verso.url_view) urls.push(fragment.verso.url_view);
+          else if ('url' in fragment.verso && fragment.verso.url) urls.push(fragment.verso.url);
+        }
+      }
+      filterImages(data['tableID'], urls);
+    } else {
+      sendMessage(mainWindow, 'client-load-model', data);
+    }
     return;
   }
 
@@ -1383,9 +1400,14 @@ ipcMain.on('server-display-folders', function(event) {
   sendMessage(event.sender, 'tpop-display-folders', data);
 });
 
-ipcMain.on('server-graphics-filter', function(event, data) {
+function filterImages(tableID, urls) {
+  const filterData = {
+    'tableID': tableID,
+    'urls': urls,
+    'filters': tableManager.getGraphicFilters(tableID),
+  };
   const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
-  const jsonContent = JSON.stringify(data);
+  const jsonContent = JSON.stringify(filterData);
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
   const python = spawn('python', ['./python-scripts/filter_images.py', vltFolder, jsonPath]);
@@ -1394,17 +1416,22 @@ ipcMain.on('server-graphics-filter', function(event, data) {
   python.on('close', function(code) {
     console.log(`Filtering finished with code ${code}.`)
     const response = {
-      tableID: data['tableID'],
-      tableData: tableManager.getTable(data['tableID']),
+      tableID: tableID,
+      tableData: tableManager.getTable(tableID),
     };
-    response.tableData.filter = true;
-    sendMessage(event.sender, 'client-load-model', response);
+    sendMessage(mainWindow, 'client-load-model', response);
   });
+}
+
+ipcMain.on('server-graphics-filter', function(event, data) {
+  tableManager.setGraphicFilters(data['tableID'], data.filters);
+  filterImages(data.tableID, data.urls);
 });
 
 ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
   // remove all filter images
   // resend model to trigger reload
+  tableManager.resetGraphicFilters(tableID);
   const response = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),

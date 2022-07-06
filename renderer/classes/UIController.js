@@ -494,6 +494,10 @@ class UIController {
     this.annotationPopup.loadAnnotations(data.tableData.annots);
     this.stage.loadScene(data.tableData);
     this.updateSidebarFragmentList();
+
+    let graphicFilters = null;
+    if ('graphicFilters' in data.tableData) graphicFilters = data.tableData.graphicFilters;
+    this.sidebar.updateGraphicFilters(graphicFilters);
   }
 
   /**

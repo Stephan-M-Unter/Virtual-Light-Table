@@ -493,6 +493,20 @@ class TableManager {
   setScreenshot(tableID, screenshot) {
     this.tables[tableID].screenshot = screenshot;
   }
+
+  setGraphicFilters(tableID, graphicFilters) {
+    this.tables[tableID].graphicFilters = graphicFilters;
+  }
+
+  getGraphicFilters(tableID) {
+    const table = this.tables[tableID]
+    if ('graphicFilters' in table) return table.graphicFilters;
+    else return null;
+  }
+
+  resetGraphicFilters(tableID) {
+    this.tables[tableID].graphicFilters = null;
+  }
 }
 
 module.exports = TableManager;
