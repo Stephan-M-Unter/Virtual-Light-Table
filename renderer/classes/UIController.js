@@ -394,7 +394,7 @@ class UIController {
 
   resetGraphicsFilters() {
     this.sidebar.resetGraphicsFilters();
-    this.sendToServer('server-reset-graphics', this.activeTable);
+    this.sendToServer('server-reset-graphics-filter', this.activeTable);
   }
 
   sendGraphicsFilterToServer() {

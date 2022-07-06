@@ -1401,3 +1401,13 @@ ipcMain.on('server-graphics-filter', function(event, data) {
     sendMessage(event.sender, 'client-load-model', response);
   });
 });
+
+ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
+  // remove all filter images
+  // resend model to trigger reload
+  const response = {
+    tableID: tableID,
+    tableData: tableManager.getTable(tableID),
+  }
+  sendMessage(event.sender, 'client-load-model', response);
+});
