@@ -924,6 +924,8 @@ ipcMain.on('server-upload-image', (event) => {
 
   if (filepath) {
     sendMessage(localUploadWindow, 'upload-receive-image', filepath);
+  } else {
+    sendMessage(localUploadWindow, 'upload-receive-image');
   }
 });
 

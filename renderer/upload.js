@@ -1176,6 +1176,8 @@ $('.www_upload').on('click', (event) => {
           getSide(currentUpload).content.www = true;
           draw(currentUpload);
           currentUpload = null;
+        } else {
+          currentUpload = null;
         }
       });
     } catch {
@@ -1305,18 +1307,22 @@ $('.input_ppi').on('input', (event) => {
 
 // Event receiving the filepath to an image, be it local or from the internet.
 ipcRenderer.on('upload-receive-image', (event, filepath) => {
-  updateCanvasSize();
-  const side = getSide(currentUpload);
-  side.content.filepath = filepath;
-  syncMasks();
-  draw(currentUpload);
-  currentUpload = null;
-
-  if ($('#objectname').val() == '') {
-    let name = filepath.split('\\').pop().split('/').pop();
-    name = name.replace(/\.[^/.]+$/, '');
-    $('#objectname').val(name);
-    checkRequiredFields();
+  if (!filepath) {
+    currentUpload = null;
+  } else {
+    updateCanvasSize();
+    const side = getSide(currentUpload);
+    side.content.filepath = filepath;
+    syncMasks();
+    draw(currentUpload);
+    currentUpload = null;
+  
+    if ($('#objectname').val() == '') {
+      let name = filepath.split('\\').pop().split('/').pop();
+      name = name.replace(/\.[^/.]+$/, '');
+      $('#objectname').val(name);
+      checkRequiredFields();
+    }
   }
 });
 
