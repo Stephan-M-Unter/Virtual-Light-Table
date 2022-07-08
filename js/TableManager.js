@@ -494,6 +494,17 @@ class TableManager {
     this.tables[tableID].screenshot = screenshot;
   }
 
+  getTPOPIds(tableID) {
+    const tpops = [];
+    for (const k of Object.keys(this.tables[tableID].fragments)) {
+      const fragment = this.tables[tableID].fragments[k];
+      if ('tpop' in fragment) {
+        tpops.push(fragment.tpop);
+      }
+    }
+    return tpops;
+  }
+
   setGraphicFilters(tableID, graphicFilters) {
     this.tables[tableID].graphicFilters = graphicFilters;
   }

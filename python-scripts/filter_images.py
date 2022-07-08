@@ -1,5 +1,5 @@
 from modulefinder import Module
-import os, json, sys, subprocess
+import os, json, sys, subprocess, urllib.request
 try:
     import numpy as np
 except ModuleNotFoundError:
@@ -17,7 +17,14 @@ urls = filter_json['urls']
 filters = filter_json['filters']
 
 for url in urls:
-    image = Image.open(url)
+    image_extension = url[url.rfind(".")+1:]
+    try:
+        image = Image.open(url).convert('RGBA')
+    except OSError:
+        temp_url = f'temp.{image_extension}'
+        urllib.request.urlretrieve(url, temp_url)
+        image = Image.open(temp_url).convert('RGBA')
+        os.remove(temp_url)
     if not '_mirror.' in url:
         if filters['brightness'] != 1:
             enhancer = ImageEnhance.Brightness(image)
@@ -36,6 +43,6 @@ for url in urls:
 
     filename = os.path.basename(url)
     dot = filename.rfind(".")
-    filename = f'{filename[:dot]}_filtered.{filename[dot+1:]}'
+    filename = f'{filename[:dot]}_filtered.png'
     filepath = os.path.join(vlt_folder, filename)
     image.save(filepath)

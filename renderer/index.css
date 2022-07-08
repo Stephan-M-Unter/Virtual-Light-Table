@@ -367,9 +367,23 @@ body {
     background-size: contain;
 }
 
+.fragment_list_item_button_lock {
+    background-image: url("../imgs/symbol_unlocked.png");
+    background-size: contain;
+}
+
+.fragment_list_item_button_lock.locked {
+    background-image: url("../imgs/symbol_locked.png");
+    background-size: contain;
+    background-color: #eee;
+    border: 1px solid #eee;
+    filter: invert(100%);
+    border-radius: 10%;
+}
+
 .fragment_list_item_button {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     transition: all .2s;
     opacity: 0.5;
     cursor: pointer;
@@ -1206,8 +1220,8 @@ body {
     position: absolute;
     top: 0;
     left: 50%;
-    width: calc(100vw - 600px);
-    min-width: 700px;
+    max-width: calc(100vw - 600px);
+    /* min-width: 700px; */
     height: 150px;
     background-color: rgba(29, 29, 27, 0.5);
     padding: 5px;
@@ -1215,7 +1229,7 @@ body {
     border-right: 1px solid black;
     border-left: 1px solid black;
     border-bottom: 1px solid black;
-    transition: 0.2s top, 0.2s background-color;
+    transition: all .2s;
     box-shadow: 3px 0px 10px black;
     box-sizing: border-box;
     border-radius: 5px;
@@ -1393,8 +1407,8 @@ body {
     display: flex;
     justify-content: center;
     align-content: center;
-    height: 60px;
-    width: 60px;
+    height: 50px;
+    width: 50px;
     box-shadow: 2px 2px 5px black;
     background-color: white;
     align-self: center;

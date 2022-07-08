@@ -559,8 +559,8 @@ class Stage {
         }
 
         if (this.graphicFilters/* && url.indexOf('_mirror.') == -1*/) {
-          const dot = url.indexOf(".");
-          url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
+          const dot = url.lastIndexOf('.');
+          url = url.substring(0, dot) + "_filtered.png";
         }
         console.log(url);
 
@@ -573,6 +573,12 @@ class Stage {
     }
     // TODO: necessary to check that image can only be added once?
     this.loadqueue.load();
+  }
+
+  toggleLock(fragmentID) {
+    const fragment = this.fragmentList[fragmentID];
+    const lockStatus = fragment.toggleLock();
+    return lockStatus;
   }
 
   /**
@@ -895,7 +901,7 @@ class Stage {
     for (const idx in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, idx)) {
         const fragment = this.selectedList[idx];
-        if (fragment) fragment.moveByDistance(deltaX, deltaY);
+        if (fragment && !fragment.isLocked()) fragment.moveByDistance(deltaX, deltaY);
       }
     }
 
@@ -913,7 +919,7 @@ class Stage {
       for (const idx in this.fragmentList) {
         if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
           const fragment = this.fragmentList[idx];
-          fragment.moveByDistance(deltaX, deltaY);
+          if (!fragment.isLocked()) fragment.moveByDistance(deltaX, deltaY);
         }
       }
       this._updateBb();

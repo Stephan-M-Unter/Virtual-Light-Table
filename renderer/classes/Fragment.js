@@ -28,6 +28,7 @@ class Fragment {
     this.isSelected = false;
     this.isTwoSided = false;
     this.isRecto = data.showRecto;
+    this.locked = false;
     this.name = data.name;
     this.maskMode = data.maskMode;
 
@@ -35,6 +36,7 @@ class Fragment {
     this.verso = {};
 
     if ('urlTPOP' in data) this.urlTPOP = data.urlTPOP;
+    if ('tpop' in data) this.tpop = data.tpop;
 
     // RECTO
     if (data.recto) {
@@ -319,8 +321,12 @@ class Fragment {
         }
       } else {
         // VERSO
-        if (!('url' in this.verso)) url = this.verso.url_view;
-        else {
+        if (!('url' in this.verso)) {
+          console.log('recto.url', this.recto.url);
+          console.log('recto.url_view', this.recto.url_view);
+          console.log("verso", this.verso);
+          url = this.verso.url_view;
+        } else {
           // if this side is existent, try to load the cropped version, if there is none, load the original
           if ('url_view' in this.verso) url = this.verso.url_view;
           else url = this.verso.url;
@@ -328,10 +334,10 @@ class Fragment {
       }
 
       if (this.framework.graphicFilters/* && url.indexOf('_mirror.') == -1*/) {
-        const dot = url.indexOf(".");
+        const dot = url.lastIndexOf(".");
         url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
       }
-      console.log(url);
+      console.log(url, this.isRecto, this.recto, this.verso);
 
       loadqueue.loadFile(url);
       loadqueue.load();
@@ -527,6 +533,7 @@ class Fragment {
     data.rotation = this.getRotation();
 
     if (this.urlTPOP) data.urlTPOP = this.urlTPOP;
+    if (this.tpop) data.tpop = this.tpop;
 
     return data;
     /*
@@ -573,7 +580,6 @@ class Fragment {
    * @param {Object} data
    */
   setData(data) {
-    console.log("SETDATA", data);
     this.name = data.name;
     this.isRecto = data.showRecto;
     this.recto.url = data.recto.url;
@@ -740,6 +746,15 @@ class Fragment {
 
   showingRecto() {
     return this.isRecto;
+  }
+
+  toggleLock() {
+    this.locked = !this.locked;
+    return this.locked;
+  }
+
+  isLocked() {
+    return this.locked;
   }
 
   /**

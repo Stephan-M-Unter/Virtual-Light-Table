@@ -11,7 +11,7 @@
         <div id="sidebar" class="area">
             <div>
                 <div id="version">Data Version: <span id="data-ctime"></span></br> (last download: <span id="data-mtime"></span>)</div>
-                <div id="reload-json">
+                <div id="reload-json" title="Reload Data from TPOP">
                     <img src="../imgs/symbol_reload.png">
                 </div>
             </div>
@@ -79,8 +79,9 @@
                     <img/>
                     <div id="load-text" class="button-text">Select fragments</div>
                 </div>
-                <div id="flip-grid" class="">
+                <div id="flip-grid" class="button">
                     <img src="../imgs/symbol_vertical_flip.png">
+                    <div id="flip-grid-label" class="recto"></div>
                 </div>
             </div>
         </div>
@@ -109,8 +110,8 @@
             <div id="detail-meta">
                 <div id="detail-joins" class="hidden">
                     <div class="subtitle">Registered Joins</div>
-                    <div id="detail-add-joins" class="no-select">Add All</div>
-                    <div id="detail-remove-joins" class="no-select">Remove All</div>
+                    <div id="detail-add-joins" class="button no-select">Add All</div>
+                    <div id="detail-remove-joins" class="button no-select">Remove All</div>
                     <div id="detail-joins-list"></div>
                 </div>
             </div>

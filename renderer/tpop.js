@@ -2,6 +2,7 @@ const {ipcRenderer} = require('electron');
 
 const rangeValues = [1, 2, 3, 4, 5, 10, 20];
 const batchSize = 30;
+let activeTPOPs = [];
 let maxIndex = null;
 let lastIndex = -1;
 let currentPage = 0;
@@ -472,8 +473,10 @@ function resetFilterSelection() {
 function flipGrid() {
   if (gridView == 'recto') {
     gridView = 'verso';
+    $('#flip-grid-label').removeClass('recto');
   } else {
     gridView = 'recto';
+    $('#flip-grid-label').addClass('recto');
   }
   for (const el of $('.tile img')) {
     const op = $(el).attr('data-opposite');
@@ -509,6 +512,8 @@ function addTile(idx, n_objects, tpopJson) {
   setTimeout(function() {
     const data = tpopJson[idx];
     const tile = $('<div id="'+data.id+'" class="tile no-select" data-id="'+data.id+'"></div>');
+
+    
     let img;
     if (gridView == 'recto') {
       img = $('<img src="'+data.urlRecto+'" data-id="'+data.id+'" data-opposite="'+data.urlVerso+'"/>');
@@ -523,11 +528,11 @@ function addTile(idx, n_objects, tpopJson) {
     const distance = $('<div class="distance">'+d+'</div>');
     const multibox = $('<div class="multibox" data-id="'+data.id+'"></div>');
     const ml = $('<div class="ml-indicator"></div>');
-
+    
     if ('features' in data) {
       $(tile).attr('data-features', data.features);
     }
-
+    
     if ($('#loading-view').find('#load-'+data.id).length > 0) {
       tile.addClass('loading');
       if ($('#load-'+data.id).hasClass('selected')) {
@@ -537,8 +542,13 @@ function addTile(idx, n_objects, tpopJson) {
     if ($('#detail-find').attr('data-id') == data.id) {
       tile.addClass('selected');
     }
-
+    
     tile.append(img);
+    if (activeTPOPs.includes(data.id)) {
+      const overlay = $('<div title="Already used on this table" class="used" data-id="'+data.id+'"></div>')
+      // const overlay = $('<div title="Already used on this table" class="used"></div>')
+      tile.append(overlay);
+    }
     tile.append(name);
     tile.append(distance);
     tile.append(multibox);
@@ -1007,8 +1017,11 @@ $('#load').on('click', (event) => {
 });
 
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
+  console.log("-> tpop-json-data");
   // show data
   const objects = tpopJson.objects;
+
+  if ('activeTPOPs' in tpopJson) activeTPOPs = tpopJson.activeTPOPs;
 
   filters = tpopJson.filters;
   const filterAttributes = filters.map((e) => e.attribute).sort();
@@ -1047,21 +1060,25 @@ $('#flip-grid').click(() => {
 });
 
 ipcRenderer.on('tpop-json-failed', () => {
+  console.log("-> tpop-json-failed");
   // TODO show error message
   // show options to close or retry
   console.log('json failed');
 });
 
 ipcRenderer.on('tpop-details', (event, details) => {
+  console.log("-> tpop-details");
   console.log('Received detail information:', details);
   displayDetails(details);
 });
 
 ipcRenderer.on('tpop-filtered', () => {
+  console.log("-> tpop-filtered");
   requestBatch();
 });
 
 ipcRenderer.on('tpop-position', (event, data) => {
+  console.log("-> tpop-position");
   if (data.pos == -1) {
     $('#detail-page-warning').removeClass('hidden');
   } else {
@@ -1074,6 +1091,7 @@ ipcRenderer.on('tpop-position', (event, data) => {
 });
 
 ipcRenderer.on('tpop-basic-info', (event, data) => {
+  console.log("-> tpop-basic-info");
   $('#detail-joins-list').empty();
 
   if (data.length == 0) {
@@ -1144,10 +1162,12 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
 });
 
 ipcRenderer.on('tpop-calculation-done', () => {
+  console.log("-> tpop-calculation-done");
   requesting = false;
   loadPage(0);
 });
 
 ipcRenderer.on('tpop-display-folders', (event, data) => {
+  console.log("-> tpop-display-folders");
   displayFolders(data);
 });

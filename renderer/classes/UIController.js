@@ -588,6 +588,11 @@ class UIController {
     });
   }
 
+  toggleLock(fragmentID) {
+    const lockStatus = this.stage.toggleLock(fragmentID);
+    this.sidebar.setLock(fragmentID, lockStatus);
+  }
+
   /**
    * Comfort function to make the reset to a scale of 100 easier.
    */

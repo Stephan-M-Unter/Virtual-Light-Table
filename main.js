@@ -213,6 +213,7 @@ function uploadTpopFragments() {
     'x': 0,
     'y': 0,
     'name': fragmentData.name,
+    'tpop': fragmentData.id,
     'urlTPOP': fragmentData.urlTPOP,
     'recto': {
       'url': fragmentData.urlRecto,
@@ -276,6 +277,7 @@ function createNewTable() {
 }
 
 function preprocess_loading_fragments(data) {
+  console.log("Start", data);
   let allProcessed = true;
   const fragments = data.tableData.fragments;
   let fragment;
@@ -296,7 +298,6 @@ function preprocess_loading_fragments(data) {
     if ('graphicFilters' in data.tableData && data.tableData.graphicFilters) {
       const urls = [];
       for (const k of Object.keys(data.tableData.fragments)) {
-        console.log(k);
         const fragment = data.tableData.fragments[k];
         if ('recto' in fragment) {
           if ('url_view' in fragment.recto && fragment.recto.url_view) urls.push(fragment.recto.url_view);
@@ -322,9 +323,6 @@ function preprocess_loading_fragments(data) {
   if ('recto' in fragment && 'url_view' in fragment.recto) rectoProcessed = true;
   if ('verso' in fragment && 'url_view' in fragment.verso) versoProcessed = true;
 
-  if (fragment.maskMode == 'no_mask' && 'url' in fragment.recto) rectoProcessed = true;
-  if (fragment.maskMode == 'no_mask' && 'url' in fragment.verso) versoProcessed = true;
-  
   if (rectoProcessed && versoProcessed) {
     fragment.processed = true;
     data.tableData.fragments[fragmentKey] = fragment;
@@ -397,16 +395,17 @@ function preprocess_loading_fragments(data) {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
     }
+    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, "no_mask", vltFolder]);
   } else if (fragment.maskMode == 'boundingbox') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
   } else if (fragment.maskMode == 'polygon') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
     } else {
-      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
     }
   } else if (fragment.maskMode == 'automatic') {
     // TODO
@@ -440,12 +439,9 @@ function preprocess_fragment(data) {
   if ('url_view' in data.recto) rectoProcessed = true;
   if ('url_view' in data.verso) versoProcessed = true;
 
-  if (data.maskMode == 'no_mask' && 'url' in data.recto) rectoProcessed = true;
-  if (data.maskMode == 'no_mask' && 'url' in data.verso) versoProcessed = true;
-  
   // IF recto and verso have been processed, send data to mainWindow
   if (rectoProcessed && versoProcessed) {
-    mainWindow.send('client-add-upload', data);
+    filterImage(activeTables.uploading, data);
     return;
   }
 
@@ -513,16 +509,17 @@ function preprocess_fragment(data) {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
     }
+    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, "no_mask", vltFolder]);
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
       python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
     } else {
-      python = spawn('python', ['./python-scripts/cut_image_polygon.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
     }
   } else if (data.maskMode == 'automatic') {
     // TODO
@@ -1239,6 +1236,10 @@ ipcMain.on('server-load-tpop-json', (event, data) => {
     4. Übermittlung der Daten an das TPOP-Window
     5. Falls kein JSON vorhanden: Übermittlung dass keine Daten vorhanden
   */
+
+  const activeTPOPs = tableManager.getTPOPIds(activeTables.tpop);
+  tpopData.activeTPOPs = activeTPOPs;
+
   if (tpopData == null) {
     sendMessage(tpopWindow, 'tpop-json-failed');
   } else {
@@ -1421,6 +1422,40 @@ function filterImages(tableID, urls) {
     };
     sendMessage(mainWindow, 'client-load-model', response);
   });
+}
+
+function filterImage(tableID, data) {
+  const graphicFilters = tableManager.getGraphicFilters(tableID);
+  if (graphicFilters == null) {
+    sendMessage(mainWindow, 'client-add-upload', data);
+  } else {
+    const urls = [];
+
+    if ('recto' in data) {
+      if ('url_view' in data.recto && data.recto.url_view) urls.push(data.recto.url_view);
+      else if ('url' in data.recto && data.recto.url) urls.push(data.recto.url);
+    }
+    if ('verso' in data) {
+      if ('url_view' in data.verso && data.verso.url_view) urls.push(data.verso.url_view);
+      else if ('url' in data.verso && data.verso.url) urls.push(data.verso.url);
+    }
+
+    const filterData = {
+      'tableID': tableID,
+      'urls': urls,
+      'filters': graphicFilters,
+    };
+    const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
+    const jsonContent = JSON.stringify(filterData);
+    fs.writeFileSync(jsonPath, jsonContent, 'utf8');
+    const python = spawn('python', ['./python-scripts/filter_images.py', vltFolder, jsonPath]);
+    python.stderr.pipe(process.stderr);
+    python.stdout.pipe(process.stdout);
+    python.on('close', function(code) {
+      console.log(`Filtering finished with code ${code}.`)
+      sendMessage(mainWindow, 'client-add-upload', data);
+    });
+  }
 }
 
 ipcMain.on('server-graphics-filter', function(event, data) {

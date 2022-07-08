@@ -1108,6 +1108,7 @@ function uploadData() {
     data.baseY = editData.baseY;
     data.rotation = editData.rotation;
     if ('urlTPOP' in editData) data.urlTPOP = editData.urlTPOP;
+    if ('tpop' in editData) data.tpop = editData.tpop;
   }
   ipcRenderer.send('server-upload-ready', data);
 }

@@ -18,9 +18,15 @@ class Sidebar {
    * @param {*} name
    * @param {*} imgUrl
    */
-  _addFragment(id, name, imgUrl, tpopUrl, isRecto) {
+  _addFragment(id, fragment) {
     const sidebar = this;
     const controller = this.controller;
+
+    const name = fragment.getName();
+    const imgUrl = fragment.getImageURL();
+    const tpopUrl = fragment.getTPOPURL();
+    const isRecto = fragment.showingRecto();
+    const isLocked = fragment.isLocked();
 
     // creating elements
     const fragmentListItem = document.createElement('div');
@@ -31,6 +37,7 @@ class Sidebar {
     const fragmentItemButtonRemove = document.createElement('div');
     const fragmentItemButtonGoto = document.createElement('div');
     const fragmentItemButtonEdit = document.createElement('div');
+    const fragmentItemButtonLock = document.createElement('div');
     const fragmentItemNameText = document.createTextNode(name);
     const fragmentItemVisibleSide = document.createElement('div');
     
@@ -49,6 +56,9 @@ class Sidebar {
     fragmentItemButtonGoto.setAttribute('title', 'Go to fragment');
     fragmentItemButtonEdit.setAttribute('class', 'fragment_list_item_button_edit fragment_list_item_button');
     fragmentItemButtonEdit.setAttribute('title', 'Edit fragment');
+    if (isLocked) fragmentItemButtonLock.setAttribute('class', 'fragment_list_item_button fragment_list_item_button_lock locked');
+    else fragmentItemButtonLock.setAttribute('class', 'fragment_list_item_button fragment_list_item_button_lock');
+    fragmentItemButtonLock.setAttribute('title', 'Un/Lock fragment');
     if (isRecto) fragmentItemVisibleSide.setAttribute('class', 'fragment_list_item_side recto');
     else fragmentItemVisibleSide.setAttribute('class', 'fragment_list_item_side');
 
@@ -89,6 +99,8 @@ class Sidebar {
       fragmentItemButtonTpop.setAttribute('title', 'Open in TPOP (external window)');
       fragmentItemButtonWrapper.appendChild(fragmentItemButtonTpop);
     }
+
+    fragmentItemButtonWrapper.appendChild(fragmentItemButtonLock);
 
     $('#fragment_list_content').append(fragmentListItem);
 
@@ -136,6 +148,10 @@ class Sidebar {
       const id = $(event.target).parent().attr('id');
       controller.changeFragment(id);
     }, false);
+    fragmentItemButtonLock.addEventListener('click', function(event) {
+      const id = $(event.target).closest('.fragment_list_item').attr('id');
+      controller.toggleLock(id);
+    }, false);
   }
 
   /**
@@ -149,11 +165,8 @@ class Sidebar {
     if (!$.isEmptyObject(fragmentList)) {
       for (const id in fragmentList) {
         if (Object.prototype.hasOwnProperty.call(fragmentList, id)) {
-          const name = fragmentList[id].getName();
-          const imageUrl = fragmentList[id].getImageURL();
-          const tpopURL = fragmentList[id].getTPOPURL();
-          const isRecto = fragmentList[id].showingRecto();
-          this._addFragment(id, name, imageUrl, tpopURL, isRecto);
+          const fragment = fragmentList[id];
+          this._addFragment(id, fragment);
         }
       }
 
@@ -272,8 +285,15 @@ class Sidebar {
     }
   }
 
+  setLock(fragmentID, lockStatus) {
+    if (lockStatus == true) {
+      $('#'+fragmentID).find('.fragment_list_item_button_lock').addClass('locked');
+    } else {
+      $('#'+fragmentID).find('.fragment_list_item_button_lock').removeClass('locked');
+    }
+  }
+
   updateGraphicFilters(graphicFilters) {
-    console.log("TEST", graphicFilters);
     if (graphicFilters) {
       if ('brightness' in graphicFilters) $('#graphics-brightness').val(graphicFilters.brightness);
       if ('contrast' in graphicFilters) $('#graphics-contrast').val(graphicFilters.contrast);
@@ -296,7 +316,6 @@ class Sidebar {
   }
 
   resetGraphicsFilters() {
-    console.log("MIIIIIEP");
     $('.flip-button').removeClass('inverted');
     $('#graphics-brightness').val(1);
     $('#graphics-contrast').val(1);
