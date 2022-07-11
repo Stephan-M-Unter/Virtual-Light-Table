@@ -501,7 +501,7 @@ body {
 
 .folder-tile {
     position: relative;
-    display: inline-block;
+    display: flex;
     text-align: center;
     width: 150px;
     height: 150px;

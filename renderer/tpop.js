@@ -364,6 +364,22 @@ function deselectTile(id) {
 }
 
 function displayFolders(folderList) {
+  console.log(folderList);
+  let total = 0;
+  let minFolder = null;
+  let maxFolder = null;
+  const minPercent = 0.2;
+  const maxPercent = 0.8;
+
+  for (const folder of folderList) {
+    total += folder.amount;
+    if (!minFolder || folder.amount < minFolder) minFolder = folder.amount;
+    if (!maxFolder || folder.amount > maxFolder) maxFolder = folder.amount;
+  }
+
+  console.log("minFolder", minFolder, "maxFolder", maxFolder);
+  console.log("minPercentage", minPercent, "maxPercentage", maxPercent);
+
   $('#folder-grid').empty();
   $('#folder-overlay').css('display', 'flex');
   for (const folder of folderList) {
@@ -379,6 +395,14 @@ function displayFolders(folderList) {
     folderLabel.setAttribute('class', 'folder-label');
     folderAmount.setAttribute('class', 'folder-amount');
     folderImage.src = "../imgs/symbol_folder.png";
+
+    const ratio = (folder.amount - minFolder) / (maxFolder - minFolder);
+    const ratioPercent = ratio * (maxPercent - minPercent) + minPercent;
+
+    console.log("amount", folder.amount, "ratio", ratio, "ratioPercent", ratioPercent);
+
+    $(folderImage).css('width', ratioPercent*100+'%');
+    $(folderImage).css('height', ratioPercent*100+'%');
 
     folderTile.appendChild(folderImage);
     folderTile.appendChild(folderLabel);
