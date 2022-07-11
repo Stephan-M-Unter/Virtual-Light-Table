@@ -84,6 +84,10 @@ function main() {
     console.log('Created new VLT folder at ' + vltFolder);
   }
 
+  console.log("appPath:", appPath);
+  console.log("appDataPath:", appDataPath);
+  console.log("vltFolder:", vltFolder);
+
   // check if config file exists
   if (!fs.existsSync(vltConfigFile)) {
     // config file doesn't exist - load default values and save to file
@@ -282,7 +286,6 @@ function createNewTable() {
 }
 
 function preprocess_loading_fragments(data) {
-  console.log("Start", data);
   let allProcessed = true;
   const fragments = data.tableData.fragments;
   let fragment;
