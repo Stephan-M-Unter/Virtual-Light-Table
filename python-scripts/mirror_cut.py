@@ -19,7 +19,7 @@ image_name = image_name[:image_name.rfind(".")]
 try:
     image = Image.open(image_path).convert('RGBA')
 except OSError:
-    temp_url = f'temp.{image_extension}'
+    temp_url = 'temp.'+image_extension
     urllib.request.urlretrieve(image_path, temp_url)
     image = Image.open(temp_url).convert('RGBA')
     os.remove(temp_url)
@@ -62,10 +62,10 @@ else:
 
 
 mirror = mirror.astype("uint8")
-new_filename = f"{image_name}_mirror.{extension}"
+new_filename = image_name+'_mirror.'+extension
 vlt_folder = os.path.join(vlt_folder, "temp", "imgs")
 new_path = os.path.join(vlt_folder, new_filename)
 
 mirror = Image.fromarray(mirror).convert('RGBA')
 mirror.save(new_path)
-print(f'python: saving file {new_path}')
+print('python: saving file '+new_path)

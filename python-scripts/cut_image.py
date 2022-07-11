@@ -51,9 +51,9 @@ if points != 'no_mask':
     image = Image.fromarray(image)
 
     crop = image.crop((left, upper, right, lower))
-new_filename = f"{image_name}_frag.{extension}"
+new_filename = image_name+'_frag.'+extension
 vlt_folder = os.path.join(vlt_folder, "temp", "imgs")
 new_path = os.path.join(vlt_folder, new_filename)
 
 crop.save(new_path)
-print(f'python: saving file {new_path}')
+print('python: saving file '+new_path)

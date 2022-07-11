@@ -21,7 +21,7 @@ for url in urls:
     try:
         image = Image.open(url).convert('RGBA')
     except OSError:
-        temp_url = f'temp.{image_extension}'
+        temp_url = 'temp.'+image_extension
         urllib.request.urlretrieve(url, temp_url)
         image = Image.open(temp_url).convert('RGBA')
         os.remove(temp_url)
@@ -43,6 +43,6 @@ for url in urls:
 
     filename = os.path.basename(url)
     dot = filename.rfind(".")
-    filename = f'{filename[:dot]}_filtered.png'
+    filename = filename[:dot]+'_filtered.png'
     filepath = os.path.join(vlt_folder, filename)
     image.save(filepath)
