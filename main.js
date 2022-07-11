@@ -16,8 +16,10 @@
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs');
+const util = require('util');
 const request = require('request');
 const {spawn} = require('child_process');
+
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -34,6 +36,15 @@ const vltFolder = path.join(appDataPath, 'Virtual Light Table');
 const vltConfigFile = path.join(vltFolder, 'vlt.config');
 const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
+
+const logfile = fs.createWriteStream(path.join(vltFolder, 'log.txt'), {flags: 'w'});
+const logStdout = process.stdout;
+
+console.log = function() {
+  logfile.write(util.format.apply(null, arguments)+'\n');
+  logStdout.write(util.format.apply(null, arguments)+'\n');
+};
+console.error = console.log;
 
 const config = {};
 
