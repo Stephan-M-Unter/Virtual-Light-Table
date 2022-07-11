@@ -429,10 +429,10 @@ class SaveManager {
   importFile(callback) {
     const filepath = dialog.showOpenDialogSync({
       title: 'Select packed ZIP file containing VLT save(s)',
-      filters: [{
+      /*filters: [{
         name: 'zip-file',
         extensions: ['zip'],
-      }],
+      }],*/
       defaultPath: this.currentSaveFolder,
       properties: [],
     });
