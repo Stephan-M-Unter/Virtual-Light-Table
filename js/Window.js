@@ -60,6 +60,17 @@ const calibrationProps = {
   },
 };
 
+const settingsProps = {
+  width: 500,
+  height: 800,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+};
+
 const tpopProps = {
   width: 1024,
   height: 800,
@@ -72,6 +83,15 @@ const tpopProps = {
   },
 };
 
+const propsPresets = {
+  'main': mainProps,
+  'tpop': tpopProps,
+  'settings': settingsProps,
+  'calibration': calibrationProps,
+  'upload': uploadProps,
+  'load': loadProps,
+}
+
 /**
  * TODO
  */
@@ -82,17 +102,7 @@ class Window extends BrowserWindow {
    * @param {*} param0
    */
   constructor({file, type, devMode, ...windowSettings}) {
-    let props = mainProps;
-    if (type == 'load') {
-      props = loadProps;
-    } else if (type == 'upload') {
-      props = uploadProps;
-    } else if (type == 'calibration') {
-      props = calibrationProps;
-    } else if (type == 'tpop') {
-      props = tpopProps;
-    }
-    // TODO: If not main, then change props
+    const props = propsPresets[type];
 
     super({...props, ...windowSettings});
 

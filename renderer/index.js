@@ -209,6 +209,10 @@ $(document).ready(function() {
     controller.sendToServer('server-open-calibration');
   });
 
+  $('#settings').on('click', function() {
+    controller.sendToServer('server-open-settings');
+  });
+
   $('#new_measure').on('click', function(event) {
     event.stopPropagation();
     controller.addMeasurement();

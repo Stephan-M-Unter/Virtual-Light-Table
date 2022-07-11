@@ -49,6 +49,7 @@ let detailWindow; // TODO additional window to show fragment details
 // let filterWindow; // TODO additional window to set database filters
 let localUploadWindow;
 let calibrationWindow;
+let settingsWindow;
 let tpopWindow;
 
 
@@ -175,12 +176,14 @@ function saveConfig() {
  *
  */
 function readConfig() {
+  if (!fs.existsSync(vltConfigFile)) return {};
   const configJSON = fs.readFileSync(vltConfigFile);
   try {
     const configData = JSON.parse(configJSON);
     Object.keys(configData).forEach((key) => {
       config[key] = configData[key];
     });
+    return configData;
   } catch (err) {
     console.log('An error occurred while reading the config file.');
     console.log(err);
@@ -195,6 +198,8 @@ function readConfig() {
  */
 function loadDefaultConfig() {
   config.ppi = 96;
+  config.vltFolder = vltFolder;
+  
 }
 
 function uploadTpopFragments() {
@@ -1144,7 +1149,9 @@ ipcMain.on('server-open-calibration', (event) => {
   }
 
   if (calibrationWindow) {
-    calibrationWindow.close();
+    try {
+      calibrationWindow.close();
+    } catch {}
     calibrationWindow = null;
   }
 
@@ -1160,6 +1167,41 @@ ipcMain.on('server-open-calibration', (event) => {
   calibrationWindow.on('close', function() {
     calibrationWindow = null;
   });
+});
+
+ipcMain.on('server-open-settings', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-open-settings] from client');
+  }
+
+  if (settingsWindow) {
+    try {
+      settingsWindow.close();
+    } catch {}
+    settingsWindow = null;
+  }
+
+  settingsWindow = new Window({
+    file: './renderer/settings.html',
+    type: 'settings',
+    devMode: devMode,
+  });
+  settingsWindow.removeMenu();
+  settingsWindow.once('ready-to-show', () => {
+    settingsWindow.show();
+  })
+});
+
+ipcMain.on('server-settings-opened', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-settings-opened] from client');
+  }
+
+  const settingsData = readConfig();
+
+  sendMessage(settingsWindow, 'settings-data', settingsData);
 });
 
 ipcMain.on('server-gather-ppi', (event) => {

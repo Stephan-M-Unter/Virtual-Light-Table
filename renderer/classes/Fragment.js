@@ -320,12 +320,24 @@ class Fragment {
           else url = this.recto.url;
         }
       } else {
+        console.log("Recto:", this.recto);
+        console.log("Verso:", this.verso);
         // VERSO
         if (!('url' in this.verso)) {
           console.log('recto.url', this.recto.url);
           console.log('recto.url_view', this.recto.url_view);
           console.log("verso", this.verso);
-          url = this.verso.url_view;
+          if ('url_view' in this.verso && this.verso.url_view) url = this.verso.url_view;
+          else if ('url_view' in this.recto && this.recto.url_view) {
+            const dot = this.recto.url_view.lastIndexOf(".");
+            url = this.recto.url_view;
+            url = url.substring(0,dot) + '_mirror' + url.substring(dot,url.length);
+            url = url.replace('_frag', '');
+            this.verso.url_view = url;
+            console.log("LOADING URL", url);
+          } else {
+
+          }
         } else {
           // if this side is existent, try to load the cropped version, if there is none, load the original
           if ('url_view' in this.verso) url = this.verso.url_view;
@@ -337,12 +349,13 @@ class Fragment {
         const dot = url.lastIndexOf(".");
         url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
       }
-      console.log(url, this.isRecto, this.recto, this.verso);
+      console.log("LOADING URL", url);
 
       loadqueue.loadFile(url);
       loadqueue.load();
     
     } else {
+      console.log("ACTIVE URLS", this.getActiveUrls());
       if (this.isRecto) {
         this.container.removeChild(this.verso.container);
         this.container.addChild(this.recto.container);

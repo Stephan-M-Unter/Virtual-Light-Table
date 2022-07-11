@@ -133,11 +133,14 @@ class UIController {
    * to the server. Only proceeds if there have been no changes or user confirms.
    */
   loadTable() {
+    this.sendToServer('server-open-load', this.activeTable);
+    /*
     if (!this.unsaved[this.activeTable]) {
       this.sendToServer('server-open-load', this.activeTable);
     } else if (this.confirmClearTable()) {
       this.sendToServer('server-open-load', this.activeTable);
     }
+    */
   }
 
   /**

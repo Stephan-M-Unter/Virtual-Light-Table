@@ -562,7 +562,6 @@ class Stage {
           const dot = url.lastIndexOf('.');
           url = url.substring(0, dot) + "_filtered.png";
         }
-        console.log(url);
 
         this.loadqueue.loadManifest([{
           id: id,
@@ -862,7 +861,7 @@ class Stage {
     for (const idx in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, idx)) {
         const fragment = this.selectedList[idx];
-        fragment.rotateByAngle(deltaAngle);
+        if (!fragment.isLocked()) fragment.rotateByAngle(deltaAngle);
       }
     }
 
@@ -1141,45 +1140,49 @@ class Stage {
     this.stage.removeChild(this.rotator);
 
     if (Object.keys(this.selectedList).length == 1) {
-      this.rotator = new createjs.Container();
-
-      const circle = new createjs.Shape();
-      circle.graphics
-          .beginFill('#f5842c').drawCircle(0, 0, 20);
-      this.rotator.addChild(circle);
-
-      const bmp = new createjs.Bitmap('../imgs/symbol_rotate.png');
-      bmp.scale = 1;
-      bmp.x = bmp.y = -15;
-      this.rotator.addChild(bmp);
-
-      this.rotator.x = x;
-      this.rotator.y = y;
-      this.rotator.regX = 0;
-      this.rotator.regY = height/2+25;
-      if (this.rotator.y - this.rotator.regY < 0) {
-        this.rotator.regY *= -1;
+      const fragmentKey = Object.keys(this.selectedList)[0];
+      const lockStatus = this.selectedList[fragmentKey].isLocked();
+      if (lockStatus == false) {
+        this.rotator = new createjs.Container();
+  
+        const circle = new createjs.Shape();
+        circle.graphics
+            .beginFill('#f5842c').drawCircle(0, 0, 20);
+        this.rotator.addChild(circle);
+  
+        const bmp = new createjs.Bitmap('../imgs/symbol_rotate.png');
+        bmp.scale = 1;
+        bmp.x = bmp.y = -15;
+        this.rotator.addChild(bmp);
+  
+        this.rotator.x = x;
+        this.rotator.y = y;
+        this.rotator.regX = 0;
+        this.rotator.regY = height/2+25;
+        if (this.rotator.y - this.rotator.regY < 0) {
+          this.rotator.regY *= -1;
+        }
+        this.rotator.name = 'Rotation Anchor';
+  
+        this.addBeforeOverlay(this.rotator);
+  
+        this.rotator.on('mousedown', (event) => {
+          this.rotator.getChildAt(0).graphics.clear()
+              .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
+          this.mouseClickStart = {x: event.stageX, y: event.stageY};
+          this.update();
+        });
+        this.rotator.on('pressmove', (event) => {
+          this._rotateObjects(event);
+        });
+        this.rotator.on('pressup', (event) => {
+          this.flipper.getChildAt(0).graphics.clear()
+              .beginFill('#f5842c').drawCircle(0, 0, 20).endFill();
+          this._updateBb();
+          this.update();
+          this.controller.saveToModel(false);
+        });
       }
-      this.rotator.name = 'Rotation Anchor';
-
-      this.addBeforeOverlay(this.rotator);
-
-      this.rotator.on('mousedown', (event) => {
-        this.rotator.getChildAt(0).graphics.clear()
-            .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
-        this.mouseClickStart = {x: event.stageX, y: event.stageY};
-        this.update();
-      });
-      this.rotator.on('pressmove', (event) => {
-        this._rotateObjects(event);
-      });
-      this.rotator.on('pressup', (event) => {
-        this.flipper.getChildAt(0).graphics.clear()
-            .beginFill('#f5842c').drawCircle(0, 0, 20).endFill();
-        this._updateBb();
-        this.update();
-        this.controller.saveToModel(false);
-      });
     }
   }
 
