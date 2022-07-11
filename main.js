@@ -32,6 +32,7 @@ const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 const vltFolder = path.join(appDataPath, 'Virtual Light Table');
 const vltConfigFile = path.join(vltFolder, 'vlt.config');
+const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 const config = {};
@@ -401,19 +402,19 @@ function preprocess_loading_fragments(data) {
 
   if (fragment.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, "no_mask", vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder]);
   } else if (fragment.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
   } else if (fragment.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
     } else {
-      python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
     }
   } else if (fragment.maskMode == 'automatic') {
     // TODO
@@ -515,19 +516,19 @@ function preprocess_fragment(data) {
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, "no_mask", vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, "no_mask", vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder]);
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
     }
-    else python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(boxPoints), vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python', ['./python-scripts/mirror_cut.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
     } else {
-      python = spawn('python', ['./python-scripts/cut_image.py', imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
     }
   } else if (data.maskMode == 'automatic') {
     // TODO
@@ -1458,7 +1459,7 @@ function filterImages(tableID, urls) {
   const jsonContent = JSON.stringify(filterData);
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
-  const python = spawn('python', ['./python-scripts/filter_images.py', vltFolder, jsonPath]);
+  const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath]);
   python.stderr.pipe(process.stderr);
   python.stdout.pipe(process.stdout);
   python.on('close', function(code) {
@@ -1495,7 +1496,7 @@ function filterImage(tableID, data) {
     const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
     const jsonContent = JSON.stringify(filterData);
     fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-    const python = spawn('python', ['./python-scripts/filter_images.py', vltFolder, jsonPath]);
+    const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath]);
     python.stderr.pipe(process.stderr);
     python.stdout.pipe(process.stdout);
     python.on('close', function(code) {
