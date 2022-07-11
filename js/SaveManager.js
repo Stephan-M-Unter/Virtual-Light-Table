@@ -384,20 +384,30 @@ class SaveManager {
     const images = [];
     const savefile = this.loadSaveFile(filepath);
 
+    // collecting urls for local files
     for (const fID in savefile.fragments) {
       if (Object.prototype.hasOwnProperty.call(savefile.fragments, fID)) {
         const fragment = savefile.fragments[fID];
-        images.push(fragment.recto.url);
-        images.push(fragment.verso.url);
+
+        if ('recto' in fragment && 'url' in fragment.recto && fragment.recto.url && fragment.recto.url.indexOf('https://') == -1 && fragment.recto.url.indexOf('imgs') != -1) {
+          images.push(fragment.recto.url);
+        }
+        if ('verso' in fragment && 'url' in fragment.verso && fragment.verso.url && fragment.verso.url.indexOf('https://') == -1 && fragment.verso.url.indexOf('imgs') != -1) {
+          images.push(fragment.verso.url);
+        }
       }
     }
 
+    // creating the new ZIP file
     const zip = new JSZip();
 
-    const zipname = filename.split('.').slice(0, -1).join('')+'.zip';
-
+    // creating the filepath for the zip to be saved at
+    const dot = filename.lastIndexOf('.');
+    const zipname = filename.substring(0,dot)+'.zip';
+    // loading data from .vlt-save into zip
     zip.file(filename, fs.createReadStream(filepath));
 
+    // loading local images into zip
     images.forEach((image) => {
       const imagename = path.basename(image);
       zip.file('imgs/'+imagename, fs.createReadStream(image));
