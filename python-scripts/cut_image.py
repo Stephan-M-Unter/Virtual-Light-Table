@@ -1,4 +1,5 @@
-import os, sys, subprocess, json, urllib.request
+import os, sys, subprocess, json
+from urllib import request
 try:
     from PIL import Image, ImageDraw
 except ModuleNotFoundError:
@@ -24,7 +25,7 @@ except OSError:
     print('image_extension', image_extension)
     temp_url = 'temp.'+image_extension
     print('temp_url', temp_url)
-    urllib.request.urlretrieve(image_path, temp_url)
+    request.urlretrieve(image_path, temp_url)
     image = Image.open(temp_url).convert('RGBA')
     os.remove(temp_url)
 

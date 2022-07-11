@@ -420,19 +420,19 @@ function preprocess_loading_fragments(data) {
 
   if (fragment.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python3', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
     }
-    else python = spawn('python3', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
   } else if (fragment.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python3', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
     }
-    else python = spawn('python3', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
   } else if (fragment.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python3', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
     } else {
-      python = spawn('python3', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
     }
   } else if (fragment.maskMode == 'automatic') {
     // TODO
@@ -534,19 +534,19 @@ function preprocess_fragment(data) {
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python3', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
     }
-    else python = spawn('python3', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {stdio: [null, out, err]});
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python3', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
     }
-    else python = spawn('python3', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: [null, out, err]});
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python3', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
     } else {
-      python = spawn('python3', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
+      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: [null, out, err]});
     }
   } else if (data.maskMode == 'automatic') {
     // TODO
@@ -1477,7 +1477,7 @@ function filterImages(tableID, urls) {
   const jsonContent = JSON.stringify(filterData);
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
-  const python = spawn('python3', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {stdio: [null, out, err]});
+  const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {stdio: [null, out, err]});
   python.stderr.pipe(process.stdout);
   python.stdout.pipe(process.stdout);
   python.on('close', function(code) {
@@ -1514,7 +1514,7 @@ function filterImage(tableID, data) {
     const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
     const jsonContent = JSON.stringify(filterData);
     fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-    const python = spawn('python3', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {stdio: [null, out, err]});
+    const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {stdio: [null, out, err]});
     python.stderr.pipe(process.stdout);
     python.stdout.pipe(process.stdout);
     python.on('close', function(code) {

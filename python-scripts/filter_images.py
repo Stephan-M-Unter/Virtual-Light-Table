@@ -1,5 +1,6 @@
 from modulefinder import Module
-import os, json, sys, subprocess, urllib.request
+import os, json, sys, subprocess
+from urllib import request
 try:
     import numpy as np
 except ModuleNotFoundError:
@@ -22,7 +23,7 @@ for url in urls:
         image = Image.open(url).convert('RGBA')
     except OSError:
         temp_url = 'temp.'+image_extension
-        urllib.request.urlretrieve(url, temp_url)
+        request.urlretrieve(url, temp_url)
         image = Image.open(temp_url).convert('RGBA')
         os.remove(temp_url)
     if not '_mirror.' in url:
