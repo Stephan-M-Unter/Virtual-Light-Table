@@ -21,7 +21,9 @@ points = sys.argv[2]
 try:
     image = Image.open(image_path).convert('RGBA')
 except OSError:
-    temp_url = f'temp.{image_extension}'
+    print('image_extension', image_extension)
+    temp_url = 'temp.'+image_extension
+    print('temp_url', temp_url)
     urllib.request.urlretrieve(image_path, temp_url)
     image = Image.open(temp_url).convert('RGBA')
     os.remove(temp_url)
