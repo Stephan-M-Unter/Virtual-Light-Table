@@ -600,6 +600,7 @@ body {
     width: 40px;
     height: 20px;
     background: #f5842c;
+    border-radius: 5px;
 }
 
 #zoom_slider::-webkit-slider-thumb:hover {
@@ -617,6 +618,7 @@ body {
     outline: none;
     height: 10px;
     width: 200px;
+    border-radius: 5px;
 }
 
 #zoom_wrapper>.squareButton {
@@ -1233,7 +1235,8 @@ body {
     transition: all .2s;
     box-shadow: 3px 0px 10px black;
     box-sizing: border-box;
-    border-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 #topbar.collapsed {
