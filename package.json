@@ -1,6 +1,6 @@
 {
-  "name": "virtual-light-table",
-  "version": "1.0.0",
+  "name": "Virtual Light Table v0.3",
+  "version": "0.3",
   "description": "Virtual Light Table (VLT)",
   "doc": "jsdoc -d doc main.js",
   "main": "main.js",
