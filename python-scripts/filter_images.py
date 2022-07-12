@@ -5,16 +5,16 @@ print(sys.version)
 try:
     from urllib import request
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'urllib'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'urllib', '--user'])
 try:
     import numpy as np
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'numpy'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'numpy', '--user'])
     import numpy as np
 try:
     from PIL import Image,ImageEnhance
 except:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pillow'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pillow', '--user'])
     from PIL import Image,ImageEnhance
 
 vlt_folder = os.path.join(sys.argv[1], 'temp', 'imgs')
