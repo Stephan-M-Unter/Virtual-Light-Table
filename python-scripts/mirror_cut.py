@@ -5,16 +5,16 @@ print(sys.version)
 try:
     from urllib import request
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'urllib', '--user'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'urllib'])
 try:
     from PIL import Image, ImageDraw
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pillow', '--user'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'pillow'])
     from PIL import Image, ImageDraw
 try:
     import numpy as np
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'numpy', '--user'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'numpy'])
     import numpy as np
 
 image_path = sys.argv[1]
