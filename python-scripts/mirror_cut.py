@@ -26,7 +26,7 @@ image_name = image_name[:image_name.rfind(".")]
 try:
     image = Image.open(image_path).convert('RGBA')
 except OSError:
-    temp_url = 'temp.'+image_extension
+    temp_url = os.path.join(vlt_folder, 'temp.'+image_extension)
     request.urlretrieve(image_path, temp_url)
     image = Image.open(temp_url).convert('RGBA')
     os.remove(temp_url)

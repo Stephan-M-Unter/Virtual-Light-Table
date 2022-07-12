@@ -5,18 +5,15 @@ print(sys.version)
 try:
     from urllib import request
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m pip install --upgrade pip'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'urllib'])
 try:
     import numpy as np
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, '-m pip install --upgrade pip'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'numpy'])
     import numpy as np
 try:
     from PIL import Image,ImageEnhance
 except:
-    subprocess.check_call([sys.executable, '-m pip install --upgrade pip'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'pillow'])
     from PIL import Image,ImageEnhance
 
@@ -30,7 +27,7 @@ for url in urls:
     try:
         image = Image.open(url).convert('RGBA')
     except OSError:
-        temp_url = 'temp.'+image_extension
+        temp_url = os.path.join('temp.'+image_extension)
         request.urlretrieve(url, temp_url)
         image = Image.open(temp_url).convert('RGBA')
         os.remove(temp_url)

@@ -5,18 +5,15 @@ print(sys.version)
 try:
     from urllib import request
 except:
-    subprocess.check_call([sys.executable, '-m pip install --upgrade pip'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'urllib'])
 try:
     from PIL import Image, ImageDraw
 except:
-    subprocess.check_call([sys.executable, '-m pip install --upgrade pip'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'pillow'])
     from PIL import Image
 try:
     import numpy as np
 except:
-    subprocess.check_call([sys.executable, '-m pip install --upgrade pip'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'numpy'])
     import numpy as np
 
@@ -32,7 +29,7 @@ try:
     image = Image.open(image_path).convert('RGBA')
 except OSError:
     print('image_extension', image_extension)
-    temp_url = 'temp.'+image_extension
+    temp_url = os.path.join(vlt_folder, 'temp.'+image_extension)
     print('temp_url', temp_url)
     request.urlretrieve(image_path, temp_url)
     image = Image.open(temp_url).convert('RGBA')
