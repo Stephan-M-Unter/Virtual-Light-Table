@@ -1,5 +1,8 @@
 import os, sys, subprocess, json
-from urllib import request
+try:
+    from urllib import request
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'urllib'])
 try:
     from PIL import Image, ImageDraw
 except ModuleNotFoundError:

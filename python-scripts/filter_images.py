@@ -1,6 +1,9 @@
 from modulefinder import Module
 import os, json, sys, subprocess
-from urllib import request
+try:
+    from urllib import request
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'urllib'])
 try:
     import numpy as np
 except ModuleNotFoundError:
