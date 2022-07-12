@@ -2,11 +2,11 @@ import os, json, sys, subprocess
 
 try:
     from urllib import request
-except ModuleNotFoundError:
+except:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'urllib'])
 try:
     import numpy as np
-except ModuleNotFoundError:
+except:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'numpy'])
     import numpy as np
 try:
