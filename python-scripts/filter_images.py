@@ -1,5 +1,7 @@
-from modulefinder import Module
 import os, json, sys, subprocess
+
+print(sys.version)
+
 try:
     from urllib import request
 except ModuleNotFoundError:
