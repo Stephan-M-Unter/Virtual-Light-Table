@@ -420,19 +420,19 @@ function preprocess_loading_fragments(data) {
 
   if (fragment.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {stdio: ['ignore', out, err]});
     }
-    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {stdio: ['ignore', out, err]});
   } else if (fragment.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: ['ignore', out, err]});
     }
-    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: ['ignore', out, err]});
   } else if (fragment.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: ['ignore', out, err]});
     } else {
-      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: ['ignore', out, err]});
     }
   } else if (fragment.maskMode == 'automatic') {
     // TODO
@@ -448,8 +448,8 @@ function preprocess_loading_fragments(data) {
     data.tableData.fragments[fragmentKey] = fragment;
     preprocess_loading_fragments(data);
   });
-  python.stderr.pipe(process.stdout);
-  python.stdout.pipe(process.stdout);
+  // python.stderr.pipe(process.stdout);
+  // python.stdout.pipe(process.stdout);
 }
 
 /**
@@ -534,19 +534,19 @@ function preprocess_fragment(data) {
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {stdio: ['ignore', out, err]});
     }
-    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {stdio: ['ignore', out, err]});
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]), {stdio: ['ignore', out, err]};
     }
-    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder]);
+    else python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {stdio: ['ignore', out, err]});
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: ['ignore', out, err]});
     } else {
-      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder]);
+      python = spawn('python', [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {stdio: ['ignore', out, err]});
     }
   } else if (data.maskMode == 'automatic') {
     // TODO
@@ -561,8 +561,8 @@ function preprocess_fragment(data) {
     console.log(`Python finished (code ${code}), restarting...`);
     preprocess_fragment(data);
   });
-  python.stderr.pipe(process.stdout);
-  python.stdout.pipe(process.stdout);
+  // python.stderr.pipe(process.stdout);
+  // python.stdout.pipe(process.stdout);
 }
 
 /* ##############################################################
@@ -1477,9 +1477,9 @@ function filterImages(tableID, urls) {
   const jsonContent = JSON.stringify(filterData);
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
-  const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath]);
-  python.stderr.pipe(process.stdout);
-  python.stdout.pipe(process.stdout);
+  const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {stdio: ['ignore', out, err]});
+  // python.stderr.pipe(process.stdout);
+  // python.stdout.pipe(process.stdout);
   python.on('close', function(code) {
     console.log(`Filtering finished with code ${code}.`)
     const response = {
@@ -1514,9 +1514,9 @@ function filterImage(tableID, data) {
     const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
     const jsonContent = JSON.stringify(filterData);
     fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-    const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath]);
-    python.stderr.pipe(process.stdout);
-    python.stdout.pipe(process.stdout);
+    const python = spawn('python', [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {stdio: ['ignore', out, err]});
+    // python.stderr.pipe(process.stdout);
+    // python.stdout.pipe(process.stdout);
     python.on('close', function(code) {
       console.log(`Filtering finished with code ${code}.`)
       sendMessage(mainWindow, 'client-add-upload', data);
