@@ -18,7 +18,7 @@
 
     <!-- Zoom Elements -->
     <div id="zoom_wrapper" class="no-select">
-        <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" onkeydown="return false" />
+        <input class="" id="zoom_slider" type="range" min="10" max="300" value="100" step="10" onkeydown="return false" />
         <span id="zoom_factor">x1.0</span>
     </div>
     <!-- </zoom_wrapper> -->
@@ -198,12 +198,10 @@
                         </div>
                     </div>
 
-                    <!-- IN DEVELOPMENT
                     <div title="VLT Settings" id="settings" class="wide_button no_select">
                         <img class="button_img" src="../imgs/symbol_gear.png" />
                         <div class="button_label">Settings</div>
                     </div>
-                    -->
 
                     <div title="Quit Virtual Light Table" id="quit" class="wide_button no_select">
                         <img class="button_img" src="../imgs/symbol_x.png" />
@@ -227,12 +225,8 @@
                     <hr>
 
                     <div class="sidebar_header_title">Tools</div>
-                    <div><span class="underline">C</span>alibration</div>
-                    <div title="Calibrate the VLT to your screen" class="button narrow_button no_select" id="calibration">
-                        <img class="button_img" src="../imgs/symbol_calibration.png"/>
-                    </div>
                     <div class="" id="wrapper_measure">
-                        <div><span class="underline">M</span>easure</div>
+                        <div><span class="underline">M</span>easurement</div>
                         <div id="clear-measures" class="no_select hidden">Remove All</div>
                         <div title="Add new measurement" class="button narrow_button no_select" id="new_measure">
                             <img class="button_img" src="../imgs/symbol_new_measure.png"/>

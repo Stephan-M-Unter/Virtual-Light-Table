@@ -187,6 +187,10 @@ class UIController {
     this.stage.setPPI(ppi);
   }
 
+  setZoom(minZoom, maxZoom, stepZoom) {
+    this.stage.setZoom(minZoom, maxZoom, stepZoom);
+  }
+
   /**
    * Input function. Asks user for confirmation that unsaved changes can be
    * overwritten.
@@ -438,8 +442,8 @@ class UIController {
    * @param {double} scaleY - y position of scaling center if not window center.
    */
   setScaling(scalingValue, scaleX, scaleY) {
-    const scaleMin = 10;
-    const scaleMax = 300;
+    const scaleMin = $('#zoom_slider').attr('min');
+    const scaleMax = $('#zoom_slider').attr('max');
 
     if (scalingValue < scaleMin) {
       scalingValue = scaleMin;

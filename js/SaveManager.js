@@ -30,20 +30,24 @@ class SaveManager {
      *                           system. If no "Virtual Light Table" subfolder is present, a new one
      *                           will be created.
      */
-  constructor(vltFolder) {
-    this.defaultSaveFolder = path.join(vltFolder, 'saves');
+  constructor(config) {
+    if ('saveFolder' in config && config.saveFolder) {
+      this.defaultSaveFolder = config.saveFolder;
+    } else {
+      this.defaultSaveFolder = path.join(config.vltFolder, 'saves');
+    }
     this.currentSaveFolder = this.defaultSaveFolder;
     if (!fs.existsSync(this.defaultSaveFolder)) {
       // creating saves subfolder
-      fs.mkdirSync(path.join(vltFolder, 'saves'));
-      fs.mkdirSync(path.join(vltFolder, 'saves', 'imgs'));
+      fs.mkdirSync(path.join(config.vltFolder, 'saves'));
+      fs.mkdirSync(path.join(config.vltFolder, 'saves', 'imgs'));
     }
 
-    this.tempSaveFolder = path.join(vltFolder, 'temp');
+    this.tempSaveFolder = path.join(config.vltFolder, 'temp');
     if (!fs.existsSync(this.tempSaveFolder)) {
       // creating temp subfolder for autosaves
-      fs.mkdirSync(path.join(vltFolder, 'temp'));
-      fs.mkdirSync(path.join(vltFolder, 'temp', 'imgs'));
+      fs.mkdirSync(path.join(config.vltFolder, 'temp'));
+      fs.mkdirSync(path.join(config.vltFolder, 'temp', 'imgs'));
     }
 
     this.filepath = null;
@@ -244,6 +248,20 @@ class SaveManager {
 
     return filepath;
   }
+
+  selectFolder() {
+    const filepath = dialog.showOpenDialogSync({
+      title: 'Select Folder',
+      properties: [
+        'openDirectory',
+        'treatPackageAsDirectory',
+      ],
+    });
+
+    if (filepath && fs.existsSync(filepath[0])) return filepath[0];
+    else return null;
+  }
+
 
   /**
    * TODO
@@ -665,6 +683,29 @@ class SaveManager {
       }
     }
     return data;
+  }
+  
+  setSaveFolder(folderPath) {
+    const imgsPath = path.join(folderPath, 'imgs');
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+    if (!fs.existsSync(imgsPath)) {
+      fs.mkdirSync(imgsPath);
+    }
+    this.defaultSaveFolder = folderPath;
+    this.currentSaveFolder = folderPath;
+  }
+  
+  setTempFolder(folderPath) {
+    const imgsPath = path.join(folderPath, 'imgs');
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+    if (!fs.existsSync(imgsPath)) {
+      fs.mkdirSync(imgsPath);
+    }
+    this.tempSaveFolder = folderPath;
   }
 }
 

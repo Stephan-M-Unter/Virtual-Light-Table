@@ -61,8 +61,8 @@ const calibrationProps = {
 };
 
 const settingsProps = {
-  width: 500,
-  height: 800,
+  width: 900,
+  height: 600,
   icon: './imgs/icons/png/logo.png',
   show: false,
   webPreferences: {

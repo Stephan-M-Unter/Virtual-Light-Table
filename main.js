@@ -33,6 +33,8 @@ const devMode = true;
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 const vltFolder = path.join(appDataPath, 'Virtual Light Table');
+const saveFolder = path.join(vltFolder, 'saves');
+const tempFolder = path.join(vltFolder, 'temp');
 const vltConfigFile = path.join(vltFolder, 'vlt.config');
 const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
@@ -52,7 +54,7 @@ console.error = function() {
 
 const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
 let pythonCmd = 'python3';
-const config = {};
+let config = {};
 
 // Initialisation
 // Managers
@@ -109,17 +111,18 @@ function main() {
   // check if config file exists
   if (!fs.existsSync(vltConfigFile)) {
     // config file doesn't exist - load default values and save to file
-    loadDefaultConfig();
+    config = loadDefaultConfig();
     saveConfig();
   } else {
     // config file exists - read it
-    readConfig();
+    config = readConfig();
+    extendConfig();
   }
 
   // CHECK FOR PYTHON
   check_python();
 
-  saveManager = new SaveManager(vltFolder);
+  saveManager = new SaveManager(config);
   tpopManager = new TPOPManager(vltFolder);
 
   mainWindow = new Window({
@@ -190,31 +193,27 @@ function saveConfig() {
     if (err) {
       console.log('Error while writing config file.');
       console.log(err);
-      return;
+      return false;
     } else {
       console.log('Config File successfully saved.');
     }
   });
+  return true;
 }
 
 /**
  *
  */
 function readConfig() {
-  if (!fs.existsSync(vltConfigFile)) return {};
+  if (!fs.existsSync(vltConfigFile)) return loadDefaultConfig();
   const configJSON = fs.readFileSync(vltConfigFile);
   try {
-    const configData = JSON.parse(configJSON);
-    Object.keys(configData).forEach((key) => {
-      config[key] = configData[key];
-    });
-    return configData;
+    return JSON.parse(configJSON);
   } catch (err) {
     console.log('An error occurred while reading the config file.');
     console.log(err);
     console.log('Loading default configuration.');
-    loadDefaultConfig();
-    return;
+    return loadDefaultConfig();
   }
 }
 
@@ -222,9 +221,24 @@ function readConfig() {
  *
  */
 function loadDefaultConfig() {
-  config.ppi = 96;
-  config.vltFolder = vltFolder;
-  
+  const newConfig = {};
+  newConfig.ppi = 96;
+  newConfig.minZoom = 0.1;
+  newConfig.maxZoom = 3.0;
+  newConfig.stepZoom = 0.1;
+  newConfig.vltFolder = vltFolder;
+  newConfig.saveFolder = saveFolder;
+  newConfig.tempFolder = tempFolder;
+  return newConfig;
+}
+
+function extendConfig() {
+  const defaultConfig = loadDefaultConfig();
+  for (const k of Object.keys(defaultConfig)) {
+    if (!(k in config)) {
+      config[k] = defaultConfig[k];
+    }
+  }
 }
 
 function uploadTpopFragments() {
@@ -1245,12 +1259,17 @@ ipcMain.on('server-open-settings', (event) => {
   settingsWindow = new Window({
     file: './renderer/settings.html',
     type: 'settings',
-    devMode: devMode,
+    devMode: false,
   });
   settingsWindow.removeMenu();
   settingsWindow.once('ready-to-show', () => {
     settingsWindow.show();
   })
+});
+
+ipcMain.on('server-close-settings', () => {
+  settingsWindow.close();
+  settingsWindow = null;
 });
 
 ipcMain.on('server-settings-opened', (event) => {
@@ -1259,9 +1278,7 @@ ipcMain.on('server-settings-opened', (event) => {
     'Receiving code [server-settings-opened] from client');
   }
 
-  const settingsData = readConfig();
-
-  sendMessage(settingsWindow, 'settings-data', settingsData);
+  sendMessage(settingsWindow, 'settings-data', config);
 });
 
 ipcMain.on('server-gather-ppi', (event) => {
@@ -1272,15 +1289,37 @@ ipcMain.on('server-gather-ppi', (event) => {
   sendMessage(event.sender, 'calibration-set-ppi', config.ppi);
 });
 
+ipcMain.on('server-stage-loaded', (event) => {
+  if (devMode) {
+    console.log(timestamp() + ' ' + 'Receiving code [server-stage-loaded] from mainWindow');
+  }
+  if ('ppi' in config && config.ppi) {
+    sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
+  }
+  if ('minZoom' in config && config.minZoom
+  && 'maxZoom' in config && config.maxZoom
+  && 'stepZoom' in config && config.stepZoom) {
+    const data = {
+      'minZoom': config.minZoom,
+      'maxZoom': config.maxZoom,
+      'stepZoom': config.stepZoom,
+    };
+    sendMessage(mainWindow, 'client-set-zoom', data);
+  }
+});
+
 ipcMain.on('server-calibrate', (event, ppi) => {
   if (devMode) {
     console.log(timestamp() + ' ' +
     'Receiving code [server-calibrate] from calibration tool');
   }
-  setConfig('ppi', ppi);
   calibrationWindow.close();
   calibrationWindow = null;
-  sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
+  sendMessage(mainWindow, 'calibration-set-ppi', ppi);
+  const response = {
+    'ppi': ppi,
+  };
+  sendMessage(settingsWindow, 'settings-data', response);
 });
 
 ipcMain.on('server-import-file', (event) => {
@@ -1576,4 +1615,52 @@ ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
     tableData: tableManager.getTable(tableID),
   }
   sendMessage(event.sender, 'client-load-model', response);
+});
+
+ipcMain.on('server-select-folder', function(event, folderType) {
+  const path = saveManager.selectFolder();
+  if (path) {
+    const response = {};
+    response[folderType] = path;
+    sendMessage(settingsWindow, 'settings-data', response);
+  }
+});
+
+ipcMain.on('server-save-config', function(event, newConfig) {
+  settingsWindow.close();
+  settingsWindow = null;
+  config = newConfig;
+  const saved = saveConfig();
+  if (saved) {
+    if ('saveFolder' in config && config.saveFolder) {
+      saveManager.setSaveFolder(config.saveFolder);
+    }
+    if ('tempFolder' in config && config.tempFolder) {
+      saveManager.setTempFolder(config.tempFolder);
+    }
+    if ('minZoom' in config && config.minZoom
+    && 'maxZoom' in config && config.maxZoom
+    && 'stepZoom' in config && config.stepZoom) {
+      const data = {
+        'minZoom': config.minZoom,
+        'maxZoom': config.maxZoom,
+        'stepZoom': config.stepZoom,
+      }
+      sendMessage(mainWindow, 'client-set-zoom', data);
+    }
+  }
+});
+
+ipcMain.on('server-get-default', function(event, folderType) {
+    let folderPath;
+    if (folderType == 'saveFolder') {
+      folderPath = path.join(vltFolder, 'saves');
+    } else if (folderType == 'tempFolder') {
+      folderPath = path.join(vltFolder, 'temp');
+    }
+    if (folderPath) {
+      const response = {};
+      response[folderType] = folderPath;
+      sendMessage(settingsWindow, 'settings-data', response);
+    }
 });

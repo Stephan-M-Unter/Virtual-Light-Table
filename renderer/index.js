@@ -81,10 +81,11 @@ function toggleSidebar() {
 
 $(document).ready(function() {
   controller = new UIController('lighttable');
+  controller.sendToServer('server-stage-loaded');
 
   /* ##########################################
-        #               INPUT/OUTPUT
-  ###########################################*/
+        #          INPUT/OUTPUT
+  ########################################## */
 
   // Clear Table Button
   $('#clear_table').click(function() {
@@ -469,7 +470,8 @@ $(document).ready(function() {
 
   document.getElementById('lighttable')
       .addEventListener('wheel', function(event) {
-        const deltaZoom = event.deltaY / 10;
+        const stepZoom = $('#zoom_slider').attr('step');
+        const deltaZoom = stepZoom * Math.sign(event.deltaY);
         const newScaling = controller.getScaling() - deltaZoom;
         const x = event.pageX;
         const y = event.pageY;
@@ -643,6 +645,11 @@ $(document).ready(function() {
   ipcRenderer.on('calibration-set-ppi', (event, ppi) => {
     if (controller.isDevMode()) console.log('DevMode: Received calibration-set-ppi', ppi);
     controller.setPPI(ppi);
+  });
+
+  ipcRenderer.on('client-set-zoom', (event, data) => {
+    if (controller.isDevMode()) console.log('DevMode: Received client-set-zoom', data);
+    controller.setZoom(data.minZoom, data.maxZoom, data.stepZoom);
   });
 
   xyz = controller.getStage(); // REMOVE

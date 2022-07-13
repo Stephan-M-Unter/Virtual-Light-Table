@@ -134,6 +134,12 @@ class Stage {
     this.controller.update();
   }
 
+  setZoom(minZoom, maxZoom, stepZoom) {
+    $('#zoom_slider').attr('min', minZoom*100);
+    $('#zoom_slider').attr('max', maxZoom*100);
+    $('#zoom_slider').attr('step', stepZoom*100);
+  }
+
   /**
    * Returns current PPI ratio on the stage.
    * @return {double}

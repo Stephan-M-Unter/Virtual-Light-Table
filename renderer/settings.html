@@ -9,8 +9,87 @@
             window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');
         </script>
     </head>
-    <body>
-        <header>Settings</header>
+    <body class="wrapper-vertical">
+        <header class="margin-vertical">Settings</header>
+
+        <div class="wrapper wrapper-horizontal centered">
+            <!-- PPI -->
+            <div class="wrapper wrapper-horizontal centered margin-horizontal">
+                <div id="ppi-label"><span id="ppi">[unknown]</span> px = 1 inch</div>
+                <div title="Open calibration tool" class="button button-large" id="calibrate">
+                    <img src="../imgs/symbol_calibration.png">
+                    <div class="button-label">Calibrate</div>
+                </div>
+            </div>
+            <div class="vertical-line"></div>
+    
+            <!-- Zoom -->
+            <div class="wrapper margin-horizontal">
+                <div class="wrapper wrapper-horizontal">
+                    <input type="text" class="input-number" id="minZoom" placeholder="unknown">
+                    <img class="label-img" src="../imgs/symbol_minus_zoom.png">
+                    <div class="label">Minimum Zoom</div>
+                </div>
+                <div class="wrapper wrapper-horizontal">
+                    <input type="text" class="input-number" id="maxZoom" placeholder="unknown">
+                    <img class="label-img" src="../imgs/symbol_plus_zoom.png">
+                    <div class="label">Maximum Zoom</div>
+                </div>
+                <div class="wrapper wrapper-horizontal">
+                    <input type="text" class="input-number" id="stepZoom" placeholder="unknown">
+                    <img class="label-img" src="../imgs/symbol_ruler.png">
+                    <div class="label">Step Size Zoom</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wrapper wrapper-vertical full-width">
+            <!-- Location Saves -->
+            <div class="wrapper wrapper-vertical margin-vertical full-width">
+                <div class="wrapper wrapper-horizontal centered">
+                    <div class="label label-left">Default Save Folder</div>
+                    <input type="url" class="input-url" id="save-path" placeholder="unknown">
+                </div>
+                <div class="wrapper wrapper-horizontal align-right">
+                    <div title="Select new savefolder" class="button button-large" id="select-save">
+                        <img src="../imgs/symbol_folder.png">
+                        <div class="button-label">Select folder</div>
+                    </div>
+                    <div title="Reset to default" class="button button-small" id="default-save">
+                        <img src="../imgs/symbol_reset.png">
+                    </div>
+                </div>
+            </div>
+    
+            <!--- Locaton Temp -->
+            <div class="wrapper wrapper-vertical margin-vertical">
+                <div class="wrapper wrapper-horizontal centered">
+                    <div class="label label-left">Temporary Files</div>
+                    <input type="url" class="input-url" id="temp-path" placeholder="unknown">
+                </div>
+                <div class="wrapper wrapper-horizontal align-right">
+                    <div title="Select new folder for temporary files" class="button button-large" id="select-temp">
+                        <img src="../imgs/symbol_folder.png">
+                        <div class="button-label">Select folder</div>
+                    </div>
+                    <div title="Reset to default" class="button button-small" id="default-temp">
+                        <img src="../imgs/symbol_reset.png">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wrapper wrapper-horizontal centered margin-vertical">
+            <div title="Save changes" class="button button-large" id="save">
+                <img src="../imgs/symbol_save.png">
+                <div class="button-label">Save</div>
+            </div>
+            <div title="Cancel without saving changes" class="button button-large" id="abort">
+                <img src="../imgs/symbol_x.png">
+                <div class="button-label">Cancel</div>
+            </div>
+        </div>
+
         <script src="../js/libs/createjs.min.js"></script>
         <script src="./settings.js"></script>
     </body>
