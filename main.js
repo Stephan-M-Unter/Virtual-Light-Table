@@ -472,19 +472,19 @@ function check_python() {
   let python = spawn('python3', [path.join(pythonFolder, 'python_test.py')]);
   python.on('close', function(code) {
     if (code == 9009) {
-      console.log("Code 9009, python3 does not exist, testing with python");
+      console.log(timestamp() + ' Code 9009 - "python3" does not exist, now testing with "python"');
       python = spawn('python', [path.join(pythonFolder, 'python_test.py')]);
       python.on('close', function(code) {
         if (code == 9009) {
-          console.log("Code 9009, No version of python found.");
+          console.log(timestamp() + " Code 9009 - no working version of python found.");
           app.quit();
         } else if (code == 0) {
-          console.log(`python closed with code ${code}`);
-          console.log('setting pythonCmd to python');
+          console.log(timestamp() + ` [PYTHON] closed with code ${code}`);
+          console.log(timestamp() + ' Setting python command to "python"');
           pythonCmd = 'python';
         } else {
-          console.log(`python closed with code ${code}`);
-          console.log('python found, but other problem occurred, please solve');
+          console.log(timestamp() + ` [PYTHON] closed with code ${code}`);
+          console.log(timestamp() + ' Command "python" found, but other problem occurred, please resolve.');
           app.quit();
         }
       });
@@ -1002,7 +1002,23 @@ ipcMain.on('server-upload-image', (event) => {
   const filepath = imageManager.selectImageFromFilesystem();
 
   if (filepath) {
-    sendMessage(localUploadWindow, 'upload-receive-image', filepath);
+    const ext = path.extname(filepath);
+    const conversionRequired = ['.tiff', '.tif', '.TIFF', '.TIF'];
+    if (conversionRequired.includes(ext)) {
+      console.log("old filepath", filepath);
+      let filename = path.basename(filepath);
+      const dotPos = filename.lastIndexOf('.');
+      filename = filename.substring(0,dotPos) + '.jpg';
+      const newFilepath = path.join(tempFolder, 'imgs', filename);
+      console.log("new filepath", newFilepath);
+      const python = spawn(pythonCmd, [path.join(pythonFolder, 'convert_tiff.py'), filepath, newFilepath], {stdio: ['ignore', out, out]});
+      python.on('close', function(code) {
+        console.log(timestamp() + ` [PYTHON] Converted TIFF to JPG with code ${code}.`);
+        sendMessage(localUploadWindow, 'upload-receive-image', newFilepath);
+      });
+    } else {
+      sendMessage(localUploadWindow, 'upload-receive-image', filepath);
+    }
   } else {
     sendMessage(localUploadWindow, 'upload-receive-image');
   }

@@ -33,7 +33,7 @@ class ImageManager {
       title: 'Select Image',
       filters: [{
         name: 'Image Files',
-        extensions: ['jpg', 'png'],
+        extensions: ['jpg', 'png', 'tif', 'tiff'],
       }],
       properties: ['openFile', 'treatPackageAsDirectory'],
     });
