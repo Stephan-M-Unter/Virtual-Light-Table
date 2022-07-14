@@ -29,7 +29,7 @@ const TPOPManager = require('./js/TPOPManager');
 const { resolve } = require('path');
 
 // Settings
-const devMode = true;
+const devMode = false;
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 const vltFolder = path.join(appDataPath, 'Virtual Light Table');
@@ -283,7 +283,7 @@ function uploadTpopFragments() {
   localUploadWindow.removeMenu();
   localUploadWindow.once('ready-to-show', () => {
     localUploadWindow.webContents.once('did-finish-load', () => {
-      sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
+      sendMessage(localUploadWindow, 'upload-tpop-fragment', fragment);
       localUploadWindow.show();
     });
   });
@@ -1664,4 +1664,8 @@ ipcMain.on('server-get-default', function(event, folderType) {
       response[folderType] = folderPath;
       sendMessage(settingsWindow, 'settings-data', response);
     }
+});
+
+ipcMain.on('console', function(event, data) {
+  console.log(data);
 });

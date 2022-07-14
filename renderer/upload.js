@@ -34,6 +34,11 @@ $(document).ready(function() {
  * Reading the current width and height of the canvas DOM element and feeding it into
  * the createjs.Stage().canvas object.
  */
+
+function log(data) {
+ ipcRenderer.send('console', data);
+}
+
 function updateCanvasSize() {
   recto.stage.canvas.width = recto.canvas.width();
   recto.stage.canvas.height = recto.canvas.height();
@@ -47,12 +52,14 @@ function updateCanvasSize() {
 }
 
 function centerImages() {
+  console.log("centerImages()");
   centerImage(recto);
   centerImage(verso);
   reposition = false;
 }
 
 function centerImage(side) {
+  console.log(`centerImage(${side.sidename})`);
   if (side.content.img) {
     side.content.x = $(side.canvas).innerWidth() / 2;
     side.content.y = $(side.canvas).innerHeight() / 2;
@@ -117,13 +124,18 @@ function createEmptySide(sidename) {
  *
  * @param {'recto'|'verso'} sidename - String indicating which canvas needs to be initialised.
 */
-function draw(sidename) {
+function draw(sidename, center) {
+  log({
+    'name': 'test',
+    'side': sidename,
+    'data': center,
+  });
   const side = getSide(sidename);
   side.stage.removeAllChildren();
   if (side.content.filepath != null) {
     if (side.content.img == null) {
       // create a new image first from file
-      createImage(sidename);
+      createImage(sidename, center);
     } else {
       // draw canvas
       // get width/height of image and canvas
@@ -178,6 +190,7 @@ function draw(sidename) {
       side.stage.addChildAt(side.content.img_bg, shadow, side.content.img, side.mask.group, 0);
       // side.canvas.attr('title', side.content.filepath);
       //   drawMasks();
+      if (center) centerImage(side);
     }
   }
   side.stage.update();
@@ -202,7 +215,7 @@ function getFittingScale(side) {
  *
  * @param {*} sidename
  */
-function createImage(sidename) {
+function createImage(sidename, center) {
   const side = getSide(sidename);
   const newImage = new Image();
   newImage.src = side.content.filepath;
@@ -238,7 +251,7 @@ function createImage(sidename) {
     });
 
     // now recursively restart startCanvas() as now an image is available
-    draw(sidename);
+    draw(sidename, center);
   };
 }
 
@@ -1130,6 +1143,60 @@ function canvasToImage(image, pointArray) {
   return result;
 }
 
+function loadData(data, center) {
+  $('#upload_button').find('.large_button_label').html('Update object');
+
+  if ('recto' in data) {
+    if ('ppi' in data.recto) $('#recto_ppi').val(data.recto.ppi);
+    recto.content.filepath = data.recto.url;
+    recto.content.www = data.recto.www;
+    
+    if ('upload' in data.recto) {
+      recto.content.x = data.recto.upload.x;
+      recto.content.y = data.recto.upload.y;
+      recto.mask.box = data.recto.upload.box;
+      recto.mask.polygon = data.recto.upload.polygon;
+      recto.content.scale = data.recto.upload.scale;
+    } else {
+      recto.content.x = 0;
+      recto.content.y = 0;
+      recto.mask.box = [];
+      recto.mask.polygon = [];
+    }
+    
+  }
+  
+  if ('verso' in data) {
+    if ('ppi' in data.verso) $('#verso_ppi').val(data.verso.ppi);
+    verso.content.filepath = data.verso.url;
+    verso.content.www = data.verso.www;
+    
+    if ('upload' in data.verso) {
+      verso.content.x = data.verso.upload.x;
+      verso.content.y = data.verso.upload.y;
+      verso.mask.box = data.verso.upload.box;
+      verso.mask.polygon = data.verso.upload.polygon;
+      verso.content.scale = data.verso.upload.scale;
+    } else {
+      verso.content.x = 0;
+      verso.content.y = 0;
+      verso.mask.box = [];
+      verso.mask.polygon = [];
+    }
+  }
+
+  
+  $('#objectname').val(data.name);
+  if ('maskMode' in data && data.maskMode) maskMode = data.maskMode;
+  if ('id' in data && data.id) editData = data;
+  if ('urlTPOP' in data) editData = data;
+
+  draw('recto', center);
+  draw('verso', center);
+  activateMaskMode(maskMode);
+  drawMasks();
+}
+
 function activateMaskMode(mode) {
   if (maskMode == 'polygon' && mode != 'polygon') {
     endAddPolygonNodes();
@@ -1315,6 +1382,7 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
     side.content.filepath = filepath;
     syncMasks();
     draw(currentUpload);
+    centerImage(getSide(currentUpload));
     currentUpload = null;
   
     if ($('#objectname').val() == '') {
@@ -1330,55 +1398,10 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
 // the necessary data/information about the fragment.
 ipcRenderer.on('upload-edit-fragment', (event, data) => {
   console.log('Receiving Edit Information:', data);
-  $('#upload_button').find('.large_button_label').html('Update object');
+  loadData(data, false);
+});
 
-  if ('recto' in data) {
-    if ('ppi' in data.recto) $('#recto_ppi').val(data.recto.ppi);
-    recto.content.filepath = data.recto.url;
-    recto.content.www = data.recto.www;
-    
-    if ('upload' in data.recto) {
-      recto.content.x = data.recto.upload.x;
-      recto.content.y = data.recto.upload.y;
-      recto.mask.box = data.recto.upload.box;
-      recto.mask.polygon = data.recto.upload.polygon;
-      recto.content.scale = data.recto.upload.scale;
-    } else {
-      recto.content.x = 0;
-      recto.content.y = 0;
-      recto.mask.box = [];
-      recto.mask.polygon = [];
-    }
-    
-  }
-  
-  if ('verso' in data) {
-    if ('ppi' in data.verso) $('#verso_ppi').val(data.verso.ppi);
-    verso.content.filepath = data.verso.url;
-    verso.content.www = data.verso.www;
-    
-    if ('upload' in data.verso) {
-      verso.content.x = data.verso.upload.x;
-      verso.content.y = data.verso.upload.y;
-      verso.mask.box = data.verso.upload.box;
-      verso.mask.polygon = data.verso.upload.polygon;
-      verso.content.scale = data.verso.upload.scale;
-    } else {
-      verso.content.x = 0;
-      verso.content.y = 0;
-      verso.mask.box = [];
-      verso.mask.polygon = [];
-    }
-  }
-
-  
-  $('#objectname').val(data.name);
-  if ('maskMode' in data && data.maskMode) maskMode = data.maskMode;
-  if ('id' in data && data.id) editData = data;
-  if ('urlTPOP' in data) editData = data;
-
-  draw('recto');
-  draw('verso');
-  activateMaskMode(maskMode);
-  drawMasks();
+ipcRenderer.on('upload-tpop-fragment', (event, data) => {
+  console.log('Receiving TPOP information:', data);
+  loadData(data, true);
 });
