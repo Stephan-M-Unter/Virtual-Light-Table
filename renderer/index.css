@@ -1064,6 +1064,22 @@ body {
     transition: .2s height, .2s width, .1s padding;
 }
 
+.button_number {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ccc;
+    border-radius: 4px;
+    right: 3px;
+    bottom: 3px;
+    font-size: 10px;
+    line-height: 10px;
+}
+
+.disabled .button_number {
+    display: none;
+}
+
 .button_img:hover,
 .narrow_button:hover .button_img,
 .wide_button:hover .button_img {

@@ -264,15 +264,20 @@ class Sidebar {
    * @param {Object} data
    */
   updateRedoUndo(data) {
-    if (data.undoSteps) {
+    console.log("REDO-UNDO", data);
+    if (data.undoSteps > 0) {
       $('#undo').removeClass('disabled');
+      $('#undo').find('.button_number').html(data.undoSteps);
     } else {
       $('#undo').addClass('disabled');
+      $('#undo').find('.button_number').html('');
     }
-    if (data.redoSteps) {
+    if (data.redoSteps > 0) {
       $('#redo').removeClass('disabled');
+      $('#redo').find('.button_number').html(data.redoSteps);
     } else {
       $('#redo').addClass('disabled');
+      $('#redo').find('.button_number').html('');
     }
   }
 
