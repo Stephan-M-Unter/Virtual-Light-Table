@@ -672,14 +672,6 @@ ipcMain.on('server-undo-step', (event, tableID) => {
     // TODO evtl. zusammenfassen???
     sendMessage(event.sender, 'client-redo-model', tableData);
     sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
-  } else {
-    // undo step was unsuccessful
-    const feedback = {
-      title: 'Undo Impossible',
-      desc: 'There are probably no more undo steps possible.',
-      color: color.error,
-    };
-    sendMessage(event.sender, 'client-show-feedback', feedback);
   }
 });
 
@@ -697,13 +689,6 @@ ipcMain.on('server-redo-step', (event, tableID) => {
     // TODO evtl. zusammenfassen???
     sendMessage(event.sender, 'client-redo-model', tableData);
     sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
-  } else {
-    const feedback = {
-      title: 'Redo Impossible',
-      desc: 'There are probably no more redo steps available.',
-      color: color.error,
-    };
-    sendMessage(event.sender, 'client-show-feedback', feedback);
   }
 });
 
