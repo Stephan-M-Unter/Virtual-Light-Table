@@ -125,11 +125,6 @@ function createEmptySide(sidename) {
  * @param {'recto'|'verso'} sidename - String indicating which canvas needs to be initialised.
 */
 function draw(sidename, center) {
-  log({
-    'name': 'test',
-    'side': sidename,
-    'data': center,
-  });
   const side = getSide(sidename);
   side.stage.removeAllChildren();
   if (side.content.filepath != null) {

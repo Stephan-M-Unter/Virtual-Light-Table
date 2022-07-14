@@ -29,7 +29,7 @@ const TPOPManager = require('./js/TPOPManager');
 const { resolve } = require('path');
 
 // Settings
-const devMode = false;
+const devMode = true;
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 const vltFolder = path.join(appDataPath, 'Virtual Light Table');
