@@ -70,6 +70,7 @@ body {
 #sidebar_content {
     position: absolute;
     width: 100%;
+    height: 
     color: var(--cb_grey);
 }
 
@@ -232,6 +233,7 @@ body {
     align-content: flex-start;
     justify-content: center;
     padding: 5px;
+    height: calc(100vh - 250px);
 }
 
 .fragment_list_item {

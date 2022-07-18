@@ -264,7 +264,6 @@ class Sidebar {
    * @param {Object} data
    */
   updateRedoUndo(data) {
-    console.log("REDO-UNDO", data);
     if (data.undoSteps > 0) {
       $('#undo').removeClass('disabled');
       $('#undo').find('.button_number').html(data.undoSteps);

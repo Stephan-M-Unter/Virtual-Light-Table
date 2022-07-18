@@ -68,6 +68,7 @@ class TPOPManager {
         } catch (e) {
           console.log(e);
         }
+        console.log(typeof(this.tpopData));
         this.allTPOPData = this.tpopData['objects'].filter((el) => {
           if (el == null || typeof el == 'undefined') return false;
           const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'];

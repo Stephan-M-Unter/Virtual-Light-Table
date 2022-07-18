@@ -156,7 +156,7 @@ function updateRelations() {
  * @param {Double} pixelsPerInch
  */
 function setPPI(pixelsPerInch) {
-  ppi = pixelsPerInch;
+  ppi = Number(pixelsPerInch);
   updateRelations();
   drawDistance();
 }
