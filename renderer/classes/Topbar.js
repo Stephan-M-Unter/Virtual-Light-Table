@@ -82,6 +82,12 @@ class Topbar {
     });
   };
 
+  startLoading(tableID) {
+    $('#'+tableID).find('.table_header').removeClass('empty');
+    $('#'+tableID).find('.table_screenshot').removeClass('empty');
+    $('#'+tableID).find('.table _screenshot>img').attr('src', '../imgs/loading.gif');
+  }
+
   /**
    *
    * @param {String} tableID ID for a table, e.g. "table_1".

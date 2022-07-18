@@ -732,6 +732,7 @@ ipcMain.on('server-load-file', (event, filename) => {
     'Receiving code [server-load-file] from loadWindow');
   }
   let tableID = activeTables.loading;
+  sendMessage(mainWindow, 'client-start-loading', tableID);
   activeTables.loading = null;
   loadWindow.close();
   const savefolder = saveManager.getCurrentFolder();
@@ -958,6 +959,7 @@ ipcMain.on('server-upload-ready', (event, data) => {
     // if no table is currently associated with the upload, create a new table
     const tableID = tableManager.createNewTable();
     const tableData = tableManager.getTable(tableID);
+    activeTables.uploading = tableID;
     const newTableData = {
       tableID: tableID,
       tableData: tableData,
@@ -973,6 +975,8 @@ ipcMain.on('server-upload-ready', (event, data) => {
     } catch {}
     // localUploadWindow = null;
   }
+
+  sendMessage(mainWindow, 'client-start-loading', activeTables.uploading);
 
   preprocess_fragment(data);
 });
@@ -1485,6 +1489,7 @@ ipcMain.on('server-load-tpop-fragments', (event, data) => {
     'Receiving code [server-load-tpop-fragments] from TPOPWindow');
   }
   data = tpopManager.getBasicInfo(data);
+  sendMessage(mainWindow, 'client-start-loading', activeTables.tpop);
   
   const tableID = activeTables.tpop;
   tpopWindow.close();

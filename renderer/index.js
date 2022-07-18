@@ -593,6 +593,7 @@ $(document).ready(function() {
       $('#fragment_list').find('.arrow').addClass('down');
       $('#fragment_list').addClass('expanded');
     }
+    controller.stopLoading();
     controller.loadScene(data);
   });
 
@@ -603,6 +604,7 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-add-upload', (event, data) => {
     if (controller.isDevMode()) console.log('DevMode: Received client-add-upload', data);
+    controller.stopLoading();
     controller.addFragment(data);
   });
 
@@ -650,6 +652,11 @@ $(document).ready(function() {
   ipcRenderer.on('client-set-zoom', (event, data) => {
     if (controller.isDevMode()) console.log('DevMode: Received client-set-zoom', data);
     controller.setZoom(data.minZoom, data.maxZoom, data.stepZoom);
+  });
+  
+  ipcRenderer.on('client-start-loading', (event, tableID) => {
+    if (controller.isDevMode()) console.log('DevMode: Received client-start-loading', tableID);
+    controller.startLoading(tableID);
   });
 
   xyz = controller.getStage(); // REMOVE

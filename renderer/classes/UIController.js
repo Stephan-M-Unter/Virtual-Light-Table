@@ -88,6 +88,17 @@ class UIController {
     this.topbar.updateSavestates(this.unsaved);
   }
 
+  startLoading(tableID) {
+    if (this.activeTable == tableID) {
+      $('#overlay').removeClass('hidden');
+    }
+    this.topbar.startLoading(tableID);
+  }
+
+  stopLoading() {
+    $('#overlay').addClass('hidden');
+  }
+
   /**
    * TODO
    * @param {Boolean} isQuicksave
