@@ -233,7 +233,11 @@ body {
     align-content: flex-start;
     justify-content: center;
     padding: 5px;
-    height: calc(100vh - 275px);
+    height: calc(100vh - 250px);
+}
+
+#left_sidebar:not(.small) #fragment_list_content {
+    height: calc(100vh - 300px);
 }
 
 .fragment_list_item {
