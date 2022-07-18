@@ -233,7 +233,7 @@ body {
     align-content: flex-start;
     justify-content: center;
     padding: 5px;
-    height: calc(100vh - 250px);
+    height: calc(100vh - 275px);
 }
 
 .fragment_list_item {
