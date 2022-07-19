@@ -663,5 +663,15 @@ $(document).ready(function() {
     controller.stopLoading();
   });
 
+  ipcRenderer.on('client-loading-progress', (event, data) => {
+    console.log("Processed:", data.nProcessed, ", Total:", data.nTotal);
+    $('#progress-processed').html(data.nProcessed);
+    $('#progress-total').html(data.nTotal);
+    $('#progress-pct').html(Math.round((data.nProcessed / data.nTotal) * 10000)/100);
+    $('#progress').attr('value', data.nProcessed);
+    $('#progress').attr('max', data.nTotal);
+    $('#progress-name').html('- ' + data.name + ' -');
+  });
+
   xyz = controller.getStage(); // REMOVE
 });

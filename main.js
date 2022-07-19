@@ -326,14 +326,26 @@ function preprocess_loading_fragments(data) {
   const fragments = data.tableData.fragments;
   let fragment;
   let fragmentKey;
+  let n_processed = 0;
+  const n_total = Object.keys(fragments).length;
   for (const key of Object.keys(fragments)) {
     fragment = fragments[key];
     if (!('processed' in fragment)) {
       allProcessed = false,
       fragmentKey = key;
       break;
+    } else {
+      n_processed = n_processed + 1;
     }
   }
+
+  console.log(fragment);
+  const status = {
+    name: fragment.name,
+    nProcessed: n_processed,
+    nTotal: n_total,
+  };
+  sendMessage(mainWindow, 'client-loading-progress', status);
 
   if (!('recto' in fragment)) fragment.recto = {};
   if (!('verso' in fragment)) fragment.verso = {};
@@ -759,7 +771,7 @@ ipcMain.on('server-load-file', (event, filename) => {
     desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
     color: color.success,
   };
-  sendMessage(mainWindow, 'client-show-feedback', feedback);
+  // sendMessage(mainWindow, 'client-show-feedback', feedback);
 
   preprocess_loading_fragments(data);
 });

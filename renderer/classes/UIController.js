@@ -97,6 +97,7 @@ class UIController {
 
   stopLoading() {
     $('#overlay').addClass('hidden');
+    this.topbar.stopLoading(this.activeTable);
   }
 
   /**

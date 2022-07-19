@@ -504,6 +504,15 @@ canvas.removePolygonNode {
     font-variant: small-caps;
 }
 
+#tpop-side {
+    background-color: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    line-height: 100%;
+    height: 100%;
+    padding: 2px 5px;
+    color: #333;
+}
+
 #tpop-image-list {
     margin: auto;
     padding: 20px 0px;
