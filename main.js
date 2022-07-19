@@ -67,7 +67,7 @@ let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
 let detailWindow; // TODO additional window to show fragment details
 // let filterWindow; // TODO additional window to set database filters
-let localUploadWindow;
+let uploadWindow;
 let calibrationWindow;
 let settingsWindow;
 let tpopWindow;
@@ -244,7 +244,7 @@ function extendConfig() {
 function uploadTpopFragments() {
   if (loadingQueue.length == 0) {
     try {
-      localUploadWindow.close();
+      uploadWindow.close();
     } catch {}
     // localUploadWindow = null;
     return;
@@ -269,27 +269,28 @@ function uploadTpopFragments() {
     }
   }
 
-  if (localUploadWindow) {
+  if (uploadWindow) {
     try {
-      localUploadWindow.close();
+      uploadWindow.close();
     } catch {}
     // localUploadWindow = null;
   }
-  localUploadWindow = new Window({
+  uploadWindow = new Window({
     file: './renderer/upload.html',
     type: 'upload',
     devMode: devMode,
   });
-  localUploadWindow.removeMenu();
-  localUploadWindow.once('ready-to-show', () => {
-    localUploadWindow.webContents.once('did-finish-load', () => {
-      sendMessage(localUploadWindow, 'upload-tpop-fragment', fragment);
-      localUploadWindow.show();
+  uploadWindow.removeMenu();
+  uploadWindow.once('ready-to-show', () => {
+    uploadWindow.webContents.once('did-finish-load', () => {
+      sendMessage(uploadWindow, 'upload-tpop-fragment', fragment);
+      uploadWindow.show();
     });
   });
 
-  localUploadWindow.on('close', function() {
-    localUploadWindow = null;
+  uploadWindow.on('close', function() {
+    uploadWindow = null;
+    sendMessage(mainWindow, 'client-stop-loading');
     uploadTpopFragments();
   });
 
@@ -924,24 +925,25 @@ ipcMain.on('server-open-upload', (event, tableID) => {
 
   activeTables.uploading = tableID;
   
-  if (localUploadWindow) {
+  if (uploadWindow) {
     try {
-      localUploadWindow.close();
+      uploadWindow.close();
     } catch {};
-    localUploadWindow = null;
+    uploadWindow = null;
   }
 
-  if (!localUploadWindow) {
-    localUploadWindow = new Window({
+  if (!uploadWindow) {
+    uploadWindow = new Window({
       file: './renderer/upload.html',
       type: 'upload',
       devMode: devMode,
     });
-    localUploadWindow.removeMenu();
-    localUploadWindow.once('ready-to-show', () => {
-      localUploadWindow.show();
+    uploadWindow.removeMenu();
+    uploadWindow.once('ready-to-show', () => {
+      uploadWindow.show();
     });
-    localUploadWindow.on('close', function() {
+    uploadWindow.on('close', function() {
+      sendMessage(mainWindow, 'client-stop-loading');
       // localUploadWindow = null;
       // activeTables.uploading = null;
     });
@@ -969,9 +971,9 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
   
   // activeTables.uploading = null;
-  if (localUploadWindow) {
+  if (uploadWindow) {
     try {
-      localUploadWindow.close();
+      uploadWindow.close();
     } catch {}
     // localUploadWindow = null;
   }
@@ -1003,13 +1005,13 @@ ipcMain.on('server-upload-image', (event) => {
       const python = spawn(pythonCmd, [path.join(pythonFolder, 'convert_tiff.py'), filepath, newFilepath], {stdio: ['ignore', out, out]});
       python.on('close', function(code) {
         console.log(timestamp() + ` [PYTHON] Converted TIFF to JPG with code ${code}.`);
-        sendMessage(localUploadWindow, 'upload-receive-image', newFilepath);
+        sendMessage(uploadWindow, 'upload-receive-image', newFilepath);
       });
     } else {
-      sendMessage(localUploadWindow, 'upload-receive-image', filepath);
+      sendMessage(uploadWindow, 'upload-receive-image', filepath);
     }
   } else {
-    sendMessage(localUploadWindow, 'upload-receive-image');
+    sendMessage(uploadWindow, 'upload-receive-image');
   }
 });
 
@@ -1030,25 +1032,26 @@ ipcMain.on('server-change-fragment', (event, data) => {
   }
 
   const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
-  if (localUploadWindow) {
+  if (uploadWindow) {
     try {
-      localUploadWindow.close();
+      uploadWindow.close();
     } catch {};
   }
 
   activeTables.uploading = data.tableID;
 
-  localUploadWindow = new Window({
+  uploadWindow = new Window({
     file: './renderer/upload.html',
     type: 'upload',
     devMode: devMode,
   });
-  localUploadWindow.removeMenu();
-  localUploadWindow.once('ready-to-show', () => {
-    localUploadWindow.show();
-    sendMessage(localUploadWindow, 'upload-edit-fragment', fragment);
+  uploadWindow.removeMenu();
+  uploadWindow.once('ready-to-show', () => {
+    uploadWindow.show();
+    sendMessage(uploadWindow, 'upload-edit-fragment', fragment);
   });
-  localUploadWindow.on('close', function() {
+  uploadWindow.on('close', function() {
+    sendMessage(mainWindow, 'client-stop-loading');
     // localUploadWindow = null;
     // activeTables.uploading = null;
   });
@@ -1674,3 +1677,37 @@ ipcMain.on('server-get-default', function(event, folderType) {
 ipcMain.on('console', function(event, data) {
   console.log(data);
 });
+
+ipcMain.on('server-select-other-tpops', (event, data) => {
+  const imageArray = tpopManager.getImageLinks(data.tpop);
+  resolveUrls(imageArray, uploadTpopImages);
+});
+
+function resolveUrls(urlList, callback) {
+  let workFound = false;
+  let url;
+  let i;
+
+  for (const index in urlList) {
+    url = urlList[index];
+    if (url.lastIndexOf('.')+5 < url.length) {
+      workFound = true;
+      i = index;
+      break;
+    }
+  }
+
+  if (!(workFound)) {
+    callback(urlList);
+  } else {
+    console.log("Processing URL", url);
+    var r = request(url, function(e, response) {
+      urlList[i] = r.uri.href;
+      resolveUrls(urlList, callback);
+    });
+  }
+}
+
+function uploadTpopImages(urlList) {
+  sendMessage(uploadWindow, 'upload-tpop-images', urlList);
+}

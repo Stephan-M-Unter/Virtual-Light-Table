@@ -659,5 +659,9 @@ $(document).ready(function() {
     controller.startLoading(tableID);
   });
 
+  ipcRenderer.on('client-stop-loading', () => {
+    controller.stopLoading();
+  });
+
   xyz = controller.getStage(); // REMOVE
 });

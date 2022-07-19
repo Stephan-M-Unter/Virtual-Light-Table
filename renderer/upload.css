@@ -486,3 +486,55 @@ canvas.removePolygonNode {
     text-align: justify;
     padding: 20px;
 }
+
+#tpop-select-overlay {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.9);
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#tpop-header {
+    font-size: 3em;
+    color: white;
+    padding: 10px 0px;
+    font-variant: small-caps;
+}
+
+#tpop-image-list {
+    margin: auto;
+    padding: 20px 0px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow: auto;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.tpop-image {
+    height: 40%;
+}
+
+.tpop-image.selected {
+    border: 5px solid var(--cb_orange);
+}
+
+.tpop-image img {
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#tpop-buttons {
+    padding: 10px 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}

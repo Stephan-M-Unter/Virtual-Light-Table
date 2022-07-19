@@ -1011,7 +1011,7 @@ $('#ml-reset').click(function() {
 
 $('#reload-json').click(() => {
   if (!requesting) {
-    $('#reload-json img').attr('src', '../imgs/loading.gif');
+    $('#reload-json img').attr('src', '../imgs/loading-small.gif');
     requesting = true;
     ipcRenderer.send('server-reload-json');
     $('.filter').remove();

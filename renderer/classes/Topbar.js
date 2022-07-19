@@ -83,9 +83,17 @@ class Topbar {
   };
 
   startLoading(tableID) {
+    console.log("start loading", tableID);
     $('#'+tableID).find('.table_header').removeClass('empty');
     $('#'+tableID).find('.table_screenshot').removeClass('empty');
-    $('#'+tableID).find('.table _screenshot>img').attr('src', '../imgs/loading.gif');
+    $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading.gif');
+  }
+  
+  endLoading(tableID) {
+    console.log("end loading", tableID);
+    $('#'+tableID).find('.table_header').addClass('empty');
+    $('#'+tableID).find('.table_screenshot').addClass('empty');
+    $('#'+tableID).find('.table _screenshot>img').attr('src', '#');
   }
 
   /**
@@ -114,7 +122,7 @@ class Topbar {
       // don't show any screenshot
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
-      $('#'+tableID).find('.table_screenshot>img').attr('src', '');
+      $('#'+tableID).find('.table_screenshot>img').attr('src', '#');
     }
   };
 

@@ -821,6 +821,13 @@ class TPOPManager {
     }
     return folders;
   }
+
+  getImageLinks(tpopID) {
+    const result = this.allTPOPData.find((obj) => {
+      return obj['TPOPid'] === tpopID;
+    });
+    return result['ObjectImages'];
+  }
 }
 
 module.exports = TPOPManager;

@@ -22,6 +22,10 @@
                             <img draggable="false" src="../imgs/symbol_www.png" class="large_button_img" canvas="recto">
                             <div class="large_button_label" canvas="recto">Web Image/URL</div>
                         </div>
+                        <div title="Select other images from TPOP" class="button large_button choose_tpop unrendered" canvas="recto">
+                            <img draggable="false" src="../imgs/symbol_magnifier.png" class="large_button_img" canvas="recto">
+                            <div class="large_button_label" canvas="recto">TPOP Images</div>
+                        </div>
                     </div>
                 </div> <!-- </recto_canvas_region> -->
                 <div class="wrapper canvas_wrapper" id="verso_canvas_region"> <!-- Level 3 -->
@@ -35,6 +39,10 @@
                         <div title="Specify a URL to an image on the internet" class="button large_button www_upload" canvas="verso">
                             <img draggable="false" src="../imgs/symbol_www.png" class="large_button_img" canvas="verso">
                             <div class="large_button_label" canvas="verso">Web Image/URL</div>
+                        </div>
+                        <div title="Select other images from TPOP" class="button large_button choose_tpop unrendered" canvas="verso">
+                            <img draggable="false" src="../imgs/symbol_magnifier.png" class="large_button_img" canvas="verso">
+                            <div class="large_button_label" canvas="verso">TPOP Images</div>
                         </div>
                     </div>
                 </div> <!-- </verso_canvas_region> -->
@@ -205,6 +213,21 @@
             </div>
 
         </div> <!-- </tutorial_region> -->
+
+        <div id="tpop-select-overlay" class="unrendered">
+            <div id="tpop-header">Select Image for <span id="tpop-side"></span></div>
+            <div id="tpop-image-list"></div>
+            <div id="tpop-buttons">
+                <div id="tpop-button-select" class="button large_button disabled">
+                    <img draggable="false" src="../imgs/symbol_upload_local.png" class="large_button_img">
+                    <div class="large_button_label">Select Image</div>
+                </div>
+                <div id="tpop-button-close" class="button large_button">
+                    <img draggable="false" src="../imgs/symbol_x.png" class="large_button_img">
+                    <div class="large_button_label">Close</div>
+                </div>
+            </div>
+        </div>
 
         <!--
         <div id="canvas_wrapper">

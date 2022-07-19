@@ -16,6 +16,7 @@ let scale = 1;
 let reposition = false;
 const mousestart = {};
 let id = null;
+let tpop = null;
 
 let recto = createEmptySide('recto');
 let verso = createEmptySide('verso');
@@ -52,14 +53,12 @@ function updateCanvasSize() {
 }
 
 function centerImages() {
-  console.log("centerImages()");
   centerImage(recto);
   centerImage(verso);
   reposition = false;
 }
 
 function centerImage(side) {
-  console.log(`centerImage(${side.sidename})`);
   if (side.content.img) {
     side.content.x = $(side.canvas).innerWidth() / 2;
     side.content.y = $(side.canvas).innerHeight() / 2;
@@ -187,6 +186,8 @@ function draw(sidename, center) {
       //   drawMasks();
       if (center) centerImage(side);
     }
+  } else if (tpop) {
+    $('#'+sidename+'_canvas_region').find('.choose_tpop').removeClass('unrendered');
   }
   side.stage.update();
   drawMasks();
@@ -1354,6 +1355,35 @@ $('#upload_button').click(() => {
   }
 });
 
+$('.choose_tpop').click(function(event) {
+  const request = {
+    tpop: tpop,
+    side: $(event.target).attr('canvas'),
+  };
+  currentUpload = request.side;
+  ipcRenderer.send('server-select-other-tpops', request);
+});
+
+
+$('#tpop-button-select').click(function() {
+  if (!($('#tpop-button-select').hasClass('disabled'))) {
+    const url = $('.tpop-image.selected').find('img').attr('src');
+    const sidename = $('#tpop-side').html();
+    const side = getSide(sidename);
+    side.content.filepath = url;
+    draw(sidename, true);
+    $('#tpop-button-select').addClass('disabled');
+    $('.tpop-image.selected').removeClass('selected');
+    $('#tpop-select-overlay').addClass('unrendered');
+    $('#tpop-side').html('');
+  }
+});
+$('#tpop-button-close').click(function() {
+  $('#tpop-select-overlay').addClass('unrendered');
+});
+
+
+
 /* Input Fields */
 
 $('.input_ppi').on('input', (event) => {
@@ -1398,5 +1428,28 @@ ipcRenderer.on('upload-edit-fragment', (event, data) => {
 
 ipcRenderer.on('upload-tpop-fragment', (event, data) => {
   console.log('Receiving TPOP information:', data);
+  tpop = data.tpop;
   loadData(data, true);
+});
+
+ipcRenderer.on('upload-tpop-images', (event, data) => {
+  console.log('Receiving Additional TPOP Images:', data);
+  $('#tpop-side').html(currentUpload);
+  currentUpload = null;
+  $('#tpop-image-list').empty();
+  for (const imageURL of data) {
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('class', 'tpop-image');
+    const tpopImage = document.createElement('img');
+    tpopImage.setAttribute('src', imageURL);
+    wrapper.append(tpopImage);
+    $('#tpop-image-list').append(wrapper);
+
+    wrapper.addEventListener('click', function(event) {
+      $('.tpop-image.selected').removeClass('selected');
+      $(wrapper).addClass('selected');
+      $('#tpop-button-select').removeClass('disabled');
+    });
+  }
+  $('#tpop-select-overlay').removeClass('unrendered');
 });
