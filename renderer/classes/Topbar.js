@@ -94,12 +94,11 @@ class Topbar {
   }
   
   stopLoading(tableID) {
-    console.log("stopLoading", tableID);
-    console.log(this.screenshots);
     if (this.screenshots[tableID]) {
-      $('#'+tableID).find('.table _screenshot>img').attr('src', this.screenshots[tableID]);
+      $('#'+tableID).find('.table_screenshot>img').attr('src', this.screenshots[tableID]);
       // delete this.screenshots[tableID];
     } else {
+      console.log("B");
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
       $('#'+tableID).find('.table _screenshot>img').attr('src', '');

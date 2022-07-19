@@ -664,7 +664,6 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-loading-progress', (event, data) => {
-    console.log("Processed:", data.nProcessed, ", Total:", data.nTotal);
     $('#progress-wrapper').removeClass('hidden');
     $('#progress-name').removeClass('hidden');
     $('#progress-status').removeClass('hidden');

@@ -967,6 +967,7 @@ body {
 .button.disabled:hover
 {
     box-shadow: none;
+    border: none;
     background-color: #505050;
 }
 
@@ -1031,32 +1032,29 @@ body {
     width: 60%;
     max-width: 300px;
     height: 50px;
-    background-color: #aaaaaa;
-    color: black;
     margin: 5px auto;
     position: relative;
-    box-sizing: border-box;
     display: flex;
     flex-flow: row;
-    overflow: hidden;
 }
 
-.wide_button, .narrow_button {
+.button {
+    border: 3px solid #aaaaaa;
+    background-color: #dddddd;
+    box-sizing: border-box;
+    color: black;
+    overflow: hidden;
     border-radius: 4px;
 }
 
-.wide_button:hover,
-.narrow_button:hover,
-.small_button.hover
-{
+.button:hover {
     background-color: white;
     color: black;
+    border-color: white;
+    box-shadow: 3px 3px 4px black; 
 }
 
-.wide_button:active,
-.small_button:active,
-.narrow_button:active
-{
+.button:active {
     background-color: var(--cb_blue);
     box-shadow: inset 3px 3px 4px black, inset -1px -1px 4px white; 
 }
@@ -1120,7 +1118,7 @@ body {
     width: 30%;
     max-width: 80px;
     height: 50px;
-    background-color: #aaaaaa;
+    /* background-color: #aaaaaa; */
     color: black;
     margin: 5px auto;
     position: relative;
@@ -1204,6 +1202,12 @@ body {
     background-color: grey;
     padding: 5px;
     border-radius: 3px;
+    display: flex;
+    transition: all .2s;
+}
+
+.small_button:hover {
+    padding: 2px;
 }
 
 .small_button img {

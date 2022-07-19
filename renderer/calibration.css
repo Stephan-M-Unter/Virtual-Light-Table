@@ -5,6 +5,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    align-items: center;
     margin: 8px;
     height: calc(100vh - 16px);
 }
@@ -19,6 +20,7 @@ canvas {
     background-color: white;
     position: relative;
     height: 200px;
+    width: 100%;
 }
 
 #cm_inch_buttons {
@@ -57,6 +59,21 @@ button {
 }
 
 #calibrate {
-    background-color: var(--cb_orange);
-    margin: 5px;
+    background-color: #eee;
+    border: none;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+    margin: 10px;
+    max-width: 200px;
+    border-radius: 5px;
+    transition: all .2s;
+    font-size: 1.3em;
+    padding: 10px;
+}
+
+#calibrate:hover {
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.6);
+}
+
+#calibrate:active {
+    box-shadow: none;
 }

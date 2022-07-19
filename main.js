@@ -343,7 +343,6 @@ function preprocess_loading_fragments(data) {
     }
   }
 
-  console.log(fragment);
   const status = {
     name: fragment.name,
     nProcessed: n_processed,
@@ -371,6 +370,7 @@ function preprocess_loading_fragments(data) {
       filterImages(data['tableID'], urls);
     } else {
       sendMessage(mainWindow, 'client-load-model', data);
+      activeTables.view = data['tableID'];
     }
     return;
   }
@@ -1153,6 +1153,8 @@ ipcMain.on('server-close-table', (event, tableID) => {
     'Receiving code [server-close-table] from client for table '+tableID);
   }
   const newTableID = tableManager.removeTable(tableID);
+  console.log('[CLOSING] oldTableID:', tableID, 'newTableID:', newTableID);
+  console.log('[CLOSING] Active Tables:', activeTables);
   saveManager.removeAutosave(tableID);
   if (tableID == activeTables.view) {
     const data = {
@@ -1589,6 +1591,7 @@ function filterImages(tableID, urls) {
       tableData: tableManager.getTable(tableID),
     };
     sendMessage(mainWindow, 'client-load-model', response);
+    activeTables.view = tableID;
   });
 }
 

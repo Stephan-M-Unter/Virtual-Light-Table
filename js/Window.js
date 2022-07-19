@@ -50,8 +50,8 @@ const uploadProps = {
 };
 
 const calibrationProps = {
-  width: 500,
-  height: 800,
+  width: 600,
+  height: 1000,
   icon: './imgs/icons/png/logo.png',
   show: false,
   webPreferences: {
