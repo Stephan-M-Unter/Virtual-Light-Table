@@ -97,6 +97,9 @@ class UIController {
 
   stopLoading() {
     $('#overlay').addClass('hidden');
+    $('#progress-name').addClass('hidden');
+    $('#progress-status').addClass('hidden');
+    $('#progress-wrapper').addClass('hidden');
     this.topbar.stopLoading(this.activeTable);
   }
 

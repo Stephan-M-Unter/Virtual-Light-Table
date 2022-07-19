@@ -10,6 +10,7 @@ class Topbar {
      */
   constructor(controller) {
     this.controller = controller;
+    this.screenshots = {};
 
     $('#add_table').click((event) => {
       this.controller.newTable();
@@ -83,15 +84,26 @@ class Topbar {
   };
 
   startLoading(tableID) {
+    const screenshot = $('#'+tableID).find('.table_screenshot>img').attr('src');
+    if (screenshot && screenshot != '') {
+      this.screenshots[tableID] = screenshot;
+    }
     $('#'+tableID).find('.table_header').removeClass('empty');
     $('#'+tableID).find('.table_screenshot').removeClass('empty');
-    $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading.gif');
+    $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading-small.gif');
   }
   
   stopLoading(tableID) {
-    $('#'+tableID).find('.table_header').addClass('empty');
-    $('#'+tableID).find('.table_screenshot').addClass('empty');
-    $('#'+tableID).find('.table _screenshot>img').attr('src', '#');
+    console.log("stopLoading", tableID);
+    console.log(this.screenshots);
+    if (this.screenshots[tableID]) {
+      $('#'+tableID).find('.table _screenshot>img').attr('src', this.screenshots[tableID]);
+      // delete this.screenshots[tableID];
+    } else {
+      $('#'+tableID).find('.table_header').addClass('empty');
+      $('#'+tableID).find('.table_screenshot').addClass('empty');
+      $('#'+tableID).find('.table _screenshot>img').attr('src', '');
+    }
   }
 
   /**
@@ -113,14 +125,15 @@ class Topbar {
       if (tableData.emptyTable) {
         $('#'+tableID).find('.table_screenshot>img').attr('src', tableData.screenshot);
       } else {
-        $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading.gif');
+        $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading-small.gif');
       }
-      this.storedScreenshot = tableData.screenshot;
+      this.screenshots[tableID] = tableData.screenshot;
     } else {
       // don't show any screenshot
+      console.log("B", tableID);
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
-      $('#'+tableID).find('.table_screenshot>img').attr('src', '#');
+      $('#'+tableID).find('.table_screenshot>img').attr('src', '');
     }
   };
 
@@ -157,6 +170,7 @@ class Topbar {
     } else {
       // don't show any screenshot
       const tableID = $('.activeTable').attr('table');
+      console.log("C");
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
       $('#'+tableID).find('.table_screenshot>img').attr('src', '');
@@ -207,20 +221,12 @@ class Topbar {
    * @param {[*]} screenshot
    */
   finishedLoading(tableID, screenshot) {
-    if (this.storedScreenshot) {
-      $('#'+tableID).find('.table_screenshot>img').attr('src', this.storedScreenshot);
-      this.storedScreenshot = null;
+    if (this.screenshots[tableID]) {
+      $('#'+tableID).find('.table_screenshot>img').attr('src', this.screenshots[tableID]);
+      // delete this.screenshots[tableID];
     } else if (screenshot) {
       $('#'+tableID).find('.table_screenshot>img').attr('src', screenshot);
     }
-  }
-
-  /**
-   *
-   * @return {Boolean}
-   */
-  hasStoredScreenshot() {
-    return this.storedScreenshot;
   }
 }
 

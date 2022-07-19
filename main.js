@@ -18,6 +18,7 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 const request = require('request');
+const process = require('process');
 const {spawn} = require('child_process');
 
 
@@ -29,7 +30,10 @@ const TPOPManager = require('./js/TPOPManager');
 const { resolve } = require('path');
 
 // Settings
-const devMode = true;
+let devMode = true;
+if (process.argv.includes('--test')) {
+  devMode = false;
+}
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 const vltFolder = path.join(appDataPath, 'Virtual Light Table');

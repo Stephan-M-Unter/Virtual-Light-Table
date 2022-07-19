@@ -665,6 +665,9 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-loading-progress', (event, data) => {
     console.log("Processed:", data.nProcessed, ", Total:", data.nTotal);
+    $('#progress-wrapper').removeClass('hidden');
+    $('#progress-name').removeClass('hidden');
+    $('#progress-status').removeClass('hidden');
     $('#progress-processed').html(data.nProcessed);
     $('#progress-total').html(data.nTotal);
     $('#progress-pct').html(Math.round((data.nProcessed / data.nTotal) * 10000)/100);
