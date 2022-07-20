@@ -1698,3 +1698,34 @@ input[type='checkbox']:checked {
   #progress-name {
     font-size: 0.8em;
   }
+
+#rulers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+#ruler-left {
+    position: absolute;
+    width: 40px;
+    left: 200px;
+    height: 100vh;
+    background-color: #eee;
+    border-right: 3px solid #777;
+    pointer-events: none;
+}
+
+#ruler-bottom {
+    position: absolute;
+    bottom: 0;
+    width: calc(100vw - 200px);
+    left: 200px;
+    height: 30px;
+    background-color: #eee;
+    border-top: 3px solid #777;
+    pointer-events: none;
+}

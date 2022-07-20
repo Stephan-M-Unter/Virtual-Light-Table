@@ -1012,12 +1012,10 @@ ipcMain.on('server-upload-image', (event) => {
     const ext = path.extname(filepath);
     const conversionRequired = ['.tiff', '.tif', '.TIFF', '.TIF'];
     if (conversionRequired.includes(ext)) {
-      console.log("old filepath", filepath);
       let filename = path.basename(filepath);
       const dotPos = filename.lastIndexOf('.');
       filename = filename.substring(0,dotPos) + '.jpg';
       const newFilepath = path.join(tempFolder, 'imgs', filename);
-      console.log("new filepath", newFilepath);
       const python = spawn(pythonCmd, [path.join(pythonFolder, 'convert_tiff.py'), filepath, newFilepath], {stdio: ['ignore', out, out]});
       python.on('close', function(code) {
         console.log(timestamp() + ` [PYTHON] Converted TIFF to JPG with code ${code}.`);
@@ -1153,8 +1151,6 @@ ipcMain.on('server-close-table', (event, tableID) => {
     'Receiving code [server-close-table] from client for table '+tableID);
   }
   const newTableID = tableManager.removeTable(tableID);
-  console.log('[CLOSING] oldTableID:', tableID, 'newTableID:', newTableID);
-  console.log('[CLOSING] Active Tables:', activeTables);
   saveManager.removeAutosave(tableID);
   if (tableID == activeTables.view) {
     const data = {

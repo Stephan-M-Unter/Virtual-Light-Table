@@ -67,6 +67,11 @@ function toggleSidebar() {
     $('#sidebar_content').css('display', 'block');
     $('#sidebar_handle_grabber').css('transform',
         'translateX(-40%) translateY(-50%)');
+
+    /* Rulers */
+    $('#ruler-left').css('left', sidebarWidth);
+    $('#ruler-bottom').css('left', sidebarWidth);
+    $('#ruler-bottom').css('width', 'calc(100vw - '+sidebarWidth+')');
   } else {
     $('#left_sidebar').addClass('collapsed');
     sidebarWidth = $('#left_sidebar').css('width');
@@ -74,7 +79,13 @@ function toggleSidebar() {
     $('#left_sidebar').css('width', 0);
     $('#sidebar_content').css('display', 'none');
     $('#sidebar_handle_grabber').css('transform',
-        'translateX(-15%) translateY(-50%)');
+    'translateX(-15%) translateY(-50%)');
+    
+    /* Rulers */
+    $('#ruler-left').css('left', 0);
+    $('#ruler-bottom').css('left', 0);
+    $('#ruler-bottom').css('width', '100vw');
+
   }
   sidebarCollapsed = !sidebarCollapsed;
 }
@@ -202,10 +213,11 @@ $(document).ready(function() {
   $('#light_switch').click(function() {
     controller.toggleLight();
   });
+  /*
   $('#light_box').on('change', function() {
     controller.toggleLight();
   });
-
+*/
   $('#calibration').on('click', function(event) {
     controller.sendToServer('server-open-calibration');
   });
@@ -222,6 +234,7 @@ $(document).ready(function() {
     controller.clearMeasurements();
   });
 
+  /*
   $('#grid_box').on('change', function() {
     controller.toggleGridMode();
   });
@@ -231,6 +244,9 @@ $(document).ready(function() {
   $('#fibre_box').on('change', function() {
     controller.toggleFibreMode();
   });
+  $('#ruler_box').on('change', function() {
+    controller.toggleRulerMode();
+  });*/
 
   $('#fibre-wrapper').on('click', function() {
     controller.toggleFibreMode();
@@ -243,6 +259,10 @@ $(document).ready(function() {
   });
   $('#grid-wrapper').on('click', function() {
     controller.toggleGridMode();
+  });
+
+  $('#ruler-wrapper').on('click', function() {
+    controller.toggleRulerMode();
   });
 
   // Graphical Filter Buttons
@@ -363,6 +383,10 @@ $(document).ready(function() {
     $(window).on('mousemove', resizeAnnotationWindow);
   });
 
+  $(window).on('mousemove', (event) => {
+    controller.updateRulers(event);
+  });
+
   /**
    * TODO
    * @param {*} event
@@ -431,6 +455,12 @@ $(document).ready(function() {
   function resizeSidebar(event) {
     $('#left_sidebar').css('width', event.pageX);
 
+    /* Rulers */
+
+    $('#ruler-left').css('left', $('#left_sidebar').css('width'));
+    $('#ruler-bottom').css('left', $('#left_sidebar').css('width'));
+    $('#ruler-bottom').css('width', 'calc(100vw - '+$('#left_sidebar').css('width')+')');
+
     const thresh = 330;
     if (event.pageX < thresh) {
       $('#left_sidebar').addClass('small');
@@ -477,6 +507,7 @@ $(document).ready(function() {
         const y = event.pageY;
         controller.setScaling(newScaling, x, y);
         $('#zoom_slider').val(newScaling);
+        controller.updateRulers();
       });
 
   // Keystrokes
@@ -572,6 +603,9 @@ $(document).ready(function() {
       } else if (event.key == '<') {
         // < -> test key
         controller.sendToServer('test');
+      } else if (event.keyCode == 82) {
+        // R -> toggle Rulers
+        controller.toggleRulerMode();
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);

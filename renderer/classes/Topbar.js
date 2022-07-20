@@ -98,7 +98,6 @@ class Topbar {
       $('#'+tableID).find('.table_screenshot>img').attr('src', this.screenshots[tableID]);
       // delete this.screenshots[tableID];
     } else {
-      console.log("B");
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
       $('#'+tableID).find('.table _screenshot>img').attr('src', '');
@@ -129,7 +128,6 @@ class Topbar {
       this.screenshots[tableID] = tableData.screenshot;
     } else {
       // don't show any screenshot
-      console.log("B", tableID);
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
       $('#'+tableID).find('.table_screenshot>img').attr('src', '');
@@ -169,7 +167,6 @@ class Topbar {
     } else {
       // don't show any screenshot
       const tableID = $('.activeTable').attr('table');
-      console.log("C");
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
       $('#'+tableID).find('.table_screenshot>img').attr('src', '');

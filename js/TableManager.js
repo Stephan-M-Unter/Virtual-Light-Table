@@ -180,6 +180,10 @@ class TableManager {
   getEmptyTable() {
     const stage = {
       'scaling': 100,
+      'offset': {
+        x: 0,
+        y: 0,
+      }
     };
     const table = {
       stage: stage,

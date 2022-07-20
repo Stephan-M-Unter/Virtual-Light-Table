@@ -1,6 +1,7 @@
 'use strict';
 
 const {Sidebar} = require('./Sidebar');
+const {Rulers} = require('./Rulers');
 const {Stage} = require('./Stage');
 const {AnnotationPopup} = require('./AnnotationPopup');
 const {ipcRenderer} = require('electron');
@@ -30,6 +31,7 @@ class UIController {
     this.sidebar = new Sidebar(this);
     /** @constant {Topbar} */
     this.topbar = new Topbar(this);
+    this.rulers = new Rulers(this);
     /** @constant {AnnotationPopup} */
     this.annotationPopup = new AnnotationPopup(this);
     /** @constant {MeasurementTool} */
@@ -386,6 +388,29 @@ class UIController {
     }
   }
 
+  toggleRulerMode() {
+    const rulerMode = !$('#ruler_box').prop('checked');
+    $('#ruler_box').prop('checked', rulerMode)
+    
+    if (rulerMode) {
+      $('#rulers  ').removeClass('hidden');
+      this.updateRulers();
+    } else {
+      $('#rulers').addClass('hidden');
+    }
+  }
+  
+  updateRulers(event) {
+    const rulerMode = $('#ruler_box').prop('checked');
+    if (rulerMode) {
+      const ppi = this.stage.getPPI();
+      const offset = this.stage.getOffset();
+      const scale = this.stage.getScaling() / 100;
+      const bounds = this.stage.getMBR();
+      this.rulers.updateRulers(ppi, scale, offset, bounds, event);
+    }
+  }
+
   /**
    * Toggles the scale mode on the stage object to show or hide the scale. The method call returns
    * the new status of the scaleMode. Notifies the sidebar to toggle GUI elements accordingly.
@@ -516,6 +541,7 @@ class UIController {
     this.annotationPopup.loadAnnotations(data.tableData.annots);
     this.stage.loadScene(data.tableData);
     this.updateSidebarFragmentList();
+    this.updateRulers();
 
     let graphicFilters = null;
     if ('graphicFilters' in data.tableData) graphicFilters = data.tableData.graphicFilters;

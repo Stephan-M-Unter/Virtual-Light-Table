@@ -15,6 +15,26 @@
     <!-- Canvas -->
     <canvas id="lighttable"></canvas>
 
+        <!-- Topbar-->
+        <div id="topbar" class="no-select glass_pane">
+            <div id="topbar_header" class="no-select">Active Tables</div>
+            <div id="table_wrapper">
+                <div id="table_list"></div>
+                <div title="Create new table" id="add_table">
+                    <img src="../imgs/symbol_plus_zoom.png">
+                </div>
+            </div>
+            <div id="topbar_handle" title="Toggle table bar">
+                <div id="topbar_handle_arrow">
+                    <img src="../imgs/symbol_arrow_down_swung.png">
+                </div>
+            </div>
+        </div>
+    
+        <div id="rulers" class="hidden">
+            <canvas id="ruler-left"></canvas>
+            <canvas id="ruler-bottom"></canvas>
+        </div>
 
     <!-- Zoom Elements -->
     <div id="zoom_wrapper" class="no-select">
@@ -119,21 +139,7 @@
         <div id="vf_desc"></div>
     </div>
 
-    <!-- Topbar-->
-    <div id="topbar" class="no-select glass_pane">
-        <div id="topbar_header" class="no-select">Active Tables</div>
-        <div id="table_wrapper">
-            <div id="table_list"></div>
-            <div title="Create new table" id="add_table">
-                <img src="../imgs/symbol_plus_zoom.png">
-            </div>
-        </div>
-        <div id="topbar_handle" title="Toggle table bar">
-            <div id="topbar_handle_arrow">
-                <img src="../imgs/symbol_arrow_down_swung.png">
-            </div>
-        </div>
-    </div>
+
 
     <!-- Left Sidebar -->
     <div id="left_sidebar" class="no-select small glass_pane">
@@ -265,6 +271,10 @@
                         <input type="checkbox" id="scale_box" />
                         <label><span class="underline">S</span>cale</label>
                     </div>
+                    <div id="ruler-wrapper" title="Toggle ruler" class="displayWrapper">
+                        <input type="checkbox" id="ruler_box" />
+                        <label><span class="underline">R</span>ulers</label>
+                    </div>
                     <div id="fibre-wrapper" class="displayWrapper development"> <!-- TODO -->
                         <input type="checkbox" id="fibre_box" />
                         <label><em>Fibres [F]</em></label>
@@ -350,6 +360,7 @@
         <div id="sidebar_handle" title="Toggle sidebar">
             <div id="sidebar_handle_grabber">...</div>
         </div>
+
     </div>
     <!-- </left_sidebar> -->
     <script src="../js/libs/createjs.min.js"></script>

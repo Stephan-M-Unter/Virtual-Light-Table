@@ -68,7 +68,6 @@ class TPOPManager {
         } catch (e) {
           console.log(e);
         }
-        console.log(typeof(this.tpopData));
         this.allTPOPData = this.tpopData['objects'].filter((el) => {
           if (el == null || typeof el == 'undefined') return false;
           const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'];
@@ -117,7 +116,6 @@ class TPOPManager {
           cbdata = cbdata.substring(1);
         }
         cbdata = JSON.parse(cbdata);
-        console.log(Object.keys(cbdata));
         cbdata = cbdata['large-papyri'].concat(cbdata['cp-fragments']);
         let found = 0;
         for (const o of cbdata) {

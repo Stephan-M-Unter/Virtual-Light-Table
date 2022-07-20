@@ -45,6 +45,10 @@ class Stage {
 
     /** @member {double} */
     this.ppi = 96;
+    this.offset = {
+      x: 0,
+      y: 0,
+    };
 
     this.graphicFilters = false;
 
@@ -118,7 +122,9 @@ class Stage {
     background.on('pressmove', (event) => {
       this._panScene(event);
     });
-
+    background.on('pressup', () => {
+      // this.saveToModel(true);
+    });
     return background;
   }
 
@@ -395,6 +401,10 @@ class Stage {
       if (dataStage.scaling) {
         this.controller.setScaling(dataStage.scaling);
       }
+      if (dataStage.offset) {
+        console.log("new offset:", dataStage.offset);
+        this.offset = dataStage.offset;
+      }
     }
   }
 
@@ -405,6 +415,7 @@ class Stage {
   getStageData() {
     return {
       'scaling': this.stage.scaling,
+      'offset': this.offset,
     };
   }
 
@@ -834,7 +845,11 @@ class Stage {
 
     this.mouseClickStart = {x: currentMouseX, y: currentMouseY};
 
+    this.offset.x += deltaX;
+    this.offset.y += deltaY;
+
     this.moveStage(deltaX, deltaY);
+    this.controller.updateRulers();
   }
 
   /**
