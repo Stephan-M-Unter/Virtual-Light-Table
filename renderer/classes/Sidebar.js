@@ -193,6 +193,9 @@ class Sidebar {
   selectFragment(fragmentId) {
     const wrapper = $('div[id="'+fragmentId+'"]');
     wrapper.addClass('fragment_list_item_active');
+    $('#fragment_list_content').stop().animate({
+        scrollTop: $('#fragment_list_content').scrollTop()+$(wrapper).offset().top-$('#fragment_list_content').position().top
+    }, 1000);
     this.addFragmentListButtons(fragmentId);
   }
 
