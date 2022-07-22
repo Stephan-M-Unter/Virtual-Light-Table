@@ -15,6 +15,18 @@ class Rulers {
             minY: 0,
             maxY: 0,
         };
+        this.sizes = {
+            lw: 0,
+            lh: 0,
+            bw: 0,
+            bh: 0,
+        };
+        this.area = {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0,
+        };
 
         this.leftMouse = new createjs.Shape();
         this.bottomMouse = new createjs.Shape();
@@ -22,12 +34,14 @@ class Rulers {
         this.bottomScale= new createjs.Container();
         this.leftBounds = new createjs.Shape();
         this.bottomBounds = new createjs.Shape();
+        this.leftArea = new createjs.Shape();
+        this.bottomArea = new createjs.Shape();
 
-        this.left.addChild(this.leftBounds, this.leftScale, this.leftMouse);
-        this.bottom.addChild(this.bottomBounds, this.bottomScale, this.bottomMouse);
+        this.left.addChild(this.leftBounds, this.leftArea, this.leftScale, this.leftMouse);
+        this.bottom.addChild(this.bottomBounds, this.bottomArea, this.bottomScale, this.bottomMouse);
     }
 
-    updateRulers(ppi, scale, offset, bounds, mouse) {
+    updateRulers(ppi, scale, offset, bounds, area, mouse) {
         this.resizeCanvases();
         let updateScaleNeeded = false;
         if (ppi != this.ppi) {
@@ -47,11 +61,30 @@ class Rulers {
             updateScaleNeeded = true;
         }
 
+        if (parseFloat($('#ruler-left').css('width')) != this.sizes.lw) {
+            this.sizes.lw = parseFloat($('#ruler-left').css('width'));
+            updateScaleNeeded = true;
+        }
+        if (parseFloat($('#ruler-left').css('height')) != this.sizes.lh) {
+            this.sizes.lh = parseFloat($('#ruler-left').css('height'));
+            updateScaleNeeded = true;
+        }
+        if (parseFloat($('#ruler-bottom').css('height')) != this.sizes.bh) {
+            this.sizes.bh = parseFloat($('#ruler-bottom').css('height'));
+            updateScaleNeeded = true;
+        }
+        if (parseFloat($('#ruler-bottom').css('width')) != this.sizes.bw) {
+            this.sizes.bw = parseFloat($('#ruler-bottom').css('width'));
+            updateScaleNeeded = true;
+        }
+        
+
         if (updateScaleNeeded) {
             this.updateScale();
         }
 
         this.updateBounds(bounds);
+        this.updateArea(area);
 
         if (mouse) {
             this.updateMouse(mouse);
@@ -68,14 +101,53 @@ class Rulers {
             maxY: bounds.bottom,
         };
 
-        this.leftBounds.graphics.clear()
-            .beginFill('#F5852C')
-            .drawRect(0, this.bounds.minY, this.left.canvas.width, this.bounds.maxY-this.bounds.minY)
-            .endFill();
+        if (this.bounds.maxY < 0) {
+            this.leftBounds.graphics.clear()
+                .beginFill('#F15B40')
+                .drawRect(0, 0, this.left.canvas.width, 10)
+                .endFill();
+        } else if (this.bounds.minY > $(window).height()) {
+            console.log(0, this.left.canvas.height-50, this.left.canvas.width, 10);
+            this.leftBounds.graphics.clear()
+                .beginFill('#F15B40')
+                .drawRect(0, this.left.canvas.height-40, this.left.canvas.width, 10)
+                .endFill();
+        } else {
+            this.leftBounds.graphics.clear()
+                .beginFill('#F5852C')
+                .drawRect(0, this.bounds.minY, this.left.canvas.width, this.bounds.maxY-this.bounds.minY)
+                .endFill();
+        }
         
-        this.bottomBounds.graphics.clear()
-            .beginFill('#F5852C')
-            .drawRect(this.bounds.minX, 0, this.bounds.maxX-this.bounds.minX, this.bottom.canvas.height)
+        if (this.bounds.maxX < 0) {
+            this.bottomBounds.graphics.clear()
+                .beginFill('#F15B40')
+                .drawRect(0, 0, 10, this.bottom.canvas.height)
+                .endFill();
+        } else if (this.bounds.minX+sidebar > $(window).width()) {
+            this.bottomBounds.graphics.clear()
+            .beginFill('#F15B40')
+            .drawRect(this.bottom.canvas.width-10, 0, 10, this.bottom.canvas.height)
+            .endFill();
+        } else {
+            this.bottomBounds.graphics.clear()
+                .beginFill('#F5852C')
+                .drawRect(this.bounds.minX, 0, this.bounds.maxX-this.bounds.minX, this.bottom.canvas.height)
+                .endFill();
+        }
+    }
+
+    updateArea(area) {
+        this.area = area;
+        const sidebar = parseFloat($('#left_sidebar').css('width'));
+
+        this.leftArea.graphics.clear()
+            .beginFill('#fcd69f')
+            .drawRect(0, this.area.y, this.left.canvas.width, this.area.h)
+            .endFill();
+        this.bottomArea.graphics.clear()
+            .beginFill('#fcd69f')
+            .drawRect(this.area.x-sidebar, 0, this.area.w, this.bottom.canvas.height)
             .endFill();
     }
 
@@ -130,7 +202,7 @@ class Rulers {
         const bw = this.bottom.canvas.width;
         const bh = this.bottom.canvas.height;
 
-        for (let i = this.offset.x%cm; i < bw; i += cm) {
+        for (let i = -(sidebar%cm)+(this.offset.x%cm); i < bw; i += cm) {
             const cm_line = new createjs.Shape();
             cm_line.graphics.setStrokeStyle(1)
                 .beginStroke('black')
@@ -154,7 +226,7 @@ class Rulers {
             this.bottomScale.addChild(cm_text);
         }
         if (cm >= 30) {
-            for (let i = this.offset.x%mm; i < bw; i += mm) {
+            for (let i = -(sidebar%mm)+(this.offset.x%mm); i < bw; i += mm) {
                 if (i % cm == 0) continue;
                 const mm_line = new createjs.Shape();
                 mm_line.graphics.setStrokeStyle(1)

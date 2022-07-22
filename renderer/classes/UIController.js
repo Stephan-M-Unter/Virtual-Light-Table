@@ -393,9 +393,11 @@ class UIController {
     $('#ruler_box').prop('checked', rulerMode)
     
     if (rulerMode) {
-      $('#rulers  ').removeClass('hidden');
+      $('#table_button_wrapper').addClass('up');
+      $('#rulers').removeClass('hidden');
       this.updateRulers();
     } else {
+      $('#table_button_wrapper').removeClass('up');
       $('#rulers').addClass('hidden');
     }
   }
@@ -407,8 +409,53 @@ class UIController {
       const offset = this.stage.getOffset();
       const scale = this.stage.getScaling() / 100;
       const bounds = this.stage.getMBR();
-      this.rulers.updateRulers(ppi, scale, offset, bounds, event);
+      const area = this.stage.getArea();
+      this.rulers.updateRulers(ppi, scale, offset, bounds, area, event);
     }
+  }
+
+  updateWorkarea() {
+    let valid = true;
+    const w = $('#workarea-width').val();
+    const h = $('#workarea-height').val();
+    if ((w && w != '') || (h && h != '')) {
+      $('#workarea_clear').removeClass('hidden');
+    } else {
+      $('#workarea_clear').addClass('hidden');
+    }
+
+    if (!Number(w) && w != '') {
+      $('#workarea-width').addClass('error');
+      valid = false;
+    } else {
+      $('#workarea-width').removeClass('error');
+    }
+    if (!Number(h) && h != '') {
+      $('#workarea-height').addClass('error');
+      valid = false;
+    } else {
+      $('#workarea-height').removeClass('error');
+    }
+    
+    if (w < 0) {
+      valid = false;
+      $('#workarea-width').addClass('error');
+    }
+    if (h < 0) {
+      valid = false;
+      $('#workarea-height').addClass('error');
+    }
+
+    if (!w || w == ''|| !h || h == '') {
+      valid = false;
+    }
+
+    if (valid) {
+      this.stage.updateWorkarea(parseFloat(w), parseFloat(h));
+    } else {
+      this.stage.updateWorkarea(0,0);
+    }
+    this.updateRulers();
   }
 
   /**
@@ -485,11 +532,8 @@ class UIController {
     const scaleMin = $('#zoom_slider').attr('min');
     const scaleMax = $('#zoom_slider').attr('max');
 
-    if (scalingValue < scaleMin) {
-      scalingValue = scaleMin;
-    } else if (scalingValue > scaleMax) {
-      scalingValue = scaleMax;
-    }
+    scalingValue = Math.max(scalingValue, scaleMin);
+    scalingValue = Math.min(scalingValue, scaleMax);
 
     this.stage.setScaling(scalingValue, scaleX, scaleY);
     $('#zoom_slider').val(scalingValue);

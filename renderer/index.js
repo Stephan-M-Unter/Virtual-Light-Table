@@ -88,6 +88,7 @@ function toggleSidebar() {
 
   }
   sidebarCollapsed = !sidebarCollapsed;
+  controller.updateRulers()
 }
 
 $(document).ready(function() {
@@ -406,6 +407,15 @@ $(document).ready(function() {
     $('#annot_window').css('height', event.pageY - annotStart.top);
   }
 
+  $('.workarea_size').on('keyup input change', function() {
+    controller.updateWorkarea();
+  });
+  $('#workarea_clear').click(function() {
+    $('#workarea-width').val('');
+    $('#workarea-height').val('');
+    controller.updateWorkarea();
+  });
+
   // Zoom Slider
   $('#zoom_slider').on('change', () => {
     const newScaling = $('#zoom_slider').val();
@@ -503,8 +513,10 @@ $(document).ready(function() {
         const stepZoom = $('#zoom_slider').attr('step');
         const deltaZoom = stepZoom * Math.sign(event.deltaY);
         const newScaling = controller.getScaling() - deltaZoom;
-        const x = event.pageX;
-        const y = event.pageY;
+        // const x = event.pageX;
+        const x = event.screenX;
+        // const y = event.pageY;
+        const y = event.screenY;
         controller.setScaling(newScaling, x, y);
         $('#zoom_slider').val(newScaling);
         controller.updateRulers();

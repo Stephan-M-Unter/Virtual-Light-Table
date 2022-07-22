@@ -248,12 +248,26 @@
                     <hr>
 
                     <div class="sidebar_header_title">Tools</div>
-                    <div class="" id="wrapper_measure">
-                        <div><span class="underline">M</span>easurement</div>
-                        <div id="clear-measures" class="no_select hidden">Remove All</div>
+                    <div class="wrapper_tool" id="wrapper_workarea">
+                        <div class="sidebar_header_subtitle">Reconstruction Area</div>
+                        <div class="" id="wrapper_workarea_sizes">
+                            <div class="wrapper_workarea_size">
+                                <input type="number" class="workarea_size" id="workarea-width" placeholder="e.g. 32.5">
+                                <label>cm (W)</label>
+                            </div>
+                            <div class="wrapper_workarea_size">
+                                <input type="number" class="workarea_size" id="workarea-height" placeholder="e.g. 42">
+                                <label>cm (H)</label>
+                            </div>
+                        </div>
+                        <div class="hidden" id="workarea_clear">Remove Area</div>
+                    </div>
+                    <div class="wrapper_tool" id="wrapper_measure">
+                        <div><span class="underline sidebar_header_subtitle">M</span>easurement</div>
                         <div title="Add new measurement" class="button narrow_button no_select" id="new_measure">
                             <img class="button_img" src="../imgs/symbol_new_measure.png"/>
                         </div>
+                        <div id="clear-measures" class="no_select hidden">Remove All</div>
                     </div>
 
                     <hr>

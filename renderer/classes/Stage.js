@@ -46,22 +46,38 @@ class Stage {
     /** @member {double} */
     this.ppi = 96;
     this.offset = {
-      x: 0,
-      y: 0,
+      x: this.stage.canvas.width / 2,
+      y: this.stage.canvas.height / 2,
+      baseX: this.stage.canvas.width / 2,
+      baseY: this.stage.canvas.height / 2,
+      scale: 1,
     };
+    this.area = {
+      w: 0,
+      h: 0,
+    }
 
+    
     this.graphicFilters = false;
-
+    
     /** @constant {Object} */
     this.lines = {
       'horizontal': null,
       'vertical': null,
     };
-
+    
     // adding display elements
     /** @member {createjs.Container} */
     this.background = new createjs.Container();
     this.addToBackground(this._createBackground(), 0);
+    
+    this.workarea = new createjs.Container();
+    this.worksquare = new createjs.Shape();
+    this.worktext = new createjs.Text('Reconstruction Area');
+    this.worktextSize = new createjs.Text();
+    this.workarea.addChild(this.worksquare, this.worktext, this.worktextSize);
+    this.addToBackground(this.workarea);
+    
     this.stage.addChildAt(this.background, 0);
     /** @member {createjs.Container} */
     this.overlay = new createjs.Container();
@@ -80,7 +96,7 @@ class Stage {
     /** @member {createjs.Container} */
     this.scale = new createjs.Container();
     this.addToOverlay(this.scale, 0);
-
+    
     /** @constant {Selector} */
     this.selector = new Selector(this.controller);
 
@@ -136,6 +152,7 @@ class Stage {
     this.ppi = ppi;
     this.updateGrid();
     this.updateScale();
+    this.updateWorkarea();
     this.setScaling(this.stage.scaling);
     this.controller.update();
   }
@@ -266,7 +283,7 @@ class Stage {
       }
 
       const endX = this.width - 150;
-      const endY = this.height - 50;
+      const endY = this.height - 70;
 
       const scale = new createjs.Shape();
       scale.graphics.setStrokeStyle(1).beginStroke('rgba(0,0,0,1)');
@@ -296,6 +313,53 @@ class Stage {
       text.y = endY + bounds.height*text.scale - 5;
       this.scale.addChild(text);
     }
+  }
+
+  updateWorkarea(w, h) {
+    if (w != null && typeof w !== "undefined") this.area.w = this.ppi * (w/2.54);
+    if (h != null && typeof h !== "undefined") this.area.h = this.ppi * (h/2.54);
+    const w_scaled = (this.getScaling()/100)*this.area.w;
+    const h_scaled = (this.getScaling()/100)*this.area.h;
+    const x = this.offset.x - w_scaled/2;
+    const y = this.offset.y - h_scaled/2;
+    const alpha = 0.6;
+    this.worksquare.graphics.clear()
+      .beginFill('#fcd69f')
+      .drawRect(x, y, w_scaled, h_scaled)
+      .endFill();
+    this.worksquare.alpha = alpha;
+
+    if (this.area.w*this.area.h > 0) {
+      this.worktext.y = y + h_scaled + 10;
+      this.worktext.x = x;
+      this.worktext.color = '#fcd69f';
+      this.worktext.alpha = alpha;
+      this.worktext.font = '40px Arial';
+  
+      this.worktextSize.text = '(' + $('#workarea-width').val() + ' cm x ' + $('#workarea-height').val() + ' cm)';
+      this.worktextSize.y = y + h_scaled + 10 + 40 + 10;
+      this.worktextSize.x = x;
+      this.worktextSize.color = '#fcd69f';
+      this.worktextSize.alpha = alpha;
+      this.worktextSize.font = '20px Arial';
+    } else {
+      this.worktext.alpha = 0;
+      this.worktextSize.alpha = 0;
+    }
+    this.update();
+  }
+
+  getArea() {
+    const w_scaled = (this.getScaling()/100)*this.area.w;
+    const h_scaled = (this.getScaling()/100)*this.area.h;
+    const x = this.offset.x - w_scaled/2;
+    const y = this.offset.y - h_scaled/2;
+    return {
+      x: x,
+      y: y,
+      w: w_scaled,
+      h: h_scaled,
+    };
   }
 
   /**
@@ -396,14 +460,22 @@ class Stage {
    */
   _loadStageConfiguration(dataStage) {
     this.stage.scaling = 100; // default value
+    this.offset = {
+      x: this.stage.canvas.width / 2,
+      y: this.stage.canvas.height / 2,
+      baseX: this.stage.canvas.width / 2,
+      baseY: this.stage.canvas.height / 2,
+    };
 
     if (dataStage) {
-      if (dataStage.scaling) {
+      if ('scaling' in dataStage && dataStage.scaling) {
         this.controller.setScaling(dataStage.scaling);
       }
-      if (dataStage.offset) {
-        console.log("new offset:", dataStage.offset);
+      if ('offset' in dataStage && dataStage.offset) {
         this.offset = dataStage.offset;
+      }
+      if ('area' in dataStage && dataStage.area) {
+        this.area = dataStage.area;
       }
     }
   }
@@ -416,6 +488,7 @@ class Stage {
     return {
       'scaling': this.stage.scaling,
       'offset': this.offset,
+      'area': this.area,
     };
   }
 
@@ -511,17 +584,15 @@ class Stage {
       distY = center.y - scaleCenterY;
       this.moveStage(distX, distY);
     }
-
     Scaler.zoom.world.x = Scaler.zoom.screen.x;
     Scaler.zoom.world.y = Scaler.zoom.screen.y;
-
-    // Scaler.scaling = scaling/100;
     Scaler.scaling = (this.ppi/96)*this.stage.scaling/100;
     this._scaleObjects();
-
+    
     this.moveStage(-distX, -distY);
     this.updateGrid();
     this.updateScale();
+    this.updateWorkarea();
     this.controller.update();
   }
 
@@ -845,11 +916,9 @@ class Stage {
 
     this.mouseClickStart = {x: currentMouseX, y: currentMouseY};
 
-    this.offset.x += deltaX;
-    this.offset.y += deltaY;
-
     this.moveStage(deltaX, deltaY);
     this.controller.updateRulers();
+    this.updateWorkarea();
   }
 
   /**
@@ -942,9 +1011,17 @@ class Stage {
           if (!fragment.isLocked()) fragment.moveByDistance(deltaX, deltaY);
         }
       }
+      this.moveOffset(deltaX, deltaY);
       this._updateBb();
       this.update();
     }
+  }
+
+  moveOffset(deltaX, deltaY) {
+    this.offset.x += deltaX;
+    this.offset.y += deltaY;
+    this.offset.baseX = this.offset.baseX + (deltaX / this.offset.scale);
+    this.offset.baseY = this.offset.baseY + (deltaY / this.offset.scale);
   }
 
   /**
@@ -962,6 +1039,9 @@ class Stage {
         fragment.scaleToValue(Scaler.scaling);
       }
     }
+    this.offset.x = Scaler.x(this.offset.baseX);
+    this.offset.y = Scaler.y(this.offset.baseY);
+    this.offset.scale = Scaler.scaling;
 
     this._updateBb();
     this._updateRotator();
@@ -1434,6 +1514,8 @@ class Stage {
     if (includeSidebar) distX += sidebar/2;
     const distY = center.y - dimensions.center.y;
     this.moveStage(distX, distY);
+    this.controller.updateRulers();
+    this.updateWorkarea();
     return {
       x: distX,
       y: distY,

@@ -63,7 +63,7 @@ class Fragment {
       } else {
         this.recto.img.scale = 96 / data.verso.ppi;
       }
-      
+
       this.recto.container.addChild(this.recto.img);
       
       this.recto.box = data.recto.box;
