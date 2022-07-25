@@ -335,8 +335,11 @@ class Stage {
       this.worktext.color = '#fcd69f';
       this.worktext.alpha = alpha;
       this.worktext.font = '40px Arial';
+
+      const textWidth = Math.round(((this.area.w*2.54)/this.ppi)*100)/100;
+      const textHeight = Math.round(((this.area.h*2.54)/this.ppi)*100)/100;
   
-      this.worktextSize.text = '(' + $('#workarea-width').val() + ' cm x ' + $('#workarea-height').val() + ' cm)';
+      this.worktextSize.text = '(' + textWidth + ' cm x ' + textHeight + ' cm)';
       this.worktextSize.y = y + h_scaled + 10 + 40 + 10;
       this.worktextSize.x = x;
       this.worktextSize.color = '#fcd69f';
@@ -432,6 +435,7 @@ class Stage {
       this._loadStageConfiguration();
     }
 
+    this.updateWorkarea();
     this.update();
   }
 
@@ -466,6 +470,10 @@ class Stage {
       baseX: this.stage.canvas.width / 2,
       baseY: this.stage.canvas.height / 2,
     };
+    this.area = {
+      w: 0,
+      h: 0
+    };
 
     if (dataStage) {
       if ('scaling' in dataStage && dataStage.scaling) {
@@ -476,6 +484,8 @@ class Stage {
       }
       if ('area' in dataStage && dataStage.area) {
         this.area = dataStage.area;
+        $('#workarea-width').val(Math.round(((this.area.w*2.54)/this.ppi)*100)/100);
+        $('#workarea-height').val(Math.round(((this.area.h*2.54)/this.ppi)*100)/100);
       }
     }
   }
@@ -485,6 +495,7 @@ class Stage {
    * @return {Object} Contains '.scaling'.
    */
   getStageData() {
+    console.log("AREA", this.area);
     return {
       'scaling': this.stage.scaling,
       'offset': this.offset,

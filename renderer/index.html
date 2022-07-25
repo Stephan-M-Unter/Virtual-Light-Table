@@ -252,11 +252,11 @@
                         <div class="sidebar_header_subtitle">Reconstruction Area</div>
                         <div class="" id="wrapper_workarea_sizes">
                             <div class="wrapper_workarea_size">
-                                <input type="number" class="workarea_size" id="workarea-width" placeholder="e.g. 32.5">
+                                <input type="number" min="0" class="workarea_size" id="workarea-width" placeholder="e.g. 32.5">
                                 <label>cm (W)</label>
                             </div>
                             <div class="wrapper_workarea_size">
-                                <input type="number" class="workarea_size" id="workarea-height" placeholder="e.g. 42">
+                                <input type="number" min="0" class="workarea_size" id="workarea-height" placeholder="e.g. 42">
                                 <label>cm (H)</label>
                             </div>
                         </div>
@@ -273,26 +273,32 @@
                     <hr>
 
                     <div class="sidebar_header_title">Display</div>
-                    <div id="light-wrapper" title="Toggle background light" class="displayWrapper">
-                        <input type="checkbox" id="light_box" />
-                        <label><span class="underline">L</span>ight</label>
+                    <div id="display-wrapper">
+                        <div class="display-item-wrapper button" id="light-wrapper">
+                            <img src="../imgs/symbol_light.png">
+                            <div class="display-item-label"><span class="underline">L</span>ight</div>
+                        </div>
+                        <div class="display-item-wrapper button" id="grid-wrapper">
+                            <img src="../imgs/symbol_grid.png">
+                            <div class="display-item-label"><span class="underline">G</span>rid</div>
+                        </div>
+                        <div class="display-item-wrapper button" id="scale-wrapper">
+                            <img src="../imgs/symbol_scale.png">
+                            <div class="display-item-label"><span class="underline">S</span>cale</div>
+                        </div>
+                        <div class="display-item-wrapper button" id="ruler-wrapper">
+                            <img src="../imgs/symbol_ruler.png">
+                            <div class="display-item-label"><span class="underline">R</span>ulers</div>
+                        </div>
                     </div>
-                    <div id="grid-wrapper" title="Toggle grid" class="displayWrapper">
-                        <input type="checkbox" id="grid_box" />
-                        <label><span class="underline">G</span>rid</label>
-                    </div>
-                    <div id="scale-wrapper" title="Toggle scale" class="displayWrapper">
-                        <input type="checkbox" id="scale_box" />
-                        <label><span class="underline">S</span>cale</label>
-                    </div>
-                    <div id="ruler-wrapper" title="Toggle ruler" class="displayWrapper">
-                        <input type="checkbox" id="ruler_box" />
-                        <label><span class="underline">R</span>ulers</label>
-                    </div>
-                    <div id="fibre-wrapper" class="displayWrapper development"> <!-- TODO -->
-                        <input type="checkbox" id="fibre_box" />
-                        <label><em>Fibres [F]</em></label>
-                    </div>
+                    
+                    
+                    <!--
+                        <div class="display-item-wrapper button" id="fibre-wrapper">
+                            <img src="../imgs/symbol_light.png">
+                            <div class="display-item-label">Fibres</div>
+                        </div>
+                    -->
 
                 </div>
             </div>

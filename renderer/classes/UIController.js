@@ -382,28 +382,29 @@ class UIController {
     const gridMode = this.stage.toggleGridMode();
     // TODO Move to sidebar
     if (gridMode) {
-      $('#grid_box').prop('checked', true);
+      $('#grid-wrapper').addClass('button_active');
     } else {
-      $('#grid_box').prop('checked', false);
+      $('#grid-wrapper').removeClass('button_active');
     }
   }
 
   toggleRulerMode() {
-    const rulerMode = !$('#ruler_box').prop('checked');
-    $('#ruler_box').prop('checked', rulerMode)
+    const rulerMode = !$('#ruler-wrapper').hasClass('button_active');
     
     if (rulerMode) {
+      $('#ruler-wrapper').addClass('button_active');
       $('#table_button_wrapper').addClass('up');
       $('#rulers').removeClass('hidden');
       this.updateRulers();
     } else {
+      $('#ruler-wrapper').removeClass('button_active');
       $('#table_button_wrapper').removeClass('up');
       $('#rulers').addClass('hidden');
     }
   }
   
   updateRulers(event) {
-    const rulerMode = $('#ruler_box').prop('checked');
+    const rulerMode = $('#ruler-wrapper').hasClass('button_active');
     if (rulerMode) {
       const ppi = this.stage.getPPI();
       const offset = this.stage.getOffset();
@@ -465,9 +466,9 @@ class UIController {
   toggleScaleMode() {
     const scaleMode = this.stage.toggleScaleMode();
     if (scaleMode) {
-      $('#scale_box').prop('checked', true);
+      $('#scale-wrapper').addClass('button_active');
     } else {
-      $('#scale_box').prop('checked', false);
+      $('#scale-wrapper').removeClass('button_active');
     }
   }
 
@@ -876,14 +877,14 @@ class UIController {
       if (!this.darkBackground) this.darkBackground = $('body').css('background');
       $('body').css({backgroundColor: 'white'});
       $('#light_switch').addClass('button_active');
-      $('#light_box').prop('checked', true);
+      $('#light-wrapper').addClass('button_active');
       $('#zoom_slider').css('background-color', 'grey');
       this.lightMode = 'bright';
     } else {
       // current light_mode is "bright" => change to "dark"
       $('body').css({background: this.darkBackground});
       $('#light_switch').removeClass('button_active');
-      $('#light_box').prop('checked', false);
+      $('#light-wrapper').removeClass('button_active');
       $('#zoom_slider').css('background-color', 'white');
       this.lightMode = 'dark';
     }

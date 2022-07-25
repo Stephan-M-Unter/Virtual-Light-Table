@@ -558,6 +558,8 @@ body {
 }
 
 .button_active,
+.button.button_active,
+.narrow_button.button_active,
 .wide_button.button_active
 {
     background-color: var(--cb_blue);
@@ -1763,6 +1765,7 @@ input[type='checkbox']:checked {
     width: 80px;
     margin-right: 5px;
     text-align: right;
+    appearance: none;
 }
 
 .wrapper_workarea_size label {
@@ -1779,4 +1782,27 @@ input[type='checkbox']:checked {
 
 .wrapper_tool {
     margin: 10px 0px;
+}
+
+#display-wrapper {
+    margin: 10px 0px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+}
+
+.display-item-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 34%;
+    justify-content: center;
+    align-items: center;
+    max-width:80px;
+}
+
+.display-item-wrapper img {
+    max-width: 50%;
+    padding: 3px;
 }

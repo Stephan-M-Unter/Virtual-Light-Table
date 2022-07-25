@@ -107,7 +107,6 @@ class Rulers {
                 .drawRect(0, 0, this.left.canvas.width, 10)
                 .endFill();
         } else if (this.bounds.minY > $(window).height()) {
-            console.log(0, this.left.canvas.height-50, this.left.canvas.width, 10);
             this.leftBounds.graphics.clear()
                 .beginFill('#F15B40')
                 .drawRect(0, this.left.canvas.height-40, this.left.canvas.width, 10)
