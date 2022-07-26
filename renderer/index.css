@@ -1076,8 +1076,8 @@ body {
 
 .button_img {
     flex: 0 1 auto;
-    height: 50px;
-    width: 50px;
+    height: 46px;
+    width: 46px;
     padding: 10px;
     transition: .2s height, .2s width, .1s padding;
 }
@@ -1809,6 +1809,11 @@ input[type='checkbox']:checked {
 .display-item-wrapper img {
     max-width: 50%;
     padding: 3px;
+    transition: all .1s;
+}
+
+.display-item-wrapper:hover img {
+    padding: 0px;
 }
 
 

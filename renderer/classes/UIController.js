@@ -863,6 +863,12 @@ class UIController {
     else console.log('Dev_Mode deactivated.');
   }
 
+  inspect(id) {
+    if (id.indexOf('f_') != -1) {
+      console.log(this.stage.getFragment(id));
+    }
+  }
+
   /**
    * Triggers when the user wants to change the upload settings for a particular fragment, e.g. replacing one or both images with
    * other versions, changing the masks or the ppi information. This only works if exactly one fragment is selected (because otherwise

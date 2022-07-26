@@ -6,9 +6,10 @@ class ContextMenu {
         this.controller = controller;
         this.id = null;
         this.context = null;
+        this.devMode = false;
 
         this.contexts = {
-            'fragment': ['edit', 'flip', 'lock', 'remove'],
+            'fragment': ['edit', 'flip', 'lock', 'remove', 'devInspect'],
             'stage': ['new_table', 'save', 'add_fragment', 'flip_hor', 'flip_ver'],
             'topbar_table': ['new_table', 'remove'],
         };
@@ -50,7 +51,10 @@ class ContextMenu {
                 src: '../imgs/symbol_vertical_flip.svg',
                 label: 'Flip Vertically',
             },
-
+            'devInspect': {
+                src: '../imgs/symbol_magnifier.png',
+                label: 'DevMode: Inspect',
+            }
         }
     }
 
@@ -58,7 +62,7 @@ class ContextMenu {
         $('#contextmenu').empty();
     }
 
-    loadButton(button) {
+    loadButton(buttonType) {
         const contextItem = document.createElement('div');
         contextItem.setAttribute('class', 'context-item');
 
@@ -67,12 +71,12 @@ class ContextMenu {
 
         const contextImg = document.createElement('img');
         contextImg.setAttribute('class', 'context-img');
-        contextImg.setAttribute('src', this.buttons[button].src);
+        contextImg.setAttribute('src', this.buttons[buttonType].src);
 
         const contextLabel = document.createElement('div');
         contextLabel.setAttribute('class', 'context-label');
 
-        const contextLabelText = document.createTextNode(this.buttons[button].label);
+        const contextLabelText = document.createTextNode(this.buttons[buttonType].label);
 
         contextImgWrapper.appendChild(contextImg);
         contextItem.appendChild(contextImgWrapper);
@@ -81,37 +85,40 @@ class ContextMenu {
         $('#contextmenu').append(contextItem);
 
         contextItem.addEventListener('click', () => {
-            if (button == 'edit') {
+            if (buttonType == 'edit') {
                 this.controller.changeFragment(this.id);
-            } else if (button == 'lock') {
+            } else if (buttonType == 'lock') {
                 this.controller.toggleLock(this.id);
-            } else if (button == 'remove') {
+            } else if (buttonType == 'remove') {
                 if (this.context == 'topbar_table') {
                     this.controller.closeTable(this.id);
                 } else if (this.context == 'fragment') {
                     this.controller.removeFragment(this.id);
                 }
-            } else if (button == 'flip') {
+            } else if (buttonType == 'flip') {
                 this.controller.flipFragment(this.id);
-            } else if (button == 'save') {
+            } else if (buttonType == 'save') {
                 this.controller.save(true);
-            } else if (button == 'add_fragment') {
+            } else if (buttonType == 'add_fragment') {
                 this.controller.openUpload();
-            } else if (button == 'new_table') {
+            } else if (buttonType == 'new_table') {
                 this.controller.newTable();
-            } else if (button == 'flip_hor') {
+            } else if (buttonType == 'flip_hor') {
                 this.controller.flipTable(true);
-            } else if (button == 'flip_ver') {
+            } else if (buttonType == 'flip_ver') {
                 this.controller.flipTable(false);   
+            } else if (buttonType == 'devInspect') {
+                this.controller.inspect(this.id);
             }
         });
     }
 
     loadContext(context) {
         this.context = context;
-        for (const button of this.contexts[context]) {
-            if (Object.keys(this.buttons).includes(button)) {
-                this.loadButton(button, this.id);
+        for (const buttonType of this.contexts[context]) {
+            if (Object.keys(this.buttons).includes(buttonType)) {
+                if (buttonType.indexOf('dev') != -1 && !this.devMode) continue;
+                this.loadButton(buttonType, this.id);
             }
         }
     }
@@ -119,6 +126,8 @@ class ContextMenu {
     load(x, y, context, id) {
         if (id) this.id = id;
         else this.id = null;
+
+        this.devMode = this.controller.isDevMode();
 
         if (x > $(window).width() - 200) {
             $('#contextmenu').addClass('toLeft');

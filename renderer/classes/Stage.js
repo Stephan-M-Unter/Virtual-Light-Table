@@ -72,7 +72,8 @@ class Stage {
     /** @member {createjs.Container} */
     this.background = new createjs.Container();
     this.background.name = "Background Container";
-    this.addToBackground(this._createBackground(), 0);
+    this.backgroundLayer = this._createBackground();
+    this.addToBackground(this.backgroundLayer, 0);
     
     this.workarea = new createjs.Container();
     this.workarea.name = "Workarea Container";
@@ -629,9 +630,9 @@ class Stage {
     this.stage.canvas.width = this.width = width;
     this.stage.canvas.height = this.height = height;
 
-    const oldBackground = this.background.getChildAt(0);
-    this.removeFromBackground(oldBackground);
-    this.addToBackground(this._createBackground(), 0);
+    this.removeFromBackground(this.backgroundLayer);
+    this.backgroundLayer = this._createBackground();
+    this.addToBackground(this.backgroundLayer, 0);
     this.update();
   }
 
