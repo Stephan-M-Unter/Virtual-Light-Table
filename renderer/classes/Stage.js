@@ -1431,6 +1431,10 @@ class Stage {
     return this.offset;
   }
 
+  fragmentIsSelected(fragmentId) {
+    return Object.keys(this.selectedList).includes(fragmentId);
+  }
+
   /**
    * TODO
    * @param {*} horizontal

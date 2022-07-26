@@ -40,6 +40,7 @@ class Sidebar {
     const fragmentItemButtonLock = document.createElement('div');
     const fragmentItemNameText = document.createTextNode(name);
     const fragmentItemVisibleSide = document.createElement('div');
+    const fragmentMultiSelectBox = document.createElement('div');
     
     // setting attributes
     fragmentListItem.setAttribute('class', 'fragment_list_item');
@@ -61,6 +62,7 @@ class Sidebar {
     fragmentItemButtonLock.setAttribute('title', 'Un/Lock fragment');
     if (isRecto) fragmentItemVisibleSide.setAttribute('class', 'fragment_list_item_side recto');
     else fragmentItemVisibleSide.setAttribute('class', 'fragment_list_item_side');
+    fragmentMultiSelectBox.setAttribute('class', 'fragment_multiselectbox');
 
     // chain DOM structure
 
@@ -76,11 +78,13 @@ class Sidebar {
         ------ Edit Button
         ------ [TPOP Button]
         -- VisibleSide
+        -- MultiSelectBox
     */
 
     fragmentListItem.appendChild(fragmentItemThumbWrapper);
     fragmentListItem.appendChild(fragmentItemButtonWrapper);
     fragmentListItem.appendChild(fragmentItemVisibleSide);
+    fragmentListItem.appendChild(fragmentMultiSelectBox);
 
     fragmentItemThumbWrapper.appendChild(fragmentItemThumbnail);
     fragmentItemThumbWrapper.appendChild(fragmentItemName);
@@ -152,6 +156,10 @@ class Sidebar {
       const id = $(event.target).closest('.fragment_list_item').attr('id');
       controller.toggleLock(id);
     }, false);
+    fragmentMultiSelectBox.addEventListener('click', function(event) {
+      event.stopPropagation();
+      controller.toggleSelect(id);
+    });
   }
 
   /**

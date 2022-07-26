@@ -292,6 +292,14 @@ class UIController {
     this.sidebar.deselectFragment(fragmentId);
   }
 
+  toggleSelect(fragmentId) {
+    if (this.stage.fragmentIsSelected(fragmentId)) {
+      this.deselectFragment(fragmentId);
+    } else {
+      this.selectFragment(fragmentId);
+    }
+  }
+
   /**
    * Notifies GUI elements to deselect all fragments.
    */

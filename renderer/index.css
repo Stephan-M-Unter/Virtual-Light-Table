@@ -273,13 +273,46 @@ body {
 .fragment_list_item_side {
     position: absolute;
     top: 7px;
-    left: 7px;
+    right: 40px;
     border-radius: 5px;
     background-color: white;
     border: 1px solid #ccc;
     padding: 0px 5px;
     font-size: 0.8em;
     opacity: 0.7;
+}
+
+.fragment_multiselectbox {
+    height: 15px;
+    width: 15px;
+    background-color: rgba(255,255,255,0.8);
+    border-radius: 2px;
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    border: 1px solid #ccc;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.fragment_list_item_active .fragment_multiselectbox {
+    background-color: var(--cb_orange);
+}
+
+.fragment_list_item_active .fragment_multiselectbox::before {
+    content: 'x';
+    line-height: 10px;
+    color: black;
+    font-weight: bold;
+}
+
+.fragment_list_item:not(.fragment_list_item_active) .fragment_multiselectbox:hover::before {
+    content: 'x';
+    line-height: 10px;
+    color: gray;
+    font-weight: bold;
 }
 
 .fragment_list_item_side.recto::before {
