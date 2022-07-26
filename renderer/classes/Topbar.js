@@ -67,6 +67,10 @@ class Topbar {
       }
     });
 
+    $(tableItem).on('contextmenu', (event) => {
+      this.controller.showContextMenu(event, 'topbar_table', tableID);
+    });
+
     $(renewScreenshot).click((event) => {
       this.renewScreenshot();
     });

@@ -909,37 +909,4 @@ class Fragment {
   }
 }
 
-
 module.exports.Fragment = Fragment;
-
-
-(function () {
-  "use strict";
-  function ColorMaskFilter(color) {
-    this.color = color;
-  }
-  var p = createjs.extend(ColorMaskFilter, createjs.Filter);
-  p.applyFilter = function (ctx, x, y, width, height, targetCtx, targetX, targetY) {
-    if (!this.color) { return true; }
-    targetCtx = targetCtx || ctx;
-    if (targetX == null) { targetX = x; }
-    if (targetY == null) { targetY = y; }
- 
-    targetCtx.save();
-    if (ctx != targetCtx) {
-      return false;
-    }
- 
-    targetCtx.globalCompositeOperation = "source-out"; // Use source-in to fill the shape instead
-    targetCtx.fillStyle = this.color;
-    targetCtx.rect(targetX,targetY,width,height);
-    targetCtx.fill();
-    
-    targetCtx.restore();
-    return true;
-  };
-  p.clone = function () {
-    return new AlphaMaskFilter(this.color);
-  }; 
-  createjs.ColorMaskFilter = createjs.promote(ColorMaskFilter, "Filter");
-}());

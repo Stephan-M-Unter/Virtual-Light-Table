@@ -8,6 +8,7 @@ const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
 const {MeasurementTool} = require('./MeasurementTool');
 const {Topbar} = require('./Topbar');
+const { ContextMenu } = require('./ContextMenu');
 const dialogs = new Dialogs();
 
 /**
@@ -32,6 +33,7 @@ class UIController {
     /** @constant {Topbar} */
     this.topbar = new Topbar(this);
     this.rulers = new Rulers(this);
+    this.contextmenu = new ContextMenu(this);
     /** @constant {AnnotationPopup} */
     this.annotationPopup = new AnnotationPopup(this);
     /** @constant {MeasurementTool} */
@@ -103,6 +105,10 @@ class UIController {
     $('#progress-status').addClass('hidden');
     $('#progress-wrapper').addClass('hidden');
     this.topbar.stopLoading(this.activeTable);
+  }
+
+  openUpload() {
+    this.sendToServer('server-open-upload', this.getActiveTable());
   }
 
   /**
@@ -458,6 +464,16 @@ class UIController {
     }
     this.updateRulers();
   }
+  
+  showContextMenu(event, context, id) {
+    const x = event.screenX;
+    const y = event.screenY;
+    this.contextmenu.load(x, y, context, id);
+  }
+  
+  hideContextMenu() {
+    this.contextmenu.hide();
+  }
 
   /**
    * Toggles the scale mode on the stage object to show or hide the scale. The method call returns
@@ -791,6 +807,10 @@ class UIController {
   update() {
     this.measurementTool.update();
     this.stage.update();
+  }
+
+  flipFragment(id) {
+    this.stage.flipFragment(id);
   }
 
   /**

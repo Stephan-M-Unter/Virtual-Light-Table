@@ -1070,6 +1070,10 @@ body {
     box-shadow: inset 3px 3px 4px black, inset -1px -1px 4px white; 
 }
 
+.button_active:hover {
+    background-color:  #b6d9ff;
+}
+
 .button_img {
     flex: 0 1 auto;
     height: 50px;
@@ -1805,4 +1809,90 @@ input[type='checkbox']:checked {
 .display-item-wrapper img {
     max-width: 50%;
     padding: 3px;
+}
+
+
+#contextmenu {
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    padding: 2px;
+    opacity: 0;
+    left: -3000px;
+    top: -3000px;
+    transition: opacity .2s;
+    /* overflow: hidden; */
+}
+
+.context-item {
+    position: relative;
+    max-height: 50px;
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+}
+
+.context-item:hover {
+    /* box-shadow: 3px 3px 4px black; */
+}
+
+.context-img-wrapper {
+    background-color: rgba(255,255,255,0.9);
+    box-shadow: 3px 3px 4px black;
+    border-bottom: 1px solid gray;
+}
+
+.context-img {
+    padding: 10px;
+    /* filter: invert(1); */
+    flex-grow: 0;
+    flex-shrink: 1;
+    width: 50px;
+    height: 50px;
+    transition: all .2s;
+}
+
+.context-item:hover .context-img {
+    padding: 8px;
+}
+
+.context-item:hover .context-img-wrapper,
+.context-item:hover .context-label {
+    background-color: rgba(230,230,230,0.9);
+}
+
+.context-label {
+    /* box-shadow: 3px 3px 8px black; */
+    position: relative;
+    display: flex;
+    background-color: rgba(255,255,255,0.9);
+    flex-grow: 5;
+    width: 0;
+    opacity: 0;
+    transition: all .2s;
+    white-space: nowrap;
+    justify-content: center;
+    align-items: center;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-left: 1px solid #eee;
+}
+
+.context-item:hover .context-label {
+    width: 150px;
+    opacity: 1;
+}
+
+#contextmenu.toLeft .context-item:hover .context-label {
+    left: -200px;
+}
+
+#contextmenu.toLeft .context-item .context-label {
+    width: 150px;
+    left: -150px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-right: 1px solid #eee;
 }

@@ -438,10 +438,14 @@ $(document).ready(function() {
 
   // Upload Local Image Button
   $('#upload_local').click(function() {
-    controller.sendToServer('server-open-upload', controller.getActiveTable());
+    controller.openUpload();
   });
   $('#upload_tpop').click(function() {
     controller.sendToServer('server-open-tpop', controller.getActiveTable());
+  });
+
+  $(window).on('click', function() {
+    controller.hideContextMenu();
   });
 
   /**

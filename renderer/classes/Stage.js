@@ -57,6 +57,8 @@ class Stage {
       h: 0,
     }
 
+    this.rightClick = false;
+
     
     this.graphicFilters = false;
     
@@ -69,9 +71,11 @@ class Stage {
     // adding display elements
     /** @member {createjs.Container} */
     this.background = new createjs.Container();
+    this.background.name = "Background Container";
     this.addToBackground(this._createBackground(), 0);
     
     this.workarea = new createjs.Container();
+    this.workarea.name = "Workarea Container";
     this.worksquare = new createjs.Shape();
     this.worktext = new createjs.Text('Reconstruction Area');
     this.worktextSize = new createjs.Text();
@@ -88,13 +92,14 @@ class Stage {
     this.gridMode = false;
     /** @member {createjs.Container} */
     this.grid = new createjs.Container();
-    this.grid.name = "Grid";
+    this.grid.name = "Grid Container";
     this.addToBackground(this.grid);
     // Scale
     /** @member {Boolean} */
     this.scaleMode = false;
     /** @member {createjs.Container} */
     this.scale = new createjs.Container();
+    this.scale.name = "Scale Container";
     this.addToOverlay(this.scale, 0);
     
     /** @constant {Selector} */
@@ -127,18 +132,25 @@ class Stage {
     background.graphics.beginFill('#333333')
         .drawRect(0, 0, this.width, this.height);
     background.alpha = 0.01;
-    background.name = 'background';
+    background.name = 'Background Layer';
 
     // Interactions on Background
     background.on('mousedown', (event) => {
-      this.controller.clearSelection();
-      this.update();
-      this.mouseClickStart = {x: event.stageX, y: event.stageY};
+      if (event.nativeEvent.button == 2) {
+        this.rightClick = true;
+        this.controller.showContextMenu(event.nativeEvent, 'stage');
+      } else {
+        this.controller.clearSelection();
+        this.update();
+        this.mouseClickStart = {x: event.stageX, y: event.stageY};
+      }
     });
     background.on('pressmove', (event) => {
+      if (this.rightClick) return;
       this._panScene(event);
     });
     background.on('pressup', () => {
+      this.rightClick = false;
       // this.saveToModel(true);
     });
     return background;
@@ -208,7 +220,7 @@ class Stage {
    */
   addToBackground(node, pos) {
     if (pos) {
-      this.background.addChildAt(node, 0);
+      this.background.addChildAt(node, pos);
     } else {
       this.background.addChild(node);
     }
@@ -495,7 +507,6 @@ class Stage {
    * @return {Object} Contains '.scaling'.
    */
   getStageData() {
-    console.log("AREA", this.area);
     return {
       'scaling': this.stage.scaling,
       'offset': this.offset,
@@ -768,6 +779,10 @@ class Stage {
     this.controller.saveToModel(false);
   }
 
+  flipFragment(id) {
+    this.fragmentList[id].flip();
+  }
+
   /**
    * TODO
    * @param {*} image
@@ -775,33 +790,40 @@ class Stage {
   registerImageEvents(image) {
     image.on('mousedown', (event) => {
       const clickedId = event.target.id;
-      if (event.nativeEvent.ctrlKey == false && !this.selectedList[clickedId]) {
-        // if ctrl key is not pressed, old selection will be cleared
-        this.controller.clearSelection();
-      }
-      if (event.nativeEvent.ctrlKey == true && this.selectedList[clickedId]) {
-        // if ctrl key is pressed AND object is already selected:
-        // -> remove selection for this object
-        this.controller.deselectFragment(clickedId);
+      if (event.nativeEvent.button == 2) {
+        this.rightClick = true;
+        this.controller.showContextMenu(event.nativeEvent, 'fragment', clickedId);
       } else {
-        // in all other cases, add object to selection
-        if (!this.measureMode) {
-          // but NOT, if measure mode is currently active
-          this.controller.selectFragment(clickedId);
+        if (event.nativeEvent.ctrlKey == false && !this.selectedList[clickedId]) {
+          // if ctrl key is not pressed, old selection will be cleared
+          this.controller.clearSelection();
         }
+        if (event.nativeEvent.ctrlKey == true && this.selectedList[clickedId]) {
+          // if ctrl key is pressed AND object is already selected:
+          // -> remove selection for this object
+          this.controller.deselectFragment(clickedId);
+        } else {
+          // in all other cases, add object to selection
+          if (!this.measureMode) {
+            // but NOT, if measure mode is currently active
+            this.controller.selectFragment(clickedId);
+          }
+        }
+        this._moveToTop(this.fragmentList[clickedId]);
+        this.update();
+  
+        this.mouseClickStart = {x: event.stageX, y: event.stageY};
       }
-      this._moveToTop(this.fragmentList[clickedId]);
-      this.update();
-
-      this.mouseClickStart = {x: event.stageX, y: event.stageY};
     });
 
     image.on('pressmove', (event) => {
+      if (this.rightClick) return;
       this._moveObjects(event);
     });
 
     image.on('pressup', (event) => {
       this.controller.saveToModel(false);
+      this.rightClick = false;
     });
 
     image.on('mouseover', (event) => {
@@ -815,6 +837,7 @@ class Stage {
       const id = event.target.id;
       this.controller.unhighlightFragment(id);
     });
+
   }
 
   /**
