@@ -1153,6 +1153,7 @@ class Stage {
    */
   _updateFlipper(x, y, width, height) {
     this.stage.removeChild(this.flipper);
+    const sidebar = parseFloat($('#left_sidebar').css('width'));
 
     if (Object.keys(this.selectedList).length == 1) {
       this.flipper = new createjs.Container();
@@ -1176,8 +1177,15 @@ class Stage {
       this.flipper.regY = -height/2+30;
       this.flipper.name = 'Flip Button';
 
-      if (this.flipper.x - this.flipper.regX > this.stage.canvas.width) {
-        this.flipper.regX *= -1;
+      if (this.flipper.x + 20 - this.flipper.regX > this.stage.canvas.width) {
+        if (this.flipper.x + this.flipper.regX - 20 < 0 + sidebar) {
+          this.flipper.x = this.flipper.regX + $(window).width() - 30;
+        } else {
+          this.flipper.regX *= -1;
+        }
+      }
+      if (this.flipper.y - this.flipper.regY + 105 > $(window).height()) {
+        this.flipper.y = this.flipper.regY + $(window).height() - 105;
       }
 
       this.flipper.on('click', (event) => {
@@ -1218,6 +1226,7 @@ class Stage {
    */
   _updateGhoster(x, y, width, height) {
     this.stage.removeChild(this.ghoster);
+    const sidebar = parseFloat($('#left_sidebar').css('width'));
 
     if (Object.keys(this.selectedList).length == 1) {
       this.ghoster = new createjs.Container();
@@ -1241,8 +1250,15 @@ class Stage {
       this.ghoster.regY = -height/2+75;
       this.ghoster.name = 'Flip Button';
 
-      if (this.ghoster.x - this.ghoster.regX > this.stage.canvas.width) {
-        this.ghoster.regX *= -1;
+      if (this.ghoster.x + 20 - this.ghoster.regX > this.stage.canvas.width) {
+        if (this.ghoster.x + this.ghoster.regX - 20 < 0 + sidebar) {
+          this.ghoster.x = this.ghoster.regX + $(window).width() - 30;
+        } else {
+          this.ghoster.regX *= -1;
+        }
+      }
+      if (this.ghoster.y - this.ghoster.regY + 150 > $(window).height()) {
+        this.ghoster.y = this.ghoster.regY + $(window).height() - 150;
       }
 
       this.ghoster.on('mousedown', (event) => {
