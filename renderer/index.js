@@ -417,7 +417,7 @@ $(document).ready(function() {
   });
 
   // Zoom Slider
-  $('#zoom_slider').on('change', () => {
+  $('#zoom_slider').on('change input', () => {
     const newScaling = $('#zoom_slider').val();
     controller.setScaling(newScaling);
   });

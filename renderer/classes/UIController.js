@@ -203,7 +203,6 @@ class UIController {
   }
 
   panScene(dX, dY) {
-    // this.measurementTool.panMeasurements(dX, dY);
     this.updateRulers();
     this.stage.updateWorkarea();
     this.stage.moveStage(dX, dY);
