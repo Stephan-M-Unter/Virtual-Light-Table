@@ -305,7 +305,6 @@ body {
     content: 'x';
     line-height: 10px;
     color: black;
-    font-weight: bold;
 }
 
 .fragment_list_item:not(.fragment_list_item_active) .fragment_multiselectbox:hover::before {

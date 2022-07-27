@@ -148,7 +148,7 @@ class Stage {
     });
     background.on('pressmove', (event) => {
       if (this.rightClick) return;
-      this._panScene(event);
+      this.panScene(event);
     });
     background.on('pressup', () => {
       this.rightClick = false;
@@ -611,6 +611,7 @@ class Stage {
     Scaler.zoom.world.y = Scaler.zoom.screen.y;
     Scaler.scaling = (this.ppi/96)*this.stage.scaling/100;
     this._scaleObjects();
+    this.controller.scaleMeasurements();
     
     this.moveStage(-distX, -distY);
     this.updateGrid();
@@ -941,7 +942,7 @@ class Stage {
    * @param {*} event
    * @return {[null]}
    */
-  _panScene(event) {
+  panScene(event) {
     if (!this.controller.getPermission('move_scene')) return null;
     const currentMouseX = event.stageX;
     const currentMouseY = event.stageY;
@@ -951,9 +952,7 @@ class Stage {
 
     this.mouseClickStart = {x: currentMouseX, y: currentMouseY};
 
-    this.moveStage(deltaX, deltaY);
-    this.controller.updateRulers();
-    this.updateWorkarea();
+    this.controller.panScene(deltaX, deltaY);    
   }
 
   /**
@@ -1046,6 +1045,7 @@ class Stage {
           if (!fragment.isLocked()) fragment.moveByDistance(deltaX, deltaY);
         }
       }
+      this.controller.moveMeasurements(deltaX, deltaY);
       this.moveOffset(deltaX, deltaY);
       this._updateBb();
       this.update();
@@ -1157,14 +1157,21 @@ class Stage {
 
     if (Object.keys(this.selectedList).length == 1) {
       this.flipper = new createjs.Container();
+      this.flipper.cursor = 'pointer';
 
-      const circle = new createjs.Shape();
-      circle.graphics
-          .beginFill('white').drawCircle(0, 0, 20);
-      this.flipper.addChild(circle);
+      const shape = new createjs.Shape();
 
-      const bmp = new createjs.Bitmap('../imgs/symbol_flip.png');
-      bmp.scale = 1;
+      shape.graphics
+          .beginFill('white')
+          .beginStroke('black')
+          .drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5)
+          .endFill();
+
+      this.flipper.addChild(shape);
+
+      // const bmp = new createjs.Bitmap('../imgs/symbol_flip.png');
+      const bmp = new createjs.Bitmap('../imgs/symbol_horizontal_flip.svg');
+      bmp.scale = 0.06;
       bmp.x = bmp.y = -15;
       bmp.onload = function() {
         this.update();
@@ -1199,15 +1206,39 @@ class Stage {
         this.controller.saveToModel(false);
       });
 
+      this.flipper.on('mouseover', () => {
+        this.flipper.getChildAt(0).graphics.clear()
+          .beginFill('#aaa') 
+          .beginStroke('black')
+          .drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5)
+          .endFill();
+        this.update();
+      });
+
+      this.flipper.on('mouseout', () => {
+        this.flipper.getChildAt(0).graphics.clear()
+            .beginFill('white') 
+            .beginStroke('black')
+            .drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5)
+            .endFill();
+        this.update();
+      });
+
       this.flipper.on('mousedown', () => {
         this.flipper.getChildAt(0).graphics.clear()
-            .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
+            .beginFill('#1C5A9C')
+            .beginStroke('black')
+            .drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5)
+            .endFill();
         this.update();
       });
 
       this.flipper.on('pressup', () => {
         this.flipper.getChildAt(0).graphics.clear()
-            .beginFill('white').drawCircle(0, 0, 20).endFill();
+            .beginFill('white') 
+            .beginStroke('black')
+            .drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5)
+            .endFill();
         this.update();
       });
 
@@ -1230,26 +1261,29 @@ class Stage {
 
     if (Object.keys(this.selectedList).length == 1) {
       this.ghoster = new createjs.Container();
+      this.ghoster.cursor = 'pointer';
 
-      const circle = new createjs.Shape();
-      circle.graphics
-          .beginFill('grey').drawCircle(0, 0, 20).endFill();
-      this.ghoster.addChild(circle);
-
-      const bmp = new createjs.Bitmap('../imgs/symbol_ghost.png');
-      bmp.scale = 1;
-      bmp.x = bmp.y = -15;
-      bmp.onload = function() {
-        this.update();
-      };
+      const shape = new createjs.Shape();
+     
+      shape.graphics
+        .beginFill('white').beginStroke('black').drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5).endFill();
+        
+        this.ghoster.addChild(shape);
+        
+        const bmp = new createjs.Bitmap('../imgs/symbol_ghost.png');
+        bmp.scale = 1;
+        bmp.x = bmp.y = -15;
+        bmp.onload = function() {
+          this.update();
+        };
       this.ghoster.addChild(bmp);
-
+      
       this.ghoster.x = x;
       this.ghoster.y = y;
       this.ghoster.regX = -width/2-30;
       this.ghoster.regY = -height/2+75;
       this.ghoster.name = 'Flip Button';
-
+      
       if (this.ghoster.x + 20 - this.ghoster.regX > this.stage.canvas.width) {
         if (this.ghoster.x + this.ghoster.regX - 20 < 0 + sidebar) {
           this.ghoster.x = this.ghoster.regX + $(window).width() - 30;
@@ -1261,17 +1295,30 @@ class Stage {
         this.ghoster.y = this.ghoster.regY + $(window).height() - 150;
       }
 
+      this.ghoster.on('mouseover', () => {
+        console.log("Miep");
+        this.ghoster.getChildAt(0).graphics.clear()
+          .beginFill('#aaa').beginStroke('black').drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5).endFill();
+        this.update();
+      });
+
+      this.ghoster.on('mouseout', () => {
+        this.ghoster.getChildAt(0).graphics.clear()
+          .beginFill('white').beginStroke('black').drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5).endFill();
+        this.update();
+      });
+      
       this.ghoster.on('mousedown', (event) => {
         this.ghoster.getChildAt(0).graphics.clear()
-            .beginFill('#1C5A9C').drawCircle(0, 0, 20).endFill();
+          .beginFill('#1C5A9C').beginStroke('black').drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5).endFill();
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
         fragment.ghost(true);
       });
-
+      
       this.ghoster.on('pressup', (event) => {
         this.ghoster.getChildAt(0).graphics.clear()
-            .beginFill('grey').drawCircle(0, 0, 20).endFill();
+          .beginFill('white').beginStroke('black').drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5).endFill();
         const id = Object.keys(this.selectedList)[0];
         const fragment = this.selectedList[id];
         fragment.ghost(false);

@@ -284,6 +284,7 @@ function uploadTpopFragments() {
     type: 'upload',
     devMode: devMode,
   });
+  uploadWindow.maximize();
   uploadWindow.removeMenu();
   uploadWindow.once('ready-to-show', () => {
     uploadWindow.webContents.once('did-finish-load', () => {
@@ -954,6 +955,7 @@ ipcMain.on('server-open-upload', (event, tableID) => {
       type: 'upload',
       devMode: devMode,
     });
+    uploadWindow.maximize();
     uploadWindow.removeMenu();
     uploadWindow.once('ready-to-show', () => {
       uploadWindow.show();
@@ -1059,6 +1061,7 @@ ipcMain.on('server-change-fragment', (event, data) => {
     type: 'upload',
     devMode: devMode,
   });
+  uploadWindow.maximize();
   uploadWindow.removeMenu();
   uploadWindow.once('ready-to-show', () => {
     uploadWindow.show();

@@ -202,6 +202,13 @@ class UIController {
     }
   }
 
+  panScene(dX, dY) {
+    // this.measurementTool.panMeasurements(dX, dY);
+    this.updateRulers();
+    this.stage.updateWorkarea();
+    this.stage.moveStage(dX, dY);
+  }
+
   /**
    * Relay function. Passing the PPI value to the stage.
    * @param {double} ppi Value for pixels per inch given by the screen calibration.
@@ -563,6 +570,14 @@ class UIController {
     this.stage.setScaling(scalingValue, scaleX, scaleY);
     $('#zoom_slider').val(scalingValue);
     $('#zoom_factor').text('x'+Math.round((scalingValue/100)*100)/100);
+  }
+
+  moveMeasurements(dX, dY) {
+    this.measurementTool.panMeasurements(dX, dY);
+  }
+
+  scaleMeasurements() {
+    this.measurementTool.scaleMeasurements();
   }
 
   /**

@@ -355,7 +355,6 @@ class Fragment {
       loadqueue.load();
     
     } else {
-      console.log("ACTIVE URLS", this.getActiveUrls());
       if (this.isRecto) {
         this.container.removeChild(this.verso.container);
         this.container.addChild(this.recto.container);

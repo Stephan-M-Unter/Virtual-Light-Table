@@ -84,7 +84,6 @@ class MeasurementTool {
    * TODO
    */
   update() {
-    this.controller.updateSidebarMeasurements(this.measurements);
     for (const id in this.measurements) {
       if (Object.prototype.hasOwnProperty.call(this.measurements, id)) {
         const measurement = this.measurements[id];
@@ -92,6 +91,25 @@ class MeasurementTool {
       }
     }
     this.stage.update();
+    this.controller.updateSidebarMeasurements(this.measurements);
+  }
+
+  panMeasurements(dx, dy) {
+    for (const id in this.measurements) {
+      if (Object.prototype.hasOwnProperty.call(this.measurements, id)) {
+        const measurement = this.measurements[id];
+        measurement.pan(dx, dy);
+      }
+    }
+  }
+
+  scaleMeasurements() {
+    for (const id in this.measurements) {
+      if (Object.prototype.hasOwnProperty.call(this.measurements, id)) {
+        const measurement = this.measurements[id];
+        measurement.scale();
+      }
+    }
   }
 
   /**

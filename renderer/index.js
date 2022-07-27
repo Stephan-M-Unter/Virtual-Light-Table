@@ -622,6 +622,20 @@ $(document).ready(function() {
       } else if (event.keyCode == 82) {
         // R -> toggle Rulers
         controller.toggleRulerMode();
+      } else if (event.keyCode == 107) {
+        // + -> Zoom in
+        const currentZoom = $('#zoom_slider').val();
+        const currentStepsize = $('#zoom_slider').attr('step');
+        const newScaling = parseFloat(currentZoom) + parseFloat(currentStepsize);
+        $('#zoom_slider').val(newScaling);
+        controller.setScaling(newScaling);
+      } else if (event.keyCode == 109) {
+        // - -> Zoom out
+        const currentZoom = $('#zoom_slider').val();
+        const currentStepsize = $('#zoom_slider').attr('step');
+        const newScaling = parseFloat(currentZoom) - parseFloat(currentStepsize);
+        $('#zoom_slider').val(newScaling);
+        controller.setScaling(newScaling);
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);
