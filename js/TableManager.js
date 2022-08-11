@@ -124,7 +124,6 @@ class TableManager {
           this.tableIdRunner += 1;
           break;
         } else {
-          console.log(Object.keys(this.tables).includes(newTableID));
           this.tableIdRunner += 1;
         }
       }
@@ -251,7 +250,15 @@ class TableManager {
    * @return {Object}
    */
   getTables() {
-    return this.tables;
+    const tables = {};
+    for (const tableID of Object.keys(this.tables)) {
+      if (tableID) {
+        const table = this.getTable(tableID);
+        tables[tableID] = table;
+      }
+    }
+
+    return tables;
   }
 
   /**
@@ -322,7 +329,13 @@ class TableManager {
     if (this.emptyTable) {
       this.tables[tableID].emptyTable = false;
     } else {
-      const step = this.getTable(tableID);
+      const table = this.getTable(tableID);
+      const step = {};
+      for (const key of Object.keys(table)) {
+        if (!irrelevantProperties.includes(key)) {
+          step[key] = table[key];
+        }
+      }
       this.tables[tableID].undoSteps.push(step);
     }
 
@@ -418,26 +431,11 @@ class TableManager {
    * @param {Boolean} aData.hidden Variable indicating if the annotation is visible or not.
    * @param {int} aData.time Time of last change of annotation, given in milliseconds since 01/01/1970.
    */
-  setAnnotation(tableID, aData) {
-    const aID = aData.id;
-    const annotation = {
-      'text': aData.text,
-      'editor': aData.editor,
-      'hidden': aData.hidden,
-      'time': aData.time,
-    };
+  writeAnnotation(tableID, annotation) {
+    const aID = annotation.aID;
     this.tables[tableID].annots[aID] = annotation;
   }
-
-  updateAnnotation(tableID, aData) {
-    const aID = aData.id;
-    for (const [key, value] of Object.entries(aData)) {
-      if (key != 'id') {
-        this.tables[tableID].annots[aID][key] = value;
-      }
-    }
-  }
-
+  
   /**
    * Removes a specific annotation with aID from the table with tableID.
    * @param {String} tableID ID of table, e.g. "table_1".

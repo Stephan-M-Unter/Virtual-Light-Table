@@ -61,6 +61,7 @@ class UIController {
     this.devMode = true;
     /** @member {Boolean} */
     this.isLoading = false;
+    this.pinningMode = false;
 
     this.sendToServer('server-new-session');
   }
@@ -118,6 +119,7 @@ class UIController {
    *    if FALSE, the VLT will automatically ask for a new savefile
    */
   save(isQuicksave) {
+    this.saveToModel(true);
     const data = {};
     data.tableID = this.activeTable;
     data.screenshot = this.exportCanvas('png', true, true);
@@ -173,6 +175,7 @@ class UIController {
    */
   saveToModel(skipDoStep) {
     const tableData = this.stage.getData();
+    tableData['annots'] = this.annotationPopup.getData();
     const data = {
       tableID: this.activeTable,
       tableData: tableData,
@@ -250,34 +253,18 @@ class UIController {
    * @param {String} [id] - ID of annotation, e.g. "a_0".
    */
   sendAnnotation(id) {
-    if (id) {
-      this.annotationPopup.updateAnnotation(id);
-    } else {
-      this.annotationPopup.addAnnotation();
-    }
+    this.annotationPopup.write(id);
   }
 
-  /**
-   * TODO
-   * @param {*} annotationElement
-   */
-  deleteAnnotation(annotationElement) {
-
-  }
-
-  /**
-   * TODO
-   * @param {*} annotationElement
-   */
-  updateAnnotation(annotationElement) {
-
+  cancelAnnotation() {
+    this.annotationPopup.cancel();
   }
 
   /**
    * TODO
    */
   toggleAnnotSubmitButton() {
-    this.annotationPopup.toggleAnnotSubmitButton();
+    this.annotationPopup.check();
   }
 
   /**
@@ -433,6 +420,12 @@ class UIController {
       const area = this.stage.getArea();
       this.rulers.updateRulers(ppi, scale, offset, bounds, area, event);
     }
+  }
+
+  clearWorkarea() {
+    $('#workarea-width').val('');
+    $('#workarea-height').val('');
+    this.updateWorkarea();
   }
 
   updateWorkarea() {
@@ -621,8 +614,8 @@ class UIController {
       this.firstSave = true;
     }
     this.topbar.setActiveTable(data.tableID);
-    this.annotationPopup.loadAnnotations(data.tableData.annots);
     this.stage.loadScene(data.tableData);
+    this.annotationPopup.load(data.tableData.annots);
     this.updateSidebarFragmentList();
     this.updateRulers();
 
@@ -675,6 +668,14 @@ class UIController {
     const deltaY = stageC.y - fragmentC.y;
 
     this.stage.moveStage(deltaX, deltaY);
+  }
+
+  centerToOrigin() {
+    const stageC = this.stage.getCenter();
+    const offset = this.stage.getOffset();
+    const dx = stageC.x - offset.x;
+    const dy = stageC.y - offset.y;
+    this.stage.moveStage(dx, dy);
   }
 
   /**
@@ -760,6 +761,15 @@ class UIController {
    */
   getSidebar() {
     return this.sidebar;
+  }
+
+  resetPosition(fragmentID) {
+    const offset = this.stage.getOffset();
+    this.stage.moveFragmentTo(fragmentID, offset.x, offset.y);
+  }
+
+  resetRotation(fragmentID) {
+    this.stage.rotateFragmentTo(fragmentID, 0);
   }
 
   /**
@@ -997,6 +1007,14 @@ class UIController {
     }
   }
 
+  togglePermission(permissionHandle) {
+    if (permissionHandle in this.permissions) {
+      this.permissions[permissionHandle] = !this.permissions[permissionHandle];
+    } else {
+      return null;
+    }
+  }
+
   /**
    *
    * @param {'move_fragment'|'move_scene'|'hotkeys'} permissionHandle
@@ -1068,12 +1086,97 @@ class UIController {
     this.topbar.updateFilename(saveData);
   }
 
-  showHiddenAnnotations() {
-    this.annotationPopup.showHidden();
+  toggleHiddenAnnotations() {
+    this.annotationPopup.toggleHidden();
   }
 
-  hideHiddenAnnotations() {
-    this.annotationPopup.hideHidden();
+  handleESC() {
+    this.clearSelection();
+    this.endMeasurement();
+    if (this.pinningMode) {
+      this.annotationPopup.cancel();
+      this.endPinning();
+    } else if (this.annotationPopup.hasFormOpen()) {
+      this.annotationPopup.cancel();
+    }
+    else this.closeAnnotationPopup();
+  }
+
+  toggleAnnotationPopup(event) {
+    this.togglePermission('hotkeys');
+    this.annotationPopup.toggle(event);
+  }
+
+  openAnnotationPopup(event) {
+    this.setPermission('hotkeys', false);
+    this.annotationPopup.open(event);
+  }
+
+  closeAnnotationPopup(event) {
+      this.setPermission('hotkeys', true);
+      this.annotationPopup.close(event);
+  }
+
+  deactivateAnnotations() {
+    this.annotationPopup.deactivatePins();
+  }
+
+  startPinning(event) {
+    console.log("startPinning");
+    this.pinningMode = true;
+    this.closeAnnotationPopup(event);
+    this.annotationPopup.newPin();
+    this.updateCursor(event);
+    $('#lighttable').on('mousemove', (event) => {
+      this.updateCursor(event);
+    });
+    $('#lighttable').on('click', (event) => {
+      this.setPin(event);
+    });
+  }
+
+  setPin(event) {
+    this.endPinning();
+    const targets = this.stage.getObjectsUnderPoint(event.screenX, event.screenY);
+    const target = {
+      type: 'stage',
+      id: 'stage',
+      object: null,
+    };
+    for (const element of targets) {
+      if (element.name.indexOf('Fragment') != -1) {
+        target.type = 'fragment';
+        target.id = element.id;
+      }
+    }
+    this.annotationPopup.setPin(target);
+  }
+
+  removePin() {
+    this.annotationPopup.unpin();
+  }
+
+  endPinning() {
+    this.pinningMode = false;
+    $('#lighttable').off('mousemove');
+    $('#lighttable').off('click');
+    const pin = this.annotationPopup.getPin();
+    if (pin) {
+      const pinData = pin.getData();
+      this.openAnnotationPopup({screenX: pinData.pos.x, screenY: pinData.pos.y});
+    } else {
+      this.openAnnotationPopup(); 
+    }
+  }
+
+  openAnnotationForm() {
+    this.annotationPopup.openForm();
+  }
+
+  updateCursor(event) {
+    if (this.pinningMode) {
+      this.annotationPopup.getPin().moveTo(event.screenX, event.screenY);
+    }
   }
 }
 

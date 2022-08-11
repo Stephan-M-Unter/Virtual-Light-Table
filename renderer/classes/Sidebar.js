@@ -141,6 +141,9 @@ class Sidebar {
         sidebar.removeFragmentListButtons(id);
       }
     });
+    fragmentListItem.addEventListener('contextmenu', function(event) {
+      controller.showContextMenu(event, 'fragment', id);
+    });
 
     fragmentItemButtonRemove.addEventListener('click', function(event) {
       controller.removeFragment(id);

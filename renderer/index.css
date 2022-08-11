@@ -458,7 +458,7 @@ body {
     height: 40px;
     position: absolute;
     right: 50px;
-    top: 150px;
+    top: 160px;
     border: none;
 }
 
@@ -609,6 +609,10 @@ body {
 
 #lighttable.measure {
     cursor: url('../imgs/symbol_measure_cursor.png'), auto !important;
+}
+
+#lighttable.cursor-pin {
+    cursor: url('../imgs/symbol_pin_cursor.png'), auto;
 }
 
 /* Zoom Slider */
@@ -810,12 +814,18 @@ body {
 
 #annot_write {
     position: relative;
+    flex-shrink: 0;
     bottom: 0px;
     background-color: rgb(230, 230, 208);
     width: 100%;
     height: 300px;
     padding: 10px 20px;
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+#annot_write.edit {
+    background-color: darkorchid;
 }
 
 #annot_close {
@@ -847,7 +857,9 @@ body {
 }
 
 #annot_view {
+    position: relative;
     padding: 15px;
+    padding-bottom: 50px;
     display: flex;
     flex-flow: column;
     background-color: rgb(230, 230, 208);
@@ -856,6 +868,31 @@ body {
     margin-bottom: 10px;
     margin-top: 10px;
     overflow-y: auto;
+    align-items: center;
+}
+
+#annot_list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#annot_new {
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    bottom: 10px;
+    width: 200px;
+    height: 50px;
+    align-items: center;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+#annot_new img {
+    height: 90%;
 }
 
 #annot_editor {
@@ -884,55 +921,122 @@ body {
     cursor: nwse-resize;
 }
 
+#annot_set_pin {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 150px;
+    height: 50px;
+    border: 1px solid black;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+}
+
+#annot_remove_pin {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    top: 10px;
+    right: 180px;
+    border: 1px solid black;
+}
+
+#annot_remove_pin img {
+    height: 50px;
+    width: 50px;
+    padding: 8px;
+}
+
+#annot_set_pin img {
+    height: 50px;
+    width: 50px;
+    padding: 8px;
+}
+
+#annot_set_pin div {
+    flex-grow: 1;
+    text-align: center;
+}
+
 .annotation {
     width: 100%;
     background-color: white;
     box-sizing: border-box;
-    margin-bottom: 20px;
-    padding: 20px;
+    padding: 10px;
     border: 1px solid lightgrey;
     position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+}
+
+.annotation:not(:last-of-type) {
+    margin-bottom: 20px;
+}
+
+.annotation.highlighted {
+    background-color: var(--cb_orange);
 }
 
 .annot_text {
     width: 100%;
     text-align: justify;
+    max-height: 250px;
+    padding: 2px 5px;
+    overflow-y: auto;
 }
 
 .annot_edit {
-    position: absolute;
-    top: -3px;
-    right: -5px;
-    width: 30px;
-    height: 30px;
-    background-color: lightcoral;
-    box-sizing: border-box;
-    user-select: none;
+    background-image: url('../imgs/symbol_edit.png');
 }
 
-.annot_edit img {
-    padding: 5px;
+.annotation_content_wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     height: 100%;
-    width: 100%;
-    box-sizing: border-box;
 }
+
+.annotation_button_wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    float: right;
+    background-color: #eee;
+    border: 1px solid #ddd;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+}
+
+.annot_button {
+    box-sizing: border-box;
+    user-select: none;
+    transition: all .2s;
+}
+
+.annot_button_small {
+    width: 30px;
+    height: 30px;
+    background-size: 70%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.annot_button_small:hover {
+    background-size: 90%;
+}
+
 
 .annot_delete {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    right: -5px;
-    top: 32px;
-    background-color: coral;
-    box-sizing: border-box;
-    user-select: none;
-}
-
-.annot_delete img {
-    padding: 5px;
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
+    background-image: url('../imgs/symbol_x.png');
 }
 
 .annot_editor,
@@ -941,69 +1045,91 @@ body {
     font-size: 0.8em;
 }
 
+.annot_time {
+    color: #999;
+}
+
 .annot_editor {
     margin-right: 5px;
+    font-weight: 600;
 }
 
 .annot_sig {
     float: right;
     font-style: italic;
+    margin: 0px 10px;
+    width: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
 }
 
-.annot_time:before {
-    content: " (";
-}
-
-.annot_time:after {
-    content: ")";
-}
-
-.annotation.hidden_annot {
-    height: 2px;
-    padding: 0px;
-    margin-bottom: 30px;
-}
-
-.annotation.hidden_annot :not(.annot_hide) {
+.annot_hidden .annotation_content_wrapper,
+.annot_hidden .annot_sig,
+.annot_hidden .annotation_button_wrapper *:not(.annot_hide) {
     display: none;
 }
 
-.annotation.shown_annot {
-    background-color: lightgrey;
-    color: grey;
+.annotation.annot_hidden {
+    background-color: transparent;
+    border: none;
+    border-top: 2px solid gray;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
-.annotation.new_annot {
+.annotation.annot_hidden_shown {
+    background-color: #ccc;
+    color: #555;
+}
+
+.annotation.editable {
     background-color: yellow;
-    padding-right: 40px;
+}
+
+.annotation.edit {
+    border: 5px solid darkorchid;
+}
+
+.annotation.edit .annot_edit {
+    background-color: greenyellow;
+    border: 2px solid darkorchid;
 }
 
 #annot_submit {
-    flex: 0 0 auto;
+    /* flex: 0 0 auto; */
     width: 250px;
     height: 40px;
-    background-color: white;
-    margin: auto;
+    /* margin: auto; */
     text-align: center;
     line-height: 40px;
     font-size: 1.2em;
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
     user-select: none;
 }
 
-#annot_submit:hover {
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+#annot_cancel {
+    text-align: center;
+    width: 100px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 1.1em;
+    user-select: none;
+}
+
+.annot_editable_tag {
+    position: absolute;
+    right: 60px;
+    font-size: 0.6em;
+    background-color: rgba(255,255,255,0.9);
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 2px 5px;
 }
 
 #annot_submit:active {
     box-shadow: none;
     background-color: var(--cb_blue);
     color: white;
-}
-
-#annot_submit.disabled {
-    box-shadow: none;
-    background-color: grey;
 }
 
 .button.disabled,
@@ -1015,21 +1141,11 @@ body {
 }
 
 .annot_hide {
-    opacity: 0;
-    width: 15px;
-    height: 15px;
-    line-height: 15px;
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    user-select: none;
     background-image: url('../imgs/symbol_no_eye.png');
-    background-size: contain;
-    transition: all .2s;
 }
 
-.annotation.hidden_annot .annot_hide,
-.annotation.shown_annot .annot_hide {
+.annotation.annot_hidden .annot_hide,
+.annotation.annot_hidden_shown .annot_hide {
     background-image: url('../imgs/symbol_eye.png');
 }
 
@@ -1047,8 +1163,27 @@ body {
 }
 
 .annotation:hover .annot_hide,
-.annotation.hidden_annot .annot_hide {
+.annotation.annot_hidden .annot_hide {
     opacity: 1;
+}
+
+#annot_window .active {
+    background-color:#9191ee;
+}
+
+#annot_window .hover {
+    background-color: orange;
+}
+
+.annot_pin {
+    width: 30px;
+    height: 30px;
+    background-image: url("../imgs/symbol_pin_black.png");
+    background-size: 100%;
+    background-repeat: no-repeat;
+    float: left;
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 #fit_to_screen {
@@ -1057,7 +1192,16 @@ body {
     background: white;
     /* opacity: 0.3; */
     position: absolute;
-    top: 105px;
+    top: 115px;
+    right: 50px;
+}
+
+#center_to_origin {
+    width: 40px;
+    height: 40px;
+    background: white;
+    position: absolute;
+    top: 70px;
     right: 50px;
 }
 
@@ -1795,6 +1939,12 @@ input[type='checkbox']:checked {
     flex-shrink: 1;
 }
 
+.wrapper-vertical {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
 .workarea_size {
     flex-shrink: 1;
     flex-grow: 0;
@@ -1932,4 +2082,21 @@ input[type='checkbox']:checked {
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
     border-right: 1px solid #eee;
+}
+
+.wrapper-vertical {
+    display: flex;
+    flex-direction: row;
+}
+
+.wrapper-horizontal {
+    display: flex;
+    flex-direction: column;
+}
+
+.wrapper-centered {
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
 }

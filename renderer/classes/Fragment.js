@@ -1,6 +1,7 @@
 'use strict';
 
 const {getAllTags} = require('exif-js');
+const {Scaler} = require('./Scaler');
 
 /**
  * TODO
@@ -35,6 +36,9 @@ class Fragment {
     this.recto = {};
     this.verso = {};
 
+    this.recto.pins = [];
+    this.verso.pins = [];
+
     if ('urlTPOP' in data) this.urlTPOP = data.urlTPOP;
     if ('tpop' in data) this.tpop = data.tpop;
 
@@ -52,7 +56,7 @@ class Fragment {
       
       this.recto.img = new createjs.Bitmap();
       this.recto.img.id = id;
-      this.recto.img.name = 'Image - Recto';
+      this.recto.img.name = 'Fragment, Image, Recto';
       this.recto.img.cursor = 'pointer';
       this.recto.img.x = 0;
       this.recto.img.y = 0;
@@ -82,7 +86,7 @@ class Fragment {
       this.recto.container.name = 'Inner Container - Recto';
       this.recto.img = new createjs.Bitmap();
       this.recto.img.id = id;
-      this.recto.img.name = "Image - Recto (mirrored)";
+      this.recto.img.name = "Fragment, Image, Recto (mirrored)";
       this.recto.img.cursor = 'pointer';
       this.recto.img.x = 0;
       this.recto.img.y = 0;
@@ -105,7 +109,7 @@ class Fragment {
       
       this.verso.img = new createjs.Bitmap();
       this.verso.img.id = id;
-      this.verso.img.name = 'Image - Verso';
+      this.verso.img.name = 'Fragment, Image, Verso';
       this.verso.img.cursor = 'pointer';
       this.verso.img.x = 0;
       this.verso.img.y = 0;
@@ -135,7 +139,7 @@ class Fragment {
       this.verso.container.name = 'Inner Container - Verso';
       this.verso.img = new createjs.Bitmap();
       this.verso.img.id = id;
-      this.verso.img.name = "Image - Verso (mirrored)";
+      this.verso.img.name = "Fragment, Image, Verso (mirrored)";
       this.verso.img.cursor = 'pointer';
       this.verso.img.x = 0;
       this.verso.img.y = 0;
@@ -148,7 +152,7 @@ class Fragment {
 
     // create the fragment container
     this.container = this._createContainer(data, id);
-    if (data.x) this.moveToPixel(data.x, data.y);
+    if (data.x) this.moveTo(data.x, data.y);
     if (data.rotation) this.rotateToAngle(data.rotation);
 
     if (this.isRecto) this.container.addChild(this.recto.container);
@@ -166,11 +170,12 @@ class Fragment {
       this.baseY = this.container.y / this.container.scale;
     }
 
+    /*
     if (data.baseX && data.baseY) {
       const newX = this.baseX * this.container.scale;
       const newY = this.baseY * this.container.scale;
-      this.moveToPixel(newX, newY);
-    }
+      this.moveTo(newX, newY);
+    }*/
   }
 
   /**
@@ -220,17 +225,21 @@ class Fragment {
 
   /**
    * TODO
-   * @param {*} distX Number of pixels in current scaling by which
+   * @param {*} dx Number of pixels in current scaling by which
    * the image has to be moved in x direction.
-   * @param {*} distY Number of pixels in current scaling by which
+   * @param {*} dy Number of pixels in current scaling by which
    * the image has to be moved in y direction.
    */
-  moveByDistance(distX, distY) {
-    this.container.x += distX;
-    this.container.y += distY;
+  moveBy(dx, dy) {
+    const dBaseX = dx / Scaler.scaling;
+    const dBaseY = dy / Scaler.scaling;
+    this.baseX += dBaseX;
+    this.baseY += dBaseY;
 
-    this.baseX = this.baseX + (distX / this.container.scale);
-    this.baseY = this.baseY + (distY / this.container.scale);
+    this.container.x += dx;
+    this.container.y += dy;
+
+    this.movePins(dx, dy);
   }
 
   /**
@@ -239,18 +248,32 @@ class Fragment {
    * @param {*} x
    * @param {*} y
    */
-  moveToPixel(x, y) {
-    this.container.x = x;
-    this.container.y = y;
+  moveTo(x, y) {
+    const dx = x - this.container.x;
+    const dy = y - this.container.y;
+    this.moveBy(dx, dy);
+  }
+
+  movePins(dx, dy) {
+    for (const pin of this.recto.pins) {
+      pin.moveBy(dx, dy);
+    }
+    for (const pin of this.verso.pins) {
+      pin.moveBy(dx, dy);
+    }
   }
 
   /**
-   * TODO
+   * TODOf
    * @param {*} targetAngle
    */
   rotateToAngle(targetAngle) {
-    if (this.recto) this.recto.container.rotation = targetAngle%360;
-    if (this.verso) this.verso.container.rotation = targetAngle%360;
+    let currentAngle;
+    if (this.isRecto) currentAngle = this.recto.container.rotation;
+    else currentAngle = this.verso.container.rotation;
+
+    const deltaAngle = targetAngle - currentAngle;
+    this.rotateByAngle(deltaAngle);
   }
 
   /**
@@ -260,6 +283,32 @@ class Fragment {
   rotateByAngle(deltaAngle) {
     if (this.recto) this.recto.container.rotation += deltaAngle;
     if (this.verso) this.verso.container.rotation += deltaAngle;
+
+    this.rotatePins(deltaAngle);
+  }
+
+  rotatePins(deltaAngle) {
+    const matrix = new createjs.Matrix2D();
+    matrix.translate(this.getX(), this.getY())
+      .rotate(deltaAngle)
+      .translate(-this.getX(), -this.getY());
+
+    for (const pin of this.recto.pins) {
+      const pos = matrix.transformPoint(pin.pos.x, pin.pos.y);
+      pin.moveTo(pos.x, pos.y);
+    }
+    for (const pin of this.verso.pins) {
+      const pos = matrix.transformPoint(pin.pos.x, pin.pos.y);
+      pin.moveTo(pos.x, pos.y);
+    }
+  }
+
+  scale() {
+    const x_new = Scaler.x(this.getBaseX());
+    const y_new = Scaler.y(this.getBaseY());
+    this.container.x = x_new;
+    this.container.y = y_new;
+    this.container.scale = Scaler.scaling;
   }
 
   /**
@@ -270,13 +319,34 @@ class Fragment {
     this.container.scale = scaling;
   }
 
+  updatePins() {
+    for (const pin of this.recto.pins) {
+      if (pin) {
+        if (!this.isRecto || this.mirrored) {
+          pin.hide();
+        } else {
+          pin.show();
+        }
+      }
+    }
 
+    for (const pin of this.verso.pins) {
+      if (pin) {
+        if (this.isRecto || this.mirrored) {
+          pin.hide();
+        } else {
+          pin.show();
+        }
+      }
+    }
+  }
 
   /**
    * TODO
    * @param {*} inverted
    */
   flip(inverted) {
+    if (inverted) this.mirrored = !this.mirrored;
     // WARNING: The "current" side is changed immediately!
     this.isRecto = !this.isRecto;
     // version A: the second side has still to be loaded
@@ -301,6 +371,8 @@ class Fragment {
           this.container.addChild(this.verso.container);
         }
 
+        this.updatePins();
+
         // this.getImage().x = 0;
         // this.getImage().y = 0;
         // this.getInnerContainer.regX = this.relation.d_cx;
@@ -320,13 +392,8 @@ class Fragment {
           else url = this.recto.url;
         }
       } else {
-        console.log("Recto:", this.recto);
-        console.log("Verso:", this.verso);
         // VERSO
         if (!('url' in this.verso)) {
-          console.log('recto.url', this.recto.url);
-          console.log('recto.url_view', this.recto.url_view);
-          console.log("verso", this.verso);
           if ('url_view' in this.verso && this.verso.url_view) url = this.verso.url_view;
           else if ('url_view' in this.recto && this.recto.url_view) {
             const dot = this.recto.url_view.lastIndexOf(".");
@@ -363,6 +430,7 @@ class Fragment {
         this.container.addChild(this.verso.container);
       }
       if (!inverted) this.controller.updateSidebarFragmentList();
+      this.updatePins();
     }
   }
 
@@ -905,6 +973,23 @@ class Fragment {
     fragmentBounds['reference'] = 'global';
 
     return fragmentBounds;
+  }
+
+  addPin(pin) {
+    this.removePin(pin);
+    if (this.isRecto) this.recto.pins.push(pin);
+    else this.verso.pins.push(pin);
+  }
+
+  removePin(pin) {
+    const indexRecto = this.recto.pins.indexOf(pin);
+    if (indexRecto != -1) {
+      this.recto.pins.splice(indexRecto, 1);
+    }
+    const indexVerso = this.verso.pins.indexOf(pin);
+    if (indexVerso != -1) {
+      this.verso.pins.splice(indexVerso, 1);
+    }
   }
 }
 

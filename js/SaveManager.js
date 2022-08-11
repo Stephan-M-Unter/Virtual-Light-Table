@@ -19,6 +19,7 @@ const path = require('path');
 const fs = require('fs');
 const JSZip = require('jszip');
 const yauzl = require('yauzl');
+const { table } = require('console');
 
 /**
  * TODO
@@ -55,7 +56,7 @@ class SaveManager {
 
   /**
    * TODO
-   * @param {Object} tableConfiguration
+   * @param {Object} table
    *    Object containing the full data JSON with table and fragments configuration.
    * @param {[Boolean]} overwrite
    *    TRUE: if there is already a savefile, it will be overwritten
@@ -67,7 +68,7 @@ class SaveManager {
    * @return {String}
    *    String with the filepath of the just saved file.
    */
-  saveTable(tableConfiguration, overwrite, autosave, tableID) {
+  saveTable(table, overwrite, autosave, tableID) {
     let filepath;
     if (autosave) {
       filepath = path.join(this.tempSaveFolder, tableID + '_temp.vlt');
@@ -112,9 +113,9 @@ class SaveManager {
       const imagepath = path.dirname(filepath) + '/imgs';
       if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
-      for (const fID in tableConfiguration.fragments) {
-        if (Object.prototype.hasOwnProperty.call(tableConfiguration.fragments, fID)) {
-          const fragment = tableConfiguration.fragments[fID];
+      for (const fID in table.fragments) {
+        if (Object.prototype.hasOwnProperty.call(table.fragments, fID)) {
+          const fragment = table.fragments[fID];
           const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
 
           if ('recto' in fragment) {
@@ -142,7 +143,7 @@ class SaveManager {
                   fs.copyFileSync(rectoOldPath, rectoNewPath);
                 }
               }
-              tableConfiguration.fragments[fID].recto.url = rectoNewPath;
+              table.fragments[fID].recto.url = rectoNewPath;
             }
           }
           
@@ -171,13 +172,13 @@ class SaveManager {
                   fs.copyFileSync(versoOldPath, versoNewPath);
                 }
               }
-              tableConfiguration.fragments[fID].verso.url = versoNewPath;
+              table.fragments[fID].verso.url = versoNewPath;
             }
           }
         }
       }
 
-      let content = this.convertToRelativePaths(filepath, tableConfiguration);
+      let content = this.convertToRelativePaths(filepath, table);
 
       for (const key of Object.keys(content.fragments)) {
         if ('recto' in content.fragments[key] && 'url_view' in content.fragments[key].recto) {
@@ -217,7 +218,6 @@ class SaveManager {
       this.filepath = filepath;
       const content = fs.readFileSync(filepath[0]).toString();
       console.log('**SaveManager** - Loading ' + filepath);
-      console.log('Loading; filepath:', this.filepath);
       return JSON.parse(content);
     }
   }
@@ -270,7 +270,7 @@ class SaveManager {
    */
   getSaveFiles(folder) {
     this.currentSaveFolder = folder;
-    console.log('Reading folder ' + folder + '.');
+    console.log('**SAVE MANAGER** - Reading folder ' + folder + '.');
     const files = fs.readdirSync(folder).filter(function(item) {
       return item.endsWith('.vlt');
     });
@@ -364,6 +364,10 @@ class SaveManager {
     this.filepath = filepath;
 
     json = this.convertToAbsolutePaths(filepath, json);
+
+    for (const aID of Object.keys(json.annots)) {
+      json.annots[aID].editable = false;
+    }
 
     return json;
   }

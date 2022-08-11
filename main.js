@@ -344,15 +344,17 @@ function preprocess_loading_fragments(data) {
     }
   }
 
-  const status = {
-    name: fragment.name,
-    nProcessed: n_processed,
-    nTotal: n_total,
-  };
-  sendMessage(mainWindow, 'client-loading-progress', status);
-
-  if (!('recto' in fragment)) fragment.recto = {};
-  if (!('verso' in fragment)) fragment.verso = {};
+  if (fragment) {
+    const status = {
+      name: fragment.name,
+      nProcessed: n_processed,
+      nTotal: n_total,
+    };
+    sendMessage(mainWindow, 'client-loading-progress', status);
+    
+    if (!('recto' in fragment)) fragment.recto = {};
+    if (!('verso' in fragment)) fragment.verso = {};
+  }
 
   if (allProcessed) {
     if ('graphicFilters' in data.tableData && data.tableData.graphicFilters) {
@@ -670,7 +672,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
   tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
   if (Object.keys(data.tableData.fragments).length > 0) {
     // no need to autosave when there are no fragments
-    saveManager.saveTable(data.tableData, false, true, data.tableID);
+    saveManager.saveTable(tableManager.getTable(data.tableID), false, true, data.tableID);
   }
 
   sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
@@ -798,9 +800,10 @@ ipcMain.on('server-save-file', (event, data) => {
   }
 
   let filepath; let response;
+  const tableData = tableManager.getTable(data.tableID);
   if (data.quicksave && saveManager.getCurrentFilepath()) {
     // overwrite old file
-    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), true, false);
+    filepath = saveManager.saveTable(tableData, true, false);
     response = {
       title: 'Quicksave',
       desc: 'Quicksave successful',
@@ -808,7 +811,7 @@ ipcMain.on('server-save-file', (event, data) => {
     };
   } else {
     // don't overwrite but ask for new file destination
-    filepath = saveManager.saveTable(tableManager.getTable(data.tableID), false, false);
+    filepath = saveManager.saveTable(tableData, false, false);
     response = {
       title: 'Save',
       desc: 'Lighttable has successfully been saved',
@@ -912,7 +915,7 @@ ipcMain.on('server-write-annotation', (event, data) => {
     console.log(timestamp() + ' ' +
     'Receiving code [server-write-annotation] from client for table '+data.tableID);
   }
-  tableManager.setAnnotation(data.tableID, data.aData);
+  tableManager.writeAnnotation(data.tableID, data.annotation);
 });
 
 // server-remove-annotation | data -> data.tableID, data.aID
@@ -922,15 +925,6 @@ ipcMain.on('server-remove-annotation', (event, data) => {
     'Receiving code [server-remove-annotation] from client for table '+data.tableID);
   }
   tableManager.removeAnnotation(data.tableID, data.aID);
-});
-
-// server-update-annotation | data -> data.tableID, data.aData
-ipcMain.on('server-update-annotation', (event, data) => {
-  if (devMode) {
-    console.log(timestamp() + ' ' +
-    'Receiving code [server-update-annotation] from client for table '+data.tableID);
-  }
-  tableManager.updateAnnotation(data.tableID, data.aData);
 });
 
 // server-open-upload

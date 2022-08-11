@@ -78,6 +78,7 @@ class Stage {
     this.workarea = new createjs.Container();
     this.workarea.name = "Workarea Container";
     this.worksquare = new createjs.Shape();
+    this.worksquare.name = "Workarea";
     this.worktext = new createjs.Text('Reconstruction Area');
     this.worktextSize = new createjs.Text();
     this.workarea.addChild(this.worksquare, this.worktext, this.worktextSize);
@@ -102,7 +103,10 @@ class Stage {
     this.scale = new createjs.Container();
     this.scale.name = "Scale Container";
     this.addToOverlay(this.scale, 0);
-    
+
+    this.pins = new createjs.Container();
+    this.addToOverlay(this.pins);
+
     /** @constant {Selector} */
     this.selector = new Selector(this.controller);
 
@@ -157,6 +161,10 @@ class Stage {
     return background;
   }
 
+  getObjectsUnderPoint(x, y) {
+    return this.stage.getObjectsUnderPoint(x,y);
+  }
+
   /**
    * Updates all GUI elements regarding measurements to the new PPI ratio.
    * @param {double} ppi PPI ratio given by the calibration tool.
@@ -182,6 +190,17 @@ class Stage {
    */
   getPPI() {
     return this.ppi;
+  }
+
+  addPin(pin) {
+    const pinNode = pin.getNode();
+    this.pins.addChild(pinNode);
+    this.update();
+  }
+  
+  removePin(pin) {
+    this.pins.removeChild(pin.getNode());
+    this.update();
   }
 
   /**
@@ -414,6 +433,8 @@ class Stage {
         this.stage.removeChild(this.fragmentList[idx].getContainer());
       }
     }
+    this.pins.removeAllChildren();
+    this.controller.clearWorkarea();
     this.clearSelection();
     this._clearFragmentList();
   }
@@ -592,8 +613,8 @@ class Stage {
   setScaling(scaling, scaleCenterX, scaleCenterY) {
     this.controller.clearSelection();
     this.clearSelection();
-    let distX = 0;
-    let distY = 0;
+    let dx = 0;
+    let dy = 0;
     this.stage.scaling = scaling;
 
     // zoom at screen center
@@ -603,17 +624,19 @@ class Stage {
 
     // overwrite center if specific zoom center is given
     if (scaleCenterX && scaleCenterY) {
-      distX = center.x - scaleCenterX;
-      distY = center.y - scaleCenterY;
-      this.moveStage(distX, distY);
+      dx = center.x - scaleCenterX;
+      dy = center.y - scaleCenterY;
+      this.moveStage(dx, dy);
     }
     Scaler.zoom.world.x = Scaler.zoom.screen.x;
     Scaler.zoom.world.y = Scaler.zoom.screen.y;
     Scaler.scaling = (this.ppi/96)*this.stage.scaling/100;
-    this._scaleObjects();
+    this._scaleObjects(dx, dy);
     this.controller.scaleMeasurements();
     
-    this.moveStage(-distX, -distY);
+    this.moveStage(-dx, -dy);
+    /*
+    */
     this.updateGrid();
     this.updateScale();
     this.updateWorkarea();
@@ -740,6 +763,14 @@ class Stage {
     const fragmentContainer = newFragment.getContainer();
     this.addBeforeOverlay(fragmentContainer);
 
+    for (const graphPin of this.pins.children) {
+      const pin = graphPin.pin;
+      if (pin.target.id == newId) {
+        newFragment.addPin(pin);
+        pin.target.object = newFragment;
+      }
+    }
+
     this.controller.updateSidebarFragmentList();
   }
 
@@ -783,6 +814,38 @@ class Stage {
 
   flipFragment(id) {
     this.fragmentList[id].flip();
+  }
+
+  moveFragment(id, dx, dy) {
+    const fragment = this.fragmentList[id];
+    fragment.moveBy(dx, dy);
+    this._updateBb();
+    this.controller.updateRulers();
+    this.update();
+  }
+  
+  moveFragmentTo(id, x, y) {
+    const fragment = this.fragmentList[id];
+    fragment.moveTo(x, y);
+    this._updateBb();
+    this.controller.updateRulers();
+    this.update();
+  }
+  
+  rotateFragment(id, angle) {
+    const fragment = this.fragmentList[id];
+    fragment.rotateByAngle(angle);
+    this._updateBb();
+    this.controller.updateRulers();
+    this.update();
+  }
+  
+  rotateFragmentTo(id, angle) {
+    const fragment = this.fragmentList[id];
+    fragment.rotateToAngle(angle);
+    this._updateBb();
+    this.controller.updateRulers();
+    this.update();
   }
 
   /**
@@ -1024,7 +1087,7 @@ class Stage {
     for (const idx in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, idx)) {
         const fragment = this.selectedList[idx];
-        if (fragment && !fragment.isLocked()) fragment.moveByDistance(deltaX, deltaY);
+        if (fragment && !fragment.isLocked()) fragment.moveBy(deltaX, deltaY);
       }
     }
 
@@ -1034,29 +1097,38 @@ class Stage {
 
   /**
    * TODO
-   * @param {*} deltaX
-   * @param {*} deltaY
+   * @param {*} dx
+   * @param {*} dy
    */
-  moveStage(deltaX, deltaY) {
-    if (!isNaN(deltaX) && !isNaN(deltaY)) {
+  moveStage(dx, dy) {
+    if (!isNaN(dx) && !isNaN(dy)) {
       for (const idx in this.fragmentList) {
         if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
           const fragment = this.fragmentList[idx];
-          if (!fragment.isLocked()) fragment.moveByDistance(deltaX, deltaY);
+          if (!fragment.isLocked()) fragment.moveBy(dx, dy);
         }
       }
-      this.controller.moveMeasurements(deltaX, deltaY);
-      this.moveOffset(deltaX, deltaY);
+
+      for (const pin of this.pins.children) {
+        if (pin.pin.target.type == 'stage') {
+          pin.pin.moveBy(dx, dy);
+        }
+      }
+
+      this.controller.moveMeasurements(dx, dy);
+      this.moveOffset(dx, dy);
       this._updateBb();
+      this.updateWorkarea();
+      this.controller.updateRulers();
       this.update();
     }
   }
 
-  moveOffset(deltaX, deltaY) {
-    this.offset.x += deltaX;
-    this.offset.y += deltaY;
-    this.offset.baseX = this.offset.baseX + (deltaX / this.offset.scale);
-    this.offset.baseY = this.offset.baseY + (deltaY / this.offset.scale);
+  moveOffset(dx, dy) {
+    this.offset.x += dx;
+    this.offset.y += dy;
+    this.offset.baseX = this.offset.baseX + (dx / this.offset.scale);
+    this.offset.baseY = this.offset.baseY + (dy / this.offset.scale);
   }
 
   /**
@@ -1065,18 +1137,16 @@ class Stage {
    * @private
    */
   _scaleObjects() {
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        const fragment = this.fragmentList[idx];
-        const xNew = Scaler.x(fragment.getBaseX());
-        const yNew = Scaler.y(fragment.getBaseY());
-        fragment.moveToPixel(xNew, yNew);
-        fragment.scaleToValue(Scaler.scaling);
-      }
+    for (const fragment of Object.values(this.fragmentList)) {
+        fragment.scale();
     }
     this.offset.x = Scaler.x(this.offset.baseX);
     this.offset.y = Scaler.y(this.offset.baseY);
     this.offset.scale = Scaler.scaling;
+
+    for (const pin of this.pins.children) {
+      pin.pin.scale();
+    }
 
     this._updateBb();
     this._updateRotator();
@@ -1090,8 +1160,8 @@ class Stage {
   flipTable(horizontalFlip=true) {
     this.controller.clearSelection();
 
-    const yAxis = this.stage.canvas.width/2;
-    const xAxis = this.stage.canvas.height/2;
+    const yAxis = this.offset.x;
+    const xAxis = this.offset.y;
 
     for (const idx in this.fragmentList) {
       if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
@@ -1119,9 +1189,26 @@ class Stage {
           yNew = 2*xAxis - y;
           fragment.rotateToAngle(180+fragment.getRotation());
         }
-        fragment.moveByDistance(-(x-xNew), -(y-yNew));
+        fragment.moveBy(-(x-xNew), -(y-yNew));
       }
     }
+
+    for (const pin of this.pins.children) {
+      if (pin.pin.target.type == 'stage') {
+        const x = pin.pin.pos.x;
+        const y = pin.pin.pos.y;
+        let xNew; let yNew;
+        if (horizontalFlip) {
+          xNew = 2*yAxis - x;
+          yNew = y;
+        } else {
+          xNew = x;
+          yNew = 2*xAxis - y;
+        }
+        pin.pin.moveBy(-(x-xNew), -(y-yNew));
+      }
+    }
+
     this.update();
     this.controller.saveToModel(false);
     this.controller.updateSidebarFragmentList();
@@ -1296,7 +1383,6 @@ class Stage {
       }
 
       this.ghoster.on('mouseover', () => {
-        console.log("Miep");
         this.ghoster.getChildAt(0).graphics.clear()
           .beginFill('#aaa').beginStroke('black').drawRoundRectComplex(-20, -20, 40, 40, 5, 5, 5, 5).endFill();
         this.update();
@@ -1503,29 +1589,39 @@ class Stage {
    * @param {*} horizontal
    */
   showFlipLine(horizontal) {
+    const lineContainer = new createjs.Container();
+    const lineText = new createjs.Text('Mirror Axis', '30px Arial', 'black');
+    lineText.alpha = 0.4;
+    const line = new createjs.Shape();
+    
+    lineContainer.addChild(line);
+    lineContainer.addChild(lineText);
     if (horizontal) {
-      const line = new createjs.Shape();
       line.graphics.setStrokeStyle(4)
-          .beginStroke('rgba(0,0,0,0.2)')
-          .setStrokeDash([10, 8])
-          .moveTo(this.width/2, 0)
-          .lineTo(this.width/2, this.height)
-          .endStroke();
-      this.lines.horizontal = line;
+      .beginStroke('rgba(0,0,0,0.2)')
+      .setStrokeDash([10, 8])
+      .moveTo(this.offset.x, 0)
+      .lineTo(this.offset.x, this.height)
+      .endStroke();
+      lineText.rotation = -90;
+      lineText.y = lineText.getBounds().width + 20;
+      lineText.x = this.offset.x - lineText.getBounds().height;
+      this.lines.horizontal = lineContainer;
       this.addToOverlay(this.lines.horizontal);
-      this.update();
     } else {
-      const line = new createjs.Shape();
       line.graphics.setStrokeStyle(4)
-          .beginStroke('rgba(0,0,0,0.2)')
-          .setStrokeDash([10, 8])
-          .moveTo(0, this.height/2)
-          .lineTo(this.width, this.height/2)
-          .endStroke();
-      this.lines.vertical = line;
+      .beginStroke('rgba(0,0,0,0.2)')
+      .setStrokeDash([10, 8])
+      .moveTo(0, this.offset.y)
+      .lineTo(this.width, this.offset.y)
+      .endStroke();
+      lineText.x = this.width - lineText.getBounds().width - 20;
+      lineText.y = this.offset.y - 30;
+      lineText.alpha = 0.4;
+      this.lines.vertical = lineContainer;
       this.addToOverlay(this.lines.vertical);
-      this.update();
     }
+    this.update();
   }
 
   /**

@@ -13,6 +13,7 @@ let konamiDetection = [];
 let konamiActive = false;
 
 let xyz; // REMOVE: entfernen
+let ann;
 
 /**
  * Checks if the last keystroke aligns with the famous konami code
@@ -297,6 +298,7 @@ $(document).ready(function() {
       $('#annot_button').removeClass('hidden');
       $('#fit_to_screen').removeClass('hidden');
       $('#reset_zoom').removeClass('hidden');
+      $('#center_to_origin').removeClass('hidden');
       $('#topbar').removeClass('hidden');
       $('#hide_hud').removeClass('hide_active');
     } else {
@@ -306,6 +308,7 @@ $(document).ready(function() {
       $('#annot_button').addClass('hidden');
       $('#fit_to_screen').addClass('hidden');
       $('#reset_zoom').addClass('hidden');
+      $('#center_to_origin').addClass('hidden');
       $('#topbar').addClass('hidden');
       $('#hide_hud').addClass('hide_active');
     }
@@ -314,31 +317,17 @@ $(document).ready(function() {
   $('#reset_zoom').click(function() {
     controller.resetZoom();
   });
+  $('#center_to_origin').click(function() {
+    controller.centerToOrigin();
+  });
 
   // Annotation Button
-  $('#annot_button').click(function() {
-    if ($('#annot_window').css('display') == 'flex') {
-      $('#annot_window').css('animation-name', 'fadeOut');
-      $('#annot_window').bind('animationend', function() {
-        $('#annot_window').css('display', 'none');
-        $('#annot_window').unbind('animationend');
-        $('#annot_window').css('animation-name', 'fadeIn');
-      });
-      controller.setPermission('hotkeys', true);
-    } else {
-      $('#annot_window').css('display', 'flex');
-      controller.setPermission('hotkeys', false);
-    }
+  $('#annot_button').click(function(event) {
+    controller.toggleAnnotationPopup(event);
   });
-  $('#annot_close').click(function() {
-    $('#annot_window').css('animation-name', 'fadeOut');
-    $('#annot_window').bind('animationend', function() {
-      $('#annot_window').css('display', 'none');
-      $('#annot_window').unbind('animationend');
-      $('#annot_window').css('animation-name', 'fadeIn');
-    });
-    controller.setPermission('hotkeys', true);
-  });
+  $('#annot_close').click(function(event) {
+    controller.closeAnnotationPopup(event);
+  }); 
   $('#annot_text').keyup(function(event) {
     controller.toggleAnnotSubmitButton();
   });
@@ -351,13 +340,19 @@ $(document).ready(function() {
     }
   });
   $('#annot_show').click(function() {
-    if ($('#annot_show').hasClass('pressed')) {
-      $('#annot_show').removeClass('pressed');
-      controller.hideHiddenAnnotations();
-    } else {
-      $('#annot_show').addClass('pressed');
-      controller.showHiddenAnnotations();
-    }
+    controller.toggleHiddenAnnotations();
+  });
+  $('#annot_set_pin').click(function(event) {
+    controller.startPinning(event);
+  });
+  $('#annot_remove_pin').click(function() {
+    controller.removePin();
+  });
+  $('#annot_cancel').click(function() {
+    controller.cancelAnnotation();
+  });
+  $('#annot_new').click(function() {
+    controller.openAnnotationForm();
   });
 
   const annotStart = {};
@@ -572,7 +567,9 @@ $(document).ready(function() {
         controller.removeFragments();
       }else if (event.keyCode == 8) {
         // BACKSPACE -> Delete Fragment(s)
-        controller.removeFragments();
+        if (hotkeysOn) {
+          controller.removeFragments();
+        }
       } else if (event.keyCode == 76) {
         // L -> Toggle Light
         if (hotkeysOn) {
@@ -594,9 +591,8 @@ $(document).ready(function() {
           controller.toggleScaleMode();
         }
       } else if (event.keyCode == 27) {
-        // ESC -> deselect All
-        controller.clearSelection();
-        controller.endMeasurement();
+        // ESC -> handle ESC
+        controller.handleESC(event);
       } else if (event.keyCode == 77) {
         // M -> Start Measure
         if (hotkeysOn) {
@@ -609,33 +605,43 @@ $(document).ready(function() {
         }
       } else if (event.keyCode == 79) {
         // O -> change fragment
-        controller.changeFragment();
+        if (hotkeysOn) {
+          controller.changeFragment();
+        }
       } else if (event.keyCode == 116) {
         // F5 -> update Stage
         controller.update();
       } else if (event.keyCode == 67) {
         // C -> Calibration Tool
-        controller.sendToServer('server-open-calibration');
+        if (hotkeysOn) {
+          controller.sendToServer('server-open-calibration');
+        }
       } else if (event.key == '<') {
         // < -> test key
         controller.sendToServer('test');
       } else if (event.keyCode == 82) {
         // R -> toggle Rulers
-        controller.toggleRulerMode();
+        if (hotkeysOn) {
+          controller.toggleRulerMode();
+        }
       } else if (event.keyCode == 107) {
         // + -> Zoom in
-        const currentZoom = $('#zoom_slider').val();
-        const currentStepsize = $('#zoom_slider').attr('step');
-        const newScaling = parseFloat(currentZoom) + parseFloat(currentStepsize);
-        $('#zoom_slider').val(newScaling);
-        controller.setScaling(newScaling);
+        if (hotkeysOn) {
+          const currentZoom = $('#zoom_slider').val();
+          const currentStepsize = $('#zoom_slider').attr('step');
+          const newScaling = parseFloat(currentZoom) + parseFloat(currentStepsize);
+          $('#zoom_slider').val(newScaling);
+          controller.setScaling(newScaling);
+        }
       } else if (event.keyCode == 109) {
         // - -> Zoom out
-        const currentZoom = $('#zoom_slider').val();
-        const currentStepsize = $('#zoom_slider').attr('step');
-        const newScaling = parseFloat(currentZoom) - parseFloat(currentStepsize);
-        $('#zoom_slider').val(newScaling);
-        controller.setScaling(newScaling);
+        if (hotkeysOn) {
+          const currentZoom = $('#zoom_slider').val();
+          const currentStepsize = $('#zoom_slider').attr('step');
+          const newScaling = parseFloat(currentZoom) - parseFloat(currentStepsize);
+          $('#zoom_slider').val(newScaling);
+          controller.setScaling(newScaling);
+        }
       }
       if (!konamiActive) {
         checkForKonami(event.keyCode);
@@ -740,4 +746,5 @@ $(document).ready(function() {
   });
 
   xyz = controller.getStage(); // REMOVE
+  ann = controller.annotationPopup;
 });

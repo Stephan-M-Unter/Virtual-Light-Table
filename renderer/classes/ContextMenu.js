@@ -9,8 +9,8 @@ class ContextMenu {
         this.devMode = false;
 
         this.contexts = {
-            'fragment': ['edit', 'flip', 'lock', 'remove', 'devInspect'],
-            'stage': ['new_table', 'save', 'add_fragment', 'flip_hor', 'flip_ver'],
+            'fragment': ['edit', 'flip', 'lock', 'resetPos', 'resetRot', 'remove', 'devInspect'],
+            'stage': ['new_table', 'save', 'add_fragment', 'flip_hor', 'flip_ver', 'centerToOrigin'],
             'topbar_table': ['new_table', 'remove'],
         };
 
@@ -54,7 +54,19 @@ class ContextMenu {
             'devInspect': {
                 src: '../imgs/symbol_magnifier.png',
                 label: 'DevMode: Inspect',
-            }
+            },
+            'resetPos': {
+                src: '../imgs/symbol_to_origin.png',
+                label: 'Move to Origin',
+            },
+            'resetRot': {
+                src: '../imgs/symbol_reset_rotate.png',
+                label: 'Reset Rotation',
+            },
+            'centerToOrigin': {
+                src: '../imgs/symbol_to_origin.png',
+                label: 'Re-center to Origin',
+            },
         }
     }
 
@@ -85,6 +97,8 @@ class ContextMenu {
         $('#contextmenu').append(contextItem);
 
         contextItem.addEventListener('click', () => {
+            // TODO most certainly there is a better way to configure this kind of
+            // button type specific algorithmic handling
             if (buttonType == 'edit') {
                 this.controller.changeFragment(this.id);
             } else if (buttonType == 'lock') {
@@ -109,6 +123,12 @@ class ContextMenu {
                 this.controller.flipTable(false);   
             } else if (buttonType == 'devInspect') {
                 this.controller.inspect(this.id);
+            } else if (buttonType == 'resetRot') {
+                this.controller.resetRotation(this.id);
+            } else if (buttonType == 'resetPos') {
+                this.controller.resetPosition(this.id);
+            } else if (buttonType == 'centerToOrigin') {
+                this.controller.centerToOrigin();
             }
         });
     }
@@ -139,7 +159,7 @@ class ContextMenu {
             this.clear();
             this.loadContext(context);
             $('#contextmenu').css('left', x);
-            $('#contextmenu').css('top', y);
+            $('#contextmenu').css('top', Math.min(y, $(window).height()-$('#contextmenu').innerHeight()));
             $('#contextmenu').css('opacity', 1);
         } else {
             this.context = null;
