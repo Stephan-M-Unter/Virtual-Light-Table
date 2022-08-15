@@ -1637,16 +1637,17 @@ class Stage {
    * @param {*} horizontal
    */
   showFlipLine(horizontal) {
+    const alpha = 0.6;
     const lineContainer = new createjs.Container();
     const lineText = new createjs.Text('Mirror Axis', '30px Arial', 'black');
-    lineText.alpha = 0.4;
+    lineText.alpha = alpha;
     const line = new createjs.Shape();
     
     lineContainer.addChild(line);
     lineContainer.addChild(lineText);
     if (horizontal) {
       line.graphics.setStrokeStyle(4)
-      .beginStroke('rgba(0,0,0,0.2)')
+      .beginStroke('rgba(0,0,0,'+alpha+')')
       .setStrokeDash([10, 8])
       .moveTo(this.offset.x, 0)
       .lineTo(this.offset.x, this.height)
@@ -1658,14 +1659,14 @@ class Stage {
       this.addToOverlay(this.lines.horizontal);
     } else {
       line.graphics.setStrokeStyle(4)
-      .beginStroke('rgba(0,0,0,0.2)')
+      .beginStroke('rgba(0,0,0,'+alpha+')')
       .setStrokeDash([10, 8])
       .moveTo(0, this.offset.y)
       .lineTo(this.width, this.offset.y)
       .endStroke();
       lineText.x = this.width - lineText.getBounds().width - 20;
       lineText.y = this.offset.y - 30;
-      lineText.alpha = 0.4;
+      lineText.alpha = alpha;
       this.lines.vertical = lineContainer;
       this.addToOverlay(this.lines.vertical);
     }

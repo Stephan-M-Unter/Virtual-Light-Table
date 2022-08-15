@@ -123,42 +123,25 @@ $(document).ready(function() {
     controller.sendToServer('server-quit-table');
   });
 
-  // Flip Buttons - toggles the display of horizontal and vertical flip buttons
-  $('#flip_table').click(function() {
-    if ($('#hor_flip_table').css('display') == 'none') {
-      // open flip buttons
-      $('#flip_table').addClass('button_active');
-      $('#hor_flip_table').css('display', 'inline-block');
-      $('#vert_flip_table').css('display', 'inline-block');
-      $('#flip_table>img').attr('src', '../imgs/symbol_x.png');
-    } else {
-      // close flip buttons
-      $('#flip_table').removeClass('button_active');
-      $('#vert_flip_table').css('display', 'none');
-      $('#hor_flip_table').css('display', 'none');
-      $('#flip_table>img').attr('src', '../imgs/symbol_flip.png');
-    }
-  });
-
   // Horizontal Flip Button
-  $('#hor_flip_table').click(function() {
+  $('#flip-hor-wrapper').click(function() {
     controller.flipTable(true);
   });
-  $('#hor_flip_table').mouseenter(function() {
+  $('#flip-hor-wrapper').mouseenter(function() {
     controller.showFlipLine(true);
   });
-  $('#hor_flip_table').mouseleave(function() {
+  $('#flip-hor-wrapper').mouseleave(function() {
     controller.hideFlipLines();
   });
 
   // Vertical Flip Button
-  $('#vert_flip_table').click(function() {
+  $('#flip-vert-wrapper').click(function() {
     controller.flipTable(false);
   });
-  $('#vert_flip_table').mouseenter(function() {
+  $('#flip-vert-wrapper').mouseenter(function() {
     controller.showFlipLine(false);
   });
-  $('#vert_flip_table').mouseleave(function() {
+  $('#flip-vert-wrapper').mouseleave(function() {
     controller.hideFlipLines();
   });
 
@@ -549,8 +532,8 @@ $(document).ready(function() {
         // Ctrl + Alt + D -> Toggle DevMode
         controller.toggleDevMode();
       } else if (event.keyCode == 65) {
-        // Ctrl + A -> DevMode, ask for model
-        controller.sendToServer('server-send-model', controller.getActiveTable());
+        // Ctrl + A -> Select ALL Fragments
+        controller.selectAll();
       } else if (event.keyCode == 81) {
         // Ctrl + Q -> DevMode, ask for everything
         controller.sendToServer('server-send-all');

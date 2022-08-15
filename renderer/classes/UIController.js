@@ -276,6 +276,13 @@ class UIController {
     this.sidebar.selectFragment(fragmentId);
   }
 
+  selectAll() {
+    const fragmentList = this.stage.getFragmentList();
+    for (const fID of Object.keys(fragmentList)) {
+      this.selectFragment(fID);
+    }
+  }
+
   /**
    * Notifies GUI elements to deselect the fragment with given ID.
    * @param {String} fragmentId - Fragment identifier, e.g. "f_0".

@@ -59,48 +59,6 @@
         <img src="../imgs/symbol_reset_zoom.png" />
     </div>
 
-    <!-- Control Elements -->
-    <div id="table_button_wrapper" class="no-select">
-        <div class="circularButtonWrapper" id="flip_buttons">
-            <div class="subButtonWrapper">
-                <div title="Flip table horizontally" class="squareButton no-select subButton" id="hor_flip_table">
-                    <img src="../imgs/symbol_horizontal_flip.svg" class="circularButtonImg">
-                    <span class="tooltip">Flip Table Horizontally</span>
-                </div>
-                <div title="Flip table vertically" class="squareButton no-select subButton" id="vert_flip_table">
-                    <img src="../imgs/symbol_vertical_flip.svg" class="circularButtonImg">
-                    <span class="tooltip">Flip Table Vertically</span>
-                </div>
-            </div>
-            <div title="Flip table" class="squareButton no-select" id="flip_table">
-                <img src="../imgs/symbol_flip.png" class="circularButtonImg">
-                <span class="tooltip">Flip Table</span>
-            </div>
-        </div>
-        <div title="Toggle background light" class="squareButton no-select" id="light_switch">
-            <img src="../imgs/symbol_light.png" class="circularButtonImg">
-            <span class="tooltip">Switch Light On/Off</span>
-        </div>
-        <!--
-            <div class="circularButtonWrapper" id="export_buttons">
-                <div class="subButtonWrapper">
-                    <div class="squareButton no-select subButton" id="export_jpg">
-                        <img src="../imgs/symbol_jpg.png" class="circularButtonImg">
-                        <span class="tooltip">Export JPG</span>
-                    </div>
-                    <div class="squareButton no-select subButton" id="export_png">
-                        <img src="../imgs/symbol_png.png" class="circularButtonImg">
-                        <span class="tooltip">Export PNG</span>
-                    </div>
-                </div>
-                <div class="squareButton no-select" id="export">
-                    <img src="../imgs/symbol_export.png" class="circularButtonImg">
-                    <span class="tooltip">Export</span>
-                </div>
-            </div>
-            -->
-    </div>
-
     <div id="annot_window">
         <div id="annot_title" class="no-select">Annotations</div>
         <div id="annot_show" class="no-select">Show Hidden</div>
@@ -310,6 +268,14 @@
                             <img src="../imgs/symbol_ruler.png">
                             <div class="display-item-label"><span class="underline">R</span>ulers</div>
                         </div>
+                        <div class="display-item-wrapper button" id="flip-vert-wrapper">
+                            <img src="../imgs/symbol_vertical_flip.svg">
+                            <div class="display-item-label">Flip Table (vert)</div>
+                        </div>
+                        <div class="display-item-wrapper button" id="flip-hor-wrapper">
+                            <img src="../imgs/symbol_horizontal_flip.svg">
+                            <div class="display-item-label">Flip Table (hor)</div>
+                        </div>
                     </div>
                     
                     
@@ -386,7 +352,7 @@
     </div>
     <!-- </left_sidebar> -->
 
-    <div id="contextmenu">
+    <div id="contextmenu" class="no-select">
         <div class="context-item">
             <div class="context-img-wrapper">
                 <img class="context-img" src="../imgs/symbol_edit.png">
