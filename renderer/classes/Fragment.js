@@ -291,7 +291,6 @@ class Fragment {
     const matrix = new createjs.Matrix2D();
     const x = this.getX();
     const y = this.getY();
-    console.log("x", x, "cx", cx);
     matrix.translate(cx, cy)
       .rotate(deltaAngle)
       .translate(-cx, -cy);

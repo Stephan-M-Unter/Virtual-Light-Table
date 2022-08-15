@@ -711,6 +711,8 @@ class Stage {
   toggleLock(fragmentID) {
     const fragment = this.fragmentList[fragmentID];
     const lockStatus = fragment.toggleLock();
+    this._updateBb();
+    this.update();
     return lockStatus;
   }
 
@@ -856,6 +858,8 @@ class Stage {
       const clickedId = event.target.id;
       if (event.nativeEvent.button == 2) {
         this.rightClick = true;
+        this.controller.clearSelection();
+        this.controller.selectFragment(clickedId);
         this.controller.showContextMenu(event.nativeEvent, 'fragment', clickedId);
       } else {
         if (event.nativeEvent.ctrlKey == false && !this.selectedList[clickedId]) {
