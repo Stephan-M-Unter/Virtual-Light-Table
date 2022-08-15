@@ -650,8 +650,9 @@ class UIController {
    * @param {Object} data
    */
   redoScene(data) {
-    this.annotationPopup.loadAnnotations(data.annots);
+    this.annotationPopup.load(data.annots);
     this.stage.redoScene(data);
+    this.updateWorkarea();
     this.updateSidebarFragmentList();
   }
 

@@ -298,7 +298,6 @@ class Pin {
         if (this.target.type == 'fragment' && !this.target.object) {
             this.setTarget(this.target);
         }
-        console.log("pin.remove, target:", this.target);
         this.unpin();
         this.detach();
         this.stage.removePin(this);

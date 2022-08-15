@@ -58,7 +58,7 @@ class Stage {
     }
 
     this.rightClick = false;
-
+    this.sceneChanged = false;
     
     this.graphicFilters = false;
     
@@ -479,11 +479,9 @@ class Stage {
    */
   redoScene(data) {
     if (data && data.stage) {
-      if (this.controller.isDevMode()) console.log('data.stage:', data.stage);
       this._loadStageConfiguration(data.stage);
     }
     if (data && data.fragments) {
-      if (this.controller.isDevMode()) console.log('data.fragments:', data.fragments);
       this._redoFragments(data.fragments);
     }
   }
@@ -884,10 +882,14 @@ class Stage {
     image.on('pressmove', (event) => {
       if (this.rightClick) return;
       this._moveObjects(event);
+      this.sceneChanged = true;
     });
 
     image.on('pressup', (event) => {
-      this.controller.saveToModel(false);
+      if (this.sceneChanged) {
+        this.controller.saveToModel(false);
+        this.sceneChanged = false;
+      }
       this.rightClick = false;
     });
 

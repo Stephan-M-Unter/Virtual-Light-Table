@@ -9,6 +9,7 @@ class AnnotationPopup {
     
     constructor(controller) {
         this.controller = controller;
+        this.annotations = {};
         this.clearAll();
         this.isOpen = false;
         this.window = {};
@@ -20,6 +21,11 @@ class AnnotationPopup {
         this.clearForm();
         $('#annot_list').empty();
         $('#annot_show').removeClass('pressed');
+        for (const aID of Object.keys(this.annotations)) {
+            if (this.annotations[aID] && this.annotations[aID].pin) {
+                this.removePin(aID);
+            }
+        }
         this.annotations = {
             'new': {},
         };

@@ -661,12 +661,19 @@ class Fragment {
    */
   setData(data) {
     this.name = data.name;
-    this.isRecto = data.showRecto;
+    // this.isRecto = data.showRecto;
     this.container.x = data.x;
     this.container.y = data.y;
     this.baseX = data.baseX;
     this.baseY = data.baseY;
-    this.container.rotation = data.rotation;
+    // this.container.rotation = data.rotation;
+    // this.rotateToAngle(data.rotation);
+    this.recto.container.rotation = data.rotation;
+    this.verso.container.rotation = data.rotation;
+
+    if (this.isRecto != data.showRecto) {
+      this.flip();
+    }
     
     if ('recto' in data) {
       this.recto.url = data.recto.url;
