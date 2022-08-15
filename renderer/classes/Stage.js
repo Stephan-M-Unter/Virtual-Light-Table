@@ -1492,6 +1492,7 @@ class Stage {
 
     // remove UI elements
     const savedSelection = this.controller.clearSelection();
+    const removedElements = this.removeElementsForExport();
 
     const pseudoLink = document.createElement('a');
     let extension; let type;
@@ -1531,23 +1532,50 @@ class Stage {
       this.setSelection(savedSelection);
       this.update();
       // this._saveToModel();
+      this.addElementsAfterExport(removedElements);
       return screenshot;
+    } else {
+      this.setSelection(savedSelection);
+      
+      // creating artificial anchor element for download
+      pseudoLink.download = 'reconstruction.' + extension;
+      pseudoLink.style.display = 'none';
+      
+      // temporarily appending the anchor, "clicking" on it, and removing it again
+      document.body.appendChild(pseudoLink);
+      pseudoLink.click();
+      document.body.removeChild(pseudoLink);
+      
+      if (full) {
+        // revert stage to original configuration
+        this.moveStage(-changeParameters.x, -changeParameters.y);
+        this.controller.setScaling(changeParameters.scale);
+      }
+      this.addElementsAfterExport(removedElements);
     }
-    this.setSelection(savedSelection);
+  }
 
-    // creating artificial anchor element for download
-    pseudoLink.download = 'reconstruction.' + extension;
-    pseudoLink.style.display = 'none';
+  removeElementsForExport() {
+    const removedObjects = {
+      background: [this.grid, this.workarea],
+      overlay: [this.pins],
+    }
+    for (const backgroundElement of removedObjects['background']) {
+      this.removeFromBackground(backgroundElement);
+    }
+    for (const overlayElement of removedObjects['overlay']) {
+      this.removeFromOverlay(overlayElement);
+    }
+    this.update();
+    return removedObjects;
+  }
 
-    // temporarily appending the anchor, "clicking" on it, and removing it again
-    document.body.appendChild(pseudoLink);
-    pseudoLink.click();
-    document.body.removeChild(pseudoLink);
-
-    if (full) {
-      // revert stage to original configuration
-      this.moveStage(-changeParameters.x, -changeParameters.y);
-      this.controller.setScaling(changeParameters.scale);
+  addElementsAfterExport(removedObjects) {
+    for (const backgroundElement of removedObjects['background']) {
+      this.addToBackground(backgroundElement);
+    }
+    for (const overlayElement of removedObjects['overlay']) {
+      this.addToOverlay(overlayElement);
     }
     this.update();
   }
