@@ -227,7 +227,7 @@ class Pin {
             this.scale();
             // this.annotationPopup.addHighlight(this.annotationID, 'active');
             this.stage.update();
-            this.annotationPopup.edit(this.annotationID);
+            // this.annotationPopup.edit(this.annotationID);
         }
     }
     

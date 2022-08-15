@@ -221,6 +221,7 @@ class Stage {
    * @param {*} node
    */
   addBeforeOverlay(node) {
+    this.stage.removeChild(node);
     const overlayIndex = this.stage.getChildIndex(this.overlay);
     this.stage.addChildAt(node, overlayIndex);
   }
@@ -1047,10 +1048,14 @@ class Stage {
     const rads = radsNew - radsOld;
     const deltaAngle = rads * (180 / Math.PI);
 
+    const cx = this.bb.x;
+    const cy = this.bb.y;
+
     for (const idx in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, idx)) {
         const fragment = this.selectedList[idx];
-        if (!fragment.isLocked()) fragment.rotateByAngle(deltaAngle);
+        // if (!fragment.isLocked()) fragment.rotateByAngle(deltaAngle);
+        if (!fragment.isLocked()) fragment.rotateByMatrix(cx, cy, deltaAngle);
       }
     }
 
@@ -1426,10 +1431,19 @@ class Stage {
   _updateRotator(x, y, height) {
     this.stage.removeChild(this.rotator);
 
-    if (Object.keys(this.selectedList).length == 1) {
-      const fragmentKey = Object.keys(this.selectedList)[0];
-      const lockStatus = this.selectedList[fragmentKey].isLocked();
-      if (lockStatus == false) {
+    if (Object.keys(this.selectedList).length > 0) {
+      let hasLocked = false;
+      let hasUnlocked = false;
+
+      for (const fID of Object.keys(this.selectedList)) {
+        if (this.selectedList[fID].isLocked()) {
+          hasLocked = true;
+        } else {
+          hasUnlocked = true;
+        }
+      }
+
+      if (hasUnlocked) {
         this.rotator = new createjs.Container();
   
         const circle = new createjs.Shape();
@@ -1798,6 +1812,9 @@ class Selector {
     if (!selectionList || Object.keys(selectionList).length == 0) {
       this.setToDefault();
     } else {
+      this.hasLocked = false;
+      this.hasUnlocked = false;
+
       let left = null;
       let right = null;
       let top = null;
@@ -1808,6 +1825,10 @@ class Selector {
       for (const idx in selectionList) {
         if (Object.prototype.hasOwnProperty.call(selectionList, idx)) {
           const fragment = selectionList[idx];
+
+          if (fragment.isLocked()) this.hasLocked = true;
+          else this.hasUnlocked = true;
+
           const fBounds = fragment.getGlobalBounds();
           if (!fBounds) return;
 
@@ -1826,6 +1847,7 @@ class Selector {
       this.height = height;
       this.cx = width/2;
       this.cy = height/2;
+
     }
   }
 
@@ -1836,9 +1858,30 @@ class Selector {
   getBb() {
     const bb = new createjs.Shape();
     bb.name = 'Bounding Box';
-    bb.graphics
-        .beginStroke('#f5842c')
-        .drawRect(0, 0, this.width, this.height);
+
+    if (this.hasUnlocked && !this.hasLocked) {
+      // only unlocked objects
+      bb.graphics
+      .beginStroke('#f5842c')
+      .drawRect(0, 0, this.width, this.height);
+    } else if (this.hasLocked && !this.hasUnlocked) {
+      // only locked objects
+      bb.graphics
+      .setStrokeStyle(2)
+      .beginStroke('#999999')
+      .drawRect(0, 0, this.width, this.height);
+    } else {
+      // both locked and unlocked objects
+      const strokeLength = 20;
+      bb.graphics
+      .setStrokeStyle(3)
+      .setStrokeDash([strokeLength, strokeLength], 0)
+      .beginStroke('#999999')
+      .drawRect(0, 0, this.width, this.height)
+      .setStrokeDash([strokeLength, strokeLength], strokeLength)
+      .beginStroke('#f5842c')
+      .drawRect(0, 0, this.width, this.height);
+    }
     bb.center = {x: this.x + this.width/2, y: this.y + this.height/2};
     bb.x = bb.center.x;
     bb.y = bb.center.y;

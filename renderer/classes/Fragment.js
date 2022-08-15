@@ -287,6 +287,20 @@ class Fragment {
     this.rotatePins(deltaAngle);
   }
 
+  rotateByMatrix(cx, cy, deltaAngle) {
+    const matrix = new createjs.Matrix2D();
+    const x = this.getX();
+    const y = this.getY();
+    console.log("x", x, "cx", cx);
+    matrix.translate(cx, cy)
+      .rotate(deltaAngle)
+      .translate(-cx, -cy);
+
+    const pos = matrix.transformPoint(this.getX(), this.getY());
+    this.moveTo(pos.x, pos.y);
+    this.rotateByAngle(deltaAngle);
+  }
+
   rotatePins(deltaAngle) {
     const matrix = new createjs.Matrix2D();
     matrix.translate(this.getX(), this.getY())
