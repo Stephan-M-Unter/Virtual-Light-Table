@@ -11,11 +11,8 @@ function loadData(config) {
     if ('maxZoom' in config && config.maxZoom) {
         $('#maxZoom').val(config.maxZoom);
     }
-    if ('tempFolder' in config && config.tempFolder) {
-        $('#temp-path').val(config.tempFolder);
-    }
-    if ('saveFolder' in config && config.saveFolder) {
-        $('#save-path').val(config.saveFolder);
+    if ('vltFolder' in config && config.vltFolder) {
+        $('#save-path').val(config.vltFolder);
     }
     if ('stepZoom' in config && config.stepZoom) {
         $('#stepZoom').val(config.stepZoom);
@@ -28,8 +25,7 @@ function saveData() {
         'minZoom': $('#minZoom').val(),
         'maxZoom': $('#maxZoom').val(),
         'stepZoom': $('#stepZoom').val(),
-        'tempFolder': $('#temp-path').val(),
-        'saveFolder': $('#save-path').val(),
+        'vltFolder': $('#save-path').val(),
     };
     if (verifyZoomValues()) {
         ipcRenderer.send('server-save-config', config);
@@ -92,11 +88,8 @@ $('#abort').click(function() {
 $('#save').click(function() {
     saveData();
 });
-$('#select-temp').click(function() {
-    ipcRenderer.send('server-select-folder', 'tempFolder');
-});
 $('#select-save').click(function() {
-    ipcRenderer.send('server-select-folder', 'saveFolder');
+    ipcRenderer.send('server-select-folder', 'vltFolder');
 });
 $('#calibrate').click(function() {
     ipcRenderer.send('server-open-calibration');
@@ -111,16 +104,12 @@ $('#stepZoom').on('keyup', function() {
     verifyZoomValues();
 });
 $('#default-save').click(function() {
-    ipcRenderer.send('server-get-default', 'saveFolder');
-});
-$('#default-temp').click(function() {
-    ipcRenderer.send('server-get-default', 'tempFolder');
+    ipcRenderer.send('server-get-default', 'vltFolder');
 });
 
 
 $(document).ready(function() {
     $('#save-path').attr('readonly', true);
-    $('#temp-path').attr('readonly', true);
     ipcRenderer.send('server-settings-opened');
 });
 

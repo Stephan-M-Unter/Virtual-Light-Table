@@ -15,7 +15,7 @@
 // Loading Requirements
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const util = require('util');
 const request = require('request');
 const process = require('process');
@@ -36,9 +36,9 @@ if (process.argv.includes('--test')) {
 }
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
-const vltFolder = path.join(appDataPath, 'Virtual Light Table');
-const saveFolder = path.join(vltFolder, 'saves');
-const tempFolder = path.join(vltFolder, 'temp');
+let vltFolder = path.join(appDataPath, 'Virtual Light Table');
+let saveFolder = path.join(vltFolder, 'saves');
+let tempFolder = path.join(vltFolder, 'temp');
 const vltConfigFile = path.join(vltFolder, 'vlt.config');
 const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
@@ -126,6 +126,7 @@ function main() {
   // CHECK FOR PYTHON
   check_python();
 
+  if (!(config.vltFolder)) config.vltFolder = vltFolder;
   saveManager = new SaveManager(config);
   tpopManager = new TPOPManager(vltFolder);
 
@@ -212,7 +213,13 @@ function readConfig() {
   if (!fs.existsSync(vltConfigFile)) return loadDefaultConfig();
   const configJSON = fs.readFileSync(vltConfigFile);
   try {
-    return JSON.parse(configJSON);
+    const config = JSON.parse(configJSON)
+    if (config.vltFolder) {
+      vltFolder = config.vltFolder;
+      saveFolder = path.join(vltFolder, 'saves');
+      tempFolder = path.join(vltFolder, 'temp');
+    }
+    return config;
   } catch (err) {
     console.log('An error occurred while reading the config file.');
     console.log(err);
@@ -1651,13 +1658,27 @@ ipcMain.on('server-save-config', function(event, newConfig) {
   settingsWindow.close();
   settingsWindow = null;
   config = newConfig;
+
   const saved = saveConfig();
   if (saved) {
-    if ('saveFolder' in config && config.saveFolder) {
-      saveManager.setSaveFolder(config.saveFolder);
-    }
-    if ('tempFolder' in config && config.tempFolder) {
-      saveManager.setTempFolder(config.tempFolder);
+    if ('vltFolder' in config && config.vltFolder && vltFolder != config.vltFolder && fs.existsSync(config.vltFolder)) {
+      if (fs.existsSync(path.join(vltFolder, 'saves'))) {
+        fs.moveSync(path.join(vltFolder, 'saves'), path.join(config.vltFolder, 'saves'));
+      }
+      if (fs.existsSync(path.join(vltFolder, 'temp'))) {
+        fs.moveSync(path.join(vltFolder, 'temp'), path.join(config.vltFolder, 'temp'));
+      }
+      if (fs.existsSync(path.join(vltFolder, 'tpop'))) {
+        fs.moveSync(path.join(vltFolder, 'tpop'), path.join(config.vltFolder, 'tpop'));
+      }
+
+      vltFolder = config.vltFolder;
+      saveFolder = path.join(vltFolder, 'saves');
+      tempFolder = path.join(vltFolder, 'temp');
+
+      tpopManager.setTpopFolder(path.join(vltFolder, 'tpop'));
+      saveManager.setSaveFolder(saveFolder);
+      saveManager.setTempFolder(tempFolder);
     }
     if ('minZoom' in config && config.minZoom
     && 'maxZoom' in config && config.maxZoom
@@ -1672,16 +1693,14 @@ ipcMain.on('server-save-config', function(event, newConfig) {
   }
 });
 
-ipcMain.on('server-get-default', function(event, folderType) {
-    let folderPath;
-    if (folderType == 'saveFolder') {
-      folderPath = path.join(vltFolder, 'saves');
-    } else if (folderType == 'tempFolder') {
-      folderPath = path.join(vltFolder, 'temp');
+ipcMain.on('server-get-default', function(event, valueType) {
+    let defaultValue;
+    if (valueType == 'vltFolder') {
+      defaultValue = path.join(appDataPath, 'Virtual Light Table');
     }
-    if (folderPath) {
+    if (defaultValue) {
       const response = {};
-      response[folderType] = folderPath;
+      response[valueType] = defaultValue;
       sendMessage(settingsWindow, 'settings-data', response);
     }
 });

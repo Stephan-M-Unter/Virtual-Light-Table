@@ -36,6 +36,13 @@ class TPOPManager {
     this.initialiseVLTdata();
   };
 
+  setTpopFolder(path) {
+    this.tpopFolder = path;
+    if (!fs.existsSync(this.tpopFolder)) {
+      fs.mkdirSync(this.tpopFolder);
+    }
+  }
+
   /**
    *
    * @param {*} reload
@@ -67,6 +74,8 @@ class TPOPManager {
           this.tpopData = JSON.parse(tpopFile);
         } catch (e) {
           console.log(e);
+          this.initialiseVLTdata(true);
+          return;
         }
         this.allTPOPData = this.tpopData['objects'].filter((el) => {
           if (el == null || typeof el == 'undefined') return false;

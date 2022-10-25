@@ -399,8 +399,6 @@ function displayFolders(folderList) {
     const ratio = (folder.amount - minFolder) / (maxFolder - minFolder);
     const ratioPercent = ratio * (maxPercent - minPercent) + minPercent;
 
-    console.log("amount", folder.amount, "ratio", ratio, "ratioPercent", ratioPercent);
-
     $(folderImage).css('width', ratioPercent*100+'%');
     $(folderImage).css('height', ratioPercent*100+'%');
 

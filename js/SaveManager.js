@@ -32,12 +32,11 @@ class SaveManager {
      *                           will be created.
      */
   constructor(config) {
-    if ('saveFolder' in config && config.saveFolder) {
-      this.defaultSaveFolder = config.saveFolder;
-    } else {
-      this.defaultSaveFolder = path.join(config.vltFolder, 'saves');
-    }
+    this.defaultSaveFolder = path.join(config.vltFolder, 'saves');
     this.currentSaveFolder = this.defaultSaveFolder;
+    console.log("** SAVE MANAGER ** - Default Save Folder:", this.defaultSaveFolder);
+    console.log("** SAVE MANAGER ** - Default Save Folder:", this.defaultSaveFolder);
+    console.log("** SAVE MANAGER ** - Current Save Folder:", this.currentSaveFolder);
     if (!fs.existsSync(this.defaultSaveFolder)) {
       // creating saves subfolder
       fs.mkdirSync(path.join(config.vltFolder, 'saves'));
