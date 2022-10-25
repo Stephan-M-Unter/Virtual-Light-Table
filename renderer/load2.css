@@ -2,8 +2,8 @@
 
 * {
     box-sizing: border-box;
+    color: rgb(160, 215, 210);
 }
-
 body {
     display: flex;
     flex-direction: row;

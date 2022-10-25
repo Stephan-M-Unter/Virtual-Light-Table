@@ -504,6 +504,10 @@ function check_python() {
       python.on('close', function(code) {
         if (code == 9009) {
           console.log(timestamp() + " Code 9009 - no working version of python found.");
+          const warning = dialog.showMessageBoxSync(null, {
+            title: 'VLT cannot be started!',
+            message: 'The VLT needs a running version of Python 3.x - please head to https://www.python.org/ and install the latest stable version before running the Virtual Light Table.'
+          })
           app.quit();
         } else if (code == 0) {
           console.log(timestamp() + ` [PYTHON] closed with code ${code}`);
