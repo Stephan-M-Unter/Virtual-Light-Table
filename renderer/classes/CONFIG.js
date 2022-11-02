@@ -18,6 +18,8 @@ class CONFIG {
         activeStroke: 'blue',
         defaultStroke: 'black',
     };
+
+    static UNDO_STEPS_MAX = 30;
 }
 
 module.exports.CONFIG = CONFIG;
