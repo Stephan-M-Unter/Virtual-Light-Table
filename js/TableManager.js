@@ -70,6 +70,8 @@
 
 'use strict';
 
+const Table = require("./Table");
+
 const irrelevantProperties = ['undoSteps', 'redoSteps', 'emptyTable'];
 
 /**
@@ -81,7 +83,6 @@ class TableManager {
      */
   constructor() {
     this.tables = {};
-    this.maxUndoSteps = 30;
     this.tableIdRunner = 0;
   }
 
@@ -101,8 +102,7 @@ class TableManager {
    * @param {String} tableID ID of table to clear, e.g. "table_1".
    */
   clearTable(tableID) {
-    const emptyTable = this.getEmptyTable();
-    this.tables[tableID] = emptyTable;
+    this.tables[tableID] = new Table(tableID);
   }
 
   /**
@@ -112,9 +112,8 @@ class TableManager {
    * @return {String}
    */
   createNewTable(tableID) {
-    const emptyTable = this.getEmptyTable();
     let newTableID;
-
+    
     if (tableID && !Object.keys(this.tables).includes(tableID)) {
       newTableID = tableID;
     } else {
@@ -128,6 +127,7 @@ class TableManager {
         }
       }
     }
+    const emptyTable = new Table(newTableID);
     this.tables[newTableID] = emptyTable;
     return newTableID;
   }
@@ -165,48 +165,11 @@ class TableManager {
    * @return {Boolean}
    */
   hasFragments(tableID) {
-    if (tableID in this.tables && Object.keys(this.tables[tableID].fragments).length > 0) {
-      return true;
+    if (tableID in this.tables) {
+      return this.tables[tableID].hasFragments();
     } else {
       return false;
     }
-  }
-
-  /**
-   * Creates the very basic and empty object for defining a table in the VLT.
-   * @return {Object}
-   */
-  getEmptyTable() {
-    const stage = {
-      'scaling': 100,
-    };
-    const table = {
-      stage: stage,
-      fragments: {},
-      editors: [],
-      annots: {},
-      screenshot: null,
-      undoSteps: [],
-      redoSteps: [],
-      emptyTable: true,
-    };
-    return table;
-  }
-
-  /**
-   * Returns a fresh and empty fragments object without any previously saved fragments.
-   * @return {Object}
-   */
-  getEmptyFragments() {
-    return this.getEmptyTable().fragments;
-  }
-
-  /**
-   * Returns a fresh and empty stage object with default settings.
-   * @return {Object}
-   */
-  getEmptyStage() {
-    return this.getEmptyTable().stage;
   }
 
   /**
@@ -221,14 +184,7 @@ class TableManager {
    */
   getTable(tableID) {
     if (tableID in this.tables) {
-      const properties = Object.keys(this.tables[tableID]);
-      const tableData = {};
-      properties.forEach((property) => {
-        if (!irrelevantProperties.includes(property)) {
-          tableData[property] = this.tables[tableID][property];
-        }
-      });
-      return tableData;
+      return this.tables[tableID].getTable();
     }
   }
 
@@ -239,10 +195,11 @@ class TableManager {
    * @return {Object}
    */
   getInactiveTable(tableID) {
-    const table = this.getEmptyTable();
-    table.screenshot = this.tables[tableID].screenshot;
-    table.fragments = this.tables[tableID].fragments;
-    return table;
+    if (tableID in this.tables) {
+      return this.tables[tableID].getTableBasics();
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -253,8 +210,8 @@ class TableManager {
     const tables = {};
     for (const tableID of Object.keys(this.tables)) {
       if (tableID) {
-        const table = this.getTable(tableID);
-        tables[tableID] = table;
+        const tableContent = this.tables[tableID].getTable();
+        tables[tableID] = tableContent;
       }
     }
 
@@ -282,7 +239,9 @@ class TableManager {
    * @param {String} tableID ID of table to clear, e.g. "table_1".
    */
   clearFragments(tableID) {
-    this.tables[tableID].fragments = this.getEmptyFragments();
+    if (tableID in this.tables) {
+      this.tables[tableID].clearFragments();
+    }
   }
 
   /**
@@ -290,7 +249,9 @@ class TableManager {
    * @param {String} tableID ID of table to clear, e.g. "table_1".
    */
   clearStage(tableID) {
-    this.tables[tableID].stage = this.getEmptyStage();
+    if (tableID in this.tables) {
+      this.tables[tableID].clearStage();
+    }
   }
 
   /**
@@ -298,18 +259,12 @@ class TableManager {
    * doing so, a "step" is performed that is saved in the "undoSteps" and could be access via "undoStep()".
    * @param {String} tableID ID of table to act on, e.g. "table_1".
    * @param {Object} tableData Object containing all relevant information for one table.
-   * @param {[Boolean]} skipDoStep optional; if TRUE, skip the do step, if FALSE, make a do step.
+   * @param {[Boolean]} skipStepping optional; if TRUE, skip the do step, if FALSE, make a do step.
    * Default (when not given): FALSE.
    */
-  updateTable(tableID, tableData, skipDoStep) {
+  updateTable(tableID, tableData, skipStepping) {
     if (tableID in this.tables) {
-      const numberFragments = Object.keys(this.tables[tableID].fragments).length;
-      if (!skipDoStep && numberFragments > 0) this.doStep(tableID);
-      Object.keys(tableData).forEach((property) => {
-        if (!irrelevantProperties.includes(property)) {
-          this.tables[tableID][property] = tableData[property];
-        }
-      });
+      this.tables[tableID].updateTable(tableData, skipStepping);
     }
   }
 
@@ -322,26 +277,9 @@ class TableManager {
    * @param {String} tableID ID of table to act on, e.g. "table_1".
    */
   doStep(tableID) {
-    // starting a new action branch, all redos are deleted
-    this.tables[tableID].redoSteps = [];
-
-    // saving current configuration as undo step
-    if (this.emptyTable) {
-      this.tables[tableID].emptyTable = false;
-    } else {
-      const table = this.getTable(tableID);
-      const step = {};
-      for (const key of Object.keys(table)) {
-        if (!irrelevantProperties.includes(key)) {
-          step[key] = table[key];
-        }
-      }
-      this.tables[tableID].undoSteps.push(step);
-    }
-
-    // if maximum step length is reached, remove first undos
-    while (this.tables[tableID].undoSteps.length > this.maxUndoSteps) {
-      this.tables[tableID].undoSteps.shift();
+    // TODO - REMOVE?
+    if (tableID in this.tables) {
+      this.tables[tableID].saveStep();
     }
   }
 
@@ -355,21 +293,9 @@ class TableManager {
    * @return {Boolean}
    */
   undoStep(tableID) {
-    // return false in case that no undo steps are available
-    if (this.tables[tableID].undoSteps.length == 0) {
-      return false;
+    if (tableID in this.tables) {
+      return this.tables[tableID].undo();
     }
-
-    // saving current state as new entry in redoSteps
-    const step = this.getTable(tableID);
-    this.tables[tableID].redoSteps.push(step);
-
-    // loading former state
-    const tableData = this.tables[tableID].undoSteps.pop();
-    Object.keys(tableData).forEach((item) => {
-      this.tables[tableID][item] = tableData[item];
-    });
-    return true;
   }
 
   /**
@@ -381,21 +307,9 @@ class TableManager {
    * @return {Boolean}
    */
   redoStep(tableID) {
-    // if there are no redo steps saved, there is nothing we can do
-    if (this.tables[tableID].redoSteps.length == 0) {
-      return false;
+    if (tableID in this.tables) {
+      return this.tables[tableID].redo();
     }
-
-    // saving current configuration as undo step
-    const step = this.getTable(tableID);
-    this.tables[tableID].undoSteps.push(step);
-
-    // load first redo step available
-    const tableData = this.tables[tableID].redoSteps.pop();
-    Object.keys(tableData).forEach((item) => {
-      this.tables[tableID][item] = tableData[item];
-    });
-    return true;
   }
 
   /**
@@ -405,10 +319,9 @@ class TableManager {
    * @return {Object}
    */
   getRedoUndo(tableID) {
-    return {
-      'undoSteps': this.tables[tableID].undoSteps.length,
-      'redoSteps': this.tables[tableID].redoSteps.length,
-    };
+    if (tableID in this.tables) {
+      return this.tables[tableID].getStepNumbers();
+    }
   }
 
   /**
@@ -432,8 +345,9 @@ class TableManager {
    * @param {int} aData.time Time of last change of annotation, given in milliseconds since 01/01/1970.
    */
   writeAnnotation(tableID, annotation) {
-    const aID = annotation.aID;
-    this.tables[tableID].annots[aID] = annotation;
+    if (tableID in this.tables) {
+      this.tables[tableID].addAnnotation(annoation);
+    }
   }
   
   /**
@@ -442,7 +356,9 @@ class TableManager {
    * @param {String} aID D
    */
   removeAnnotation(tableID, aID) {
-    delete this.tables[tableID].annots[aID];
+    if (tableID in this.tables) {
+      this.tables[tableID].removeAnnotation(aID);
+    }
   }
 
   /**
@@ -459,7 +375,7 @@ class TableManager {
    */
   loadFile(tableID, tableData) {
     this.clearTable(tableID);
-    this.updateTable(tableID, tableData);
+    this.updateTable(tableID, tableData)
   }
 
   /**
@@ -468,8 +384,9 @@ class TableManager {
    * @param {String} editor Name or initials of editor to add to the collection.
    */
   addEditor(tableID, editor) {
-    const timeMs = new Date().getTime();
-    this.tables[tableID].editors.push([editor, timeMs]);
+    if (tableID in this.tables) {
+      this.tables[tableID].addEditor(editor);
+    }
   }
 
   /**
@@ -478,9 +395,9 @@ class TableManager {
    * @param {String} tableID ID of table, e.g. "table_1".
    */
   updateEditor(tableID) {
-    const lastEditor = this.tables[tableID].editors.pop();
-    const timeMs = new Date().getTime();
-    this.tables[tableID].editors.push([lastEditor[0], timeMs]);
+    if (tableID in this.tables) {
+      this.tables[tableID].updateEditor();
+    }
   }
 
   /**
@@ -489,32 +406,33 @@ class TableManager {
    * @param {*} screenshot
    */
   setScreenshot(tableID, screenshot) {
-    this.tables[tableID].screenshot = screenshot;
+    if (tableID in this.tables) {
+      this.tables[tableID].setScreenshot(screenshot);
+    }
   }
 
   getTPOPIds(tableID) {
-    const tpops = [];
-    for (const k of Object.keys(this.tables[tableID].fragments)) {
-      const fragment = this.tables[tableID].fragments[k];
-      if ('tpop' in fragment) {
-        tpops.push(fragment.tpop);
-      }
+    if (tableID in this.tables) {
+      return this.tables[tableID].getTPOPIDs();
     }
-    return tpops;
   }
 
   setGraphicFilters(tableID, graphicFilters) {
-    this.tables[tableID].graphicFilters = graphicFilters;
+    if (tableID in this.tables) {
+      this.tables[tableID].setGraphicFilters(graphicFilters);
+    }
   }
 
   getGraphicFilters(tableID) {
-    const table = this.tables[tableID]
-    if ('graphicFilters' in table) return table.graphicFilters;
-    else return null;
+    if (tableID in this.tables) {
+      return this.tables[tableID].getGraphicFilters();
+    }
   }
 
   resetGraphicFilters(tableID) {
-    this.tables[tableID].graphicFilters = null;
+    if (tableID in this.tables) {
+      this.tables[tableID].clearGraphicFilters();
+    }
   }
 }
 
