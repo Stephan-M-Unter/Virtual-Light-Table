@@ -1370,7 +1370,7 @@ ipcMain.on('server-open-tpop', (event, tableID) => {
     'Receiving code [server-open-tpop] from client for table '+tableID);
   }
 
-  tpopManager.sortByName();
+  // tpopManager.sortByName();
   activeTables.tpop = tableID;
 
   if (!tpopWindow) {
@@ -1716,6 +1716,18 @@ ipcMain.on('console', function(event, data) {
 ipcMain.on('server-select-other-tpops', (event, data) => {
   const imageArray = tpopManager.getImageLinks(data.tpop);
   resolveUrls(imageArray, uploadTpopImages);
+});
+
+ipcMain.on('server-check-tpop-data', () => {
+  if (devMode) {
+    console.log(timestamp() + ' ' +
+    'Receiving code [server-check-tpop-data] from loadWindow');
+  }
+
+  tpopManager.initialiseVLTdata(false, function() {
+    sendMessage(tpopWindow, 'tpop-calculation-done')
+  });
+
 });
 
 function resolveUrls(urlList, callback) {

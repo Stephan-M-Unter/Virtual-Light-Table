@@ -877,3 +877,24 @@ input[type=text].inactive {
     padding: 5px;
     margin-bottom: 20px;
 }
+
+#tpop-loading-overlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.9);
+    color: white;
+}
+
+#tpop-loading-title {
+    font-size: 4em;
+    margin-bottom: 50px;
+}
+
+#tpop-loading-text {
+
+}

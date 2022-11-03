@@ -33,7 +33,7 @@ class TPOPManager {
     this.mtime = 'unknown';
     this.reloadSpan = 800000000;
 
-    this.initialiseVLTdata();
+    // this.initialiseVLTdata();
   };
 
   setTpopFolder(path) {
@@ -49,8 +49,11 @@ class TPOPManager {
    */
   initialiseVLTdata(reload, callback) {
     if (this.tpopData == null || reload == true) {
+      // RELOAD data if no data existent or reload requested
       console.log('TPOP data not yet loaded.');
       if (fs.existsSync(this.vltjson) && !reload) {
+        // data exists and doesn't have to be reloaded
+        // -> load the file and read data
         this.ctime = fs.statSync(this.vltjson)['birthtime'];
         this.mtime = fs.statSync(this.vltjson).mtime;
         this.ctimeMs = fs.statSync(this.vltjson)['ctimeMs']
@@ -92,8 +95,12 @@ class TPOPManager {
         console.log('Loaded TPOP data from local JSON.');
         if (callback) {
           callback();
+        } else {
+          return true;
         }
       } else {
+        // no data available OR reload requested
+        // -> download from Museo Egizio
         console.log('Trying to load the JSON from the Museo Egizio...');
         const requestURL = 'https://vlt.museoegizio.it/api/srv/vltdata?api_key=app.4087936422844370a7758639269652b9';
         const request = https.get(requestURL, (res) => {
@@ -110,6 +117,8 @@ class TPOPManager {
     } else {
       if (callback) {
         callback();
+      } else {
+        return true;
       }
     }
   }

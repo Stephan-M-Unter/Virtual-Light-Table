@@ -18,12 +18,13 @@ const filterOperators = {
 let requesting = false;
 
 $(document).ready(() => {
-  requestFilter();
-  /*
-    ### 1. Anfrage an Server: DATEN! ('server-load-tpop-json')
-
-    */
+  // requestFilter();
+  checkForData();
 });
+
+function checkForData() {
+  ipcRenderer.send('server-check-tpop-data');
+}
 
 /**
  *
@@ -869,7 +870,6 @@ $('html').keydown(function(event) {
   if (event.keyCode == 27) {
     // ESC -> close filter and folder view
     $('#filter-overlay').css('display', 'none');
-    $('#folder-overlay').css('display', 'none');
   } else if (event.keyCode == 37) {
     // Left Arrow -> Move selection left
     moveSelectionLeftRight(-1);
@@ -985,8 +985,6 @@ $('#ml-calculate').click(function() {
       }
     }
     
-    console.log(weights);
-
     for (const el of $('#loading-view .loading')) {
       tpopids.push($(el).attr('data-id'));
     }
@@ -1014,6 +1012,7 @@ $('#reload-json').click(() => {
     ipcRenderer.send('server-reload-json');
     $('.filter').remove();
     filters = [];
+    $('#tpop-loading-overlay').css('display', 'flex');
   }
 });
 
@@ -1185,6 +1184,7 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
 
 ipcRenderer.on('tpop-calculation-done', () => {
   console.log("-> tpop-calculation-done");
+  $('#tpop-loading-overlay').css('display', 'none');
   requesting = false;
   loadPage(0);
 });
@@ -1192,4 +1192,9 @@ ipcRenderer.on('tpop-calculation-done', () => {
 ipcRenderer.on('tpop-display-folders', (event, data) => {
   console.log("-> tpop-display-folders");
   displayFolders(data);
+});
+
+ipcRenderer.on('tpop-data-loaded', () => {
+  $('#tpop-loading-overlay').css('display', 'none');
+  requestFilter();
 });
