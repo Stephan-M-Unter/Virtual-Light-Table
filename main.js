@@ -683,7 +683,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
   tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
   if (Object.keys(data.tableData.fragments).length > 0) {
     // no need to autosave when there are no fragments
-    saveManager.saveTable(tableManager.getTable(data.tableID), false, true, data.tableID);
+    saveManager.autosave(tableManager.getTable(data.tableID), data.tableID);
   }
 
   sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
@@ -767,7 +767,7 @@ ipcMain.on('server-load-file', (event, filename) => {
   activeTables.loading = null;
   loadWindow.close();
   const savefolder = saveManager.getCurrentFolder();
-  const file = saveManager.loadSaveFile(path.join(savefolder, filename));
+  const file = saveManager.loadSaveFile(path.join(savefolder, filename), tableID);
 
   if (!activeTables.view) {
     tableID = tableManager.createNewTable();
@@ -812,9 +812,9 @@ ipcMain.on('server-save-file', (event, data) => {
 
   let filepath; let response;
   const tableData = tableManager.getTable(data.tableID);
-  if (data.quicksave && saveManager.getCurrentFilepath()) {
+  if (data.quicksave) {
     // overwrite old file
-    filepath = saveManager.saveTable(tableData, true, false);
+    filepath = saveManager.quicksave(tableData, data.tableID);
     response = {
       title: 'Quicksave',
       desc: 'Quicksave successful',
@@ -822,7 +822,7 @@ ipcMain.on('server-save-file', (event, data) => {
     };
   } else {
     // don't overwrite but ask for new file destination
-    filepath = saveManager.saveTable(tableData, false, false);
+    filepath = saveManager.save(tableData);
     response = {
       title: 'Save',
       desc: 'Lighttable has successfully been saved',
@@ -1661,8 +1661,28 @@ ipcMain.on('server-select-folder', function(event, folderType) {
 ipcMain.on('server-save-config', function(event, newConfig) {
   settingsWindow.close();
   settingsWindow = null;
-  config = newConfig;
+  
+  let writingPermissions = true;
+  
+  try {
+    fs.accessSync(newConfig.vltFolder, fs.constants.R_OK | fs.constants.W_OK);
+    fs.accessSync(newConfig.saveFolder, fs.constants.R_OK | fs.constants.W_OK);
+    fs.accessSync(newConfig.tempFolder, fs.constants.R_OK | fs.constants.W_OK);
+  } catch {
+    console.log("No writing permission to folder", newConfig.vltFolder);
+    dialog.showMessageBox(mainWindow, {
+      buttons: ['OK'],
+      type: 'warning',
+      title: 'Access Denied',
+      message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
+    });
+    newConfig.vltFolder = config.vltFolder;
+    newConfig.saveFolder = config.saveFolder;
+    newConfig.tempFolder = config.tempFolder;
+  }
 
+  config = newConfig;
+  
   const saved = saveConfig();
   if (saved) {
     if ('vltFolder' in config && config.vltFolder && vltFolder != config.vltFolder && fs.existsSync(config.vltFolder)) {

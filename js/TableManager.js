@@ -346,7 +346,7 @@ class TableManager {
    */
   writeAnnotation(tableID, annotation) {
     if (tableID in this.tables) {
-      this.tables[tableID].addAnnotation(annoation);
+      this.tables[tableID].addAnnotation(annotation);
     }
   }
   

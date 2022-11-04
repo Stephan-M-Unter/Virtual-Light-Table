@@ -51,11 +51,52 @@ class SaveManager {
     }
 
     this.filepath = null;
+    this.tableFilepaths = {};
+  }
+
+  save(tableData, tableID) {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = ((now.getMonth()+1) < 10 ? '0' : '') + (now.getMonth()+1);
+    const day = (now.getDate() < 10 ? '0' : '') + now.getDate();
+    const hour = now.getHours();
+    const minute = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+    const second = (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
+    const date = year+'-'+month+'-'+day;
+    const time = hour+'h'+minute+'m'+second+'s';
+    const filename = 'VLT_'+date+'_'+time;
+
+
+    // create save dialog
+    const filepath = dialog.showSaveDialogSync({
+      title: 'Save Current Table Configuration',
+      defaultPath: path.join(this.currentSaveFolder, filename),
+      filters: [{
+        name: 'Virtual Light Table Save',
+        extensions: ['vlt'],
+      }],
+    });
+    this.tableFilepaths[tableID] = filepath;
+    return this.saveTable(tableData, filepath);
+  }
+
+  quicksave(tableData, tableID) {
+    if (!tableID in this.tableFilepaths || !fs.existsSync(this.tableFilepaths[tableID])) {
+      return this.save(tableData, tableID);
+    } else {
+      return this.saveTable(tableData, this.tableFilepaths[tableID]);
+    }
+  }
+
+  autosave(tableData, tableID) {
+    const filepath = path.join(this.tempSaveFolder, tableID + '_temp.vlt');
+    return this.saveTable(tableData, filepath);
   }
 
   /**
    * TODO
-   * @param {Object} table
+   * @param {Object} tableData
    *    Object containing the full data JSON with table and fragments configuration.
    * @param {[Boolean]} overwrite
    *    TRUE: if there is already a savefile, it will be overwritten
@@ -67,14 +108,15 @@ class SaveManager {
    * @return {String}
    *    String with the filepath of the just saved file.
    */
-  saveTable(table, overwrite, autosave, tableID) {
+  saveTable(tableData, filepath) {
+    /*
     let filepath;
     if (autosave) {
       filepath = path.join(this.tempSaveFolder, tableID + '_temp.vlt');
     } else if (overwrite && this.filepath) {
       filepath = this.filepath;
     } else {
-      // read current date for some default filename
+      read current date for some default filename
       const now = new Date();
 
       const year = now.getFullYear();
@@ -105,95 +147,93 @@ class SaveManager {
       // werden müssen. Quelle: https://www.electronjs.org/docs/api/dialog
     }
 
-
     if (filepath) {
       if (!autosave) this.filepath = filepath;
+      */
 
-      const imagepath = path.dirname(filepath) + '/imgs';
-      if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
+    const imagepath = path.dirname(filepath) + '/imgs';
+    if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
-      for (const fID in table.fragments) {
-        if (Object.prototype.hasOwnProperty.call(table.fragments, fID)) {
-          const fragment = table.fragments[fID];
-          const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
+    for (const fID in tableData.fragments) {
+      if (Object.prototype.hasOwnProperty.call(tableData.fragments, fID)) {
+        const fragment = tableData.fragments[fID];
+        const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
 
-          if ('recto' in fragment) {
-            const rectoImageDir = path.dirname(fragment.recto.url);
-            const rectoImageName = fragment.recto.url.split('\\').pop().split('/').pop();
-            const rectoNewPath = path.join(imagepath, rectoImageName);
-            const rectoAlreadyMoved = fs.existsSync(rectoNewPath);
+        if ('recto' in fragment) {
+          const rectoImageDir = path.dirname(fragment.recto.url);
+          const rectoImageName = fragment.recto.url.split('\\').pop().split('/').pop();
+          const rectoNewPath = path.join(imagepath, rectoImageName);
+          const rectoAlreadyMoved = fs.existsSync(rectoNewPath);
 
-            // is image in save_folder?
-            if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
-              // nothing to do, image is already correct
-              continue;
-            } else if ('www' in fragment.recto && fragment.recto.www) {
-              // is image a web file?  in that case, nothing to do
-              continue;
-            } else {
-              if (!rectoAlreadyMoved) {
-                // is image in temp folder?
-                const rectoOldPath = fragment.recto.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
-                if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
-                  // move image from temp folder to imagepath
-                  fs.renameSync(rectoOldPath, rectoNewPath);
-                } else {
-                  // image is somewhere else; copy image to imagepath
-                  fs.copyFileSync(rectoOldPath, rectoNewPath);
-                }
+          // is image in save_folder?
+          if (path.resolve(rectoImageDir) == path.resolve(imagepath)) {
+            // nothing to do, image is already correct
+            continue;
+          } else if ('www' in fragment.recto && fragment.recto.www) {
+            // is image a web file?  in that case, nothing to do
+            continue;
+          } else {
+            if (!rectoAlreadyMoved) {
+              // is image in temp folder?
+              const rectoOldPath = fragment.recto.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
+              if (path.resolve(rectoImageDir) == path.resolve(tempImageFolder)) {
+                // move image from temp folder to imagepath
+                fs.renameSync(rectoOldPath, rectoNewPath);
+              } else {
+                // image is somewhere else; copy image to imagepath
+                fs.copyFileSync(rectoOldPath, rectoNewPath);
               }
-              table.fragments[fID].recto.url = rectoNewPath;
             }
+            tableData.fragments[fID].recto.url = rectoNewPath;
           }
-          
-          if ('verso' in fragment) {
-            const versoImageDir = path.dirname(fragment.verso.url);
-            const versoImageName = fragment.verso.url.split('\\').pop().split('/').pop();
-            const versoNewPath = path.join(imagepath, versoImageName);
-            const versoAlreadyMoved = fs.existsSync(versoNewPath);
+        }
+        
+        if ('verso' in fragment) {
+          const versoImageDir = path.dirname(fragment.verso.url);
+          const versoImageName = fragment.verso.url.split('\\').pop().split('/').pop();
+          const versoNewPath = path.join(imagepath, versoImageName);
+          const versoAlreadyMoved = fs.existsSync(versoNewPath);
 
-            // is image in save_folder?
-            if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
-              // nothing to do, image is already correct
-              continue;
-            }  else if ('www' in fragment.verso && fragment.verso.www) {
-              // is image a web file?  in that case, nothing to do
-              continue;
-            } else {
-              if (!versoAlreadyMoved) {
-                // is image in temp folder?
-                const versoOldPath = fragment.verso.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
-                if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
-                  // move image from temp folder to imagepath
-                  fs.renameSync(versoOldPath, versoNewPath);
-                } else {
-                  // image is somewhere else; copy image to imagepath
-                  fs.copyFileSync(versoOldPath, versoNewPath);
-                }
+          // is image in save_folder?
+          if (path.resolve(versoImageDir) == path.resolve(imagepath)) {
+            // nothing to do, image is already correct
+            continue;
+          }  else if ('www' in fragment.verso && fragment.verso.www) {
+            // is image a web file?  in that case, nothing to do
+            continue;
+          } else {
+            if (!versoAlreadyMoved) {
+              // is image in temp folder?
+              const versoOldPath = fragment.verso.url.replace(/\\\\/g, '/').replace(/\\/g, '/');
+              if (path.resolve(versoImageDir) == path.resolve(tempImageFolder)) {
+                // move image from temp folder to imagepath
+                fs.renameSync(versoOldPath, versoNewPath);
+              } else {
+                // image is somewhere else; copy image to imagepath
+                fs.copyFileSync(versoOldPath, versoNewPath);
               }
-              table.fragments[fID].verso.url = versoNewPath;
             }
+            tableData.fragments[fID].verso.url = versoNewPath;
           }
         }
       }
-
-      let content = this.convertToRelativePaths(filepath, table);
-
-      for (const key of Object.keys(content.fragments)) {
-        if ('recto' in content.fragments[key] && 'url_view' in content.fragments[key].recto) {
-          delete content.fragments[key].recto.url_view;
-        }
-        if ('verso' in content.fragments[key] && 'url_view' in content.fragments[key].verso) {
-          delete content.fragments[key].verso.url_view;
-        }
-      }
-      
-      content = JSON.stringify(content);
-      fs.writeFileSync(filepath, content, 'utf-8');
-      if (autosave) console.log('**SaveManager** - Table autosaved');
-      else console.log('**SaveManager** - Saved table configuration to ' + filepath);
-      return filepath;
     }
+
+    let content = this.convertToRelativePaths(filepath, tableData);
+
+    for (const key of Object.keys(content.fragments)) {
+      if ('recto' in content.fragments[key] && 'url_view' in content.fragments[key].recto) {
+        delete content.fragments[key].recto.url_view;
+      }
+      if ('verso' in content.fragments[key] && 'url_view' in content.fragments[key].verso) {
+        delete content.fragments[key].verso.url_view;
+      }
+    }
+    
+    content = JSON.stringify(content);
+    fs.writeFileSync(filepath, content, 'utf-8');
+    console.log('**SaveManager** - Saved table configuration to ' + filepath);
+    return filepath;
   }
 
   /**
@@ -353,7 +393,8 @@ class SaveManager {
    * @param {*} filepath
    * @return {*}
    */
-  loadSaveFile(filepath) {
+  loadSaveFile(filepath, tableID) {
+    this.tableFilepaths[tableID] = filepath;
     const content = fs.readFileSync(filepath).toString();
     const stats = fs.statSync(filepath);
     const mtime = stats.mtimeMs;
@@ -696,8 +737,19 @@ class SaveManager {
     if (!fs.existsSync(imgsPath)) {
       fs.mkdirSync(imgsPath);
     }
+    const oldDefaultSaveFolder = this.defaultSaveFolder;
     this.defaultSaveFolder = folderPath;
     this.currentSaveFolder = folderPath;
+
+    for (const tableID of Object.keys(this.tableFilepaths)) {
+      const filepath = this.tableFilepaths[tableID];
+      const directory = path.dirname(filepath);
+      const filename = path.basename(filepath);
+
+      if (directory == oldDefaultSaveFolder) {
+        this.tableFilepaths[tableID] = path.join(this.defaultSaveFolder, filename);
+      }
+    }
   }
   
   setTempFolder(folderPath) {
