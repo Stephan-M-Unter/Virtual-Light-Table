@@ -147,6 +147,7 @@ class Table {
             editors: this.editors,
             annots: this.annots,
             screenshot: this.screenshot,
+            graphicFilters: this.graphicFilters,
         };
     }
     getTableBasics() {
