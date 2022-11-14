@@ -1,7 +1,33 @@
 Virtual Light Table - Installation Instructions
 
 
-MacOS (tested on macOS Big Sur 11.4)
+PREREQUISITES
+
+The VLT requires a functional Python 3.x installation (https://www.python.org/downloads/). Additionally, the VLT will check for and download if necessary a couple
+of python libraries:
+- Numpy
+- Pillow/open-cv
+- certifi
+
+This should happen automatically. A starting script will check for the correct python command (python or python3) and use the corresponding pip installer to download
+the packages. If this should not work, you can install these packages manually. Open a command line interface (CLI) and type
+
+python --version
+or
+python3 --version
+
+to verify that Python 3.x is installed and functional. Then use
+
+pip install numpy pillow certifi
+or
+pip3 install numpy pillow certifi
+
+to install the necessary packages. The usage of python or python3 depends on your personal configuration.
+
+
+
+
+MacOS (tested on macOS Monterey 12.6.1)
 
 Install
 1. Download most recent VLT application archive.
@@ -10,6 +36,8 @@ Install
 
 Deinstall
 1. Search for the folder with the Virtual Light Table in it and remove it.
+
+
 
 
 WINDOWS (tested on Windows 10 x64)
