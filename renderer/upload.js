@@ -290,6 +290,7 @@ function handleMouseDown(event, sidename) {
   mousestart.y = event.stageY;
   mousestart.offsetX = event.stageX - side.content.x;
   mousestart.offsetY = event.stageY - side.content.y;
+  console.log("A");
 }
 
 /**
@@ -298,6 +299,7 @@ function handleMouseDown(event, sidename) {
  * @param {*} sidename
  */
 function handlePressMove(event, sidename) {
+  console.log("B");
   const side = getSide(sidename);
   const mouse = {x: event.stageX, y: event.stageY};
   const mouseDistance = {x: mouse.x - mousestart.offsetX, y: mouse.y - mousestart.offsetY};
@@ -335,26 +337,38 @@ function handleMousewheel(event) {
       scale = scale + (zoomStep * zoomDirection);
       scale = Math.round(scale*100)/100;
       if (recto.content.img) {
-        let rectoPPI = $('#recto_ppi').val();
-        if (rectoPPI == '') {
-          rectoPPI = 96;
+        if (recto.content.scale) {
+          recto.content.scale += (zoomStep * zoomDirection);
+          recto.content.img.scale += (zoomStep * zoomDirection);
+          recto.content.img_bg.scale += (zoomStep * zoomDirection);
+        } else {
+          let rectoPPI = $('#recto_ppi').val();
+          if (rectoPPI == '') {
+            rectoPPI = 96;
+          }
+          let rectoScale = (96 * (96/rectoPPI) * scale) / 96;
+          rectoScale = Math.round(rectoScale*100) / 100;
+          recto.content.img.scale = rectoScale;
+          recto.content.img_bg.scale = rectoScale;
+          recto.content.scale = rectoScale;
         }
-        let rectoScale = (96 * (96/rectoPPI) * scale) / 96;
-        rectoScale = Math.round(rectoScale*100) / 100;
-        recto.content.img.scale = rectoScale;
-        recto.content.img_bg.scale = rectoScale;
-        recto.content.scale = rectoScale;
       }
       if (verso.content.img) {
-        let versoPPI = $('#verso_ppi').val();
-        if (versoPPI == '') {
-          versoPPI = 96;
+        if (verso.content.scale) {
+          verso.content.scale += (zoomStep * zoomDirection);
+          verso.content.img.scale += (zoomStep * zoomDirection);
+          verso.content.img_bg.scale += (zoomStep * zoomDirection);
+        } else {
+          let versoPPI = $('#verso_ppi').val();
+          if (versoPPI == '') {
+            versoPPI = 96;
+          }
+          let versoScale = (96 * (96/versoPPI) * scale) / 96;
+          versoScale = Math.round(versoScale*100) / 100;
+          verso.content.img.scale = versoScale;
+          verso.content.img_bg.scale = versoScale;
+          verso.content.scale = versoScale;
         }
-        let versoScale = (96 * (96/versoPPI) * scale) / 96;
-        versoScale = Math.round(versoScale*100) / 100;
-        verso.content.img.scale = versoScale;
-        verso.content.img_bg.scale = versoScale;
-        verso.content.scale = versoScale;
       }
       recto.stage.update();
       verso.stage.update();
@@ -572,6 +586,7 @@ function scaleImages() {
     if (rectoPPI != '') {
       const rectoScale = (96 * (96/rectoPPI) * scale) / 96;
       // const rectoScale = 96/ (rectoPPI*scale);
+      recto.content.scale = rectoScale;
       recto.content.img.scale = rectoScale;
       recto.content.img_bg.scale = rectoScale;
     }
@@ -581,6 +596,7 @@ function scaleImages() {
     if (versoPPI != '') {
       const versoScale = (96 * (96/versoPPI) * scale) / 96;
       // const versoScale = 96 / (versoPPI*scale);
+      verso.content.scale = versoScale;
       verso.content.img.scale = versoScale;
       verso.content.img_bg.scale = versoScale;
     }
@@ -1150,12 +1166,14 @@ function loadData(data, center) {
     if ('upload' in data.recto) {
       recto.content.x = data.recto.upload.x;
       recto.content.y = data.recto.upload.y;
+      recto.content.rotation = data.recto.rotation;
       recto.mask.box = data.recto.upload.box;
       recto.mask.polygon = data.recto.upload.polygon;
       recto.content.scale = data.recto.upload.scale;
     } else {
       recto.content.x = 0;
       recto.content.y = 0;
+      recto.content.rotation = 0;
       recto.mask.box = [];
       recto.mask.polygon = [];
     }
@@ -1170,12 +1188,14 @@ function loadData(data, center) {
     if ('upload' in data.verso) {
       verso.content.x = data.verso.upload.x;
       verso.content.y = data.verso.upload.y;
+      verso.content.rotation = data.verso.rotation;
       verso.mask.box = data.verso.upload.box;
       verso.mask.polygon = data.verso.upload.polygon;
       verso.content.scale = data.verso.upload.scale;
     } else {
       verso.content.x = 0;
       verso.content.y = 0;
+      verso.content.rotation = 0;
       verso.mask.box = [];
       verso.mask.polygon = [];
     }
@@ -1399,6 +1419,8 @@ $('.input_ppi').on('input', (event) => {
 
 // Event receiving the filepath to an image, be it local or from the internet.
 ipcRenderer.on('upload-receive-image', (event, filepath) => {
+  console.log('Received message from server: ["upload-receive-image"]');
+  
   if (!filepath) {
     currentUpload = null;
   } else {
@@ -1422,18 +1444,21 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
 // Event triggered if window is opened to edit an already existing fragment, providing
 // the necessary data/information about the fragment.
 ipcRenderer.on('upload-edit-fragment', (event, data) => {
-  console.log('Receiving Edit Information:', data);
+  console.log('Received message from server: ["upload-edit-fragment"]');
+  console.log('upload-edit-fragment data:', data);
   loadData(data, false);
 });
 
 ipcRenderer.on('upload-tpop-fragment', (event, data) => {
-  console.log('Receiving TPOP information:', data);
+  console.log('Received message from server: ["upload-tpop-fragment"]');
+  console.log('upload-tpop-fragment data:', data);
   tpop = data.tpop;
   loadData(data, true);
 });
 
 ipcRenderer.on('upload-tpop-images', (event, data) => {
-  console.log('Receiving Additional TPOP Images:', data);
+  console.log('Received message from server: ["upload-tpop-images"]');
+  console.log('upload-tpop-images data:', data);
   $('#tpop-side').html(currentUpload);
   currentUpload = null;
   $('#tpop-image-list').empty();
