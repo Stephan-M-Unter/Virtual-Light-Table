@@ -2,8 +2,7 @@
 
 const {Util} = require('./Util');
 const {Pin} = require('./Pin');
-const {CONFIG} = require('./CONFIG');
-const { powerSaveBlocker } = require('electron');
+const {CONFIG} = require('../../statics/CONFIG');
 
 class AnnotationPopup {
     

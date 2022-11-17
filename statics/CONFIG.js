@@ -19,6 +19,7 @@ class CONFIG {
         defaultStroke: 'black',
     };
 
+    static EXTERNAL_DATA_UPDATE_TIMESPAN = 800000000;
     static UNDO_STEPS_MAX = 30;
 }
 

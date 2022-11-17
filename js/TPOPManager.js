@@ -7,31 +7,34 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const MATHS = require('../renderer/classes/MATHS');
+const MATHS = require('../statics/MATHS');
+const CONFIG = require('../statics/CONFIG');
+const { ContentManagerInterface } = require('../renderer/interfaces/ContentManagerInterface');
 
 /**
  * TODO
  */
-class TPOPManager {
+class TPOPManager extends ContentManagerInterface {
   /**
-     * @param {String} vltFolder - Path to the application data directory provided by the operating
-     *                           system. If no "Virtual Light Table" subfolder is present, a new one
-     *                           will be created.
+     * @param {String} externalContentFolder - Path to the application data directory provided by the operating
+     *                           system.
      */
-  constructor(vltFolder) {
-    this.tpopFolder = path.join(vltFolder, 'tpop');
-    this.vltjson = path.join(this.tpopFolder, 'vltdata.json');
-    this.cbdata = path.join(this.tpopFolder, 'cbdata.json');
+  constructor(externalContentFolder) {
+    super();
+    
+    this.tpopFolder = path.join(externalContentFolder, 'tpop');
     if (!fs.existsSync(this.tpopFolder)) {
       fs.mkdirSync(this.tpopFolder);
     }
+
+    this.vltjson = path.join(this.tpopFolder, 'vltdata.json');
+    this.cbdata = path.join(this.tpopFolder, 'cbdata.json');
     this.checkedForUpdates = false;
-    this.allTPOPData = null;
-    this.tpopData = null;
+    this.fullTPOPData = null;
+    this.activeTPOPData = null;
     this.filterTypes = null;
     this.ctime = 'unknown';
     this.mtime = 'unknown';
-    this.reloadSpan = 800000000;
   };
 
   setTpopFolder(path) {
@@ -46,7 +49,7 @@ class TPOPManager {
    * @param {*} reload
    */
   initialiseVLTdata(reload, callback) {
-    if (this.tpopData == null || reload == true) {
+    if (this.activeTPOPData == null || reload == true) {
       // RELOAD data if no data existent or reload requested
       console.log('TPOP data not yet loaded.');
       if (fs.existsSync(this.vltjson) && !reload) {
@@ -59,7 +62,7 @@ class TPOPManager {
         console.log('VLTdata was created on:', this.ctime);
         console.log('VLTdata was last modified on:', this.mtime);
         // TODO: CHECK DATE LAST MODIFIED
-        if (this.ctimeMs < Date.now() - this.reloadSpan) {
+        if (this.ctimeMs < Date.now() - CONFIG.EXTERNAL_DATA_UPDATE_TIMESPAN) {
           console.log("JSON outdated, reload necessary!");
           this.initialiseVLTdata(true, callback);
           return;
@@ -72,13 +75,13 @@ class TPOPManager {
           if (tpopFile.charCodeAt(0) === 0xFEFF) {
             tpopFile = tpopFile.substring(1);
           }
-          this.tpopData = JSON.parse(tpopFile);
+          this.activeTPOPData = JSON.parse(tpopFile);
         } catch (e) {
           console.log(e);
           this.initialiseVLTdata(true);
           return;
         }
-        this.allTPOPData = this.tpopData['objects'].filter((el) => {
+        this.fullTPOPData = this.activeTPOPData['objects'].filter((el) => {
           if (el == null || typeof el == 'undefined') return false;
           const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'];
           const verso = el['ObjectImageVersoLo'] || el['ObjectImageVersoHi'] || el['ObjectImageVerso'];
@@ -86,7 +89,7 @@ class TPOPManager {
           return true;
         });
         this.initialiseFeatures();
-        this.tpopData = this.allTPOPData.slice(0);
+        this.activeTPOPData = this.fullTPOPData.slice(0);
 
         this.sortByName();
 
@@ -107,7 +110,7 @@ class TPOPManager {
           filePath.on('finish', () => {
             filePath.close();
             console.log('Finished downloading VLTdata.');
-            this.tpopData = null;
+            this.activeTPOPData = null;
             this.initialiseVLTdata(false, callback);
           });
         });
@@ -139,7 +142,7 @@ class TPOPManager {
           if (name.indexOf('F') != -1 || name.indexOf("SN") != -1 || name.indexOf("Layer") != -1) continue;
           if (name.indexOf("tif") != -1) continue;
           if (name.indexOf("frame") != -1) continue;
-          const f = this.allTPOPData.find((obj) => {
+          const f = this.fullTPOPData.find((obj) => {
             let valid = false;
             name = name.replace('CP00', 'CP');
             name = name.replace('CP0', 'CP');
@@ -152,13 +155,13 @@ class TPOPManager {
           });
           if (f) {
             found += 1;
-            const idx_f = this.allTPOPData.indexOf(f);
+            const idx_f = this.fullTPOPData.indexOf(f);
             if (!('features' in o)) continue;
             const f_features = {};
             for (const feature of Object.keys(o['features'])) {
               f_features[feature] = o['features'][feature]['recto'].concat(o['features'][feature]['verso']);
             }
-            this.allTPOPData[idx_f]['features'] = f_features;
+            this.fullTPOPData[idx_f]['features'] = f_features;
           } else {
             // console.log(o['id']);
           }
@@ -191,7 +194,7 @@ class TPOPManager {
    *
    */
   sortByName() {
-    this.allTPOPData.sort((a, b) => {
+    this.fullTPOPData.sort((a, b) => {
       let nameA = a['InventoryNumber'];
       let nameB = b['InventoryNumber'];
 
@@ -215,7 +218,7 @@ class TPOPManager {
       }
     });
 
-    this.tpopData.sort((a, b) => {
+    this.activeTPOPData.sort((a, b) => {
       let nameA = a['InventoryNumber'];
       let nameB = b['InventoryNumber'];
 
@@ -238,11 +241,11 @@ class TPOPManager {
       }
     });
 
-    for (const obj of this.tpopData) {
+    for (const obj of this.activeTPOPData) {
       delete obj['distance'];
     }
 
-    for (const obj of this.allTPOPData) {
+    for (const obj of this.fullTPOPData) {
       delete obj['distance'];
     }
   }
@@ -292,7 +295,7 @@ class TPOPManager {
     }
 
     // iterate over all objects to determine distances
-    for (const obj of this.tpopData) {
+    for (const obj of this.activeTPOPData) {
       const components = [];
       let invalid = false;
 
@@ -327,7 +330,7 @@ class TPOPManager {
       obj['distance'] = distance;
     }
 
-    this.allTPOPData.sort((a, b) => {
+    this.fullTPOPData.sort((a, b) => {
       const dA = a.distance;
       const dB = b.distance;
 
@@ -342,7 +345,7 @@ class TPOPManager {
         return 0;
       }
     });
-    this.tpopData.sort((a, b) => {
+    this.activeTPOPData.sort((a, b) => {
       const dA = a.distance;
       const dB = b.distance;
 
@@ -366,21 +369,21 @@ class TPOPManager {
    * @return {*}
    */
   loadData(startIndex, endIndex) {
-    if (!this.tpopData) {
+    if (!this.activeTPOPData) {
       console.log('Reloading Data...');
       this.initialiseVLTdata(true);
       return null;
     }
 
     const start = startIndex || 0;
-    const end = endIndex || Object.keys(this.tpopData).length-1;
+    const end = endIndex || Object.keys(this.activeTPOPData).length-1;
 
     const objects = [];
     for (let i = start; i <= end; i++) {
-      if (i >= this.tpopData.length) {
+      if (i >= this.activeTPOPData.length) {
         break;
       }
-      const obj = this.tpopData[i];
+      const obj = this.activeTPOPData[i];
       let urlRecto = obj['ObjectImageRecto'] || null;
       let urlVerso = obj['ObjectImageVerso'] || null;
       if (urlRecto == null) {
@@ -405,7 +408,7 @@ class TPOPManager {
     }
 
     const data = {
-      maxObjects: this.tpopData.length,
+      maxObjects: this.activeTPOPData.length,
       ctime: this.ctime,
       mtime: this.mtime,
       objects: objects,
@@ -427,14 +430,14 @@ class TPOPManager {
     let filtersTypeUnknown = [];
     const filtersTypeObject = [];
 
-    Object.keys(this.tpopData[0]).forEach((attribute) => {
+    Object.keys(this.activeTPOPData[0]).forEach((attribute) => {
       filtersTypeUnknown.push(attribute);
     });
 
     let i = 0;
 
-    while (i < this.tpopData.length && filtersTypeUnknown.length > 0) {
-      const obj = this.tpopData[i];
+    while (i < this.activeTPOPData.length && filtersTypeUnknown.length > 0) {
+      const obj = this.activeTPOPData[i];
       for (const idx in filtersTypeUnknown) {
         if (Object.prototype.hasOwnProperty.call(filtersTypeUnknown, idx)) {
           const attribute = filtersTypeUnknown[idx];
@@ -472,13 +475,13 @@ class TPOPManager {
         let writingsObject = null;
         i = 0;
         while (writingsObject == null) {
-          obj = this.tpopData[i];
+          obj = this.activeTPOPData[i];
           writingsObject = obj['Writings']['recto'][0];
           i++;
         }
         let writingsAttributes = Object.keys(writingsObject);
         i = 0;
-        while (writingsAttributes.length > 0 && i < this.tpopData.length) {
+        while (writingsAttributes.length > 0 && i < this.activeTPOPData.length) {
           for (const writingsAttribute of writingsAttributes) {
             const writingsValue = writingsObject[writingsAttribute];
             const writingsType = this.getFilterType(writingsValue);
@@ -525,7 +528,7 @@ class TPOPManager {
    * @return {*}
    */
   loadDetails(id) {
-    const result = this.allTPOPData.find((obj) => {
+    const result = this.fullTPOPData.find((obj) => {
       return obj['TPOPid'] === id;
     });
     return result;
@@ -540,13 +543,13 @@ class TPOPManager {
     // TODO: one could also check if a filter is added or removed; additional filters
     // will never expand the list of potential candidates, so the number of
     // calculations could be reduced; depends on the performance if this is needed or not
-    if (this.allTPOPData == null) return false;
+    if (this.fullTPOPData == null) return false;
 
-    this.tpopData = this.allTPOPData.slice(0);
+    this.activeTPOPData = this.fullTPOPData.slice(0);
 
-    for (const idx in this.tpopData) {
-      if (Object.prototype.hasOwnProperty.call(this.tpopData, idx)) {
-        const object = this.tpopData[idx];
+    for (const idx in this.activeTPOPData) {
+      if (Object.prototype.hasOwnProperty.call(this.activeTPOPData, idx)) {
+        const object = this.activeTPOPData[idx];
         for (const filter of filters) {
           let queryObjects;
           let queryResult = 0;
@@ -570,13 +573,13 @@ class TPOPManager {
           // if all queries were negative, the result will be 0
           // which means the object can be removed from the selection
           if (queryResult == 0) {
-            this.tpopData[idx] = null;
+            this.activeTPOPData[idx] = null;
           }
         }
       }
     }
 
-    this.tpopData = this.tpopData.filter((x) => {
+    this.activeTPOPData = this.activeTPOPData.filter((x) => {
       return x !== null;
     });
   };
@@ -671,7 +674,7 @@ class TPOPManager {
    * @return {*}
    */
   getPosition(id) {
-    return this.tpopData.map((e) => e.TPOPid).indexOf(id);
+    return this.activeTPOPData.map((e) => e.TPOPid).indexOf(id);
   }
 
   /**
@@ -717,7 +720,7 @@ class TPOPManager {
     
     const counter = {};
 
-    for (const entry of this.allTPOPData) {
+    for (const entry of this.fullTPOPData) {
       let folderName = entry['InventoryNumber'];
       if (folderName.indexOf('Provv') != -1) {
         folderName = 'Provv';
@@ -745,7 +748,7 @@ class TPOPManager {
   }
 
   getImageLinks(tpopID) {
-    const result = this.allTPOPData.find((obj) => {
+    const result = this.fullTPOPData.find((obj) => {
       return obj['TPOPid'] === tpopID;
     });
     return result['ObjectImages'];

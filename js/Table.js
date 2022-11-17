@@ -1,6 +1,6 @@
 'use strict';
 
-const {CONFIG} = require('../renderer/classes/CONFIG');
+const {CONFIG} = require('../statics/CONFIG');
 
 class Table {
     constructor(ID) {

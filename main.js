@@ -37,6 +37,7 @@ if (process.argv.includes('--test')) {
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 let vltFolder = path.join(appDataPath, 'Virtual Light Table');
+let externalContentFolder = path.join(vltFolder, 'externalContent');
 let saveFolder = path.join(vltFolder, 'saves');
 let tempFolder = path.join(vltFolder, 'temp');
 const vltConfigFile = path.join(vltFolder, 'vlt.config');
@@ -108,6 +109,12 @@ function main() {
     console.log('Created new VLT folder at ' + vltFolder);
   }
 
+  // check if the "External Content" subfolder exists
+  if (!fs.existsSync(externalContentFolder)) {
+    fs.mkdirSync(externalContentFolder);
+    console.log('Created new folder for external content at ' + externalContentFolder);
+  }
+
   console.log("appPath:", appPath);
   console.log("appDataPath:", appDataPath);
   console.log("vltFolder:", vltFolder);
@@ -128,7 +135,7 @@ function main() {
 
   if (!(config.vltFolder)) config.vltFolder = vltFolder;
   saveManager = new SaveManager(config);
-  tpopManager = new TPOPManager(vltFolder);
+  tpopManager = new TPOPManager(externalContentFolder);
 
   mainWindow = new Window({
     file: './renderer/index.html',

@@ -1,6 +1,6 @@
 'use strict';
 
-const {Scaler} = require('./Scaler');
+const {Scaler} = require('../../statics/SCALER');
 
 /**
  * TODO

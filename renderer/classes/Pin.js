@@ -1,7 +1,7 @@
 'use strict';
 
-const {Scaler} = require('./Scaler');
-const {CONFIG} = require('./CONFIG');
+const {Scaler} = require('../../statics/SCALER');
+const {CONFIG} = require('../../statics/CONFIG');
 
 class Pin {
 

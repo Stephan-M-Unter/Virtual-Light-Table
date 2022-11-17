@@ -1,7 +1,7 @@
 'use strict';
 
 const {Fragment} = require('./Fragment');
-const {Scaler} = require('./Scaler');
+const {Scaler} = require('../../statics/SCALER');
 const {Util} = require('./Util');
 
 /**
