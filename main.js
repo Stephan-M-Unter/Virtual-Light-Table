@@ -20,6 +20,7 @@ const util = require('util');
 const request = require('request');
 const process = require('process');
 const {spawn} = require('child_process');
+const CSC = require('./statics/CRIME_SCENE_CLEANER');
 
 
 const Window = require('./js/Window');
@@ -102,6 +103,7 @@ const loadingQueue = [];
  * TODO
  */
 function main() {
+  CSC.removeLegacies(vltFolder);
   // check if "Virtual Light Table" subfolder exists
   if (!fs.existsSync(vltFolder)) {
     // creating VLT subfolder in appdata
