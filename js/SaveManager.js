@@ -19,7 +19,7 @@ const path = require('path');
 const fs = require('fs');
 const JSZip = require('jszip');
 const yauzl = require('yauzl');
-const { table } = require('console');
+const LOGGER = require('../statics/LOGGER');
 
 /**
  * TODO
@@ -34,9 +34,6 @@ class SaveManager {
   constructor(config) {
     this.defaultSaveFolder = path.join(config.vltFolder, 'saves');
     this.currentSaveFolder = this.defaultSaveFolder;
-    console.log("** SAVE MANAGER ** - Default Save Folder:", this.defaultSaveFolder);
-    console.log("** SAVE MANAGER ** - Default Save Folder:", this.defaultSaveFolder);
-    console.log("** SAVE MANAGER ** - Current Save Folder:", this.currentSaveFolder);
     if (!fs.existsSync(this.defaultSaveFolder)) {
       // creating saves subfolder
       fs.mkdirSync(path.join(config.vltFolder, 'saves'));
@@ -232,7 +229,7 @@ class SaveManager {
     
     content = JSON.stringify(content);
     fs.writeFileSync(filepath, content, 'utf-8');
-    console.log('**SaveManager** - Saved table configuration to ' + filepath);
+    LOGGER.log('[SaveManager] Saved table configuration to ' + filepath);
     return filepath;
   }
 
@@ -256,7 +253,7 @@ class SaveManager {
     if (filepath) {
       this.filepath = filepath;
       const content = fs.readFileSync(filepath[0]).toString();
-      console.log('**SaveManager** - Loading ' + filepath);
+      LOGGER.log('[SaveManager] Loading ' + filepath);
       return JSON.parse(content);
     }
   }
@@ -309,7 +306,7 @@ class SaveManager {
    */
   getSaveFiles(folder) {
     this.currentSaveFolder = folder;
-    console.log('**SAVE MANAGER** - Reading folder ' + folder + '.');
+    LOGGER.log('[SAVE MANAGER] Reading folder ' + folder);
     const files = fs.readdirSync(folder).filter(function(item) {
       return item.endsWith('.vlt');
     });
@@ -382,7 +379,7 @@ class SaveManager {
 
     images.forEach((item) => {
       const imageToDelete = path.join(folder, 'imgs', item);
-      console.log('**SaveManager** - Unlinking item:', imageToDelete);
+      LOGGER.log('[SaveManager] Unlinking item:', imageToDelete);
       fs.unlinkSync(imageToDelete);
     });
   }
@@ -398,7 +395,7 @@ class SaveManager {
     const content = fs.readFileSync(filepath).toString();
     const stats = fs.statSync(filepath);
     const mtime = stats.mtimeMs;
-    console.log('**SaveManager** - Loading ' + filepath);
+    LOGGER.log('[SaveManager] Loading ' + filepath);
     let json = JSON.parse(content);
     json.mtime = mtime;
     this.filepath = filepath;
@@ -490,7 +487,7 @@ class SaveManager {
           .generateNodeStream({type: 'nodebuffer', streamFiles: true})
           .pipe(fs.createWriteStream(outputpath))
           .on('finish', function() {
-            console.log(outputpath + ' written');
+            LOGGER.log('[SAVE MANAGER] ' + outputpath + ' written');
           });
     }
   }
@@ -512,20 +509,19 @@ class SaveManager {
     if (filepath) {
       yauzl.open(filepath[0], {lazyEntries: true}, (err, zipfile) => {
         if (err) {
-          console.log('An error occurred while reading the ZIP file:');
-          console.log(err);
+          LOGGER.err('[SAVE MANAGER] An error occurred while reading the ZIP file:');
+          LOGGER.err(err);
         } else {
           zipfile.readEntry();
           zipfile.on('entry', (entry) => {
-            console.log('entry', entry);
             if (/\/$/.test(entry.fileName)) {
               // filename ends with / => directory, read next entry
               zipfile.readEntry();
             } else {
               zipfile.openReadStream(entry, (err, readStream) => {
                 if (err) {
-                  console.log('An error occurred with the readStream:');
-                  console.log(err);
+                  LOGGER.err('[SAVE MANAGER] An error occurred with the readStream:');
+                  LOGGER.log(err);
                 } else {
                   let destination = path.join(this.defaultSaveFolder, entry.fileName);
 
@@ -605,15 +601,6 @@ class SaveManager {
       });
     }
     return autosaveFound;
-    console.log(tempFiles);
-    try {
-      if (fs.existsSync(this.tempSaveFolder+'_temp.vlt')) {
-        return true;
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    return false;
   }
 
   /**

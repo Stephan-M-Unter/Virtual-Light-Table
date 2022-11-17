@@ -1,4 +1,5 @@
 const { ipcRenderer } = require("electron");
+const LOGGER = require('../statics/LOGGER');
 
 function loadData(config) {
     if ('ppi' in config && config.ppi) {
@@ -114,6 +115,7 @@ $(document).ready(function() {
 });
 
 ipcRenderer.on('settings-data', (event, settingsData) => {
-    console.log('Received message: [settings-data]', settingsData);
+    LOGGER.receive('settings-data', settingsData);
+    // console.log('Received message: [settings-data]', settingsData);
     loadData(settingsData);
 });

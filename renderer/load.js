@@ -2,6 +2,7 @@
 
 const {ipcRenderer} = require('electron');
 const {Util} = require('./classes/Util');
+const LOGGER = require('../statics/LOGGER');
 
 let saves;
 let currentSave;
@@ -12,10 +13,12 @@ let defaultFolder;
  */
 function selectDefaultFolder() {
   $('#folder').val(defaultFolder);
+  LOGGER.send('server-list-savefiles', defaultFolder);
   ipcRenderer.send('server-list-savefiles', defaultFolder);
 }
 
 $(document).ready(function() {
+  LOGGER.send('server-ask-load-folders');
   ipcRenderer.send('server-ask-load-folders');
 });
 
@@ -35,6 +38,7 @@ function deleteSavefile() {
       currentSave = null;
       $('#right_area').css('visibility', 'hidden');
       $('#thumb_list').empty();
+      LOGGER.send('server-delete-file', filename);
       ipcRenderer.send('server-delete-file', filename);
     }
     // [4. Nachricht von Server mit aktuellem Speicherzustand]
@@ -54,6 +58,7 @@ function clearSearch() {
 function exportSavefile() {
   if ($('.selected').length == 1) {
     const filename = $('.selected').attr('id');
+    LOGGER.send('server-export-file', filename);
     ipcRenderer.send('server-export-file', filename);
   }
 }
@@ -124,6 +129,7 @@ function updateSaveList(searchString) {
 $('#default_folder').click(selectDefaultFolder);
 
 $('#select_folder').click(function() {
+  LOGGER.send('server-get-saves-folder');
   ipcRenderer.send('server-get-saves-folder');
 });
 
@@ -153,6 +159,7 @@ $('#save_list').on('dblclick', '.save_list_item', function(event) {
   currentSave = $(event.target).parent().attr('id');
   $(event.target).parent().addClass('selected');
   const filename = $('.selected').attr('id');
+  LOGGER.send('server-load-file', filename);
   ipcRenderer.send('server-load-file', filename);
 });
 
@@ -177,7 +184,6 @@ $('#save_list').on('click', '.save_list_item', function(event) {
   try {
     for (const [key, value] of Object.entries(fragments)) {
       let url; let rt;
-      console.log(fragments[key]);
       if (fragments[key].recto ? url = fragments[key].recto.url :
         url = fragments[key].verso.url);
       if (fragments[key].recto ? rt = 'rt' : rt = 'vs');
@@ -197,7 +203,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
       });
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     $('#right_area').css('visibility', 'hidden');
     $('#thumb_list').append('<div class="error_message">'+
         'Save file broken!</div>');
@@ -208,6 +214,7 @@ $('#save_list').on('click', '.save_list_item', function(event) {
 $('#load').click(function() {
   if (!$('#load').hasClass('disabled')) {
     const filename = $('.selected').attr('id');
+    LOGGER.send('server-load-file', filename);
     ipcRenderer.send('server-load-file', filename);
   }
 });
@@ -217,18 +224,17 @@ $('#delete').click(function(event) {
     deleteSavefile();
   }
 });
-
 $('#export').click(function(event) {
   if (!$(event.target).hasClass('disabled')) {
     exportSavefile();
   }
 });
-
 $('#import').click(function(event) {
+  LOGGER.send('server-import-file');
   ipcRenderer.send('server-import-file');
   $('#import').find('img').attr('src', '../imgs/loading.gif');
 });
-
+// [Hotkey] DEL
 $('html').keyup(function(event) {
   if (event.keyCode == 46) {
     deleteSavefile();
@@ -236,7 +242,7 @@ $('html').keyup(function(event) {
 });
 
 $('#folder-wrapper').click(function(event) {
-  console.log('CLICK');
+  LOGGER.send('server-open-load-folder');
   ipcRenderer.send('server-open-load-folder');
 });
 
@@ -246,7 +252,7 @@ $('#folder-wrapper').click(function(event) {
 
 // load-receive-saves
 ipcRenderer.on('load-receive-saves', (event, savefiles) => {
-  console.log('[load-receive-saves]', savefiles);
+  LOGGER.receive('load-receive-saves', savefiles);
   saves = savefiles;
   clearSearch();
   updateSaveList();
@@ -254,13 +260,13 @@ ipcRenderer.on('load-receive-saves', (event, savefiles) => {
 
 // load-receive-folder
 ipcRenderer.on('load-receive-folder', (event, path) => {
-  console.log('[load-receive-folder]', path);
+  LOGGER.receive('load-receive-folder', path);
   $('#import').find('img').attr('src', '../imgs/symbol_unpack.png');
   $('#folder').val(path);
   ipcRenderer.send('server-list-savefiles', path);
 });
 
 ipcRenderer.on('load-set-default-folder', (event, path) => {
-  console.log('[load-set-default-folder]', path);
+  LOGGER.receive('load-set-default-folder', path);
   defaultFolder = path;
 });

@@ -10,6 +10,7 @@ const https = require('https');
 const MATHS = require('../statics/MATHS');
 const CONFIG = require('../statics/CONFIG');
 const { ContentManagerInterface } = require('../renderer/interfaces/ContentManagerInterface');
+const LOGGER = require('../statics/LOGGER');
 
 /**
  * TODO
@@ -49,10 +50,10 @@ class TPOPManager extends ContentManagerInterface {
    *
    * @param {*} reload
    */
-  initialiseVLTdata(reload, callback) {
+  initialiseData(reload, callback) {
     if (this.activeTPOPData == null || reload == true) {
       // RELOAD data if no data existent or reload requested
-      console.log('TPOP data not yet loaded.');
+      LOGGER.log('[TPOP MANAGER] TPOP data not yet loaded.');
       if (fs.existsSync(this.vltjson) && !reload) {
         // data exists and doesn't have to be reloaded
         // -> load the file and read data
@@ -60,15 +61,15 @@ class TPOPManager extends ContentManagerInterface {
         this.mtime = fs.statSync(this.vltjson).mtime;
         this.ctimeMs = fs.statSync(this.vltjson)['ctimeMs']
         this.mtimeMs = fs.statSync(this.vltjson)['mtimeMs']
-        console.log('VLTdata was created on:', this.ctime);
-        console.log('VLTdata was last modified on:', this.mtime);
+        LOGGER.log('[TPOP MANAGER] VLTdata was created on:', this.ctime);
+        LOGGER.log('[TPOP MANAGER] VLTdata was last modified on:', this.mtime);
         // TODO: CHECK DATE LAST MODIFIED
         if (this.ctimeMs < Date.now() - CONFIG.EXTERNAL_DATA_UPDATE_TIMESPAN) {
-          console.log("JSON outdated, reload necessary!");
-          this.initialiseVLTdata(true, callback);
+          LOGGER.log("[TPOP MANAGER] JSON outdated, reload necessary!");
+          this.initialiseData(true, callback);
           return;
         } else {
-          console.log("VLTdata still up-to-date.");
+          LOGGER.log("[TPOP MANAGER] VLTdata still up-to-date.");
         }
         // IF OLDER THAN THRESHOLD - REDOWNLOAD
         try {
@@ -78,8 +79,8 @@ class TPOPManager extends ContentManagerInterface {
           }
           this.activeTPOPData = JSON.parse(tpopFile);
         } catch (e) {
-          console.log(e);
-          this.initialiseVLTdata(true);
+          LOGGER.err(e);
+          this.initialiseData(true);
           return;
         }
         this.fullTPOPData = this.activeTPOPData['objects'].filter((el) => {
@@ -95,7 +96,7 @@ class TPOPManager extends ContentManagerInterface {
 
         this.sortByName();
 
-        console.log('Loaded TPOP data from local JSON.');
+        LOGGER.log('[TPOP MANAGER] Loaded TPOP data from local JSON.');
         if (callback) {
           callback();
         } else {
@@ -104,16 +105,16 @@ class TPOPManager extends ContentManagerInterface {
       } else {
         // no data available OR reload requested
         // -> download from Museo Egizio
-        console.log('Trying to load the JSON from the Museo Egizio...');
+        LOGGER.log('[TPOP MANAGER] Trying to load the JSON from the Museo Egizio...');
         const requestURL = 'https://vlt.museoegizio.it/api/srv/vltdata?api_key=app.4087936422844370a7758639269652b9';
         const request = https.get(requestURL, (res) => {
           const filePath = fs.createWriteStream(this.vltjson);
           res.pipe(filePath);
           filePath.on('finish', () => {
             filePath.close();
-            console.log('Finished downloading VLTdata.');
+            LOGGER.log('[TPOP MANAGER] Finished downloading VLTdata.');
             this.activeTPOPData = null;
-            this.initialiseVLTdata(false, callback);
+            this.initialiseData(false, callback);
           });
         });
       }
@@ -167,7 +168,7 @@ class TPOPManager extends ContentManagerInterface {
           }
         }
       } catch (e) {
-        console.log(e);
+        LOGGER.err(e);
       }
     }
   }
@@ -248,7 +249,6 @@ class TPOPManager extends ContentManagerInterface {
         queried_features.push(weight);
       }
     }
-    console.log("Queried features:", queried_features);
 
     // const distances = [];
 
@@ -350,10 +350,10 @@ class TPOPManager extends ContentManagerInterface {
    * @param {*} endIndex
    * @return {*}
    */
-  loadData(startIndex, endIndex) {
+  getData(startIndex, endIndex) {
     if (!this.activeTPOPData) {
-      console.log('Reloading Data...');
-      this.initialiseVLTdata(true);
+      LOGGER.log('[TPOP MANAGER] Reloading Data...');
+      this.initialiseData(true);
       return null;
     }
 
