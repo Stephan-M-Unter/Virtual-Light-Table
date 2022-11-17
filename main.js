@@ -653,6 +653,141 @@ function preprocess_fragment(data) {
   // python.stdout.pipe(process.stdout);
 }
 
+function resolveTPOPUrls(fragments, tableID) {
+  let allResolved = true;
+  let urlKey;
+  let fragmentKey;
+  let url;
+  let fragment;
+  for (const k in fragments) {
+    fragment = fragments[k];
+    if ('urlRecto' in fragment && fragment.urlRecto && !isURLResolved(fragment.urlRecto)) {
+      allResolved = false;
+      urlKey = 'urlRecto';
+      fragmentKey = k;
+      url = fragment.urlRecto;
+      break;
+    }
+    if ('urlVerso' in fragment && fragment.urlVerso && !isURLResolved(fragment.urlVerso)) {
+      allResolved = false;
+      urlKey = 'urlVerso';
+      fragmentKey = k;
+      url = fragment.urlVerso;
+      break;
+    }
+  }
+  if (allResolved) {
+    for (const f of fragments) {
+      const entry = {
+        'table': tableID,
+        'fragment': f,
+      };
+      loadingQueue.push(entry);
+    }
+    uploadTpopFragments();
+  } else {
+    var r = request(url, function(e, response) {
+      fragment[urlKey] = r.uri.href;
+      fragments[fragmentKey] = fragment;
+      resolveTPOPUrls(fragments, tableID);
+    });
+  }
+}
+
+function isURLResolved(url) {
+  const formats = ['jpg', 'jpeg', 'png', 'tif', 'tiff'];
+  for (const format of formats) {
+    if (url.indexOf('.'+format) != -1) return true;
+  }
+  return false;
+}
+
+function filterImages(tableID, urls) {
+  const filterData = {
+    'tableID': tableID,
+    'urls': urls,
+    'filters': tableManager.getGraphicFilters(tableID),
+  };
+  const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
+  const jsonContent = JSON.stringify(filterData);
+  fs.writeFileSync(jsonPath, jsonContent, 'utf8');
+
+  const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', out, out]});
+  // python.stderr.pipe(process.stdout);
+  // python.stdout.pipe(process.stdout);
+  python.on('close', function(code) {
+    LOGGER.log(`Python script finished graphical filtering with code ${code}.`)
+    const response = {
+      tableID: tableID,
+      tableData: tableManager.getTable(tableID),
+    };
+    sendMessage(mainWindow, 'client-load-model', response);
+    activeTables.view = tableID;
+  });
+}
+
+function filterImage(tableID, data) {
+  const graphicFilters = tableManager.getGraphicFilters(tableID);
+  if (graphicFilters == null) {
+    sendMessage(mainWindow, 'client-add-upload', data);
+  } else {
+    const urls = [];
+
+    if ('recto' in data) {
+      if ('url_view' in data.recto && data.recto.url_view) urls.push(data.recto.url_view);
+      else if ('url' in data.recto && data.recto.url) urls.push(data.recto.url);
+    }
+    if ('verso' in data) {
+      if ('url_view' in data.verso && data.verso.url_view) urls.push(data.verso.url_view);
+      else if ('url' in data.verso && data.verso.url) urls.push(data.verso.url);
+    }
+
+    const filterData = {
+      'tableID': tableID,
+      'urls': urls,
+      'filters': graphicFilters,
+    };
+    const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
+    const jsonContent = JSON.stringify(filterData);
+    fs.writeFileSync(jsonPath, jsonContent, 'utf8');
+    const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', out, out]});
+    // python.stderr.pipe(process.stdout);
+    // python.stdout.pipe(process.stdout);
+    python.on('close', function(code) {
+      LOGGER.log(`Filtering finished with code ${code}.`)
+      sendMessage(mainWindow, 'client-add-upload', data);
+    });
+  }
+}
+
+function resolveUrls(urlList, callback) {
+  let workFound = false;
+  let url;
+  let i;
+
+  for (const index in urlList) {
+    url = urlList[index];
+    if (url.lastIndexOf('.')+5 < url.length) {
+      workFound = true;
+      i = index;
+      break;
+    }
+  }
+
+  if (!(workFound)) {
+    callback(urlList);
+  } else {
+    var r = request(url, function(e, response) {
+      urlList[i] = r.uri.href;
+      resolveUrls(urlList, callback);
+    });
+  }
+}
+
+function uploadTpopImages(urlList) {
+  sendMessage(uploadWindow, 'upload-tpop-images', urlList);
+}
+
 /* ##############################################################
 ###
 ###                    MESSAGES (SEND/RECEIVE)
@@ -1379,118 +1514,11 @@ ipcMain.on('server-load-tpop-fragments', (event, data) => {
   resolveTPOPUrls(data, tableID);
 });
 
-function resolveTPOPUrls(fragments, tableID) {
-  let allResolved = true;
-  let urlKey;
-  let fragmentKey;
-  let url;
-  let fragment;
-  for (const k in fragments) {
-    fragment = fragments[k];
-    if ('urlRecto' in fragment && fragment.urlRecto && !isURLResolved(fragment.urlRecto)) {
-      allResolved = false;
-      urlKey = 'urlRecto';
-      fragmentKey = k;
-      url = fragment.urlRecto;
-      break;
-    }
-    if ('urlVerso' in fragment && fragment.urlVerso && !isURLResolved(fragment.urlVerso)) {
-      allResolved = false;
-      urlKey = 'urlVerso';
-      fragmentKey = k;
-      url = fragment.urlVerso;
-      break;
-    }
-  }
-  if (allResolved) {
-    for (const f of fragments) {
-      const entry = {
-        'table': tableID,
-        'fragment': f,
-      };
-      loadingQueue.push(entry);
-    }
-    uploadTpopFragments();
-  } else {
-    var r = request(url, function(e, response) {
-      fragment[urlKey] = r.uri.href;
-      fragments[fragmentKey] = fragment;
-      resolveTPOPUrls(fragments, tableID);
-    });
-  }
-}
-
-function isURLResolved(url) {
-  const formats = ['jpg', 'jpeg', 'png', 'tif', 'tiff'];
-  for (const format of formats) {
-    if (url.indexOf('.'+format) != -1) return true;
-  }
-  return false;
-}
-
 ipcMain.on('server-display-folders', function(event) {
   LOGGER.receive('server-display-folders');
   const data = tpopManager.getFolders();
   sendMessage(event.sender, 'tpop-display-folders', data);
 });
-
-function filterImages(tableID, urls) {
-  const filterData = {
-    'tableID': tableID,
-    'urls': urls,
-    'filters': tableManager.getGraphicFilters(tableID),
-  };
-  const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
-  const jsonContent = JSON.stringify(filterData);
-  fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', out, out]});
-  // python.stderr.pipe(process.stdout);
-  // python.stdout.pipe(process.stdout);
-  python.on('close', function(code) {
-    LOGGER.log(`Python script finished graphical filtering with code ${code}.`)
-    const response = {
-      tableID: tableID,
-      tableData: tableManager.getTable(tableID),
-    };
-    sendMessage(mainWindow, 'client-load-model', response);
-    activeTables.view = tableID;
-  });
-}
-
-function filterImage(tableID, data) {
-  const graphicFilters = tableManager.getGraphicFilters(tableID);
-  if (graphicFilters == null) {
-    sendMessage(mainWindow, 'client-add-upload', data);
-  } else {
-    const urls = [];
-
-    if ('recto' in data) {
-      if ('url_view' in data.recto && data.recto.url_view) urls.push(data.recto.url_view);
-      else if ('url' in data.recto && data.recto.url) urls.push(data.recto.url);
-    }
-    if ('verso' in data) {
-      if ('url_view' in data.verso && data.verso.url_view) urls.push(data.verso.url_view);
-      else if ('url' in data.verso && data.verso.url) urls.push(data.verso.url);
-    }
-
-    const filterData = {
-      'tableID': tableID,
-      'urls': urls,
-      'filters': graphicFilters,
-    };
-    const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
-    const jsonContent = JSON.stringify(filterData);
-    fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-    const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', out, out]});
-    // python.stderr.pipe(process.stdout);
-    // python.stdout.pipe(process.stdout);
-    python.on('close', function(code) {
-      LOGGER.log(`Filtering finished with code ${code}.`)
-      sendMessage(mainWindow, 'client-add-upload', data);
-    });
-  }
-}
 
 ipcMain.on('server-graphics-filter', function(event, data) {
   LOGGER.receive('server-graphics-filter');
@@ -1608,31 +1636,3 @@ ipcMain.on('server-check-tpop-data', () => {
   });
 
 });
-
-function resolveUrls(urlList, callback) {
-  let workFound = false;
-  let url;
-  let i;
-
-  for (const index in urlList) {
-    url = urlList[index];
-    if (url.lastIndexOf('.')+5 < url.length) {
-      workFound = true;
-      i = index;
-      break;
-    }
-  }
-
-  if (!(workFound)) {
-    callback(urlList);
-  } else {
-    var r = request(url, function(e, response) {
-      urlList[i] = r.uri.href;
-      resolveUrls(urlList, callback);
-    });
-  }
-}
-
-function uploadTpopImages(urlList) {
-  sendMessage(uploadWindow, 'upload-tpop-images', urlList);
-}
