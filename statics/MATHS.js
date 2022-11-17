@@ -44,6 +44,10 @@ class MATHS {
         return min_d;
     }
 
+    static createRandomVector(dimensions) {
+        return Array.from({length: dimensions}, () => Math.random);
+    }
+
 }
 
 module.exports.MATHS = MATHS;
