@@ -31,9 +31,9 @@ const TPOPManager = require('./js/TPOPManager');
 const LOGGER = require('./statics/LOGGER');
 
 // Settings
-let devMode = true;
-if (process.argv.includes('--test')) {
-  devMode = false;
+let devMode = false;
+if (process.argv.includes('--dev')) {
+  devMode = true;
 }
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');

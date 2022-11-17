@@ -9,6 +9,7 @@ const Dialogs = require('dialogs');
 const {MeasurementTool} = require('./MeasurementTool');
 const {Topbar} = require('./Topbar');
 const { ContextMenu } = require('./ContextMenu');
+const LOGGER = require('../../statics/LOGGER');
 const dialogs = new Dialogs();
 
 /**
@@ -74,6 +75,7 @@ class UIController {
    *                   by the server to proceed with the given action.
    */
   sendToServer(message, data) {
+    LOGGER.send(message, data);
     if (data) {
       if (this.devMode) console.log('DevMode: Sending ' + message + '; data:', data);
       ipcRenderer.send(message, data);

@@ -3,6 +3,7 @@
 
 const {UIController} = require('./classes/UIController');
 const {ipcRenderer} = require('electron');
+const LOGGER = require('../statics/LOGGER');
 let controller;
 let sidebarCollapsed = false;
 let sidebarWidth = 200;
@@ -639,7 +640,7 @@ $(document).ready(function() {
   // client-load-model
   // Receiving stage and fragment configuration from server.
   ipcRenderer.on('client-load-model', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-load-model', data);
+    LOGGER.receive('client-load-model', data);
     if ('loading' in data.tableData) {
       $('.arrow.down').removeClass('down');
       $('.expanded').removeClass('expanded');
@@ -651,18 +652,18 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-redo-model', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-redo-model', data);
+    LOGGER.receive('client-redo-model', data);
     controller.redoScene(data);
   });
 
   ipcRenderer.on('client-add-upload', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-add-upload', data);
+    LOGGER.receive('client-add-upload', data);
     controller.stopLoading();
     controller.addFragment(data);
   });
 
   ipcRenderer.on('client-show-feedback', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-show-feedback');
+    LOGGER.receive('client-show-feedback', data);
     const title = data.title || '';
     const desc = data.desc || '';
     const duration = data.duration || '';
@@ -671,52 +672,55 @@ $(document).ready(function() {
   });
 
   ipcRenderer.on('client-redo-undo-update', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-redo-undo-update', data);
+    LOGGER.receive('client-redo-undo-update', data);
     controller.updateRedoUndo(data);
   });
 
   ipcRenderer.on('client-confirm-autosave', (event) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-confirm-autosave');
+    LOGGER.receive('client-confirm-autosave');
     controller.confirmAutosave();
   });
 
   ipcRenderer.on('client-get-model', (event, data) => {
-    console.log(data);
+    LOGGER.receive('client-get-model', data);
   });
 
   ipcRenderer.on('client-get-all', (event, data) => {
-    console.log(data);
+    LOGGER.receive('client-get-all', data);
   });
 
   ipcRenderer.on('client-file-saved', (event, saveData) => {
+    LOGGER.receive('client-file-saved', saveData);
     controller.updateFilename(saveData);
   });
 
   ipcRenderer.on('client-inactive-model', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-inactive-model', data);
+    LOGGER.receive('client-inactive-model', data);
     controller.loadInactive(data);
   });
 
   ipcRenderer.on('calibration-set-ppi', (event, ppi) => {
-    if (controller.isDevMode()) console.log('DevMode: Received calibration-set-ppi', ppi);
+    LOGGER.receive('calibration-set-ppi', ppi);
     controller.setPPI(ppi);
   });
 
   ipcRenderer.on('client-set-zoom', (event, data) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-set-zoom', data);
+    LOGGER.receive('client-set-zoom', data);
     controller.setZoom(data.minZoom, data.maxZoom, data.stepZoom);
   });
   
   ipcRenderer.on('client-start-loading', (event, tableID) => {
-    if (controller.isDevMode()) console.log('DevMode: Received client-start-loading', tableID);
+    LOGGER.receive('client-start-loading', tableID);
     controller.startLoading(tableID);
   });
 
   ipcRenderer.on('client-stop-loading', () => {
+    LOGGER.receive('client-stop-loading');
     controller.stopLoading();
   });
 
   ipcRenderer.on('client-loading-progress', (event, data) => {
+    LOGGER.receive('client-loading-progress', data);
     $('#progress-wrapper').removeClass('hidden');
     $('#progress-name').removeClass('hidden');
     $('#progress-status').removeClass('hidden');
