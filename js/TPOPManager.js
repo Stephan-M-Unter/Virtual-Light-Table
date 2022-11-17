@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const {SCHED_NONE} = require('cluster');
+const MATHS = require('../renderer/classes/MATHS');
 
 /**
  * TODO
@@ -32,8 +32,6 @@ class TPOPManager {
     this.ctime = 'unknown';
     this.mtime = 'unknown';
     this.reloadSpan = 800000000;
-
-    // this.initialiseVLTdata();
   };
 
   setTpopFolder(path) {
@@ -290,7 +288,7 @@ class TPOPManager {
 
     // calculate average vectors for each feature space
     for (const f of queried_features) {
-      vecs[f+'_avg'] = this.avgvector(vecs[f]);
+      vecs[f+'_avg'] = MATHS.averageVectors(vecs[f]);
     }
 
     // iterate over all objects to determine distances
@@ -313,12 +311,12 @@ class TPOPManager {
         const w = weights[f];
         const v = obj['features'][f];
         if (mode == 'avg') {
-          const v_avg = this.avgvector(v);
-          const d_avg = this.eucDistance(vecs[f+'_avg'], v_avg) * w;
+          const v_avg = MATHS.averageVectors(v);
+          const d_avg = MATHS.euclideanDistance(vecs[f+'_avg'], v_avg) * w;
           components.push(d_avg);
         } else {
           // mode == 'min'
-          const d_min = this.minDistance(vecs[f], v) * w;
+          const d_min = MATHS.minDistance(vecs[f], v) * w;
           components.push(d_min);
         }
       }
@@ -328,27 +326,6 @@ class TPOPManager {
       const distance = components.reduce((a, b) => a + b);
       obj['distance'] = distance;
     }
-
-
-    // for (const obj of this.tpopData) {
-    //   const rgb = obj['features']['rgb'];
-    //   const snn = obj['features']['snn'];
-
-    //   let d;
-    //   if (mode == 'avg') {
-    //     const rgb_avg = this.avgvector(rgb);
-    //     const snn_avg = this.avgvector(snn);
-    //     const d_rgb_avg = this.eucDistance(vecs['rgb_avg'], rgb_avg);
-    //     const d_snn_avg = this.eucDistance(vecs['snn_avg'], snn_avg);
-    //     d = d_rgb_avg * weights['rgb'] + d_snn_avg * weights['snn'];
-    //   } else {
-    //     const rgb_min = this.minDistance(vecs['rgb'], rgb);
-    //     const snn_min = this.minDistance(vecs['snn'], snn);
-    //     d = rgb_min * weights['rgb'] + snn_min * weights['snn'];
-    //   }
-    //   distances.push(d);
-    //   obj['distance'] = d;
-    // }
 
     this.allTPOPData.sort((a, b) => {
       const dA = a.distance;
@@ -380,77 +357,6 @@ class TPOPManager {
         return 0;
       }
     });
-  }
-
-  /**
-   *
-   * @param {*} a
-   * @param {*} b
-   * @return {*}
-   */
-  addvector(a, b) {
-    return a.map((e, i) => e + b[i]);
-  }
-
-  /**
-   * 
-   * @param {*} vecsA 
-   * @param {*} vecsB 
-   * @return {*}
-   */
-  minDistance(vecsA, vecsB) {
-    let min_d = null;
-    for (var a = 0; a < vecsA.length; a++) {
-      for (var b = 0; b < vecsB.length; b++) {
-        const vecA = vecsA[a];
-        const vecB = vecsB[b];
-        const d = this.eucDistance(vecA, vecB);
-        if (min_d == null || d < min_d) {
-          min_d = d;
-        }
-      }
-    }
-    return min_d;
-  }
-
-  /**
-   *
-   * @param {*} v
-   * @return {*}
-   */
-  addvectors(v) {
-    let v0 = v[0];
-    for (let i = 1; i < v.length; i++) {
-      v0 = this.addvector(v0, v[i]);
-    }
-    return v0;
-  }
-
-  /**
-   *
-   * @param {*} v
-   * @return {*}
-   */
-  avgvector(v) {
-    const l = v.length;
-    if (l == 0) return null;
-    if (l == 1) return v;
-    let r = this.addvectors(v);
-    r = r.map((x) => x / l);
-    return r;
-  }
-
-  /**
-   *
-   * @param {*} a
-   * @param {*} b
-   * @return {*}
-   */
-  eucDistance(a, b) {
-    return a
-        .map((x, i) => Math.abs( x - b[i] ) ** 2) // square the difference
-        .reduce((sum, now) => sum + now) ** // sum
-        (1/2);
   }
 
   /**
