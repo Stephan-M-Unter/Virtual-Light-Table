@@ -32,6 +32,7 @@ class TPOPManager extends ContentManagerInterface {
     this.checkedForUpdates = false;
     this.fullTPOPData = null;
     this.activeTPOPData = null;
+    this.hideWithoutImages = false;
     this.filterTypes = null;
     this.ctime = 'unknown';
     this.mtime = 'unknown';
@@ -83,9 +84,10 @@ class TPOPManager extends ContentManagerInterface {
         }
         this.fullTPOPData = this.activeTPOPData['objects'].filter((el) => {
           if (el == null || typeof el == 'undefined') return false;
+          if (el['ObjectImages'].length == 0) return false;
           const recto = el['ObjectImageRectoLo'] || el['ObjectImageRectoHi'] || el['ObjectImageRecto'];
           const verso = el['ObjectImageVersoLo'] || el['ObjectImageVersoHi'] || el['ObjectImageVerso'];
-          if (!recto && !verso) return false;
+          if (!recto && !verso && this.hideWithoutImages) return false;
           return true;
         });
         this.initialiseFeatures();
@@ -162,32 +164,12 @@ class TPOPManager extends ContentManagerInterface {
               f_features[feature] = o['features'][feature]['recto'].concat(o['features'][feature]['verso']);
             }
             this.fullTPOPData[idx_f]['features'] = f_features;
-          } else {
-            // console.log(o['id']);
           }
         }
-        console.log("Entries:", cbdata.length);
-        console.log("Found:", found);
       } catch (e) {
         console.log(e);
       }
     }
-    /*
-    for (let i = 0; i < this.allTPOPData.length; i++) {
-      const features = {
-        'rgb': [],
-        'snn': [],
-      };
-      const n = Math.round(Math.random() * 10);
-      for (let j = 0; j < n; j++) {
-        const v = Array.from({length: 20}, () => Math.random());
-        const v_rgb = Array.from({length: 18}, () => Math.random());
-        features['rgb'].push(v_rgb);
-        features['snn'].push(v);
-      }
-      this.allTPOPData[i]['features'] = features;
-    }
-    */
   }
 
   /**
@@ -701,18 +683,6 @@ class TPOPManager extends ContentManagerInterface {
       }
     }
     return result;
-  }
-
-  checkForTPOPUpdate() {};
-  connectToTPOP() {};
-
-  /**
-   *
-   * @param {*} length
-   * @return {*}
-   */
-  createRandomVector(length) {
-    return Array.from({length: length}, () => Math.random());
   }
 
   getFolders() {
