@@ -76,13 +76,7 @@ class UIController {
    */
   sendToServer(message, data) {
     LOGGER.send(message, data);
-    if (data) {
-      if (this.devMode) console.log('DevMode: Sending ' + message + '; data:', data);
-      ipcRenderer.send(message, data);
-    } else {
-      if (this.devMode) console.log('DevMode: Sending ' + message + '; no data.');
-      ipcRenderer.send(message);
-    }
+    ipcRenderer.send(message, data);
   }
 
   /**
@@ -441,18 +435,22 @@ class UIController {
     let valid = true;
     const w = $('#workarea-width').val();
     const h = $('#workarea-height').val();
+
+    // show "clear area" button if at least one field is filled
     if ((w && w != '') || (h && h != '')) {
       $('#workarea_clear').removeClass('hidden');
     } else {
       $('#workarea_clear').addClass('hidden');
     }
 
+    // mark width field with error if input is invalid, i.e. no number
     if (!Number(w) && w != '') {
       $('#workarea-width').addClass('error');
       valid = false;
     } else {
       $('#workarea-width').removeClass('error');
     }
+    // mark height field with error if input is invalid, i.e. no number
     if (!Number(h) && h != '') {
       $('#workarea-height').addClass('error');
       valid = false;
@@ -460,15 +458,18 @@ class UIController {
       $('#workarea-height').removeClass('error');
     }
     
+    // mark width field with error if input is smaller than 0
     if (w < 0) {
       valid = false;
       $('#workarea-width').addClass('error');
     }
+    // mark height field with error if input is smaller than 0
     if (h < 0) {
       valid = false;
       $('#workarea-height').addClass('error');
     }
 
+    // don't accept area input if either width or height or both are empty/null
     if (!w || w == ''|| !h || h == '') {
       valid = false;
     }
@@ -627,6 +628,12 @@ class UIController {
     this.annotationPopup.load(data.tableData.annots);
     this.updateSidebarFragmentList();
     this.updateRulers();
+
+    if ('area' in data.tableData.stage) {
+      const w = data.tableData.stage.area.w;
+      const h = data.tableData.stage.area.h;
+      this.sidebar.updateWorkAreaFields(w, h);
+    }
 
     let graphicFilters = null;
     if ('graphicFilters' in data.tableData) graphicFilters = data.tableData.graphicFilters;

@@ -219,6 +219,11 @@ class Sidebar {
     wrapper.removeClass('fragment_list_item_active');
   }
 
+  updateWorkAreaFields(w, h) {
+    $('#workarea-width').val(w);
+    $('#workarea-height').val(h);
+  }
+
   /**
    * TODO
    */

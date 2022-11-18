@@ -349,8 +349,14 @@ class Stage {
   }
 
   updateWorkarea(w, h) {
-    if (w != null && typeof w !== "undefined") this.area.w = this.ppi * (w/2.54);
-    if (h != null && typeof h !== "undefined") this.area.h = this.ppi * (h/2.54);
+    if (w != null && typeof w !== "undefined") {
+      this.area.w_input = w;
+      this.area.w = this.ppi * (w/2.54);
+    }
+    if (h != null && typeof h !== "undefined") {
+      this.area.h_input = h;
+      this.area.h = this.ppi * (h/2.54);
+    }
     const w_scaled = (this.getScaling()/100)*this.area.w;
     const h_scaled = (this.getScaling()/100)*this.area.h;
     const x = this.offset.x - w_scaled/2;
@@ -516,9 +522,10 @@ class Stage {
         this.offset = dataStage.offset;
       }
       if ('area' in dataStage && dataStage.area) {
-        this.area = dataStage.area;
-        $('#workarea-width').val(Math.round(((this.area.w*2.54)/this.ppi)*100)/100);
-        $('#workarea-height').val(Math.round(((this.area.h*2.54)/this.ppi)*100)/100);
+        this.updateWorkarea(dataStage.area.w, dataStage.area.h);
+        // this.area = dataStage.area;
+        // $('#workarea-width').val(Math.round(((this.area.w*2.54)/this.ppi)*100)/100);
+        // $('#workarea-height').val(Math.round(((this.area.h*2.54)/this.ppi)*100)/100);
       }
     }
   }
@@ -531,7 +538,7 @@ class Stage {
     return {
       'scaling': this.stage.scaling,
       'offset': this.offset,
-      'area': this.area,
+      'area': {w: this.area.w_input, h: this.area.h_input},
     };
   }
 
@@ -1164,11 +1171,18 @@ class Stage {
     this.update();
   }
 
+  hasNoFragments() {
+    return Object.keys(this.fragmentList).length == 0;
+  }
+
   /**
    * TODO
    * @param {*} horizontalFlip
    */
   flipTable(horizontalFlip=true) {
+    if (this.hasNoFragments()) {
+      return null;
+    }
     this.controller.clearSelection();
 
     const yAxis = this.offset.x;
