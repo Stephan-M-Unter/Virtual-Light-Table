@@ -37,7 +37,7 @@ class Topbar {
    */
   addTable(tableID, tableData) {
     const tableNumber = tableID.slice(6);
-    const tableItem = $('<div id="'+tableID+'" class="table_item" table="'+tableID+'"></div>');
+    const tableItem = $('<div id="'+tableID+'" class="table_item" table="'+tableID+'" draggable="true"></div>');
     const tableHeader = $('<div title="Table '+tableNumber+'" class="table_header empty" table="'+
     tableID+'">Table '+tableNumber+'</div>');
     const tableClose = $('<div title="Close table" class="table_close" table="'+tableID+'"></div>');
@@ -71,9 +71,85 @@ class Topbar {
       this.controller.showContextMenu(event, 'topbar_table', tableID);
     });
 
+    $(tableItem).on('dragstart', (event) => {
+      event.dataTransfer = event.originalEvent.dataTransfer;
+      let target = $(event.target);
+      while (true) {
+        if (target.hasClass('table_item')) {
+          break;
+        }
+        target = target.parent();
+      }
+
+      let index = target.index();
+      if ($('#table_separator').index() < index) {
+        index -= 1;
+      }
+
+      event.dataTransfer.setData('text/plain', index);
+    });
+    $(tableItem).on('drop', (event) => {
+      this.dragCancel(event);
+      $('#table_separator').css('display', 'none');
+
+      let target = $(event.target);
+      while (true) {
+        if (target.hasClass('table_item')) {
+          break;
+        }
+        target = target.parent();
+      }
+
+      let newIndex = target.index();
+      if ($('#table_separator').index() < newIndex) {
+        newIndex -= 1;
+      }
+      event.dataTransfer = event.originalEvent.dataTransfer;
+      let oldIndex = parseInt(event.dataTransfer.getData('text/plain'));
+      if ($('#table_separator').index() < oldIndex) {
+        oldIndex += 1;
+      }
+
+      const source = target.parent().children()[oldIndex];
+
+      const centerX = target.offset().left + (target.width() / 2);
+
+      if (event.pageX < centerX) {
+        console.log("Old:", oldIndex, "->", "New:", newIndex);
+        console.log(target.prop('id'), 'before', source);
+        target.before(source);
+      } else {
+        console.log("Old:", oldIndex, "->", "New:", newIndex+1);
+        console.log(target.prop('id'), 'after', source);
+        target.after(source);
+      }
+    });
+    $(tableItem).on('dragenter', this.dragCancel);
+    $(tableItem).on('dragover', this.dragCancel);
+    
     $(renewScreenshot).click((event) => {
       this.renewScreenshot();
     });
+  };
+
+  dragCancel(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    let target = $(event.target);
+    while (true) {
+      if (target.hasClass('table_item')) {
+        break;
+      }
+      target = target.parent();
+    }
+    const centerX = target.offset().left + (target.width() / 2);
+    $('#table_separator').css('display', 'block');
+    if (event.pageX < centerX) {
+      target.before($('#table_separator'));
+    } else {
+      target.after($('#table_separator'));
+    }
+    return false;
   };
 
   /**
