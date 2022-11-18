@@ -115,12 +115,8 @@ class Topbar {
       const centerX = target.offset().left + (target.width() / 2);
 
       if (event.pageX < centerX) {
-        console.log("Old:", oldIndex, "->", "New:", newIndex);
-        console.log(target.prop('id'), 'before', source);
         target.before(source);
       } else {
-        console.log("Old:", oldIndex, "->", "New:", newIndex+1);
-        console.log(target.prop('id'), 'after', source);
         target.after(source);
       }
     });

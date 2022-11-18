@@ -1646,6 +1646,13 @@ body {
     background-color: var(--cb_orange);
 }
 
+#fragment_separator {
+    width: 100%;
+    height: 3px;
+    background-color: var(--cb_orange);
+    display: none;
+}
+
 #add_table {
     flex: 0 0 auto;
     margin: 20px;

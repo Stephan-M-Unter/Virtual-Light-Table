@@ -884,7 +884,7 @@ class Stage {
             this.controller.selectFragment(clickedId);
           }
         }
-        this._moveToTop(this.fragmentList[clickedId]);
+        // this._moveToTop(this.fragmentList[clickedId]);
         this.update();
   
         this.mouseClickStart = {x: event.stageX, y: event.stageY};
@@ -931,10 +931,16 @@ class Stage {
       this.selectedList[id] = this.fragmentList[id];
       this.fragmentList[id].getImage().shadow = new createjs.Shadow(
           '#f15b40', 0, 0, 10);
-      this._moveToTop(this.fragmentList[id]);
+      // this._moveToTop(this.fragmentList[id]);
     }
     this._updateBb();
     this.update();
+  }
+
+  updateDisplayOrder(orderedIDList) {
+    orderedIDList.forEach((id) => {
+      this._moveToTop(this.fragmentList[id]);
+    });
   }
 
   /**
@@ -1042,6 +1048,12 @@ class Stage {
     if (!this.controller.getPermission('move_fragment')) return null;
     const container = fragment.getContainer();
     this.addBeforeOverlay(container);
+  }
+
+  _moveToBottom(fragment) {
+    if (!this.controller.getPermission('move_fragment')) return null;
+    const container = fragment.getContainer();
+    this.addAfterBackground(container);
   }
 
   /**
@@ -1215,6 +1227,8 @@ class Stage {
           fragment.rotateToAngle(180+fragment.getRotation());
         }
         fragment.moveBy(-(x-xNew), -(y-yNew));
+
+        // this._moveToBottom(fragment);
       }
     }
 

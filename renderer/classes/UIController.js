@@ -672,6 +672,10 @@ class UIController {
     this.updateSidebarFragmentList();
   }
 
+  updateDisplayOrder(orderedIDList) {
+    this.stage.updateDisplayOrder(orderedIDList);
+  }
+
   /**
    * Requests stage to perform a transformation such that the fragment with given id is centered in
    * the viewport.

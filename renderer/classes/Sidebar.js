@@ -106,7 +106,7 @@ class Sidebar {
 
     fragmentItemButtonWrapper.appendChild(fragmentItemButtonLock);
 
-    $('#fragment_list_content').append(fragmentListItem);
+    $('#fragment_list_content').prepend(fragmentListItem);
 
 
     // Interactions
@@ -145,6 +145,65 @@ class Sidebar {
       controller.showContextMenu(event, 'fragment', id);
     });
 
+    fragmentListItem.addEventListener('dragstart', function(event) {
+      let target = $(event.target);
+      while (true) {
+        if (target.hasClass('fragment_list_item')) {
+          break;
+        }
+        target = target.parent();
+      }
+
+      let index = target.index();
+      if ($('#fragment_separator').index() < index) {
+        index -= 1;
+      }
+
+      event.dataTransfer.setData('text/plain', index);
+    });
+    fragmentListItem.addEventListener('drop', (event) => {
+      this.dragCancel(event);
+      $('#fragment_separator').css('display', 'none');
+
+      let target = $(event.target);
+      while (true) {
+        if (target.hasClass('fragment_list_item')) {
+          break;
+        }
+        target = target.parent();
+      }
+
+      let newIndex = target.index();
+      if ($('#fragment_separator').index() < newIndex) {
+        newIndex -= 1;
+      }
+      let oldIndex = parseInt(event.dataTransfer.getData('text/plain'));
+      if ($('#fragment_separator').index() < oldIndex) {
+        oldIndex += 1;
+      }
+
+      const source = target.parent().children()[oldIndex];
+
+      const centerY = target.offset().top + (target.height() / 2);
+
+      if (event.pageY < centerY) {
+        target.before(source);
+      } else {
+        target.after(source);
+      }
+
+      const orderedIDList = [];
+
+      $('.fragment_list_item').each((index, item) => {
+        orderedIDList.push($(item).prop('id'));
+      });
+      orderedIDList.reverse();
+      this.controller.updateDisplayOrder(orderedIDList);
+
+    });
+    fragmentListItem.addEventListener('dragenter', this.dragCancel);
+    fragmentListItem.addEventListener('dragover', this.dragCancel);
+
     fragmentItemButtonRemove.addEventListener('click', function(event) {
       controller.removeFragment(id);
     }, false);
@@ -163,6 +222,26 @@ class Sidebar {
       event.stopPropagation();
       controller.toggleSelect(id);
     });
+  }
+
+  dragCancel(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    let target = $(event.target);
+    while (true) {
+      if (target.hasClass('fragment_list_item')) {
+        break;
+      }
+      target = target.parent();
+    }
+    const centerY = target.offset().top + (target.height() / 2);
+    $('#fragment_separator').css('display', 'block');
+    if (event.pageY < centerY) {
+      target.before($('#fragment_separator'));
+    } else {
+      target.after($('#fragment_separator'));
+    }
+    return false;
   }
 
   /**
@@ -188,6 +267,11 @@ class Sidebar {
           }
         }
       }
+
+      const fragmentSeparator = document.createElement('div');
+      fragmentSeparator.id = 'fragment_separator';
+      $('#fragment_list_content').append(fragmentSeparator);
+
     } else {
       const noFragmentsText = document.createElement('div');
       noFragmentsText.setAttribute('id', 'fragment_list_nocontent');
