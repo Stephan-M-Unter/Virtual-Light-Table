@@ -15,6 +15,8 @@ except:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'pillow'])
     from PIL import Image,ImageEnhance
 
+Image.MAX_IMAGE_PIXELS = None
+
 vlt_folder = os.path.join(sys.argv[1], 'temp', 'imgs')
 filter_json = json.load(open(sys.argv[2], 'r'))
 urls = filter_json['urls']

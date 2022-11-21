@@ -5,6 +5,7 @@ try:
 except:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'pillow'])
 
+Image.MAX_IMAGE_PIXELS = None
 
 image_path = sys.argv[1]
 target_path = sys.argv[2]

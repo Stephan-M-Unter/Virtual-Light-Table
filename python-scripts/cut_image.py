@@ -17,6 +17,8 @@ except:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'numpy'])
     import numpy as np
 
+Image.MAX_IMAGE_PIXELS = None
+
 image_path = sys.argv[1]
 vlt_folder = sys.argv[3]
 image_extension = image_path[image_path.rfind(".")+1:]
