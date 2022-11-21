@@ -16,12 +16,10 @@
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
-const util = require('util');
 const request = require('request');
 const process = require('process');
 const {spawn} = require('child_process');
 const CSC = require('./statics/CRIME_SCENE_CLEANER');
-
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -45,19 +43,6 @@ let tempFolder = path.join(vltFolder, 'temp');
 const vltConfigFile = path.join(vltFolder, 'vlt.config');
 const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
-
-// const logfile = fs.createWriteStream(path.join(vltFolder, 'log.txt'), {flags: 'w'});
-// const logStdout = process.stdout;
-// const logStderr = process.stderr;
-
-// console.log = function() {
-  // logfile.write(util.format.apply(null, arguments)+'\n');
-  // logStdout.write(util.format.apply(null, arguments)+'\n');
-// };
-// console.error = function() {
-  // logfile.write(util.format.apply(null, arguments)+'\n');
-  // logStderr.write(util.format.apply(null, arguments)+'\n');
-// };
 
 // const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
 let pythonCmd = 'python3';
@@ -91,6 +76,7 @@ const activeTables = {
   tpop: null,
 };
 let autosaveChecked = false;
+let quitting = false;
 
 const loadingQueue = [];
 
@@ -159,19 +145,25 @@ function main() {
     }
   });
   mainWindow.on('close', function(event) {
-    const choice = dialog.showMessageBoxSync(event.target, {
-      type: 'question',
-      buttons: ['Yes', 'No'],
-      title: 'Confirm',
-      message: 'Are you sure you want to quit?',
-    });
-    if (choice == 1) {
-      event.preventDefault();
+    if (quitting) {
+      app.quit()
     } else {
-      saveManager.removeAutosaveFiles();
-      app.quit();
+      const choice = dialog.showMessageBoxSync(event.target, {
+        type: 'question',
+        buttons: ['Yes', 'No'],
+        title: 'Confirm',
+        message: 'Are you sure you want to quit?',
+      });
+      if (choice == 1) {
+        event.preventDefault();
+      } else {
+        quitting = true;
+        LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
+        saveManager.removeAutosaveFiles();
+        app.quit();
+      }
+      // sendMessage(mainWindow, 'client-confirm-quit');
     }
-    // sendMessage(mainWindow, 'client-confirm-quit');
   });
 }
 
@@ -180,22 +172,6 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-/**
- * TODO
- * @return {String}
- */
-function timestamp() {
-  const now = new Date();
-
-  const second = now.getSeconds().toString().padStart(2, '0');
-  const minute = now.getMinutes().toString().padStart(2, '0');
-  const hour = now.getHours().toString().padStart(2, '0');
-  const day = now.getDate().toString().padStart(2, '0');
-  let month = now.getMonth()+1; // zero-based value
-  month = month.toString().padStart(2, '0');
-  const year = now.getFullYear();
-  return '['+day+'/'+month+'/'+year+' '+hour+':'+minute+':'+second+']';
-}
 
 /**
  *
