@@ -35,6 +35,7 @@ let devMode = false;
 if (process.argv.includes('--dev')) {
   devMode = true;
 }
+const version = 'v0.5';
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 let vltFolder = path.join(appDataPath, 'Virtual Light Table');
@@ -45,20 +46,20 @@ const vltConfigFile = path.join(vltFolder, 'vlt.config');
 const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
-const logfile = fs.createWriteStream(path.join(vltFolder, 'log.txt'), {flags: 'w'});
-const logStdout = process.stdout;
-const logStderr = process.stderr;
+// const logfile = fs.createWriteStream(path.join(vltFolder, 'log.txt'), {flags: 'w'});
+// const logStdout = process.stdout;
+// const logStderr = process.stderr;
 
-console.log = function() {
-  logfile.write(util.format.apply(null, arguments)+'\n');
-  logStdout.write(util.format.apply(null, arguments)+'\n');
-};
-console.error = function() {
-  logfile.write(util.format.apply(null, arguments)+'\n');
-  logStderr.write(util.format.apply(null, arguments)+'\n');
-};
+// console.log = function() {
+  // logfile.write(util.format.apply(null, arguments)+'\n');
+  // logStdout.write(util.format.apply(null, arguments)+'\n');
+// };
+// console.error = function() {
+  // logfile.write(util.format.apply(null, arguments)+'\n');
+  // logStderr.write(util.format.apply(null, arguments)+'\n');
+// };
 
-const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
+// const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
 let pythonCmd = 'python3';
 let config = {};
 
@@ -108,13 +109,13 @@ function main() {
   if (!fs.existsSync(vltFolder)) {
     // creating VLT subfolder in appdata
     fs.mkdirSync(vltFolder);
-    LOGGER.log('Created new VLT folder at ' + vltFolder);
+    LOGGER.log('SERVER', 'Created new VLT folder at ' + vltFolder);
   }
 
   // check if the "External Content" subfolder exists
   if (!fs.existsSync(externalContentFolder)) {
     fs.mkdirSync(externalContentFolder);
-    LOGGER.log('Created new folder for external content at ' + externalContentFolder);
+    LOGGER.log('SERVER', 'Created new folder for external content at ' + externalContentFolder);
   }
 
   // check if config file exists
@@ -127,6 +128,8 @@ function main() {
     config = readConfig();
     extendConfig();
   }
+
+  LOGGER.start(vltFolder, version);
 
   // CHECK FOR PYTHON
   check_python();
@@ -201,11 +204,11 @@ function saveConfig() {
   const configJSON = JSON.stringify(config);
   fs.writeFile(vltConfigFile, configJSON, function(err) {
     if (err) {
-      LOGGER.err('Error while writing config file.');
-      LOGGER.err(err);
+      LOGGER.err('SERVER', 'Error while writing config file.');
+      LOGGER.err('SERVER', err);
       return false;
     } else {
-      LOGGER.log('Config File successfully saved.');
+      LOGGER.log('SERVER', 'Config File successfully saved.');
     }
   });
   return true;
@@ -226,9 +229,9 @@ function readConfig() {
     }
     return config;
   } catch (err) {
-    LOGGER.err('An error occurred while reading the config file.');
-    LOGGER.err(err);
-    LOGGER.log('Loading default configuration.');
+    LOGGER.err('SERVER', 'An error occurred while reading the config file.');
+    LOGGER.err('SERVER', err);
+    LOGGER.log('SERVER', 'Loading default configuration.');
     return loadDefaultConfig();
   }
 }
@@ -468,19 +471,19 @@ function preprocess_loading_fragments(data) {
 
   if (fragment.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (fragment.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (fragment.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     } else {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
   } else if (fragment.maskMode == 'automatic') {
     // TODO
@@ -492,7 +495,7 @@ function preprocess_loading_fragments(data) {
     fragment.verso.url_view = newURL;
   }
   python.on('close', function(code) {
-    LOGGER.log(`Python script finished (code ${code}), restarting...`);
+    LOGGER.log('SERVER', `Python script finished (code ${code}), restarting...`);
     data.tableData.fragments[fragmentKey] = fragment;
     preprocess_loading_fragments(data);
   });
@@ -504,35 +507,35 @@ function check_python() {
   let python = spawn('python3', [path.join(pythonFolder, 'python_test.py')], {detached: false});
   python.on('close', function(code) {
     if (code == 9009) {
-      LOGGER.err('Code 9009 - "python3" does not exist, now testing with command "python"');
+      LOGGER.err('SERVER', 'Code 9009 - "python3" does not exist, now testing with command "python"');
       python = spawn('python', [path.join(pythonFolder, 'python_test.py')], {detached: false});
       python.on('close', function(code) {
         if (code == 9009) {
-          LOGGER.err("Code 9009 - no working version of python found.");
+          LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
           const warning = dialog.showMessageBoxSync(null, {
             title: 'VLT cannot be started!',
             message: 'The VLT needs a running version of Python 3.x - please head to https://www.python.org/ and install the latest stable version before running the Virtual Light Table.'
           })
           app.quit();
         } else if (code == 0) {
-          LOGGER.log(`[PYTHON] closed with code ${code}`);
-          LOGGER.log('Setting python command to "python"');
+          LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+          LOGGER.log('SERVER', 'Setting python command to "python"');
           pythonCmd = 'python';
         } else {
-          LOGGER.err(`[PYTHON] closed with code ${code}`);
-          LOGGER.err('Command "python" found, but other problem occurred, please resolve.');
+          LOGGER.err('SERVER', `[PYTHON] closed with code ${code}`);
+          LOGGER.err('SERVER', 'Command "python" found, but other problem occurred, please resolve.');
           app.quit();
         }
       });
       python.stdout.pipe(process.stdout);
       python.stderr.pipe(process.stderr);
     } else if (code == 0) {
-      LOGGER.log(`python3 closed with code ${code}`);
-      LOGGER.log('setting pythonCmd to python3');
+      LOGGER.log('SERVER', `python3 closed with code ${code}`);
+      LOGGER.log('SERVER', 'setting pythonCmd to python3');
       pythonCmd = 'python3';
     } else {
-      LOGGER.err(`python3 closed with code ${code}`);
-      LOGGER.err('python3 found, but other problem occurred, please solve');
+      LOGGER.err('SERVER', `python3 closed with code ${code}`);
+      LOGGER.err('SERVER', 'python3 found, but other problem occurred, please solve');
       app.quit();
     }
   })
@@ -622,19 +625,19 @@ function preprocess_fragment(data) {
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]), {windowsHide: true, stdio: ['ignore', out, out]};
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]), {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]};
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     } else {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', out, out]});
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
   } else if (data.maskMode == 'automatic') {
     // TODO
@@ -646,7 +649,7 @@ function preprocess_fragment(data) {
     data.verso.url_view = newURL;
   }
   python.on('close', function(code) {
-    LOGGER.log(`Python script finished (code ${code}), restarting...`);
+    LOGGER.log('SERVER', `Python script finished (code ${code}), restarting...`);
     preprocess_fragment(data);
   });
   // python.stderr.pipe(process.stdout);
@@ -712,11 +715,11 @@ function filterImages(tableID, urls) {
   const jsonContent = JSON.stringify(filterData);
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', out, out]});
+  const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   // python.stderr.pipe(process.stdout);
   // python.stdout.pipe(process.stdout);
   python.on('close', function(code) {
-    LOGGER.log(`Python script finished graphical filtering with code ${code}.`)
+    LOGGER.log('SERVER', `Python script finished graphical filtering with code ${code}.`)
     const response = {
       tableID: tableID,
       tableData: tableManager.getTable(tableID),
@@ -750,11 +753,11 @@ function filterImage(tableID, data) {
     const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
     const jsonContent = JSON.stringify(filterData);
     fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-    const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', out, out]});
+    const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     // python.stderr.pipe(process.stdout);
     // python.stdout.pipe(process.stdout);
     python.on('close', function(code) {
-      LOGGER.log(`Filtering finished with code ${code}.`)
+      LOGGER.log('SERVER', `Filtering finished with code ${code}.`)
       sendMessage(mainWindow, 'client-add-upload', data);
     });
   }
@@ -803,7 +806,7 @@ function uploadTpopImages(urlList) {
  * @param {Object} data
  */
 function sendMessage(recipientWindow, message, data=null) {
-  LOGGER.send(message);
+  LOGGER.send('SERVER', message);
   recipientWindow.send(message, data);
 }
 
@@ -812,7 +815,7 @@ function sendMessage(recipientWindow, message, data=null) {
 
 // server-save-to-model | data -> data.tableID, data.tableData, data.skipDoStep
 ipcMain.on('server-save-to-model', (event, data) => {
-  LOGGER.receive('server-save-to-model');
+  LOGGER.receive('SERVER', 'server-save-to-model');
 
   tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
   if (Object.keys(data.tableData.fragments).length > 0) {
@@ -825,7 +828,7 @@ ipcMain.on('server-save-to-model', (event, data) => {
 
 // server-undo-step
 ipcMain.on('server-undo-step', (event, tableID) => {
-  LOGGER.receive('server-undo-step');
+  LOGGER.receive('SERVER', 'server-undo-step');
   const isUndone = tableManager.undoStep(tableID);
   if (isUndone) {
     // undo step was successful
@@ -839,7 +842,7 @@ ipcMain.on('server-undo-step', (event, tableID) => {
 
 // server-redo-step
 ipcMain.on('server-redo-step', (event, tableID) => {
-  LOGGER.receive('server-redo-step');
+  LOGGER.receive('SERVER', 'server-redo-step');
   const isRedone = tableManager.redoStep(tableID);
   if (isRedone) {
     // redo step was successful
@@ -853,7 +856,7 @@ ipcMain.on('server-redo-step', (event, tableID) => {
 
 // server-clear-table
 ipcMain.on('server-clear-table', (event, tableID) => {
-  LOGGER.receive('server-clear-table');
+  LOGGER.receive('SERVER', 'server-clear-table');
   tableManager.clearTable(tableID);
   const data = {
     tableID: tableID,
@@ -864,7 +867,7 @@ ipcMain.on('server-clear-table', (event, tableID) => {
 
 // server-open-details
 ipcMain.on('server-open-details', (event, id) => {
-  LOGGER.receive('server-open-details');
+  LOGGER.receive('SERVER', 'server-open-details');
   detailWindow = new Window({
     file: './renderer/details.html',
     type: 'detail',
@@ -879,7 +882,7 @@ ipcMain.on('server-open-details', (event, id) => {
 
 // server-load-file
 ipcMain.on('server-load-file', (event, filename) => {
-  LOGGER.receive('server-load-file');
+  LOGGER.receive('SERVER', 'server-load-file');
   let tableID = activeTables.loading;
   sendMessage(mainWindow, 'client-start-loading', tableID);
   activeTables.loading = null;
@@ -914,7 +917,7 @@ ipcMain.on('server-load-file', (event, filename) => {
 
 // server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor
 ipcMain.on('server-save-file', (event, data) => {
-  LOGGER.receive('server-save-file');
+  LOGGER.receive('SERVER', 'server-save-file');
   tableManager.setScreenshot(data.tableID, data.screenshot);
 
   if (data.quicksave && !data.editor) {
@@ -956,7 +959,7 @@ ipcMain.on('server-save-file', (event, data) => {
 
 // server-list-savefiles
 ipcMain.on('server-list-savefiles', (event, folder) => {
-  LOGGER.receive('server-list-savefiles');
+  LOGGER.receive('SERVER', 'server-list-savefiles');
 
   // if the requested folder uses relative pathing, indicated either by
   // "./" or "../", combine it with the absolute appPath, that is the folder the
@@ -971,7 +974,7 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
 
 // <- server-get-saves-folder
 ipcMain.on('server-get-saves-folder', (event) => {
-  LOGGER.receive('server-get-saves-folder');
+  LOGGER.receive('SERVER', 'server-get-saves-folder');
   const path = saveManager.getSaveFolder();
   if (path) {
     event.sender.send('load-receive-folder', path[0]);
@@ -980,7 +983,7 @@ ipcMain.on('server-get-saves-folder', (event) => {
 
 // server-open-load
 ipcMain.on('server-open-load', (event, tableID) => {
-  LOGGER.receive('server-open-load');
+  LOGGER.receive('SERVER', 'server-open-load');
 
   activeTables.loading = tableID;
 
@@ -1005,13 +1008,13 @@ ipcMain.on('server-open-load', (event, tableID) => {
 
 // server-export-file
 ipcMain.on('server-export-file', (event, filename) => {
-  LOGGER.receive('server-export-file');
+  LOGGER.receive('SERVER', 'server-export-file');
   saveManager.exportFile(filename);
 });
 
 // server-delete-file
 ipcMain.on('server-delete-file', (event, filename) => {
-  LOGGER.receive('server-delete-file');
+  LOGGER.receive('SERVER', 'server-delete-file');
   const deleted = saveManager.deleteFile(filename);
   if (deleted) {
     const folder = saveManager.getCurrentFolder();
@@ -1022,19 +1025,19 @@ ipcMain.on('server-delete-file', (event, filename) => {
 
 // server-write-annotation | data -> data.tableID, data.aData
 ipcMain.on('server-write-annotation', (event, data) => {
-  LOGGER.receive('server-write-annotation');
+  LOGGER.receive('SERVER', 'server-write-annotation');
   tableManager.writeAnnotation(data.tableID, data.annotation);
 });
 
 // server-remove-annotation | data -> data.tableID, data.aID
 ipcMain.on('server-remove-annotation', (event, data) => {
-  LOGGER.receive('server-remove-annotation');
+  LOGGER.receive('SERVER', 'server-remove-annotation');
   tableManager.removeAnnotation(data.tableID, data.aID);
 });
 
 // server-open-upload
 ipcMain.on('server-open-upload', (event, tableID) => {
-  LOGGER.receive('server-open-upload');
+  LOGGER.receive('SERVER', 'server-open-upload');
   activeTables.uploading = tableID;
   
   if (uploadWindow) {
@@ -1065,7 +1068,7 @@ ipcMain.on('server-open-upload', (event, tableID) => {
 
 // server-upload-ready
 ipcMain.on('server-upload-ready', (event, data) => {
-  LOGGER.receive('server-upload-ready');
+  LOGGER.receive('SERVER', 'server-upload-ready');
 
   if (!activeTables.uploading) {
     // if no table is currently associated with the upload, create a new table
@@ -1096,7 +1099,7 @@ ipcMain.on('server-upload-ready', (event, data) => {
 // server-upload-image | triggers a file dialog for the user to select a fragment
 // image which will then be displayed in the upload window
 ipcMain.on('server-upload-image', (event) => {
-  LOGGER.receive('server-upload-image');
+  LOGGER.receive('SERVER', 'server-upload-image');
   const filepath = imageManager.selectImageFromFilesystem();
 
   if (filepath) {
@@ -1107,9 +1110,9 @@ ipcMain.on('server-upload-image', (event) => {
       const dotPos = filename.lastIndexOf('.');
       filename = filename.substring(0,dotPos) + '.jpg';
       const newFilepath = path.join(tempFolder, 'imgs', filename);
-      const python = spawn(pythonCmd, [path.join(pythonFolder, 'convert_tiff.py'), filepath, newFilepath], {windowsHide: true, stdio: ['ignore', out, out]});
+      const python = spawn(pythonCmd, [path.join(pythonFolder, 'convert_tiff.py'), filepath, newFilepath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
       python.on('close', function(code) {
-        LOGGER.log(`[PYTHON] Converted TIFF to JPG, closing with code ${code}.`);
+        LOGGER.log('SERVER', `[PYTHON] Converted TIFF to JPG, closing with code ${code}.`);
         sendMessage(uploadWindow, 'upload-receive-image', newFilepath);
       });
     } else {
@@ -1122,13 +1125,13 @@ ipcMain.on('server-upload-image', (event) => {
 
 // server-quit-table
 ipcMain.on('server-quit-table', (event) => {
-  LOGGER.receive('server-quit-table');
+  LOGGER.receive('SERVER', 'server-quit-table');
   app.quit();
 });
 
 // server-change-fragment | data -> data.tableID, data.fragmentID
 ipcMain.on('server-change-fragment', (event, data) => {
-  LOGGER.receive('server-change-fragment');
+  LOGGER.receive('SERVER', 'server-change-fragment');
 
   const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
   if (uploadWindow) {
@@ -1159,7 +1162,7 @@ ipcMain.on('server-change-fragment', (event, data) => {
 
 // server-confirm-autosave | confirmation -> Boolean
 ipcMain.on('server-confirm-autosave', (event, confirmation) => {
-  LOGGER.receive('server-confirm-autosave', confirmation);
+  LOGGER.receive('SERVER', 'server-confirm-autosave', confirmation);
   autosaveChecked = true;
   if (confirmation) {
     let tableID;
@@ -1200,7 +1203,7 @@ ipcMain.on('server-confirm-autosave', (event, confirmation) => {
 
 // server-create-table
 ipcMain.on('server-create-table', (event) => {
-  LOGGER.receive('server-create-table');
+  LOGGER.receive('SERVER', 'server-create-table');
   if (autosaveChecked) {
     const data = createNewTable();
     activeTables.view = data.tableID;
@@ -1212,7 +1215,7 @@ ipcMain.on('server-create-table', (event) => {
 
 // server-open-table
 ipcMain.on('server-open-table', (event, tableID) => {
-  LOGGER.receive('server-open-table', tableID);
+  LOGGER.receive('SERVER', 'server-open-table', tableID);
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
@@ -1223,7 +1226,7 @@ ipcMain.on('server-open-table', (event, tableID) => {
 
 // server-close-table
 ipcMain.on('server-close-table', (event, tableID) => {
-  LOGGER.receive('server-close-table', tableID);
+  LOGGER.receive('SERVER', 'server-close-table', tableID);
   const newTableID = tableManager.removeTable(tableID);
   saveManager.removeAutosave(tableID);
   if (tableID == activeTables.view) {
@@ -1238,7 +1241,7 @@ ipcMain.on('server-close-table', (event, tableID) => {
 
 // server-send-model
 ipcMain.on('server-send-model', (event, tableID) => {
-  LOGGER.receive('server-send-model', tableID);
+  LOGGER.receive('SERVER', 'server-send-model', tableID);
   const data = {
     tableID: tableID,
     tableData: tableManager.getTable(tableID),
@@ -1247,14 +1250,14 @@ ipcMain.on('server-send-model', (event, tableID) => {
 });
 
 ipcMain.on('server-send-all', (event) => {
-  LOGGER.receive('server-send-all');
+  LOGGER.receive('SERVER', 'server-send-all');
   if (devMode) {
     sendMessage(event.sender, 'client-get-all', tableManager.getTables());
   }
 });
 
 ipcMain.on('server-new-session', (event) => {
-  LOGGER.receive('server-new-session');
+  LOGGER.receive('SERVER', 'server-new-session');
   activeTables.view = null;
   activeTables.loading = null;
   activeTables.uploading = null;
@@ -1286,20 +1289,20 @@ ipcMain.on('server-new-session', (event) => {
 
 // server-save-screenshot | data -> data.tableID, data.screenshot
 ipcMain.on('server-save-screenshot', (event, data) => {
-  LOGGER.receive('server-save-screenshot');
+  LOGGER.receive('SERVER', 'server-save-screenshot');
   if (data.tableID && data.screenshot) {
     tableManager.setScreenshot(data.tableID, data.screenshot);
   }
 });
 
 ipcMain.on('server-ask-load-folders', (event) => {
-  LOGGER.receive('server-ask-load-folders');
+  LOGGER.receive('SERVER', 'server-ask-load-folders');
   sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
   sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
 });
 
 ipcMain.on('server-open-calibration', (event) => {
-  LOGGER.receive('server-open-calibration');
+  LOGGER.receive('SERVER', 'server-open-calibration');
 
   if (calibrationWindow) {
     try {
@@ -1323,7 +1326,7 @@ ipcMain.on('server-open-calibration', (event) => {
 });
 
 ipcMain.on('server-open-settings', (event) => {
-  LOGGER.receive('server-open-settings');
+  LOGGER.receive('SERVER', 'server-open-settings');
 
   if (settingsWindow) {
     try {
@@ -1344,23 +1347,23 @@ ipcMain.on('server-open-settings', (event) => {
 });
 
 ipcMain.on('server-close-settings', () => {
-  LOGGER.receive('server-close-settings');
+  LOGGER.receive('SERVER', 'server-close-settings');
   settingsWindow.close();
   settingsWindow = null;
 });
 
 ipcMain.on('server-settings-opened', (event) => {
-  LOGGER.receive('server-settings-opened');
+  LOGGER.receive('SERVER', 'server-settings-opened');
   sendMessage(settingsWindow, 'settings-data', config);
 });
 
 ipcMain.on('server-gather-ppi', (event) => {
-  LOGGER.receive('server-gather-ppi');
+  LOGGER.receive('SERVER', 'server-gather-ppi');
   sendMessage(event.sender, 'calibration-set-ppi', config.ppi);
 });
 
 ipcMain.on('server-stage-loaded', (event) => {
-  LOGGER.receive('server-stage-loaded');
+  LOGGER.receive('SERVER', 'server-stage-loaded');
   if ('ppi' in config && config.ppi) {
     sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
   }
@@ -1377,7 +1380,7 @@ ipcMain.on('server-stage-loaded', (event) => {
 });
 
 ipcMain.on('server-calibrate', (event, ppi) => {
-  LOGGER.receive('server-calibrate', ppi);
+  LOGGER.receive('SERVER', 'server-calibrate', ppi);
   calibrationWindow.close();
   calibrationWindow = null;
   sendMessage(mainWindow, 'calibration-set-ppi', ppi);
@@ -1388,7 +1391,7 @@ ipcMain.on('server-calibrate', (event, ppi) => {
 });
 
 ipcMain.on('server-import-file', (event) => {
-  LOGGER.receive('server-import-file');
+  LOGGER.receive('SERVER', 'server-import-file');
   saveManager.importFile(() => {
     sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
     sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
@@ -1397,7 +1400,7 @@ ipcMain.on('server-import-file', (event) => {
 
 // server-open-tpop
 ipcMain.on('server-open-tpop', (event, tableID) => {
-  LOGGER.receive('server-open-tpop', tableID);
+  LOGGER.receive('SERVER', 'server-open-tpop', tableID);
   activeTables.tpop = tableID;
 
   if (!tpopWindow) {
@@ -1417,7 +1420,7 @@ ipcMain.on('server-open-tpop', (event, tableID) => {
 
 // server-load-tpop-json | data -> data.startIndex, data.endIndex
 ipcMain.on('server-load-tpop-json', (event, data) => {
-  LOGGER.receive('server-load-tpop-json');
+  LOGGER.receive('SERVER', 'server-load-tpop-json');
   let tpopData;
 
   if (data) {
@@ -1444,27 +1447,27 @@ ipcMain.on('server-load-tpop-json', (event, data) => {
 });
 
 ipcMain.on('server-tpop-details', (event, id) => {
-  LOGGER.receive('server-tpop-details', id);
+  LOGGER.receive('SERVER', 'server-tpop-details', id);
   const details = tpopManager.loadDetails(id);
 
   sendMessage(tpopWindow, 'tpop-details', details);
 });
 
 ipcMain.on('server-tpop-filter', (event, filters) => {
-  LOGGER.receive('server-tpop-filter');
+  LOGGER.receive('SERVER', 'server-tpop-filter');
   tpopManager.filterData(filters);
   sendMessage(tpopWindow, 'tpop-filtered');
 });
 
 
 ipcMain.on('server-close-tpop', () => {
-  LOGGER.receive('server-close-tpop');
+  LOGGER.receive('SERVER', 'server-close-tpop');
   tpopWindow.close();
   tpopWindow = null;
 });
 
 ipcMain.on('server-tpop-position', (event, tpopID) => {
-  LOGGER.receive('server-tpop-position', tpopID);
+  LOGGER.receive('SERVER', 'server-tpop-position', tpopID);
   const pos = tpopManager.getPosition(tpopID);
   const data = {
     tpopID: tpopID,
@@ -1474,38 +1477,38 @@ ipcMain.on('server-tpop-position', (event, tpopID) => {
 });
 
 ipcMain.on('server-tpop-basic-info', (event, data) => {
-  LOGGER.receive('server-tpop-basic-info');
+  LOGGER.receive('SERVER', 'server-tpop-basic-info');
   const result = tpopManager.getBasicInfo(data);
   sendMessage(tpopWindow, 'tpop-basic-info', result);
 });
 
 ipcMain.on('server-calculate-distances', (event, data) => {
-  LOGGER.receive('server-calculate-distances');
+  LOGGER.receive('SERVER', 'server-calculate-distances');
   tpopManager.sortByDistance(data);
   sendMessage(tpopWindow, 'tpop-calculation-done');
 });
 
 ipcMain.on('server-reload-json', (event) => {
-  LOGGER.receive('server-reload-json');
+  LOGGER.receive('SERVER', 'server-reload-json');
   tpopManager.initialiseData(true, () => {
     sendMessage(tpopWindow, 'tpop-calculation-done');
   });
 });
 
 ipcMain.on('server-reset-sorting', (event) => {
-  LOGGER.receive('server-reset-sorting');
+  LOGGER.receive('SERVER', 'server-reset-sorting');
   tpopManager.sortByName();
   sendMessage(tpopWindow, 'tpop-calculation-done');
 });
 
 ipcMain.on('server-open-load-folder', (event) => {
-  LOGGER.receive('server-open-load-folder');
+  LOGGER.receive('SERVER', 'server-open-load-folder');
   const folder = saveManager.getCurrentFolder();
   shell.openPath(folder);
 });
 
 ipcMain.on('server-load-tpop-fragments', (event, data) => {
-  LOGGER.receive('server-load-tpop-fragments');
+  LOGGER.receive('SERVER', 'server-load-tpop-fragments');
   data = tpopManager.getBasicInfo(data);
   sendMessage(mainWindow, 'client-start-loading', activeTables.tpop);
   
@@ -1515,19 +1518,19 @@ ipcMain.on('server-load-tpop-fragments', (event, data) => {
 });
 
 ipcMain.on('server-display-folders', function(event) {
-  LOGGER.receive('server-display-folders');
+  LOGGER.receive('SERVER', 'server-display-folders');
   const data = tpopManager.getFolders();
   sendMessage(event.sender, 'tpop-display-folders', data);
 });
 
 ipcMain.on('server-graphics-filter', function(event, data) {
-  LOGGER.receive('server-graphics-filter');
+  LOGGER.receive('SERVER', 'server-graphics-filter');
   tableManager.setGraphicFilters(data['tableID'], data.filters);
   filterImages(data.tableID, data.urls);
 });
 
 ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
-  LOGGER.receive('server-reset-graphics-filter', tableID);
+  LOGGER.receive('SERVER', 'server-reset-graphics-filter', tableID);
   // remove all filter images
   // resend model to trigger reload
   tableManager.resetGraphicFilters(tableID);
@@ -1539,7 +1542,7 @@ ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
 });
 
 ipcMain.on('server-select-folder', function(event, folderType) {
-  LOGGER.receive('server-select-folder', folderType);
+  LOGGER.receive('SERVER', 'server-select-folder', folderType);
   const path = saveManager.selectFolder();
   if (path) {
     const response = {};
@@ -1549,7 +1552,7 @@ ipcMain.on('server-select-folder', function(event, folderType) {
 });
 
 ipcMain.on('server-save-config', function(event, newConfig) {
-  LOGGER.receive('server-save-config', newConfig);
+  LOGGER.receive('SERVER', 'server-save-config', newConfig);
   settingsWindow.close();
   settingsWindow = null;
   
@@ -1558,7 +1561,7 @@ ipcMain.on('server-save-config', function(event, newConfig) {
     fs.accessSync(newConfig.saveFolder, fs.constants.R_OK | fs.constants.W_OK);
     fs.accessSync(newConfig.tempFolder, fs.constants.R_OK | fs.constants.W_OK);
   } catch {
-    LOGGER.err("No writing permission to folder: " + newConfig.vltFolder);
+    LOGGER.err('SERVER', "No writing permission to folder: " + newConfig.vltFolder);
     dialog.showMessageBox(mainWindow, {
       buttons: ['OK'],
       type: 'warning',
@@ -1607,7 +1610,7 @@ ipcMain.on('server-save-config', function(event, newConfig) {
 });
 
 ipcMain.on('server-get-default', function(event, valueType) {
-  LOGGER.receive('server-get-default', valueType);
+  LOGGER.receive('SERVER', 'server-get-default', valueType);
   let defaultValue;
   if (valueType == 'vltFolder') {
     defaultValue = path.join(appDataPath, 'Virtual Light Table');
@@ -1620,17 +1623,17 @@ ipcMain.on('server-get-default', function(event, valueType) {
 });
 
 ipcMain.on('console', function(event, data) {
-  LOGGER.log(data);
+  LOGGER.log('SERVER', data);
 });
 
 ipcMain.on('server-select-other-tpops', (event, data) => {
-  LOGGER.receive('server-select-other-tpops');
+  LOGGER.receive('SERVER', 'server-select-other-tpops');
   const imageArray = tpopManager.getImageLinks(data.tpop);
   resolveUrls(imageArray, uploadTpopImages);
 });
 
 ipcMain.on('server-check-tpop-data', () => {
-  LOGGER.receive('server-check-tpop-data');
+  LOGGER.receive('SERVER', 'server-check-tpop-data');
   tpopManager.initialiseData(false, function() {
     sendMessage(tpopWindow, 'tpop-calculation-done')
   });

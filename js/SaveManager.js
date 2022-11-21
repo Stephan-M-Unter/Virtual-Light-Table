@@ -229,7 +229,7 @@ class SaveManager {
     
     content = JSON.stringify(content);
     fs.writeFileSync(filepath, content, 'utf-8');
-    LOGGER.log('[SaveManager] Saved table configuration to ' + filepath);
+    LOGGER.log('SAVE MANAGER', '[SaveManager] Saved table configuration to ' + filepath);
     return filepath;
   }
 
@@ -253,7 +253,7 @@ class SaveManager {
     if (filepath) {
       this.filepath = filepath;
       const content = fs.readFileSync(filepath[0]).toString();
-      LOGGER.log('[SaveManager] Loading ' + filepath);
+      LOGGER.log('SAVE MANAGER', '[SaveManager] Loading ' + filepath);
       return JSON.parse(content);
     }
   }
@@ -306,7 +306,7 @@ class SaveManager {
    */
   getSaveFiles(folder) {
     this.currentSaveFolder = folder;
-    LOGGER.log('[SAVE MANAGER] Reading folder ' + folder);
+    LOGGER.log('SAVE MANAGER', 'Reading folder ' + folder);
     const files = fs.readdirSync(folder).filter(function(item) {
       return item.endsWith('.vlt');
     });
@@ -379,7 +379,7 @@ class SaveManager {
 
     images.forEach((item) => {
       const imageToDelete = path.join(folder, 'imgs', item);
-      LOGGER.log('[SaveManager] Unlinking item:', imageToDelete);
+      LOGGER.log('SAVE MANAGER', '[SaveManager] Unlinking item:', imageToDelete);
       fs.unlinkSync(imageToDelete);
     });
   }
@@ -395,7 +395,7 @@ class SaveManager {
     const content = fs.readFileSync(filepath).toString();
     const stats = fs.statSync(filepath);
     const mtime = stats.mtimeMs;
-    LOGGER.log('[SaveManager] Loading ' + filepath);
+    LOGGER.log('SAVE MANAGER', '[SaveManager] Loading ' + filepath);
     let json = JSON.parse(content);
     json.mtime = mtime;
     this.filepath = filepath;
@@ -487,7 +487,7 @@ class SaveManager {
           .generateNodeStream({type: 'nodebuffer', streamFiles: true})
           .pipe(fs.createWriteStream(outputpath))
           .on('finish', function() {
-            LOGGER.log('[SAVE MANAGER] ' + outputpath + ' written');
+            LOGGER.log('SAVE MANAGER', outputpath + ' written');
           });
     }
   }
@@ -509,7 +509,7 @@ class SaveManager {
     if (filepath) {
       yauzl.open(filepath[0], {lazyEntries: true}, (err, zipfile) => {
         if (err) {
-          LOGGER.err('[SAVE MANAGER] An error occurred while reading the ZIP file:');
+          LOGGER.err('An error occurred while reading the ZIP file:');
           LOGGER.err(err);
         } else {
           zipfile.readEntry();
@@ -520,8 +520,8 @@ class SaveManager {
             } else {
               zipfile.openReadStream(entry, (err, readStream) => {
                 if (err) {
-                  LOGGER.err('[SAVE MANAGER] An error occurred with the readStream:');
-                  LOGGER.log(err);
+                  LOGGER.err('An error occurred with the readStream:');
+                  LOGGER.log('SAVE MANAGER', err);
                 } else {
                   let destination = path.join(this.defaultSaveFolder, entry.fileName);
 

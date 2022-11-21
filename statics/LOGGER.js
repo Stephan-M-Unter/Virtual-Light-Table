@@ -1,26 +1,62 @@
 'use strict';
 
-class LOGGER {
-    constructor() {};
+const fs = require("fs-extra");
+const path = require('path');
+const process = require('process');
+const util = require('util');
 
-    static log(message) {
-        console.log('[%s]', this.timestamp(), message);
+class LOGGER {
+    static loggerInitialised = false;
+    static logfile = null;
+    static outputfile = null;
+
+    constructor() {
     };
-    static err(errorMessage) {
-        console.error('[%s] ', this.timestamp(), errorMessage)
+
+    static start(vltFolderPath, version) {
+        console = new console.Console(process.stdout, process.stderr);
+
+        const logStdout = process.stdout;
+        const logStderr = process.stderr;
+
+        LOGGER.logfile = fs.createWriteStream(path.join(vltFolderPath, 'log.txt'), {flags: 'w'});
+        LOGGER.outputfile = fs.createWriteStream(path.join(vltFolderPath, 'out.txt'), {flags: 'w'});
+        
+        console.log = function() {
+            LOGGER.logfile.write(util.format.apply(null, arguments)+'\n');
+            logStdout.write(util.format.apply(null, arguments)+'\n');
+        };
+        console.error = function() {
+            LOGGER.logfile.write(util.format.apply(null, arguments)+'\n');
+            logStderr.write(util.format.apply(null, arguments)+'\n');
+        };
+
+                  
+        console.log('#########################################################################');
+        console.log(`Starting Virtual Light Table, version ${version} - ${this.timestamp()}`);
+        console.log('#########################################################################\n');
+
+        LOGGER.loggerInitialised = true;
     }
-    static receive(ipcMessage, optionalData) {
+
+    static log(source, message) {
+        console.log('[%s] - [%s] -', this.timestamp(), source, message);
+    };
+    static err(source, errorMessage) {
+        console.error('[%s] - [%s] -', this.timestamp(), source, errorMessage)
+    }
+    static receive(source, ipcMessage, optionalData) {
         if (!optionalData) {
-            console.log('[%s] Message received: [%s].', this.timestamp(), ipcMessage);
+            console.log('[%s] - [%s] - Message received: [%s].', this.timestamp(), source, ipcMessage);
         } else {
-            console.log('[%s] Message received: [%s]. Payload:', this.timestamp(), ipcMessage, optionalData);
+            console.log('[%s] - [%s] - Message received: [%s]. Payload:', this.timestamp(), source, ipcMessage, optionalData);
         }
     };
-    static send(ipcMessage, optionalData) {
+    static send(source, ipcMessage, optionalData) {
         if (!optionalData) {
-            console.log('[%s] Sending message: [%s].', this.timestamp(), ipcMessage);
+            console.log('[%s] - [%s] - Sending message: [%s].', this.timestamp(), source, ipcMessage);
         } else {
-            console.log('[%s] Sending message: [%s]. Payload:', this.timestamp(), ipcMessage, optionalData);
+            console.log('[%s] - [%s] - Sending message: [%s]. Payload:', this.timestamp(), source, ipcMessage, optionalData);
         }
     };
 

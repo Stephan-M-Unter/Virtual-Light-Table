@@ -75,7 +75,7 @@ class UIController {
    *                   by the server to proceed with the given action.
    */
   sendToServer(message, data) {
-    LOGGER.send(message, data);
+    LOGGER.send('UIController', message, data);
     ipcRenderer.send(message, data);
   }
 
