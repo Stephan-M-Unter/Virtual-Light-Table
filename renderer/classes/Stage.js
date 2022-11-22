@@ -34,11 +34,12 @@ class Stage {
     createjs.Touch.enable(this.stage);
 
     /** @constant {Object} */
-    this.fragmentList = {};
+    this.objectList = {};
     /** @constant {Object} */
     this.selectedList = {};
     /** @member {Int} */
     this.fragmentLabel = 0;
+    this.objectOrder = [];
 
     /** @member {double} */
     this.stage.scaling = 100;
@@ -69,51 +70,64 @@ class Stage {
     };
     
     // adding display elements
-    /** @member {createjs.Container} */
-    this.background = new createjs.Container();
-    this.background.name = "Background Container";
-    this.backgroundLayer = this._createBackground();
-    this.addToBackground(this.backgroundLayer, 0);
-    
+
+    /*
+      First, we define the three display layers for the stage:
+        - BACKGROUND - everything that is supposed to be displayed UNDERNEATH the objects
+        - OBJECTS - the objects themselves
+        - OVERLAY - everything that must be shown on top of the objects
+    */
+    this.backgroundLayer = new createjs.Container();
+    this.backgroundLayer.name = "Background Layer";
+    this.objectLayer = new createjs.Container();
+    this.objectLayer.name = "Object Layer";
+    this.overlayLayer = new createjs.Container();
+    this.overlayLayer.name = 'Overlay Layer';
+
+    this.stage.addChildAt(this.backgroundLayer, 0);
+    this.stage.addChild(this.objectLayer);
+    this.stage.addChild(this.overlayLayer);
+
+    /*
+      Next, we can define a couple of elements that will be present in the display
+      from the beginning, and fill them into their according layer.
+    */
+
+    /* BACKGROUND ELEMENTS */
+    // the background pane always has to be in position 0
+    this.backgroundPane = this._createBackgroundPane();
+    this.backgroundLayer.addChildAt(this.backgroundPane, 0);
+ 
     this.workarea = new createjs.Container();
     this.workarea.name = "Workarea Container";
-    this.worksquare = new createjs.Shape();
-    this.worksquare.name = "Workarea";
-    this.worktext = new createjs.Text('Reconstruction Area');
-    this.worktextSize = new createjs.Text();
-    this.workarea.addChild(this.worksquare, this.worktext, this.worktextSize);
-    this.addToBackground(this.workarea);
+    this.workareaSquare = new createjs.Shape();
+    this.workareaSquare.name = "Workarea Shape";
+    this.workareaText = new createjs.Text('Reconstruction Area');
+    this.workareaTextSize = new createjs.Text();
+    this.workarea.addChild(this.workareaSquare, this.workareaText, this.workareaTextSize);
+    this.backgroundLayer.addChild(this.workarea);
     
-    this.stage.addChildAt(this.background, 0);
-    /** @member {createjs.Container} */
-    this.overlay = new createjs.Container();
-    this.overlay.name = 'Overlay Container';
-    this.stage.addChild(this.overlay);
-    // Grid
-    /** @member {Boolean} */
-    this.gridMode = false;
-    /** @member {createjs.Container} */
     this.grid = new createjs.Container();
     this.grid.name = "Grid Container";
-    this.addToBackground(this.grid);
-    // Scale
-    /** @member {Boolean} */
-    this.scaleMode = false;
-    /** @member {createjs.Container} */
+    this.backgroundLayer.addChild(this.grid);
+
+    /* OVERLAY ELEMENTS */
     this.scale = new createjs.Container();
     this.scale.name = "Scale Container";
-    this.addToOverlay(this.scale, 0);
+    this.overlayLayer.addChildAt(this.scale, 0);
 
     this.pins = new createjs.Container();
-    this.addToOverlay(this.pins);
+    this.pins.name = "Pins Container";
+    this.overlayLayer.addChild(this.pins);
 
-    /** @constant {Selector} */
+
+
+    this.gridMode = false;
+    this.scaleMode = false;
     this.selector = new Selector(this.controller);
-
-    /** @constant {createjs.LoadQueue} */
     this.loadqueue = new createjs.LoadQueue();
     this.loadqueue.addEventListener('fileload', (event) => {
-      this._createFragment(event);
+      this._createObject(event);
     });
     this.loadqueue.on('complete', () => {
       this.controller.finishedLoading();
@@ -132,12 +146,12 @@ class Stage {
    * background is set to a minimal transparency.
    * @return {createjs.Shape} Returns the background shape object.
    */
-  _createBackground() {
+  _createBackgroundPane() {
     const background = new createjs.Shape();
     background.graphics.beginFill('#333333')
         .drawRect(0, 0, this.width, this.height);
     background.alpha = 0.01;
-    background.name = 'Background Layer';
+    background.name = 'Background Pane';
 
     // Interactions on Background
     background.on('mousedown', (event) => {
@@ -156,7 +170,6 @@ class Stage {
     });
     background.on('pressup', () => {
       this.rightClick = false;
-      // this.saveToModel(true);
     });
     return background;
   }
@@ -203,65 +216,47 @@ class Stage {
     this.update();
   }
 
-  /**
-   *
-   * @param {*} node
-   * @param {*} pos
-   */
   addToOverlay(node, pos) {
     if (pos) {
-      this.overlay.addChildAt(node, pos);
+      this.overlayLayer.addChildAt(node, pos);
     } else {
-      this.overlay.addChild(node);
+      this.overlayLayer.addChild(node);
     }
   }
 
-  /**
-   *
-   * @param {*} node
-   */
+  removeFromOverlay(node) {
+    this.overlayLayer.removeChild(node);
+  }
+
+  /*
   addBeforeOverlay(node) {
     this.stage.removeChild(node);
-    const overlayIndex = this.stage.getChildIndex(this.overlay);
+    const overlayIndex = this.stage.getChildIndex(this.overlayLayer);
     this.stage.addChildAt(node, overlayIndex);
   }
+  */
 
-  /**
-   *
-   * @param {*} node
-   */
-  removeFromOverlay(node) {
-    this.overlay.removeChild(node);
-  }
-
-  /**
-   *
-   * @param {*} node
-   * @param {*} pos
-   */
+  /*
   addToBackground(node, pos) {
     if (pos) {
-      this.background.addChildAt(node, pos);
+      this.backgroundLayer.addChildAt(node, pos);
     } else {
-      this.background.addChild(node);
+      this.backgroundLayer.addChild(node);
     }
   }
+  */
 
-  /**
-   *
-   * @param {*} node
-   */
+  /*
   removeFromBackground(node) {
-    this.background.removeChild(node);
+    this.backgroundLayer.removeChild(node);
   }
+  */
 
-  /**
-   *
-   * @param {*} node
-   */
+  /*
   addAfterBackground(node) {
     this.stage.addChildAt(node, 1);
   }
+  */
 
   /**
    * If this.gridMode == true, this function creates new grid lines indicating the current scaling of the stage.
@@ -362,31 +357,31 @@ class Stage {
     const x = this.offset.x - w_scaled/2;
     const y = this.offset.y - h_scaled/2;
     const alpha = 0.6;
-    this.worksquare.graphics.clear()
+    this.workareaSquare.graphics.clear()
       .beginFill('#fcd69f')
       .drawRect(x, y, w_scaled, h_scaled)
       .endFill();
-    this.worksquare.alpha = alpha;
+    this.workareaSquare.alpha = alpha;
 
     if (this.area.w*this.area.h > 0) {
-      this.worktext.y = y + h_scaled + 10;
-      this.worktext.x = x;
-      this.worktext.color = '#fcd69f';
-      this.worktext.alpha = alpha;
-      this.worktext.font = '40px Arial';
+      this.workareaText.y = y + h_scaled + 10;
+      this.workareaText.x = x;
+      this.workareaText.color = '#fcd69f';
+      this.workareaText.alpha = alpha;
+      this.workareaText.font = '40px Arial';
 
       const textWidth = Math.round(((this.area.w*2.54)/this.ppi)*100)/100;
       const textHeight = Math.round(((this.area.h*2.54)/this.ppi)*100)/100;
   
-      this.worktextSize.text = '(' + textWidth + ' cm x ' + textHeight + ' cm)';
-      this.worktextSize.y = y + h_scaled + 10 + 40 + 10;
-      this.worktextSize.x = x;
-      this.worktextSize.color = '#fcd69f';
-      this.worktextSize.alpha = alpha;
-      this.worktextSize.font = '20px Arial';
+      this.workareaTextSize.text = '(' + textWidth + ' cm x ' + textHeight + ' cm)';
+      this.workareaTextSize.y = y + h_scaled + 10 + 40 + 10;
+      this.workareaTextSize.x = x;
+      this.workareaTextSize.color = '#fcd69f';
+      this.workareaTextSize.alpha = alpha;
+      this.workareaTextSize.font = '20px Arial';
     } else {
-      this.worktext.alpha = 0;
-      this.worktextSize.alpha = 0;
+      this.workareaText.alpha = 0;
+      this.workareaTextSize.alpha = 0;
     }
     this.update();
   }
@@ -435,9 +430,9 @@ class Stage {
    */
   _clearTable() {
     // remove fragments from canvas
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        this.stage.removeChild(this.fragmentList[idx].getContainer());
+    for (const idx in this.objectList) {
+      if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
+        this.stage.removeChild(this.objectList[idx].getContainer());
       }
     }
     this.pins.removeAllChildren();
@@ -464,6 +459,10 @@ class Stage {
       this.graphicFilters = true;
     } else {
       this.graphicFilters = false;
+    }
+
+    if ('objectOrder' in data && data.objectOrder) {
+      this.objectOrder = data.objectOrder;
     }
 
     if (data && data.fragments) {
@@ -549,9 +548,9 @@ class Stage {
   getFragmentsData() {
     const fragmentData = {};
 
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        fragmentData[idx] = this.fragmentList[idx].getData();
+    for (const idx in this.objectList) {
+      if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
+        fragmentData[idx] = this.objectList[idx].getData();
       }
     }
 
@@ -564,12 +563,10 @@ class Stage {
    * '.fragments' with loaded fragments.
    */
   getData() {
-    const stageData = this.getStageData();
-    const fragmentsData = this.getFragmentsData();
-
     return {
-      'stage': stageData,
-      'fragments': fragmentsData,
+      'stage': this.getStageData(),
+      'fragments': this.getFragmentsData(),
+      'objectOrder': this.getObjectOrder(),
     };
   }
 
@@ -578,7 +575,11 @@ class Stage {
    * @return {Object} Returns current list of fragments. Keys are fragment IDs (e.g. "f_0"), values are fragment objects.
    */
   getFragmentList() {
-    return this.fragmentList;
+    return this.objectList;
+  }
+
+  getObjectOrder() {
+    return this.objectOrder;
   }
 
   /**
@@ -660,9 +661,9 @@ class Stage {
     this.stage.canvas.width = this.width = width;
     this.stage.canvas.height = this.height = height;
 
-    this.removeFromBackground(this.backgroundLayer);
-    this.backgroundLayer = this._createBackground();
-    this.addToBackground(this.backgroundLayer, 0);
+    this.backgroundLayer.removeChild(this.backgroundPane);
+    this.backgroundPane = this._createBackgroundPane();
+    this.backgroundLayer.addChildAt(this.backgroundPane, 0);
     this.update();
   }
 
@@ -678,12 +679,16 @@ class Stage {
   /**
    * TODO
    * @private
-   * @param {*} imageList
+   * @param {*} dataFragments
    */
-  _loadFragments(imageList) {
-    for (const id in imageList) {
-      if (Object.prototype.hasOwnProperty.call(imageList, id)) {
-        const fragmentData = imageList[id];
+  _loadFragments(dataFragments, fragmentOrder) {
+    if (fragmentOrder) {
+      this.objectOrder = fragmentOrder;  
+    }
+
+    for (const id in dataFragments) {
+      if (Object.prototype.hasOwnProperty.call(dataFragments, id)) {
+        const fragmentData = dataFragments[id];
         let url;
         if (fragmentData.showRecto) {
           if (fragmentData.recto.url_view) {
@@ -707,7 +712,7 @@ class Stage {
         this.loadqueue.loadManifest([{
           id: id,
           src: url,
-          properties: imageList[id],
+          properties: dataFragments[id],
         }]);
       }
     }
@@ -716,7 +721,7 @@ class Stage {
   }
 
   toggleLock(fragmentID) {
-    const fragment = this.fragmentList[fragmentID];
+    const fragment = this.objectList[fragmentID];
     const lockStatus = fragment.toggleLock();
     this._updateBb();
     this.update();
@@ -728,14 +733,14 @@ class Stage {
    * @param {*} fragmentData
    */
   _redoFragments(fragmentData) {
-    const fragmentLists = Util.compareDicts(fragmentData, this.fragmentList);
+    const fragmentLists = Util.compareDicts(fragmentData, this.objectList);
     const newFragments = fragmentLists.l1;
     const deletedFragments = fragmentLists.l2;
     const updatedFragments = fragmentLists.intersection;
 
     // update those fragments which have been there and are still there
     updatedFragments.forEach((id) => {
-      this.fragmentList[id].setData(fragmentData[id]);
+      this.objectList[id].setData(fragmentData[id]);
     });
     // create fragments which you deleted in the last step
     newFragments.forEach((id) => {
@@ -756,7 +761,7 @@ class Stage {
    * @private
    * @param {*} event
    */
-  _createFragment(event) {
+  _createObject(event) {
     let newId;
     if (event.item.id && event.item.id != 'upload') {
       // set ID and remove old graphical representation of fragment
@@ -766,19 +771,24 @@ class Stage {
       // create a new fragment on the table
       newId = this.getNewFragmentId();
     }
-    const newFragment = new Fragment(this.controller, newId, event);
-    this.fragmentList[newId] = newFragment;
-    const fragmentContainer = newFragment.getContainer();
-    this.addBeforeOverlay(fragmentContainer);
+    const newObject = new Fragment(this.controller, newId, event);
+    this.objectList[newId] = newObject;
+    const objectContainer = newObject.getContainer();
+    this.objectLayer.addChild(objectContainer);
+
+    if (!this.objectOrder.includes(newId)) {
+      this.objectOrder.push(newId);
+    }
 
     for (const graphPin of this.pins.children) {
       const pin = graphPin.pin;
       if (pin.target.id == newId) {
-        newFragment.addPin(pin);
-        pin.target.object = newFragment;
+        newObject.addPin(pin);
+        pin.target.object = newObject;
       }
     }
 
+    this.updateObjectOrder();
     this.controller.updateSidebarFragmentList();
   }
 
@@ -788,14 +798,14 @@ class Stage {
    */
   removeFragment(id) {
     // iterate over fragmentList and match items with requested id
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        const fragment = this.fragmentList[idx];
+    for (const idx in this.objectList) {
+      if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
+        const fragment = this.objectList[idx];
         if (fragment.id == id) {
           // remove correct fragment both from stage and fragmentList
           const fragmentContainer = fragment.getContainer();
-          this.stage.removeChild(fragmentContainer);
-          delete this.fragmentList[fragment.id];
+          this.objectLayer.removeChild(fragmentContainer);
+          delete this.objectList[fragment.id];
           this.controller.clearSelection();
           this.controller.saveToModel(false);
           this.stage.update();
@@ -821,11 +831,11 @@ class Stage {
   }
 
   flipFragment(id) {
-    this.fragmentList[id].flip();
+    this.objectList[id].flip();
   }
 
   moveFragment(id, dx, dy) {
-    const fragment = this.fragmentList[id];
+    const fragment = this.objectList[id];
     fragment.moveBy(dx, dy);
     this._updateBb();
     this.controller.updateRulers();
@@ -833,7 +843,7 @@ class Stage {
   }
   
   moveFragmentTo(id, x, y) {
-    const fragment = this.fragmentList[id];
+    const fragment = this.objectList[id];
     fragment.moveTo(x, y);
     this._updateBb();
     this.controller.updateRulers();
@@ -841,7 +851,7 @@ class Stage {
   }
   
   rotateFragment(id, angle) {
-    const fragment = this.fragmentList[id];
+    const fragment = this.objectList[id];
     fragment.rotateByAngle(angle);
     this._updateBb();
     this.controller.updateRulers();
@@ -849,7 +859,7 @@ class Stage {
   }
   
   rotateFragmentTo(id, angle) {
-    const fragment = this.fragmentList[id];
+    const fragment = this.objectList[id];
     fragment.rotateToAngle(angle);
     this._updateBb();
     this.controller.updateRulers();
@@ -926,10 +936,10 @@ class Stage {
    * @param {String} id - Fragment identifier, e.g. "f_0".
    */
   selectFragment(id) {
-    const fragment = this.fragmentList[id];
+    const fragment = this.objectList[id];
     if (fragment) {
-      this.selectedList[id] = this.fragmentList[id];
-      this.fragmentList[id].getImage().shadow = new createjs.Shadow(
+      this.selectedList[id] = this.objectList[id];
+      this.objectList[id].getImage().shadow = new createjs.Shadow(
           '#f15b40', 0, 0, 10);
       // this._moveToTop(this.fragmentList[id]);
     }
@@ -938,9 +948,8 @@ class Stage {
   }
 
   updateDisplayOrder(orderedIDList) {
-    orderedIDList.forEach((id) => {
-      this._moveToTop(this.fragmentList[id]);
-    });
+    this.objectOrder = orderedIDList;
+    this.updateObjectOrder();
   }
 
   /**
@@ -950,7 +959,7 @@ class Stage {
    */
   deselectFragment(id) {
     delete this.selectedList[id];
-    this.fragmentList[id].getImage().shadow = null;
+    this.objectList[id].getImage().shadow = null;
     this._updateBb();
   }
 
@@ -979,8 +988,8 @@ class Stage {
     if (savedSelection) {
       console.log(savedSelection);
       savedSelection.forEach((fragmentID) => {
-        if (fragmentID in this.fragmentList) {
-          this.selectedList[fragmentID] = this.fragmentList[fragmentID];
+        if (fragmentID in this.objectList) {
+          this.selectedList[fragmentID] = this.objectList[fragmentID];
         }
       });
       this._updateBb();
@@ -992,7 +1001,7 @@ class Stage {
    * @param {*} id
    */
   highlightFragment(id) {
-    this.fragmentList[id].getImage().shadow = new createjs.Shadow(
+    this.objectList[id].getImage().shadow = new createjs.Shadow(
         '#A4042A', 0, 0, 10);
     this.update();
   }
@@ -1003,10 +1012,10 @@ class Stage {
    */
   unhighlightFragment(id) {
     if (id in this.selectedList) {
-      this.fragmentList[id].getImage().shadow = new createjs.Shadow(
+      this.objectList[id].getImage().shadow = new createjs.Shadow(
           '#f15b40', 0, 0, 10);
-    } else if (id in this.fragmentList) {
-      this.fragmentList[id].getImage().shadow = null;
+    } else if (id in this.objectList) {
+      this.objectList[id].getImage().shadow = null;
     }
     this.update();
   }
@@ -1016,7 +1025,7 @@ class Stage {
  * @private
  */
   _clearFragmentList() {
-    this.fragmentList = {};
+    this.objectList = {};
   }
 
   /**
@@ -1041,19 +1050,19 @@ class Stage {
   /**
    * TODO
    * @private
-   * @param {*} fragment
+   * @param {*} object
    * @return {[null]}
    */
-  _moveToTop(fragment) {
+  _moveToTop(object) {
     if (!this.controller.getPermission('move_fragment')) return null;
-    const container = fragment.getContainer();
-    this.addBeforeOverlay(container);
+    const objectContainer = object.getContainer();
+    this.objectLayer.addChild(objectContainer);
   }
 
-  _moveToBottom(fragment) {
+  _moveToBottom(object) {
     if (!this.controller.getPermission('move_fragment')) return null;
-    const container = fragment.getContainer();
-    this.addAfterBackground(container);
+    const objectContainer = object.getContainer();
+    this.objectLayer.addChildAt(objectContainer, 0);
   }
 
   /**
@@ -1132,9 +1141,9 @@ class Stage {
    */
   moveStage(dx, dy) {
     if (!isNaN(dx) && !isNaN(dy)) {
-      for (const idx in this.fragmentList) {
-        if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-          const fragment = this.fragmentList[idx];
+      for (const idx in this.objectList) {
+        if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
+          const fragment = this.objectList[idx];
           if (!fragment.isLocked()) fragment.moveBy(dx, dy);
         }
       }
@@ -1167,7 +1176,7 @@ class Stage {
    * @private
    */
   _scaleObjects() {
-    for (const fragment of Object.values(this.fragmentList)) {
+    for (const fragment of Object.values(this.objectList)) {
         fragment.scale();
     }
     this.offset.x = Scaler.x(this.offset.baseX);
@@ -1184,7 +1193,7 @@ class Stage {
   }
 
   hasNoFragments() {
-    return Object.keys(this.fragmentList).length == 0;
+    return Object.keys(this.objectList).length == 0;
   }
 
   /**
@@ -1200,9 +1209,9 @@ class Stage {
     const yAxis = this.offset.x;
     const xAxis = this.offset.y;
 
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        const fragment = this.fragmentList[idx];
+    for (const idx in this.objectList) {
+      if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
+        const fragment = this.objectList[idx];
         const oldRotation = fragment.getRotation();
         fragment.flip();
 
@@ -1248,6 +1257,9 @@ class Stage {
       }
     }
 
+    this.objectOrder.reverse();
+    this.updateObjectOrder();
+
     this.update();
     this.controller.saveToModel(false);
     this.controller.updateSidebarFragmentList();
@@ -1258,10 +1270,10 @@ class Stage {
    * @private
    */
   _updateBb() {
-    this.stage.removeChild(this.bb);
+    this.overlayLayer.removeChild(this.bb);
     this.selector.updateBb(this.selectedList, this.stage.scaling/100);
     this.bb = this.selector.getBb();
-    this.addBeforeOverlay(this.bb);
+    this.overlayLayer.addChildAt(this.bb, 0);
     this._updateFlipper(this.bb.center.x, this.bb.center.y,
         this.bb.width, this.bb.height);
     this._updateRotator(this.bb.center.x, this.bb.center.y, this.bb.height);
@@ -1278,7 +1290,7 @@ class Stage {
    * @param {*} height
    */
   _updateFlipper(x, y, width, height) {
-    this.stage.removeChild(this.flipper);
+    this.overlayLayer.removeChild(this.flipper);
     const sidebar = parseFloat($('#left_sidebar').css('width'));
 
     if (Object.keys(this.selectedList).length == 1) {
@@ -1368,7 +1380,7 @@ class Stage {
         this.update();
       });
 
-      this.addBeforeOverlay(this.flipper);
+      this.overlayLayer.addChild(this.flipper);
     }
   }
 
@@ -1382,7 +1394,7 @@ class Stage {
    * @param {*} height
    */
   _updateGhoster(x, y, width, height) {
-    this.stage.removeChild(this.ghoster);
+    this.overlayLayer.removeChild(this.ghoster);
     const sidebar = parseFloat($('#left_sidebar').css('width'));
 
     if (Object.keys(this.selectedList).length == 1) {
@@ -1449,7 +1461,7 @@ class Stage {
         fragment.ghost(false);
       });
 
-      this.addBeforeOverlay(this.ghoster);
+      this.overlayLayer.addChild(this.ghoster);
     }
   }
 
@@ -1461,7 +1473,7 @@ class Stage {
    * @param {*} height
    */
   _updateRotator(x, y, height) {
-    this.stage.removeChild(this.rotator);
+    this.overlayLayer.removeChild(this.rotator);
 
     if (Object.keys(this.selectedList).length > 0) {
       let hasLocked = false;
@@ -1497,7 +1509,7 @@ class Stage {
         }
         this.rotator.name = 'Rotation Anchor';
   
-        this.addBeforeOverlay(this.rotator);
+        this.overlayLayer.addChild(this.rotator);
   
         this.rotator.on('mousedown', (event) => {
           this.rotator.getChildAt(0).graphics.clear()
@@ -1607,10 +1619,10 @@ class Stage {
       overlay: [this.pins],
     }
     for (const backgroundElement of removedObjects['background']) {
-      this.removeFromBackground(backgroundElement);
+      this.backgroundLayer.removeChild(backgroundElement);
     }
     for (const overlayElement of removedObjects['overlay']) {
-      this.removeFromOverlay(overlayElement);
+      this.overlayLayer.removeChild(overlayElement);
     }
     this.update();
     return removedObjects;
@@ -1618,10 +1630,10 @@ class Stage {
 
   addElementsAfterExport(removedObjects) {
     for (const backgroundElement of removedObjects['background']) {
-      this.addToBackground(backgroundElement);
+      this.backgroundLayer.addChild(backgroundElement);
     }
     for (const overlayElement of removedObjects['overlay']) {
-      this.addToOverlay(overlayElement);
+      this.overlayLayer.addChild(overlayElement);
     }
     this.update();
   }
@@ -1633,7 +1645,7 @@ class Stage {
   getNewFragmentId() {
     let newId = 'f_' + this.fragmentLabel;
     this.fragmentLabel = this.fragmentLabel + 1;
-    if (newId in this.fragmentList) {
+    if (newId in this.objectList) {
       newId = this.getNewFragmentId();
     }
     return newId;
@@ -1645,8 +1657,8 @@ class Stage {
    * @return {null | Fragment} Either fragment with given ID or null if not available.
    */
   getFragment(id) {
-    if (id in this.fragmentList) {
-      return this.fragmentList[id];
+    if (id in this.objectList) {
+      return this.objectList[id];
     } else {
       return null;
     }
@@ -1681,10 +1693,10 @@ class Stage {
       .lineTo(this.offset.x, this.height)
       .endStroke();
       lineText.rotation = -90;
-      lineText.y = lineText.getBounds().width + 20;
+      lineText.y = this.height - 10;
       lineText.x = this.offset.x - lineText.getBounds().height;
       this.lines.horizontal = lineContainer;
-      this.addToOverlay(this.lines.horizontal);
+      this.overlayLayer.addChild(this.lines.horizontal);
     } else {
       line.graphics.setStrokeStyle(4)
       .beginStroke('rgba(0,0,0,'+alpha+')')
@@ -1696,7 +1708,7 @@ class Stage {
       lineText.y = this.offset.y - 30;
       lineText.alpha = alpha;
       this.lines.vertical = lineContainer;
-      this.addToOverlay(this.lines.vertical);
+      this.overlayLayer.addChild(this.lines.vertical);
     }
     this.update();
   }
@@ -1706,11 +1718,11 @@ class Stage {
    */
   hideFlipLines() {
     if (this.lines.horizontal != null) {
-      this.removeFromOverlay(this.lines.horizontal);
+      this.overlayLayer.removeChild(this.lines.horizontal);
       this.lines.horizontal = null;
     }
     if (this.lines.vertical != null) {
-      this.removeFromOverlay(this.lines.vertical);
+      this.overlayLayer.removeChild(this.lines.vertical);
       this.lines.vertical = null;
     }
     this.update();
@@ -1730,9 +1742,9 @@ class Stage {
     let right;
     let bottom;
 
-    for (const idx in this.fragmentList) {
-      if (Object.prototype.hasOwnProperty.call(this.fragmentList, idx)) {
-        const fragment = this.fragmentList[idx];
+    for (const idx in this.objectList) {
+      if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
+        const fragment = this.objectList[idx];
         const bounds = fragment.getGlobalBounds();
         const xLeft = bounds.left;
         const xRight = bounds.right;
@@ -1762,6 +1774,16 @@ class Stage {
 
     return dimensions;
   }
+
+  updateObjectOrder() {
+    this.objectOrder.forEach((id, index) => {
+      if (Object.keys(this.objectList).includes(id)) {
+        this.objectLayer.addChildAt(this.objectList[id].getContainer(), index);
+      }
+    });
+    this.update();
+  }
+
 
   /**
    * TODO
@@ -1800,8 +1822,8 @@ class Stage {
 
   getActiveFragmentUrls() {
     let urls = [];
-    for (const fragmentKey of Object.keys(this.fragmentList)) {
-      const fragment = this.fragmentList[fragmentKey];
+    for (const fragmentKey of Object.keys(this.objectList)) {
+      const fragment = this.objectList[fragmentKey];
       urls = urls.concat(fragment.getActiveUrls());
     }
     return urls;

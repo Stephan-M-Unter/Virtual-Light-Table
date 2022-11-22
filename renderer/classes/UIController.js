@@ -328,9 +328,10 @@ class UIController {
    * actively selected fragments (selectedList) from the stage and updates the sidebar accordingly.
    */
   updateSidebarFragmentList() {
-    const fragmentList = this.stage.getFragmentList();
+    const objectList = this.stage.getFragmentList();
     const selectedList = this.stage.getSelectedList();
-    this.sidebar.updateFragmentList(fragmentList, selectedList);
+    const objectOrder = this.stage.getObjectOrder();
+    this.sidebar.updateFragmentList(objectList, selectedList, objectOrder);
   }
 
   /**

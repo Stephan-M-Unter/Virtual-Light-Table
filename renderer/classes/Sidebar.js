@@ -246,16 +246,23 @@ class Sidebar {
 
   /**
    * TODO
-   * @param {*} fragmentList
+   * @param {*} objectList
    * @param {*} selectedList
    */
-  updateFragmentList(fragmentList, selectedList) {
+  updateFragmentList(objectList, selectedList, objectOrder) {
     $('#fragment_list_content').empty();
 
-    if (!$.isEmptyObject(fragmentList)) {
-      for (const id in fragmentList) {
-        if (Object.prototype.hasOwnProperty.call(fragmentList, id)) {
-          const fragment = fragmentList[id];
+    if (!$.isEmptyObject(objectList)) {
+      objectOrder.forEach((id) => {
+        if (id in objectList) {
+          const object = objectList[id];
+          this._addFragment(id, object);
+        }
+      });
+
+      for (const id in objectList) {
+        if (!objectOrder.includes(id) && Object.prototype.hasOwnProperty.call(objectList, id)) {
+          const fragment = objectList[id];
           this._addFragment(id, fragment);
         }
       }

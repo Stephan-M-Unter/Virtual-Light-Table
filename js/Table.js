@@ -8,6 +8,7 @@ class Table {
 
         this.clearStage();
         this.clearFragments();
+        this.objectOrder = [];
         this.editors = [];
         this.annots = {};
         this.screenshot = null;
@@ -148,6 +149,7 @@ class Table {
             annots: this.annots,
             screenshot: this.screenshot,
             graphicFilters: this.graphicFilters,
+            objectOrder: this.objectOrder,
         };
     }
     getTableBasics() {

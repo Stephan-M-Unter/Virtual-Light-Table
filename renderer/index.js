@@ -688,6 +688,7 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-get-all', (event, data) => {
     LOGGER.receive('client-get-all', data);
+    console.log(data);
   });
 
   ipcRenderer.on('client-file-saved', (event, saveData) => {
