@@ -1534,10 +1534,11 @@ ipcMain.on('server-save-config', function(event, newConfig) {
   
   try {
     fs.accessSync(newConfig.vltFolder, fs.constants.R_OK | fs.constants.W_OK);
-    fs.accessSync(newConfig.saveFolder, fs.constants.R_OK | fs.constants.W_OK);
-    fs.accessSync(newConfig.tempFolder, fs.constants.R_OK | fs.constants.W_OK);
-  } catch {
+    // fs.accessSync(newConfig.saveFolder, fs.constants.R_OK | fs.constants.W_OK);
+    // fs.accessSync(newConfig.tempFolder, fs.constants.R_OK | fs.constants.W_OK);
+  } catch (error) {
     LOGGER.err('SERVER', "No writing permission to folder: " + newConfig.vltFolder);
+    LOGGER.err(error);
     dialog.showMessageBox(mainWindow, {
       buttons: ['OK'],
       type: 'warning',
@@ -1545,8 +1546,8 @@ ipcMain.on('server-save-config', function(event, newConfig) {
       message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
     });
     newConfig.vltFolder = config.vltFolder;
-    newConfig.saveFolder = config.saveFolder;
-    newConfig.tempFolder = config.tempFolder;
+    // newConfig.saveFolder = config.saveFolder;
+    // newConfig.tempFolder = config.tempFolder;
   }
 
   config = newConfig;

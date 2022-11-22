@@ -43,7 +43,7 @@ class LOGGER {
         console.log('[%s] - [%s] -', this.timestamp(), source, message);
     };
     static err(source, errorMessage) {
-        console.error('[%s] - [%s] -', this.timestamp(), source, errorMessage)
+        console.error('##### ERROR ##### [%s] - [%s] -', this.timestamp(), source, errorMessage, '#####');
     }
     static receive(source, ipcMessage, optionalData) {
         if (!optionalData) {
