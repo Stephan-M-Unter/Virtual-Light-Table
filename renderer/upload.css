@@ -404,6 +404,37 @@ canvas.removePolygonNode {
     padding: 5px 0px;
 }
 
+.mask_controls_wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    padding: 5px 0px;
+}
+
+#mask_automatic_model {
+    height: 50px;
+    padding: 10px;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+}
+
+#mask_selection_automatic_button {
+    height: 50px;
+    padding: 10px;
+    width: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#mask_selection_delete_model,
+#mask_control_automatic_delete {
+    background-color: var(--cb_darkred);
+}
+
 /* .mask_control_button {
     height: 50px;
     width: 50px;

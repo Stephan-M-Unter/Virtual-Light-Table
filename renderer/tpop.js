@@ -1,4 +1,5 @@
 const {ipcRenderer} = require('electron');
+const LOGGER = require('../statics/LOGGER');
 
 const rangeValues = [1, 2, 3, 4, 5, 10, 20];
 const batchSize = 30;
@@ -1038,7 +1039,7 @@ $('#load').on('click', (event) => {
 });
 
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
-  console.log("-> tpop-json-data");
+  LOGGER.receive('TPOP', 'tpop-json-data', tpopJson);
   // show data
   const objects = tpopJson.objects;
 
@@ -1081,25 +1082,24 @@ $('#flip-grid').click(() => {
 });
 
 ipcRenderer.on('tpop-json-failed', () => {
-  console.log("-> tpop-json-failed");
+  LOGGER.receive('TPOP', 'tpop-json-failed');
   // TODO show error message
   // show options to close or retry
   console.log('json failed');
 });
 
 ipcRenderer.on('tpop-details', (event, details) => {
-  console.log("-> tpop-details");
-  console.log('Received detail information:', details);
+  LOGGER.receive('TPOP', 'tpop-details', details);
   displayDetails(details);
 });
 
 ipcRenderer.on('tpop-filtered', () => {
-  console.log("-> tpop-filtered");
+  LOGGER.receive('TPOP', 'tpop-filtered');
   requestBatch();
 });
 
 ipcRenderer.on('tpop-position', (event, data) => {
-  console.log("-> tpop-position");
+  LOGGER.receive('TPOP', 'tpop-position', data);
   if (data.pos == -1) {
     $('#detail-page-warning').removeClass('hidden');
   } else {
@@ -1112,7 +1112,7 @@ ipcRenderer.on('tpop-position', (event, data) => {
 });
 
 ipcRenderer.on('tpop-basic-info', (event, data) => {
-  console.log("-> tpop-basic-info");
+  LOGGER.receive('TPOP', 'tpop-basic-info', data);
   $('#detail-joins-list').empty();
 
   if (data.length == 0) {
@@ -1183,18 +1183,19 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
 });
 
 ipcRenderer.on('tpop-calculation-done', () => {
-  console.log("-> tpop-calculation-done");
+  LOGGER.receive('TPOP', 'tpop-calculation-done');
   $('#tpop-loading-overlay').css('display', 'none');
   requesting = false;
   loadPage(0);
 });
 
 ipcRenderer.on('tpop-display-folders', (event, data) => {
-  console.log("-> tpop-display-folders");
+  LOGGER.receive('TPOP', 'tpop-display-folders', data);
   displayFolders(data);
 });
 
 ipcRenderer.on('tpop-data-loaded', () => {
+  LOGGER.receive('TPOP', 'tpop-data-loaded');
   $('#tpop-loading-overlay').css('display', 'none');
   requestFilter();
 });

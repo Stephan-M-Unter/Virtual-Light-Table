@@ -2,6 +2,7 @@
 
 const {ipcRenderer} = require('electron');
 const Dialogs = require('dialogs');
+const LOGGER = require('../statics/LOGGER');
 const dialogs = new Dialogs();
 
 /* Variables */
@@ -17,6 +18,7 @@ let reposition = false;
 const mousestart = {};
 let id = null;
 let tpop = null;
+const modelsDownloaded = {};
 
 let recto = createEmptySide('recto');
 let verso = createEmptySide('verso');
@@ -35,11 +37,6 @@ $(document).ready(function() {
  * Reading the current width and height of the canvas DOM element and feeding it into
  * the createjs.Stage().canvas object.
  */
-
-function log(data) {
- ipcRenderer.send('console', data);
-}
-
 function updateCanvasSize() {
   recto.stage.canvas.width = recto.canvas.width();
   recto.stage.canvas.height = recto.canvas.height();
@@ -1135,6 +1132,7 @@ function uploadData() {
     if ('urlTPOP' in editData) data.urlTPOP = editData.urlTPOP;
     if ('tpop' in editData) data.tpop = editData.tpop;
   }
+  LOGGER.send('UPLOAD', 'server-upload-ready', data);
   ipcRenderer.send('server-upload-ready', data);
 }
 
@@ -1244,6 +1242,7 @@ $('.local_upload').on('click', (event) => {
   if (currentUpload == null) {
     const canvas = $(event.target).attr('canvas');
     currentUpload = canvas;
+    LOGGER.send('UPLOAD', 'server-upload-image');
     ipcRenderer.send('server-upload-image');
   }
 });
@@ -1381,6 +1380,7 @@ $('.choose_tpop').click(function(event) {
     side: $(event.target).attr('canvas'),
   };
   currentUpload = request.side;
+  LOGGER.send('UPLOAD', 'server-select-other-tpops', request);
   ipcRenderer.send('server-select-other-tpops', request);
 });
 
@@ -1403,6 +1403,50 @@ $('#tpop-button-close').click(function() {
 });
 
 
+$('#mask_automatic_model').on('change', () => {
+  const modelID = $('#mask_automatic_model').find(":selected").val();
+  if (modelID in modelsDownloaded && modelsDownloaded[modelID]) {
+    // model has already been checked and is downloaded
+    $('#mask_selection_automatic_button').attr('mode', 'compute');
+    $('#mask_selection_automatic_button').html('Compute Mask(s)');
+    $('#mask_selection_delete_model').removeClass('unrendered');
+  } else {
+    // model has not yet been checked or is not downloaded
+    LOGGER.send('UPLOAD', 'server-check-model-availability', modelID);
+    ipcRenderer.send('server-check-model-availability', modelID);
+  }
+});
+$('#mask_selection_automatic_button').click(() => {
+  const modelButtonMode = $('#mask_selection_automatic_button').attr('mode')
+  const modelID = $('#mask_automatic_model').find(':selected').val();
+  if (modelButtonMode == 'download') {
+    LOGGER.send('UPLOAD', 'server-download-model', modelID);
+    ipcRenderer.send('server-download-model', modelID);
+  } else if (modelButtonMode == 'compute') {
+    const data = {
+      modelID: modelID,
+      recto: recto.content.filepath,
+      verso: verso.content.filepath,
+    };
+    LOGGER.send('UPLOAD', 'server-compute-automatic-masks', data);
+    ipcRenderer.send('server-compute-automatic-masks', data);
+  }
+});
+$('#mask_selection_delete_model').click(() => {
+  const modelID = $('#mask_automatic_model').find(':selected').val();
+  LOGGER.send('UPLOAD', 'server-delete-model', modelID);
+  ipcRenderer.send('server-delete-model', modelID);
+});
+$('#mask_control_automatic_draw').click(() => {});
+$('#mask_control_automatic_erase').click(() => {});
+$('#mask_control_automatic_register').click(() => {});
+$('#mask_control_automatic_delete').click(() => {
+  LOGGER.send('UPLOAD', 'server-delete-masks');
+  ipcRenderer.send('server-delete-masks');
+});
+
+
+
 
 /* Input Fields */
 
@@ -1419,7 +1463,7 @@ $('.input_ppi').on('input', (event) => {
 
 // Event receiving the filepath to an image, be it local or from the internet.
 ipcRenderer.on('upload-receive-image', (event, filepath) => {
-  console.log('Received message from server: ["upload-receive-image"]');
+  LOGGER.receive('UPLOAD', 'upload-receive-image', filepath);
   
   if (!filepath) {
     currentUpload = null;
@@ -1444,21 +1488,18 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
 // Event triggered if window is opened to edit an already existing fragment, providing
 // the necessary data/information about the fragment.
 ipcRenderer.on('upload-edit-fragment', (event, data) => {
-  console.log('Received message from server: ["upload-edit-fragment"]');
-  console.log('upload-edit-fragment data:', data);
+  LOGGER.receive('UPLOAD', 'upload-edit-fragment', data);
   loadData(data, false);
 });
 
 ipcRenderer.on('upload-tpop-fragment', (event, data) => {
-  console.log('Received message from server: ["upload-tpop-fragment"]');
-  console.log('upload-tpop-fragment data:', data);
+  LOGGER.receive('UPLOAD', 'upload-tpop-fragment', data);
   tpop = data.tpop;
   loadData(data, true);
 });
 
 ipcRenderer.on('upload-tpop-images', (event, data) => {
-  console.log('Received message from server: ["upload-tpop-images"]');
-  console.log('upload-tpop-images data:', data);
+  LOGGER.receive('UPLOAD', 'upload-tpop-images', data);
   $('#tpop-side').html(currentUpload);
   currentUpload = null;
   $('#tpop-image-list').empty();
@@ -1477,4 +1518,46 @@ ipcRenderer.on('upload-tpop-images', (event, data) => {
     });
   }
   $('#tpop-select-overlay').removeClass('unrendered');
+});
+
+ipcRenderer.on('upload-model-availability', (event, data) => {
+  LOGGER.receive('UPLOAD', 'upload-model-availability', data);
+  const modelID = data.modelID;
+  const modelAvailability = data.modelAvailability;
+  if (modelAvailability) {
+    if (!(modelID in modelsDownloaded) || !modelsDownloaded[modelID]) {
+      modelsDownloaded[modelID] = true;
+      $('#mask_automatic_model option[value="'+modelID+'"]').html('✅ ' + $('#mask_automatic_model option[value="'+modelID+'"]').html())
+    }
+    $('#mask_selection_automatic_button').attr('mode', 'compute');
+    $('#mask_selection_automatic_button').html('Compute Mask(s)');
+    $('#mask_selection_delete_model').removeClass('unrendered');
+  } else {
+    $('#mask_selection_automatic_button').attr('mode', 'download');
+    $('#mask_selection_automatic_button').html('Download Model  ');
+    $('#mask_selection_delete_model').addClass('unrendered');
+  }
+});
+
+ipcRenderer.on('upload-model-deleted', (event, modelID) => {
+  LOGGER.receive('UPLOAD', 'upload-model-deleted', modelID);
+  let text =  $('#mask_automatic_model option[value="'+modelID+'"]').html();
+  text = text.replace('✅ ', '');
+  modelsDownloaded[modelID] = false;
+  $('#mask_automatic_model option[value="'+modelID+'"]').html(text);
+  if ($('#mask_automatic_model').find(':selected').val() == modelID) {
+    $('#mask_selection_automatic_button').attr('mode', 'download');
+    $('#mask_selection_automatic_button').html('Download Model');
+    $('#mask_selection_delete_model').addClass('unrendered');
+  }
+});
+
+ipcRenderer.on('upload-masks-computed', (event, data) => {
+  LOGGER.receive('UPLOAD', 'upload-masks-computed', data);
+  $('#mask_control_panel_automatic').removeClass('unrendered');
+});
+
+ipcRenderer.on('upload-masks-deleted', () => {
+  LOGGER.receive('upload-masks-deleted');
+  $('#mask_control_panel_automatic').addClass('unrendered');
 });

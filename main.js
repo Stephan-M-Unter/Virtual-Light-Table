@@ -27,6 +27,7 @@ const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
 const LOGGER = require('./statics/LOGGER');
+const { send } = require('./statics/LOGGER');
 
 // Settings
 let devMode = false;
@@ -1534,8 +1535,6 @@ ipcMain.on('server-save-config', function(event, newConfig) {
   
   try {
     fs.accessSync(newConfig.vltFolder, fs.constants.R_OK | fs.constants.W_OK);
-    // fs.accessSync(newConfig.saveFolder, fs.constants.R_OK | fs.constants.W_OK);
-    // fs.accessSync(newConfig.tempFolder, fs.constants.R_OK | fs.constants.W_OK);
   } catch (error) {
     LOGGER.err('SERVER', "No writing permission to folder: " + newConfig.vltFolder);
     LOGGER.err(error);
@@ -1546,8 +1545,6 @@ ipcMain.on('server-save-config', function(event, newConfig) {
       message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
     });
     newConfig.vltFolder = config.vltFolder;
-    // newConfig.saveFolder = config.saveFolder;
-    // newConfig.tempFolder = config.tempFolder;
   }
 
   config = newConfig;
@@ -1615,4 +1612,62 @@ ipcMain.on('server-check-tpop-data', () => {
     sendMessage(tpopWindow, 'tpop-calculation-done')
   });
 
+});
+
+ipcMain.on('server-check-model-availability', (event, modelID) => {
+  LOGGER.receive('SERVER', 'server-check-model-availability', modelID);
+
+  // TODO: check if model is available!
+  let modelAvailable = false;
+
+  // if (modelID == 'model_id_b') modelAvailable = true;
+
+  const data = {
+    modelID: modelID,
+    modelAvailability: modelAvailable,
+  };
+
+  sendMessage(event.sender, 'upload-model-availability', data);
+});
+
+ipcMain.on('server-download-model', (event, modelID) => {
+  LOGGER.receive('SERVER', 'server-download-model', modelID);
+
+  // TODO: Download of Model
+
+  setTimeout(function() {
+    const data = {
+      modelID: modelID,
+      modelAvailability: true,
+    }
+  
+    sendMessage(event.sender, 'upload-model-availability', data);
+  }, 8000);
+
+
+});
+
+ipcMain.on('server-compute-automatic-masks', (event, data) => {
+  LOGGER.receive('SERVER', 'server-compute-automatic-masks', data);
+  // TODO compute masks
+  setTimeout(function() {
+    const responseData = {
+      modelID: data.modelID,
+      recto: null,
+      verso: null,
+    }
+    sendMessage(event.sender, 'upload-masks-computed', responseData);
+  }, 5000);
+});
+
+ipcMain.on('server-delete-model', (event, modelID) => {
+  LOGGER.receive('SERVER', 'server-delete-model', modelID);
+  // TODO delete model
+  sendMessage(event.sender, 'upload-model-deleted', modelID);
+});
+
+ipcMain.on('server-delete-masks', (event) => {
+  LOGGER.receive('SERVER', 'server-delete-masks');
+  // TODO delete masks
+  sendMessage(event.sender, 'upload-masks-deleted');
 });
