@@ -1407,9 +1407,7 @@ $('#mask_automatic_model').on('change', () => {
   const modelID = $('#mask_automatic_model').find(":selected").val();
   if (modelID in modelsDownloaded && modelsDownloaded[modelID]) {
     // model has already been checked and is downloaded
-    $('#mask_selection_automatic_button').attr('mode', 'compute');
-    $('#mask_selection_automatic_button').html('Compute Mask(s)');
-    $('#mask_selection_delete_model').removeClass('unrendered');
+    updateAutomaticModelSelectionButtons();
   } else {
     // model has not yet been checked or is not downloaded
     LOGGER.send('UPLOAD', 'server-check-model-availability', modelID);
@@ -1420,9 +1418,13 @@ $('#mask_selection_automatic_button').click(() => {
   const modelButtonMode = $('#mask_selection_automatic_button').attr('mode')
   const modelID = $('#mask_automatic_model').find(':selected').val();
   if (modelButtonMode == 'download') {
+    modelsDownloaded[modelID] = 'processing';
+    updateAutomaticModelSelectionButtons();
     LOGGER.send('UPLOAD', 'server-download-model', modelID);
     ipcRenderer.send('server-download-model', modelID);
   } else if (modelButtonMode == 'compute') {
+    modelsDownloaded[modelID] = 'processing';
+    updateAutomaticModelSelectionButtons();
     const data = {
       modelID: modelID,
       recto: recto.content.filepath,
@@ -1445,6 +1447,31 @@ $('#mask_control_automatic_delete').click(() => {
   ipcRenderer.send('server-delete-masks');
 });
 
+function updateAutomaticModelSelectionButtons() {
+  const modelID = $('#mask_automatic_model').find(':selected').val();
+  const selectionButton = $('#mask_selection_automatic_button');
+  const deleteButton = $('#mask_selection_delete_model');
+  let targetMode = 'download';
+
+  if ((modelID in modelsDownloaded) && (modelsDownloaded[modelID] == true)) {
+    targetMode = 'compute';
+  } else if ((modelID in modelsDownloaded) && (modelsDownloaded[modelID] == 'processing')) {
+    targetMode = 'processing';
+  }
+
+  if (targetMode == 'download') {
+    selectionButton.html('Download Model');
+    selectionButton.attr('mode', targetMode);
+    deleteButton.addClass('unrendered');
+  } else if (targetMode == 'compute') {
+    selectionButton.html('Compute Mask(s)');
+    selectionButton.attr('mode', targetMode);
+    deleteButton.removeClass('unrendered');
+  } else if (targetMode == 'processing') {
+    selectionButton.html('Loading...');
+    selectionButton.attr('mode', targetMode);
+  }
+}
 
 
 
@@ -1525,35 +1552,31 @@ ipcRenderer.on('upload-model-availability', (event, data) => {
   const modelID = data.modelID;
   const modelAvailability = data.modelAvailability;
   if (modelAvailability) {
-    if (!(modelID in modelsDownloaded) || !modelsDownloaded[modelID]) {
-      modelsDownloaded[modelID] = true;
-      $('#mask_automatic_model option[value="'+modelID+'"]').html('✅ ' + $('#mask_automatic_model option[value="'+modelID+'"]').html())
+    modelsDownloaded[modelID] = true;
+    const modelText = $('#mask_automatic_model option[value="'+modelID+'"]').html();
+    if (!(modelText.includes('✅ '))) {
+      $('#mask_automatic_model option[value="'+modelID+'"]').html('✅ ' + modelText);
     }
-    $('#mask_selection_automatic_button').attr('mode', 'compute');
-    $('#mask_selection_automatic_button').html('Compute Mask(s)');
-    $('#mask_selection_delete_model').removeClass('unrendered');
-  } else {
-    $('#mask_selection_automatic_button').attr('mode', 'download');
-    $('#mask_selection_automatic_button').html('Download Model  ');
-    $('#mask_selection_delete_model').addClass('unrendered');
   }
+  updateAutomaticModelSelectionButtons();
 });
 
 ipcRenderer.on('upload-model-deleted', (event, modelID) => {
   LOGGER.receive('UPLOAD', 'upload-model-deleted', modelID);
+  modelsDownloaded[modelID] = false;
+
+  // removing checkmark for not-downloaded model
   let text =  $('#mask_automatic_model option[value="'+modelID+'"]').html();
   text = text.replace('✅ ', '');
-  modelsDownloaded[modelID] = false;
   $('#mask_automatic_model option[value="'+modelID+'"]').html(text);
-  if ($('#mask_automatic_model').find(':selected').val() == modelID) {
-    $('#mask_selection_automatic_button').attr('mode', 'download');
-    $('#mask_selection_automatic_button').html('Download Model');
-    $('#mask_selection_delete_model').addClass('unrendered');
-  }
+
+  updateAutomaticModelSelectionButtons();
 });
 
 ipcRenderer.on('upload-masks-computed', (event, data) => {
   LOGGER.receive('UPLOAD', 'upload-masks-computed', data);
+  modelsDownloaded[data.modelID] = true;
+  updateAutomaticModelSelectionButtons();
   $('#mask_control_panel_automatic').removeClass('unrendered');
 });
 

@@ -421,6 +421,10 @@ canvas.removePolygonNode {
     align-items: center;
 }
 
+.subtitle {
+    width: 100%;
+}
+
 #mask_selection_automatic_button {
     height: 50px;
     padding: 10px;
