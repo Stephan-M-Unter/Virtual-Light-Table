@@ -47,6 +47,8 @@ app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
 let pythonCmd = 'python3';
+let tensorflowChecked = false;
+let tensorflowAvailable = false;
 let config = {};
 
 // Initialisation
@@ -617,7 +619,10 @@ function preprocess_fragment(data) {
       python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
   } else if (data.maskMode == 'automatic') {
-    // TODO
+    if (mirror) {
+      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    }
+    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   }
   const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
   if (!rectoProcessed) {
@@ -1620,8 +1625,6 @@ ipcMain.on('server-check-model-availability', (event, modelID) => {
   // TODO: check if model is available!
   let modelAvailable = false;
 
-  // if (modelID == 'model_id_b') modelAvailable = true;
-
   const data = {
     modelID: modelID,
     modelAvailability: modelAvailable,
@@ -1642,22 +1645,32 @@ ipcMain.on('server-download-model', (event, modelID) => {
     }
   
     sendMessage(event.sender, 'upload-model-availability', data);
-  }, 8000);
+  }, 8);
 
 
 });
 
 ipcMain.on('server-compute-automatic-masks', (event, data) => {
   LOGGER.receive('SERVER', 'server-compute-automatic-masks', data);
-  // TODO compute masks
-  setTimeout(function() {
-    const responseData = {
-      modelID: data.modelID,
-      recto: null,
-      verso: null,
-    }
-    sendMessage(event.sender, 'upload-masks-computed', responseData);
-  }, 5000);
+  const python = spawn(pythonCmd, [path.join(pythonFolder, 'segment.py'),
+    data.modelID, 
+    data.pathImage1,
+    data.pathImage2,
+    data.ppi1,
+    data.ppi2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+  python.on('close', function(code) {
+  LOGGER.log('SERVER', `Segmentation Result: code ${code}.`)
+  try {
+    const segmentationJSON = fs.readFileSync('./python-scripts/segmentation_result.json');
+    const segmentation = JSON.parse(segmentationJSON)
+    segmentation.modelID = data.modelID;
+    sendMessage(uploadWindow, 'upload-masks-computed', segmentation);
+    fs.remove('./python-scripts/segmentation_result.json');
+  } catch (err) {
+    LOGGER.err('SERVER', 'Segmentation result could not be read.');
+    LOGGER.err('SERVER', err);
+    sendMessage(uploadWindow, 'upload-masks-computed', null);
+  }});
 });
 
 ipcMain.on('server-delete-model', (event, modelID) => {
@@ -1671,3 +1684,73 @@ ipcMain.on('server-delete-masks', (event) => {
   // TODO delete masks
   sendMessage(event.sender, 'upload-masks-deleted');
 });
+
+ipcMain.on('server-check-tensorflow', () => {
+  LOGGER.receive('SERVER', 'server-check-tensorflow');
+
+  if (tensorflowChecked) {
+    sendMessage(uploadWindow, 'upload-tensorflow-checked', tensorflowAvailable);
+  } else {
+      const python = spawn(pythonCmd, [path.join(pythonFolder, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python.on('close', function(code) {
+        LOGGER.log('SERVER', `Tensorflow check: code ${code}.`)
+        tensorflowChecked = true;
+        tensorflowAvailable = code==0;
+        sendMessage(uploadWindow, 'upload-tensorflow-checked', tensorflowAvailable);
+      });
+  }
+});
+
+ipcMain.on('server-install-tensorflow', () => {
+  LOGGER.receive('SERVER', 'server-install-tensorflow');
+  const python = spawn(pythonCmd, [path.join(pythonFolder, 'tensorflow_install.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+  python.on('close', function(code) {
+    LOGGER.log('SERVER', `Tensorflow installation: code ${code}.`)
+    sendMessage(uploadWindow, 'upload-tensorflow-installed', code==0);
+  });
+});
+
+ipcMain.on('server-register-masks', (event, data) => {
+  LOGGER.receive('SERVER', 'server-register-masks');
+  const python = spawn(pythonCmd, [path.join(pythonFolder, 'register.py'), data.pathMask1, data.pathMask2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+  python.on('close', function(code) {
+    LOGGER.log('SERVER', `Registering Result: code ${code}.`)
+    try {
+      const registerJSON = fs.readFileSync('./python-scripts/register_result.json');
+      const register = JSON.parse(registerJSON)
+      sendMessage(uploadWindow, 'upload-masks-registered', register);
+    } catch (err) {
+      LOGGER.err('SERVER', 'Registering result could not be read.');
+      LOGGER.err('SERVER', err);
+      sendMessage(uploadWindow, 'upload-masks-registered', null);
+    }});
+});
+
+ipcMain.on('server-cut-automatic-masks', (event, data) => {
+  LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
+  // try {
+  //   const cutJSON = fs.readFileSync('./python-scripts/cut_result.json');
+  //   const cut = JSON.parse(cutJSON)
+  //   cut.modelID = data.modelID;
+  //   sendMessage(uploadWindow, 'upload-images-cut', cut);
+  // } catch (err) {
+  //   LOGGER.err('SERVER', 'Cutting result could not be read.');
+  //   LOGGER.err('SERVER', err);
+  //   sendMessage(uploadWindow, 'upload-images-cut', null);
+  // }});
+  
+  const python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_automatic_masks.py'), data.image1, data.mask1, data.image2, data.mask2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+  python.on('close', function(code) {
+    LOGGER.log('SERVER', `Automatic Cutting Result: code ${code}.`);
+    try {
+      const cutJSON = fs.readFileSync('./python-scripts/cut_result.json');
+      const cut = JSON.parse(cutJSON)
+      sendMessage(uploadWindow, 'upload-images-cut', cut);
+    } catch (err) {
+      LOGGER.err('SERVER', 'Cutting result could not be read.');
+      LOGGER.err('SERVER', err);
+      sendMessage(uploadWindow, 'upload-images-cut', null);
+    }
+  });
+});
+    

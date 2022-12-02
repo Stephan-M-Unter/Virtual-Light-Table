@@ -25,6 +25,21 @@ except:
             print(e)
 
 try:
+    import cv2
+    print("Python: CV2 available")
+except:
+    try:
+        subprocess.check_call([sys.executable, '-m', 'pip3', 'install', '--user', 'opencv-python'])
+        print('Package newly installed: opencv-python (pip3)')
+    except:
+        try:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'opencv-python'])
+            print('Package newly installed: opencv-python (pip)')
+        except Exception as e:
+            print('Failure - could not install CV2!')
+            print(e)
+
+try:
     import PIL
     print("Python: PIL available")
 except:

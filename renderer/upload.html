@@ -117,7 +117,7 @@
                     <div class="large_button_label">Instructions</div>
                 </div>
             </div> <!-- </manual_region> -->
-            <div class="wrapper nunrendered" id="mask_region"> <!-- Level 2 -->
+            <div class="wrapper unrendered" id="mask_region"> <!-- Level 2 -->
                 <div class="header">Mask & Register</div>
                 <div id="mask_selection_region">
                     <div class="label" id="mask_selection_label">Select masking mode:</div>
@@ -162,7 +162,13 @@
                         </div>
                     </div>
                     <div class="mask_controls_wrapper automatic">
-                        <div class="mask_controls automatic">
+                        <div id="mask_control_tensorflow_panel" class="mask_tensorflow_installer unrendered">
+                            <div>You need to install <a href="https://tensorflow.org" target="_blank">Tensorflow</a> to use the automatic segmentation capacities of the Virtual Light Table. Do you want to proceed?</div>
+                            <div>
+                                <div class="button mask_control_button" id="tensorflow-install">Install Tensorflow</div>
+                            </div>
+                        </div>
+                        <div id="mask_control_automatic_selection_panel" class="mask_controls automatic unrendered">
                             <select id="mask_automatic_model">
                                 <option value="model_id_a">BiNet_MultiClass_8.2 (284.42 MB)</option>
                                 <option value="model_id_b">U-Net_MultiClass (218.23 MB)</option>
@@ -180,8 +186,12 @@
                             <div id="mask_control_automatic_erase" class="mask_control_button button square_button">
                                 <img src="../imgs/symbol_erase.png" class="square_button_img"/>
                             </div>
-                            <div id="mask_control_automatic_register" class="mask_control_button button square_button">
-                                <img src="../imgs/symbol_ml.png" class="square_button_img"/>
+                            <div>
+                                <input type="range" min="0" max="100" value="70" id="mask_control_opacity_slider">
+                                <div id="mask_control_opacity_label" class="label">70</div>
+                            </div>
+                            <div id="mask_control_automatic_cut" class="mask_control_button button square_button">
+                                <img src="../imgs/symbol_cut.png" class="square_button_img"/>
                             </div>
                             <div id="mask_control_automatic_delete" class="mask_control_button button square_button">
                                 <img src="../imgs/symbol_bin.png" class="square_button_img"/>
@@ -197,7 +207,7 @@
                     <div class="mask_explanation automatic">Select a machine learning model to automatically segment your object and register front and back to each other.</div>
                 </div>
             </div> <!-- </mask_region> -->
-            <div class="wrapper nunrendered" id="load_region"> <!-- Level 2 -->
+            <div class="wrapper unrendered" id="load_region"> <!-- Level 2 -->
                 <div class="header">Load Fragment</div>
                 <div class="wrapper" id="load_region_wrapper">
                     <input class="missing" type="text" id="objectname">

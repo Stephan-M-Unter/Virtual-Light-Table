@@ -421,8 +421,23 @@ canvas.removePolygonNode {
     align-items: center;
 }
 
+a {
+    color: var(--cb_orange);
+}
+
 .subtitle {
     width: 100%;
+}
+
+#mask_control_tensorflow_panel {
+    width: 100%;
+    padding: 0px 20%;
+}
+
+#mask_control_tensorflow_panel .button {
+    margin: 10px 0px;
+    padding: 5px 2px;
+    text-align: center;
 }
 
 #mask_selection_automatic_button {
