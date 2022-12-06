@@ -5,21 +5,30 @@ from urllib import request
 
 # Input arguments:
 # [0] script name
-# [1] path: image1
-# [2] path: mask1
-# [3] path: image2
-# [4] path: mask2
+# [1] path output folder
+# [2] output filename
+# [3] model ID
+# [4] path: image1
+# [5] path: mask1
+# [6] path: image2
+# [7] path: mask2
 
-path_image1 = sys.argv[1]
-path_mask1 = sys.argv[2]
-path_image2 = sys.argv[3]
-path_mask2 = sys.argv[4]
+path_output_folder = sys.argv[1]
+output_filename = sys.argv[2]
+model_ID = sys.argv[3]
+path_image1 = sys.argv[4]
+path_mask1 = sys.argv[5]
+path_image2 = sys.argv[6]
+path_mask2 = sys.argv[7]
 
 print(f'cut_automatic_masks.py - Input[0]: script')
-print(f'cut_automatic_masks.py - Input[1] (path_image1): {path_image1}')
-print(f'cut_automatic_masks.py - Input[2] (path_mask1): {path_mask1}')
-print(f'cut_automatic_masks.py - Input[3] (path_image2): {path_image2}')
-print(f'cut_automatic_masks.py - Input[4] (path_mask2): {path_mask2}')
+print(f'cut_automatic_masks.py - Input[1] (path output file): {path_output_folder}')
+print(f'cut_automatic_masks.py - Input[2] (output filename): {output_filename}')
+print(f'cut_automatic_masks.py - Input[3] (model ID): {model_ID}')
+print(f'cut_automatic_masks.py - Input[4] (path_image1): {path_image1}')
+print(f'cut_automatic_masks.py - Input[5] (path_mask1): {path_mask1}')
+print(f'cut_automatic_masks.py - Input[6] (path_image2): {path_image2}')
+print(f'cut_automatic_masks.py - Input[7] (path_mask2): {path_mask2}')
 
 target_path1 = None
 target_path2 = None
@@ -32,7 +41,7 @@ def cut_image(path_image, path_mask):
         image = np.array(Image.open(path_image).convert('RGBA'))
     except OSError:
         image_extension = path_image[path_image.rfind(".")+1:]
-        temp_url = os.path.join('C:/Users/unter/Desktop/Virtual Light Table/python-scripts/', 'temp.'+image_extension)
+        temp_url = os.path.join(path_output_folder, 'temp.'+image_extension)
         request.urlretrieve(path_image, temp_url)
         image = np.array(Image.open(temp_url).convert('RGBA'))
         os.remove(temp_url)
@@ -174,16 +183,22 @@ cut2 = cut_image(path_image2, path_mask2)
 cut1, cut2 = register(cut1, cut2)
 
 if cut1 is not None:
-    cut1.save('./python-scripts/cut1.png')
-    target_path1 = 'C:/Users/unter/Desktop/Virtual Light Table/python-scripts/cut1.png'
+    image1_name = os.path.basename(path_image1)
+    image1_name = image1_name[:image1_name.rfind('.')]
+    image1_name = f'{image1_name}_cut_{model_ID}.png'
+    target_path1 = os.path.join(path_output_folder, image1_name)
+    cut1.save(target_path1)
 if cut2 is not None:
-    cut2.save('./python-scripts/cut2.png')
-    target_path2 = 'C:/Users/unter/Desktop/Virtual Light Table/python-scripts/cut2.png'
+    image2_name = os.path.basename(path_image2)
+    image2_name = image2_name[:image2_name.rfind('.')]
+    image2_name = f'{image2_name}_cut_{model_ID}.png'
+    target_path2 = os.path.join(path_output_folder, image2_name)
+    cut2.save(target_path2)
 
 result = {
     'cut1': target_path1,
     'cut2': target_path2,
 }
 
-with open('./python-scripts/cut_result.json', 'w') as f:
+with open(os.path.join(path_output_folder, output_filename), 'w') as f:
     json.dump(result, f)

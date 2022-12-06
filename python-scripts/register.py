@@ -5,14 +5,21 @@ import numpy as np
 
 # Input arguments:
 # [0] script name
-# [1] path: mask1
-# [2] path: mask2
+# [1] path output file
+# [2] path: mask1
+# [3] path: mask2
 
-path_mask1 = sys.argv[1]
-path_mask2 = sys.argv[2]
+path_output_file = sys.argv[1]
+path_mask1 = sys.argv[2]
+path_mask2 = sys.argv[3]
 
 assert(os.path.exists(path_mask1)), "ERROR - Mask1 not found!"
 assert(os.path.exists(path_mask2)), "ERROR - Mask2 not found!"
+
+print(f'register.py - Input[0]: script')
+print(f'register.py - Input[1]: (path output file): {path_output_file}')
+print(f'register.py - Input[2]: (mask1): {path_mask1}')
+print(f'register.py - Input[3]: (mask2): {path_mask2}')
 
 def getMBR(image, threshold=120):
     np_array = np.array(image)
@@ -139,5 +146,5 @@ result = {
     'rotation': rotation,
 }
 
-with open('register_result.json', 'w') as f:
+with open(path_output_file, 'w') as f:
     json.dump(result, f)

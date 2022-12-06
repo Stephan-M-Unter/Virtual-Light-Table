@@ -184,10 +184,14 @@ function createEmptySide(sidename) {
       newSide.mask.auto.drawing.graphics.endStroke();
       
       newSide.stage.removeChild(newSide.mask.auto.drawing);
-      brushing = false;
+      // brushing = false;
       sendChange(newSide);
       newSide.stage.update();
     }
+  });
+
+  $(document).on('mouseup', () => {
+    brushing = false;
   });
   
   $(newSide.canvas).on('mouseout', (event) => {
@@ -1605,7 +1609,13 @@ $('#mask_selection_automatic_button').click(() => {
 
   } else if (modelButtonMode == 'compute') {
     checkRequiredFields();
-    if (!($('#recto_ppi').hasClass('missing')) && !($('#verso_ppi').hasClass('missing'))) {
+
+    let missingRectoPPI = false;
+    if (recto.content.img && ($('#recto_ppi').hasClass('missing'))) missingRectoPPI = true;
+    let missingVersoPPI = false;
+    if (verso.content.img && ($('#verso_ppi').hasClass('missing'))) missingVersoPPI = true;
+
+    if (!missingRectoPPI && !missingVersoPPI) {
       modelsDownloaded[modelID] = 'processing';
       updateAutomaticModelSelectionButtons();
       const data = {

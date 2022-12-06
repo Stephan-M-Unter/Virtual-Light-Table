@@ -127,6 +127,12 @@ function main() {
   saveManager = new SaveManager(config);
   tpopManager = new TPOPManager(externalContentFolder);
 
+  // check for ML folders
+  const folderML = path.join(vltFolder, 'ML');
+  if (!fs.existsSync(folderML)) fs.mkdir(folderML); 
+  const folderMLresults = path.join(folderML, 'results');
+  if (!fs.existsSync(folderMLresults)) fs.mkdir(folderMLresults);
+
   mainWindow = new Window({
     file: './renderer/index.html',
     type: 'main',
@@ -1652,7 +1658,11 @@ ipcMain.on('server-download-model', (event, modelID) => {
 
 ipcMain.on('server-compute-automatic-masks', (event, data) => {
   LOGGER.receive('SERVER', 'server-compute-automatic-masks', data);
+  const outputPath = path.join(vltFolder, 'ML', 'results', 'segmentation_results.json');
   const python = spawn(pythonCmd, [path.join(pythonFolder, 'segment.py'),
+    path.join(vltFolder, 'ML', 'results'),
+    'segmentation_results.json',
+    'null', // TODO, model path
     data.modelID, 
     data.pathImage1,
     data.pathImage2,
@@ -1661,12 +1671,11 @@ ipcMain.on('server-compute-automatic-masks', (event, data) => {
   python.on('close', function(code) {
   LOGGER.log('SERVER', `Segmentation Result: code ${code}.`)
   try {
-    const pathSegmentationJSON = './python-scripts/segmentation_result.json';
-    const segmentationJSON = fs.readFileSync(pathSegmentationJSON);
+    const segmentationJSON = fs.readFileSync(outputPath);
     const segmentation = JSON.parse(segmentationJSON)
     segmentation.modelID = data.modelID;
     sendMessage(uploadWindow, 'upload-masks-computed', segmentation);
-    fs.remove(pathSegmentationJSON);
+    fs.remove(outputPath);
   } catch (err) {
     LOGGER.err('SERVER', 'Segmentation result could not be read.');
     LOGGER.err('SERVER', err);
@@ -1711,35 +1720,26 @@ ipcMain.on('server-install-tensorflow', () => {
   });
 });
 
-ipcMain.on('server-register-masks', (event, data) => {
-  LOGGER.receive('SERVER', 'server-register-masks');
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'register.py'), data.pathMask1, data.pathMask2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  python.on('close', function(code) {
-    LOGGER.log('SERVER', `Registering Result: code ${code}.`)
-    try {
-      const pathRegisterJSON = './python-scripts/register_result.json';
-      const registerJSON = fs.readFileSync(pathRegisterJSON);
-      const register = JSON.parse(registerJSON)
-      sendMessage(uploadWindow, 'upload-masks-registered', register);
-      fs.remove(pathRegisterJSON);
-    } catch (err) {
-      LOGGER.err('SERVER', 'Registering result could not be read.');
-      LOGGER.err('SERVER', err);
-      sendMessage(uploadWindow, 'upload-masks-registered', null);
-    }});
-});
-
 ipcMain.on('server-cut-automatic-masks', (event, data) => {
   LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_automatic_masks.py'), data.image1, data.mask1, data.image2, data.mask2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+  const outputPath = path.join(vltFolder, 'ML', 'results', 'cut_results.json');
+  const python = spawn(pythonCmd, [
+    path.join(pythonFolder, 'cut_automatic_masks.py'),
+    path.join(vltFolder, 'ML', 'results'),
+    'cut_results.json',
+    data.modelID,
+    data.image1,
+    data.mask1,
+    data.image2,
+    data.mask2
+  ], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   python.on('close', function(code) {
     LOGGER.log('SERVER', `Automatic Cutting Result: code ${code}.`);
     try {
-      const pathCutJSON = './python-scripts/cut_result.json';
-      const cutJSON = fs.readFileSync(pathCutJSON);
+      const cutJSON = fs.readFileSync(outputPath);
       const cut = JSON.parse(cutJSON)
       sendMessage(uploadWindow, 'upload-images-cut', cut);
-      fs.remove(pathCutJSON);
+      fs.remove(outputPath);
     } catch (err) {
       LOGGER.err('SERVER', 'Cutting result could not be read.');
       LOGGER.err('SERVER', err);
