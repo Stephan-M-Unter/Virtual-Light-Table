@@ -13,6 +13,8 @@ let maskMode = 'no_mask';
 let scaleMode = null;
 let actionMode = null;
 let scalePoint = null;
+let brushMode = false;
+let brushing = false;
 let scale = 1;
 let showingCut = false;
 let reposition = false;
@@ -66,6 +68,7 @@ function centerImage(side) {
     side.content.img.y = side.content.y;
     side.content.img_bg.y = side.content.y;
   }
+  drawMasks();
   side.stage.update();
 }
 
@@ -89,6 +92,7 @@ function getSide(sidename) {
 function createEmptySide(sidename) {
   const newSide = {
     'stage': new createjs.Stage(sidename+'_canvas'),
+    'cursor': new createjs.Shape(new createjs.Graphics().beginStroke('black').drawCircle(0,0,$('#mask_control_brush_slider').val())),
     'canvas': $('#'+sidename+'_canvas'),
     'sidename': sidename,
     'content': {
@@ -109,11 +113,88 @@ function createEmptySide(sidename) {
         'mask': null,
         'cuts': {},
         'cut': null,
+        'drawing': null,
       },
     },
   };
   newSide.stage.sidename = sidename;
   newSide.stage.enableMouseOver();
+  newSide.cursor.name = 'brush';
+
+  $(newSide.canvas).on('mousemove', (event) => {
+    if (brushMode) {    
+      if (!(newSide.stage.getChildByName('brush'))) {
+        newSide.stage.addChild(newSide.cursor);
+        $(newSide.canvas).addClass('brush');
+      }
+      newSide.cursor.x = event.offsetX;
+      newSide.cursor.y = event.offsetY;
+
+      let color = 'red';
+      if ($('#mask_control_automatic_draw').hasClass('active')) {
+        color = 'green';
+      }
+
+      if (newSide.stage.getChildByName('brushDrawing') && brushing) {
+        const stroke = $('#mask_control_brush_slider').val()*2;
+        newSide.mask.auto.drawing.graphics
+        .ss(stroke, 'round', 'round')
+        .s(color)
+        .mt(newSide.canvas.oldX,newSide.canvas.oldY)
+        .lt(newSide.stage.mouseX, newSide.stage.mouseY);
+        
+        newSide.mask.auto.drawing.alpha = 0.5;
+      }
+
+      newSide.canvas.oldX = newSide.stage.mouseX;
+      newSide.canvas.oldY = newSide.stage.mouseY;
+      
+      newSide.stage.update();
+    }
+  });
+  
+  $(newSide.canvas).on('mousedown', (event) => {
+    if (brushMode && event.button != 2) {
+      let color = 'red';
+      if ($('#mask_control_automatic_draw').hasClass('active')) {
+        color = 'green';
+      }
+
+      newSide.mask.auto.drawing = new createjs.Shape();
+      newSide.mask.auto.drawing.name = 'brushDrawing';
+      newSide.mask.auto.drawing.alpha = 0.5;
+      newSide.stage.addChildAt(newSide.mask.auto.drawing, newSide.stage.children.length-1);
+      const stroke = $('#mask_control_brush_slider').val()*2;
+      newSide.mask.auto.drawing.graphics
+        .clear()
+        .ss(stroke, 'round', 'round')
+        .s(color)
+        .moveTo(newSide.stage.mouseX, newSide.stage.mouseY)
+        .lineTo(newSide.stage.mouseX+0.1, newSide.stage.mouseY+0.1);
+
+      newSide.canvas.oldX = newSide.stage.mouseX;
+      newSide.canvas.oldY = newSide.stage.mouseY;
+
+      brushing = true;
+    }
+  });
+  
+  $(newSide.canvas).on('mouseup', (event) => {
+    if (brushMode && brushing) {
+      newSide.mask.auto.drawing.graphics.endStroke();
+      
+      newSide.stage.removeChild(newSide.mask.auto.drawing);
+      brushing = false;
+      sendChange(newSide);
+      newSide.stage.update();
+    }
+  });
+  
+  $(newSide.canvas).on('mouseout', (event) => {
+    newSide.stage.removeChild(newSide.cursor);
+    $(newSide.canvas).removeClass('brush');
+    newSide.stage.update();
+  });
 
   const maskGroup = new createjs.Container();
   maskGroup.name = 'mask container';
@@ -121,6 +202,32 @@ function createEmptySide(sidename) {
   newSide.stage.addChild(maskGroup);
 
   return newSide;
+}
+
+function sendChange(side) {
+  const bounds = side.content.img.getTransformedBounds();
+  
+  const w = bounds.width;
+  const h = bounds.height;
+  const x = bounds.x;
+  const y = bounds.y;
+  const scale = recto.content.img.scale;
+
+  side.mask.auto.drawing.cache(x, y, w, h, scale);
+  const dataURL = side.mask.auto.drawing.cacheCanvas.toDataURL();
+
+  const activeModelID = $('#mask_automatic_model').find(":selected").val();
+  const maskURL = side.mask.auto.paths[activeModelID];
+
+  const data = {
+    modelID: activeModelID,
+    canvas: side.sidename,
+    maskURL: maskURL,
+    change: dataURL,
+    add: $('#mask_control_automatic_draw').hasClass('active'),
+  };
+
+  ipcRenderer.send('server-edit-auto-mask', data);
 }
 
 /**
@@ -305,8 +412,7 @@ function handlePressMove(event, sidename) {
   const side = getSide(sidename);
   const mouse = {x: event.stageX, y: event.stageY};
   const mouseDistance = {x: mouse.x - mousestart.offsetX, y: mouse.y - mousestart.offsetY};
-
-  if (actionMode == null) {
+  if (actionMode == null && !(brushMode && brushing)) {
     if (mode == 'move') {
       side.content.x = mouseDistance.x;
       side.content.y = mouseDistance.y;
@@ -322,6 +428,7 @@ function handlePressMove(event, sidename) {
       mousestart.y = mouse.y;
     }
     draw(sidename);
+    side.stage.update();
   }
 }
 
@@ -1042,18 +1149,18 @@ function drawAutoMask(reload) {
   } else {
     for (const side of [recto, verso]) {
       side.mask.group.removeAllChildren();
-      side.content.img.mask = null;
+      if (side.content.img) side.content.img.mask = null;
       if (reload) {
-        console.log("TYPE A")
         if (side.mask.auto.mask != null) {
           side.mask.group.removeChild(side.mask.auto.mask);
+          side.mask.auto.mask = null;
         }
         
         const activeModelID = $('#mask_automatic_model').find(":selected").val();
         if (activeModelID in side.mask.auto.paths && side.mask.auto.paths[activeModelID] != null) {
           const maskPath = side.mask.auto.paths[activeModelID];
           const autoMask = new Image();
-          autoMask.src = maskPath;
+          autoMask.src = `${maskPath}?_=${+new Date()}`;
           autoMask.onload = function() {          
             const mask = new createjs.Bitmap(autoMask);
             side.mask.auto.mask = mask;
@@ -1063,14 +1170,13 @@ function drawAutoMask(reload) {
             mask.x = side.content.img.x;
             mask.y = side.content.img.y;
             mask.scale = side.content.img.scale;
-            mask.alpha = 0.7;
+            mask.alpha = $('#mask_control_opacity_slider').val() / 100;
             
             side.mask.group.addChild(mask);
             side.stage.update();
           };
         }
       } else if (side.mask.auto.mask != null) {
-        console.log("TYPE B")
         const mask = side.mask.auto.mask;
         side.mask.group.addChild(mask);
         mask.regX = side.content.img.regX;
@@ -1080,7 +1186,6 @@ function drawAutoMask(reload) {
         mask.scale = side.content.img.scale;
         side.stage.update();
       } else {
-        console.log("TYPE C")
       }
 
     }
@@ -1441,6 +1546,14 @@ $('#mask_control_opacity_slider').on('change input', (event) => {
   }
 });
 
+$('#mask_control_brush_slider').on('change input', (event) => {
+  const sliderValue = $('#mask_control_brush_slider').val();
+
+  for (const side of [recto, verso]) {
+    side.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,$('#mask_control_brush_slider').val())
+  }
+});
+
 $('.choose_tpop').click(function(event) {
   const request = {
     tpop: tpop,
@@ -1491,26 +1604,70 @@ $('#mask_selection_automatic_button').click(() => {
     ipcRenderer.send('server-download-model', modelID);
 
   } else if (modelButtonMode == 'compute') {
-    modelsDownloaded[modelID] = 'processing';
-    updateAutomaticModelSelectionButtons();
-    const data = {
-      modelID: modelID,
-      pathImage1: recto.content.filepath,
-      pathImage2: verso.content.filepath,
-      ppi1: $('#recto_ppi').val(),
-      ppi2: $('#verso_ppi').val(),
-    };
-    LOGGER.send('UPLOAD', 'server-compute-automatic-masks', data);
-    ipcRenderer.send('server-compute-automatic-masks', data);
+    checkRequiredFields();
+    if (!($('#recto_ppi').hasClass('missing')) && !($('#verso_ppi').hasClass('missing'))) {
+      modelsDownloaded[modelID] = 'processing';
+      updateAutomaticModelSelectionButtons();
+      const data = {
+        modelID: modelID,
+        pathImage1: recto.content.filepath,
+        pathImage2: verso.content.filepath,
+        ppi1: $('#recto_ppi').val(),
+        ppi2: $('#verso_ppi').val(),
+      };
+      LOGGER.send('UPLOAD', 'server-compute-automatic-masks', data);
+      ipcRenderer.send('server-compute-automatic-masks', data);
+    }
   }
 });
+
+$('#mask_selection_automatic_button').on('mouseover', () => {
+  checkRequiredFields();
+  const modelButtonMode = $('#mask_selection_automatic_button').attr('mode')
+  if (modelButtonMode == 'compute') {
+    if ($('#recto_ppi').hasClass('missing') && recto.content.img) {
+      $('#recto_ppi').addClass('missing_pulse');
+      $('#mask_selection_automatic_button').addClass('missing_pulse');
+    }
+    if ($('#verso_ppi').hasClass('missing') && verso.content.img) {
+      $('#verso_ppi').addClass('missing_pulse');
+      $('#mask_selection_automatic_button').addClass('missing_pulse');
+    }
+  }
+});
+
+$('#mask_selection_automatic_button').on('mouseout', () => {
+  $('#recto_ppi').removeClass('missing_pulse');
+  $('#verso_ppi').removeClass('missing_pulse');
+  $('#mask_selection_automatic_button').removeClass('missing_pulse');
+});
+
+
 $('#mask_selection_delete_model').click(() => {
   const modelID = $('#mask_automatic_model').find(':selected').val();
   LOGGER.send('UPLOAD', 'server-delete-model', modelID);
   ipcRenderer.send('server-delete-model', modelID);
 });
-$('#mask_control_automatic_draw').click(() => {});
-$('#mask_control_automatic_erase').click(() => {});
+$('#mask_control_automatic_draw').click(() => {
+  if ($('#mask_control_automatic_draw').hasClass('active')) {
+    $('#mask_control_automatic_draw').removeClass('active');
+    brushMode = false;
+  } else {
+    $('#mask_control_automatic_erase').removeClass('active');
+    $('#mask_control_automatic_draw').addClass('active');
+    brushMode = true;
+  }
+});
+$('#mask_control_automatic_erase').click(() => {
+  if ($('#mask_control_automatic_erase').hasClass('active')) {
+    $('#mask_control_automatic_erase').removeClass('active');
+    brushMode = false;
+  } else {
+    $('#mask_control_automatic_draw').removeClass('active');
+    $('#mask_control_automatic_erase').addClass('active');
+    brushMode = true;
+  }
+});
 $('#mask_control_automatic_register').click(() => {});
 $('#mask_control_automatic_delete').click(() => {
   LOGGER.send('UPLOAD', 'server-delete-masks');
@@ -1727,4 +1884,9 @@ ipcRenderer.on('upload-images-cut', (event, data) => {
   showingCut = true;
   draw('recto', true);
   draw('verso', true);
+});
+
+ipcRenderer.on('upload-mask-edited', (event) => {
+  LOGGER.receive('UPLOAD', 'upload-mask-edited');
+  drawMasks(true);
 });

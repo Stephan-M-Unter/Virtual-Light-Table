@@ -1661,11 +1661,12 @@ ipcMain.on('server-compute-automatic-masks', (event, data) => {
   python.on('close', function(code) {
   LOGGER.log('SERVER', `Segmentation Result: code ${code}.`)
   try {
-    const segmentationJSON = fs.readFileSync('./python-scripts/segmentation_result.json');
+    const pathSegmentationJSON = './python-scripts/segmentation_result.json';
+    const segmentationJSON = fs.readFileSync(pathSegmentationJSON);
     const segmentation = JSON.parse(segmentationJSON)
     segmentation.modelID = data.modelID;
     sendMessage(uploadWindow, 'upload-masks-computed', segmentation);
-    fs.remove('./python-scripts/segmentation_result.json');
+    fs.remove(pathSegmentationJSON);
   } catch (err) {
     LOGGER.err('SERVER', 'Segmentation result could not be read.');
     LOGGER.err('SERVER', err);
@@ -1716,9 +1717,11 @@ ipcMain.on('server-register-masks', (event, data) => {
   python.on('close', function(code) {
     LOGGER.log('SERVER', `Registering Result: code ${code}.`)
     try {
-      const registerJSON = fs.readFileSync('./python-scripts/register_result.json');
+      const pathRegisterJSON = './python-scripts/register_result.json';
+      const registerJSON = fs.readFileSync(pathRegisterJSON);
       const register = JSON.parse(registerJSON)
       sendMessage(uploadWindow, 'upload-masks-registered', register);
+      fs.remove(pathRegisterJSON);
     } catch (err) {
       LOGGER.err('SERVER', 'Registering result could not be read.');
       LOGGER.err('SERVER', err);
@@ -1728,24 +1731,15 @@ ipcMain.on('server-register-masks', (event, data) => {
 
 ipcMain.on('server-cut-automatic-masks', (event, data) => {
   LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
-  // try {
-  //   const cutJSON = fs.readFileSync('./python-scripts/cut_result.json');
-  //   const cut = JSON.parse(cutJSON)
-  //   cut.modelID = data.modelID;
-  //   sendMessage(uploadWindow, 'upload-images-cut', cut);
-  // } catch (err) {
-  //   LOGGER.err('SERVER', 'Cutting result could not be read.');
-  //   LOGGER.err('SERVER', err);
-  //   sendMessage(uploadWindow, 'upload-images-cut', null);
-  // }});
-  
   const python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_automatic_masks.py'), data.image1, data.mask1, data.image2, data.mask2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   python.on('close', function(code) {
     LOGGER.log('SERVER', `Automatic Cutting Result: code ${code}.`);
     try {
-      const cutJSON = fs.readFileSync('./python-scripts/cut_result.json');
+      const pathCutJSON = './python-scripts/cut_result.json';
+      const cutJSON = fs.readFileSync(pathCutJSON);
       const cut = JSON.parse(cutJSON)
       sendMessage(uploadWindow, 'upload-images-cut', cut);
+      fs.remove(pathCutJSON);
     } catch (err) {
       LOGGER.err('SERVER', 'Cutting result could not be read.');
       LOGGER.err('SERVER', err);
@@ -1754,3 +1748,20 @@ ipcMain.on('server-cut-automatic-masks', (event, data) => {
   });
 });
     
+ipcMain.on('server-edit-auto-mask', (event, data) => {
+  LOGGER.receive('SERVER', 'server-edit-auto-mask', data);
+
+  var base64Data = data.change.replace(/^data:image\/png;base64,/, "");
+  const changeURL = "test.png";
+  let changeMode = "remove";
+  if (data.add) changeMode = "add";
+
+  fs.writeFile(changeURL, base64Data, 'base64', function(err) {
+
+    const python = spawn(pythonCmd, [path.join(pythonFolder, 'edit_mask.py'), data.maskURL, changeURL, changeMode], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    python.on('close', function(code) {
+      LOGGER.log('SERVER', `Edit Mask Result: code ${code}.`);
+      sendMessage(uploadWindow, 'upload-mask-edited');
+    });
+  });
+});
