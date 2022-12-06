@@ -432,7 +432,7 @@ class Stage {
     // remove fragments from canvas
     for (const idx in this.objectList) {
       if (Object.prototype.hasOwnProperty.call(this.objectList, idx)) {
-        this.stage.removeChild(this.objectList[idx].getContainer());
+        this.objectLayer.removeChild(this.objectList[idx].getContainer());
       }
     }
     this.pins.removeAllChildren();
