@@ -24,7 +24,7 @@ ppi1 = sys.argv[7]
 ppi2 = sys.argv[8]
 
 # TODO REMOVE
-path_model = "C:/Users/unter/AppData/Roaming/Virtual Light Table/ML/models/model_8.2"
+# path_model = "C:/Users/unter/AppData/Roaming/Virtual Light Table/ML/models/model_8.2"
 
 print(f'segment.py - Input[0]: script')
 print(f'segment.py - Input[1] (path output folder): {path_output_folder}')

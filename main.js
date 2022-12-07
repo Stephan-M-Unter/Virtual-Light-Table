@@ -1662,7 +1662,7 @@ ipcMain.on('server-compute-automatic-masks', (event, data) => {
   const python = spawn(pythonCmd, [path.join(pythonFolder, 'segment.py'),
     path.join(vltFolder, 'ML', 'results'),
     'segmentation_results.json',
-    'null', // TODO, model path
+    path.join(vltFolder, 'ML', 'models', 'model_8.2'), // TODO
     data.modelID, 
     data.pathImage1,
     data.pathImage2,
