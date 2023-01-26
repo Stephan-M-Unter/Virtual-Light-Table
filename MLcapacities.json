@@ -1,0 +1,10 @@
+{
+    "segmentation": {
+        "BiNet_8.2_multiclass": {
+            "requestPath": "TODO",
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
+            "author": "Stephan M. Unter",
+            "lastChange": "xx/xx/xx"
+        }
+    }
+}
