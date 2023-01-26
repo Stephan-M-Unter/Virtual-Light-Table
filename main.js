@@ -147,8 +147,6 @@ function main() {
     
     sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
     setTimeout(() => {
-      startupWindow.close()
-
       mainWindow = new Window({
         file: './renderer/index.html',
         type: 'main',
@@ -159,7 +157,9 @@ function main() {
         mainWindow.removeMenu();
       }
       mainWindow.once('ready-to-show', () => {
+        console.log("Test");
         mainWindow.show();
+        startupWindow.close();
         if (saveManager.checkForAutosave()) {
           sendMessage(mainWindow, 'client-confirm-autosave');
         } else {
@@ -168,7 +168,7 @@ function main() {
       });
       mainWindow.on('close', function(event) {
         if (quitting) {
-          app.quit()
+          app.quit();
         } else {
           const choice = dialog.showMessageBoxSync(event.target, {
             type: 'question',
@@ -188,7 +188,6 @@ function main() {
       });
     }, 2000);
   });
- 
 }
 
 app.on('ready', main);
