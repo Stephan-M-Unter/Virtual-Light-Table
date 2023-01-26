@@ -18,7 +18,17 @@ const {BrowserWindow} = require('electron');
 const mainProps = {
   width: 1024,
   height: 800,
-  frame: true,
+  frame: false,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+};
+
+const startProps = {
+  frame: false,
   icon: './imgs/icons/png/logo.png',
   show: false,
   webPreferences: {
@@ -90,6 +100,7 @@ const propsPresets = {
   'calibration': calibrationProps,
   'upload': uploadProps,
   'load': loadProps,
+  'start': startProps,
 }
 
 /**

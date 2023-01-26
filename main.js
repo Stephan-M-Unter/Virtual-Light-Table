@@ -26,6 +26,7 @@ const TableManager = require('./js/TableManager');
 const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
+const MLManager = require('./js/MLManager');
 const LOGGER = require('./statics/LOGGER');
 const { send } = require('./statics/LOGGER');
 
@@ -55,9 +56,11 @@ let config = {};
 // Managers
 const tableManager = new TableManager();
 const imageManager = new ImageManager();
+let mlManager;
 let tpopManager;
 let saveManager;
 // Windows
+let startupWindow;
 let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
 let detailWindow; // TODO additional window to show fragment details
@@ -93,87 +96,99 @@ const loadingQueue = [];
  * TODO
  */
 function main() {
-  CSC.removeLegacies(vltFolder);
-  // check if "Virtual Light Table" subfolder exists
-  if (!fs.existsSync(vltFolder)) {
-    // creating VLT subfolder in appdata
-    fs.mkdirSync(vltFolder);
-    LOGGER.log('SERVER', 'Created new VLT folder at ' + vltFolder);
-  }
-
-  // check if the "External Content" subfolder exists
-  if (!fs.existsSync(externalContentFolder)) {
-    fs.mkdirSync(externalContentFolder);
-    LOGGER.log('SERVER', 'Created new folder for external content at ' + externalContentFolder);
-  }
-
-  // check if config file exists
-  if (!fs.existsSync(vltConfigFile)) {
-    // config file doesn't exist - load default values and save to file
-    config = loadDefaultConfig();
-    saveConfig();
-  } else {
-    // config file exists - read it
-    config = readConfig();
-    extendConfig();
-  }
-
-  LOGGER.start(vltFolder, version);
-
-  // CHECK FOR PYTHON
-  check_python();
-
-  if (!(config.vltFolder)) config.vltFolder = vltFolder;
-  saveManager = new SaveManager(config);
-  tpopManager = new TPOPManager(externalContentFolder);
-
-  // check for ML folders
-  const folderML = path.join(vltFolder, 'ML');
-  if (!fs.existsSync(folderML)) fs.mkdir(folderML); 
-  const folderMLresults = path.join(folderML, 'results');
-  if (!fs.existsSync(folderMLresults)) fs.mkdir(folderMLresults);
-
-  mainWindow = new Window({
-    file: './renderer/index.html',
-    type: 'main',
+  startupWindow = new Window({
+    file: './renderer/start.html',
+    type: 'start',
     devMode: devMode,
   });
-  mainWindow.maximize(); // fullscreen mode
-  if (!devMode) {
-    mainWindow.removeMenu();
-  }
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    if (saveManager.checkForAutosave()) {
-      sendMessage(mainWindow, 'client-confirm-autosave');
-    } else {
-      autosaveChecked = true;
-      // const data = createNewTable();
-      // activeTable.view = data.tableID;
-      // sendMessage(mainWindow, 'client-load-model', data);
+
+  startupWindow.once('ready-to-show', () => {
+    sendMessage(startupWindow, 'startup-status', 'Preparing Folders...');
+    CSC.removeLegacies(vltFolder);
+    // check if "Virtual Light Table" subfolder exists
+    if (!fs.existsSync(vltFolder)) {
+      // creating VLT subfolder in appdata
+      fs.mkdirSync(vltFolder);
+      LOGGER.log('SERVER', 'Created new VLT folder at ' + vltFolder);
     }
-  });
-  mainWindow.on('close', function(event) {
-    if (quitting) {
-      app.quit()
+
+    // check if the "External Content" subfolder exists
+    if (!fs.existsSync(externalContentFolder)) {
+      fs.mkdirSync(externalContentFolder);
+      LOGGER.log('SERVER', 'Created new folder for external content at ' + externalContentFolder);
+    }
+    
+    sendMessage(startupWindow, 'startup-status', 'Checking Config File...');
+    // check if config file exists
+    if (!fs.existsSync(vltConfigFile)) {
+      // config file doesn't exist - load default values and save to file
+      config = loadDefaultConfig();
+      saveConfig();
     } else {
-      const choice = dialog.showMessageBoxSync(event.target, {
-        type: 'question',
-        buttons: ['Yes', 'No'],
-        title: 'Confirm',
-        message: 'Are you sure you want to quit?',
+      // config file exists - read it
+      config = readConfig();
+      extendConfig();
+    }
+    
+    sendMessage(startupWindow, 'startup-status', 'Setting Up Logger...');
+    LOGGER.start(vltFolder, version);
+    
+    sendMessage(startupWindow, 'startup-status', 'Checking Python...');
+    // CHECK FOR PYTHON
+    check_python();
+    
+    sendMessage(startupWindow, 'startup-status', 'Checking Tensorflow...');
+    // TODO
+    sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
+    if (!(config.vltFolder)) config.vltFolder = vltFolder;
+    saveManager = new SaveManager(config);
+    tpopManager = new TPOPManager(externalContentFolder);
+    mlManager = new MLManager(vltFolder, pythonFolder);
+    
+    sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+    setTimeout(() => {
+      startupWindow.close()
+
+      mainWindow = new Window({
+        file: './renderer/index.html',
+        type: 'main',
+        devMode: devMode,
       });
-      if (choice == 1) {
-        event.preventDefault();
-      } else {
-        quitting = true;
-        LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
-        saveManager.removeAutosaveFiles();
-        app.quit();
+      mainWindow.maximize();
+      if (!devMode) {
+        mainWindow.removeMenu();
       }
-      // sendMessage(mainWindow, 'client-confirm-quit');
-    }
+      mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
+        if (saveManager.checkForAutosave()) {
+          sendMessage(mainWindow, 'client-confirm-autosave');
+        } else {
+          autosaveChecked = true;
+        }
+      });
+      mainWindow.on('close', function(event) {
+        if (quitting) {
+          app.quit()
+        } else {
+          const choice = dialog.showMessageBoxSync(event.target, {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            title: 'Confirm',
+            message: 'Are you sure you want to quit?',
+          });
+          if (choice == 1) {
+            event.preventDefault();
+          } else {
+            quitting = true;
+            LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
+            saveManager.removeAutosaveFiles();
+            app.quit();
+          }
+        }
+      });
+    }, 2000);
   });
+ 
 }
 
 app.on('ready', main);
@@ -506,6 +521,7 @@ function check_python() {
           LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
           LOGGER.log('SERVER', 'Setting python command to "python"');
           pythonCmd = 'python';
+          mlManager.setPythonCommand(pythonCmd);
         } else {
           LOGGER.err('SERVER', `[PYTHON] closed with code ${code}`);
           LOGGER.err('SERVER', 'Command "python" found, but other problem occurred, please resolve.');
@@ -518,6 +534,7 @@ function check_python() {
       LOGGER.log('SERVER', `python3 closed with code ${code}`);
       LOGGER.log('SERVER', 'setting pythonCmd to python3');
       pythonCmd = 'python3';
+      mlManager.setPythonCommand(pythonCmd);
     } else {
       LOGGER.err('SERVER', `python3 closed with code ${code}`);
       LOGGER.err('SERVER', 'python3 found, but other problem occurred, please solve');
@@ -1627,60 +1644,31 @@ ipcMain.on('server-check-tpop-data', () => {
 
 ipcMain.on('server-check-model-availability', (event, modelID) => {
   LOGGER.receive('SERVER', 'server-check-model-availability', modelID);
-
-  // TODO: check if model is available!
-  let modelAvailable = false;
-
-  const data = {
+  let modelAvailable = mlManager.checkForModel(modelID);
+  const responseData = {
     modelID: modelID,
     modelAvailability: modelAvailable,
   };
-
-  sendMessage(event.sender, 'upload-model-availability', data);
+  sendMessage(event.sender, 'upload-model-availability', responseData);
 });
 
 ipcMain.on('server-download-model', (event, modelID) => {
   LOGGER.receive('SERVER', 'server-download-model', modelID);
-
-  // TODO: Download of Model
-
-  setTimeout(function() {
-    const data = {
-      modelID: modelID,
-      modelAvailability: true,
-    }
   
-    sendMessage(event.sender, 'upload-model-availability', data);
-  }, 8);
-
-
+  mlManager.downloadModel(modelID, function(modelDownloaded) {
+    const responseData = {
+      modelID: modelID,
+      modelAvailability: modelDownloaded,
+    };
+    sendMessage(event.sender, 'upload-model-availability', responseData);
+  });
 });
 
 ipcMain.on('server-compute-automatic-masks', (event, data) => {
   LOGGER.receive('SERVER', 'server-compute-automatic-masks', data);
-  const outputPath = path.join(vltFolder, 'ML', 'results', 'segmentation_results.json');
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'segment.py'),
-    path.join(vltFolder, 'ML', 'results'),
-    'segmentation_results.json',
-    path.join(vltFolder, 'ML', 'models', 'model_8.2'), // TODO
-    data.modelID, 
-    data.pathImage1,
-    data.pathImage2,
-    data.ppi1,
-    data.ppi2], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  python.on('close', function(code) {
-  LOGGER.log('SERVER', `Segmentation Result: code ${code}.`)
-  try {
-    const segmentationJSON = fs.readFileSync(outputPath);
-    const segmentation = JSON.parse(segmentationJSON)
-    segmentation.modelID = data.modelID;
-    sendMessage(uploadWindow, 'upload-masks-computed', segmentation);
-    fs.remove(outputPath);
-  } catch (err) {
-    LOGGER.err('SERVER', 'Segmentation result could not be read.');
-    LOGGER.err('SERVER', err);
-    sendMessage(uploadWindow, 'upload-masks-computed', null);
-  }});
+  mlManager.segmentImages(data.modelID, data.pathImage1, data.pathImage2, data.ppi1, data.ppi2, function(responseData) {
+    sendMessage(uploadWindow, 'upload-masks-computed', responseData);
+  });
 });
 
 ipcMain.on('server-delete-model', (event, modelID) => {
@@ -1697,54 +1685,22 @@ ipcMain.on('server-delete-masks', (event) => {
 
 ipcMain.on('server-check-tensorflow', () => {
   LOGGER.receive('SERVER', 'server-check-tensorflow');
-
-  if (tensorflowChecked) {
+  mlManager.checkForTensorflow(function(tensorflowAvailable) {
     sendMessage(uploadWindow, 'upload-tensorflow-checked', tensorflowAvailable);
-  } else {
-      const python = spawn(pythonCmd, [path.join(pythonFolder, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-      python.on('close', function(code) {
-        LOGGER.log('SERVER', `Tensorflow check: code ${code}.`)
-        tensorflowChecked = true;
-        tensorflowAvailable = code==0;
-        sendMessage(uploadWindow, 'upload-tensorflow-checked', tensorflowAvailable);
-      });
-  }
+  });
 });
 
 ipcMain.on('server-install-tensorflow', () => {
   LOGGER.receive('SERVER', 'server-install-tensorflow');
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'tensorflow_install.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  python.on('close', function(code) {
-    LOGGER.log('SERVER', `Tensorflow installation: code ${code}.`)
-    sendMessage(uploadWindow, 'upload-tensorflow-installed', code==0);
+  mlManager.installTensorflow(function(tensorflowInstalled) {
+    sendMessage(uploadWindow, 'upload-tensorflow-installed', tensorflowInstalled);
   });
 });
 
 ipcMain.on('server-cut-automatic-masks', (event, data) => {
   LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
-  const outputPath = path.join(vltFolder, 'ML', 'results', 'cut_results.json');
-  const python = spawn(pythonCmd, [
-    path.join(pythonFolder, 'cut_automatic_masks.py'),
-    path.join(vltFolder, 'ML', 'results'),
-    'cut_results.json',
-    data.modelID,
-    data.image1,
-    data.mask1,
-    data.image2,
-    data.mask2
-  ], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  python.on('close', function(code) {
-    LOGGER.log('SERVER', `Automatic Cutting Result: code ${code}.`);
-    try {
-      const cutJSON = fs.readFileSync(outputPath);
-      const cut = JSON.parse(cutJSON)
-      sendMessage(uploadWindow, 'upload-images-cut', cut);
-      fs.remove(outputPath);
-    } catch (err) {
-      LOGGER.err('SERVER', 'Cutting result could not be read.');
-      LOGGER.err('SERVER', err);
-      sendMessage(uploadWindow, 'upload-images-cut', null);
-    }
+  mlManager.registerImages(data.modelID, data.image1, data.mask1, data.image2, data.mask2, function(responseData) {
+    sendMessage(uploadWindow, 'upload-images-cut', responseData);
   });
 });
     
