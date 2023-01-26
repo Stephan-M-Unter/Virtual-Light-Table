@@ -157,7 +157,6 @@ function main() {
         mainWindow.removeMenu();
       }
       mainWindow.once('ready-to-show', () => {
-        console.log("Test");
         mainWindow.show();
         startupWindow.close();
         if (saveManager.checkForAutosave()) {
