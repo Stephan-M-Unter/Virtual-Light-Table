@@ -1705,6 +1705,7 @@ function updateAutomaticModelSelectionButtons() {
     targetMode = 'processing';
   }
 
+  selectionButton.removeClass('loading');
   if (targetMode == 'download') {
     selectionButton.html('Download Model');
     selectionButton.attr('mode', targetMode);
@@ -1715,11 +1716,13 @@ function updateAutomaticModelSelectionButtons() {
     deleteButton.removeClass('unrendered');
   } else if (targetMode == 'processing') {
     selectionButton.html('Loading...');
+    selectionButton.addClass('loading');
     selectionButton.attr('mode', targetMode);
   }
 }
 
 $('#mask_control_automatic_cut').click(() => {
+  $('#mask_control_automatic_cut').addClass('loading');
   const activeModelID = $('#mask_automatic_model').find(":selected").val();
   let pathMask1 = null;
   let pathMask2 = null;
@@ -1875,25 +1878,30 @@ ipcRenderer.on('upload-masks-computed', (event, data) => {
   LOGGER.receive('UPLOAD', 'upload-masks-computed', data);
   modelsDownloaded[data.modelID] = true;
   updateAutomaticModelSelectionButtons();
-  $('#mask_control_panel_automatic').removeClass('unrendered');
-  recto.mask.auto.paths[data.modelID] = data.pathMask1;
-  verso.mask.auto.paths[data.modelID] = data.pathMask2;
-  drawMasks(true);
+  if (data) {
+    $('#mask_control_panel_automatic').removeClass('unrendered');
+    recto.mask.auto.paths[data.modelID] = data.pathMask1;
+    verso.mask.auto.paths[data.modelID] = data.pathMask2;
+    drawMasks(true);
+  }
 });
 
 ipcRenderer.on('upload-images-cut', (event, data) => {
   LOGGER.receive('UPLOAD', 'upload-images-cut', data);
-  recto.mask.auto.cuts[data.modelID] = data.cut1;
-  verso.mask.auto.cuts[data.modelID] = data.cut2;
-  recto.content.filepath = data.cut1;
-  recto.content.img = null;
-  recto.mask.group.removeAllChildren();
-  verso.content.filepath = data.cut2;
-  verso.content.img = null;
-  verso.mask.group.removeAllChildren();
-  showingCut = true;
-  draw('recto', true);
-  draw('verso', true);
+  $('#mask_control_automatic_cut').removeClass('loading');
+  if (data) {
+    recto.mask.auto.cuts[data.modelID] = data.cut1;
+    verso.mask.auto.cuts[data.modelID] = data.cut2;
+    recto.content.filepath = data.cut1;
+    recto.content.img = null;
+    recto.mask.group.removeAllChildren();
+    verso.content.filepath = data.cut2;
+    verso.content.img = null;
+    verso.mask.group.removeAllChildren();
+    showingCut = true;
+    draw('recto', true);
+    draw('verso', true);
+  }
 });
 
 ipcRenderer.on('upload-mask-edited', (event) => {
