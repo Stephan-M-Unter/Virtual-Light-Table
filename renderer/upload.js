@@ -448,50 +448,57 @@ function handleMousewheel(event) {
     if ((scale > zoomStep && zoomDirection < 0) || zoomDirection > 0) {
       scale = scale + (zoomStep * zoomDirection);
       scale = Math.round(scale*100)/100;
-      if (recto.content.img) {
-        if (recto.content.scale) {
-          // recto.content.scale += (zoomStep * zoomDirection);
-          // recto.content.img.scale += (zoomStep * zoomDirection);
-          // recto.content.img_bg.scale += (zoomStep * zoomDirection);
-          recto.content.scale = scale;
-          recto.content.img.scale = scale;
-          recto.content.img_bg.scale = scale;
-        } else {
-          let rectoPPI = $('#recto_ppi').val();
-          if (rectoPPI == '') {
-            rectoPPI = 96;
-          }
-          let rectoScale = (96 * (96/rectoPPI) * scale) / 96;
-          rectoScale = Math.round(rectoScale*100) / 100;
-          recto.content.img.scale = rectoScale;
-          recto.content.img_bg.scale = rectoScale;
-          recto.content.scale = rectoScale;
-        }
+
+      let scaleRecto = 10;
+      let scaleVerso = 10;
+      if (recto.content.scale) {
+        scaleRecto = recto.content.scale + (zoomStep * zoomDirection);
       }
-      if (verso.content.img) {
-        if (verso.content.scale) {
-          // verso.content.scale += (zoomStep * zoomDirection);
-          // verso.content.img.scale += (zoomStep * zoomDirection);
-          // verso.content.img_bg.scale += (zoomStep * zoomDirection);
-          verso.content.scale = scale;
-          verso.content.img.scale = scale;
-          verso.content.img_bg.scale = scale;
-        } else {
-          let versoPPI = $('#verso_ppi').val();
-          if (versoPPI == '') {
-            versoPPI = 96;
-          }
-          let versoScale = (96 * (96/versoPPI) * scale) / 96;
-          versoScale = Math.round(versoScale*100) / 100;
-          verso.content.img.scale = versoScale;
-          verso.content.img_bg.scale = versoScale;
-          verso.content.scale = versoScale;
-        }
+      if (verso.content.scale) {
+        scaleVerso = verso.content.scale + (zoomStep * zoomDirection);
       }
-      recto.stage.update();
-      verso.stage.update();
-    }
-    drawMasks();
+
+      if (scaleRecto > zoomStep && scaleVerso > zoomStep) {
+        if (recto.content.img) {
+          if (recto.content.scale) {
+            recto.content.scale += (zoomStep * zoomDirection);
+            recto.content.img.scale += (zoomStep * zoomDirection);
+            recto.content.img_bg.scale += (zoomStep * zoomDirection);
+          } else {
+            let rectoPPI = $('#recto_ppi').val();
+            if (rectoPPI == '') {
+              rectoPPI = 96;
+            }
+            let rectoScale = (96 * (96/rectoPPI) * scale) / 96;
+            rectoScale = Math.round(rectoScale*100) / 100;
+            recto.content.img.scale = rectoScale;
+            recto.content.img_bg.scale = rectoScale;
+            recto.content.scale = rectoScale;
+          }
+        }
+        if (verso.content.img) {
+          if (verso.content.scale) {
+            verso.content.scale += (zoomStep * zoomDirection);
+            verso.content.img.scale += (zoomStep * zoomDirection);
+            verso.content.img_bg.scale += (zoomStep * zoomDirection);
+          } else {
+            let versoPPI = $('#verso_ppi').val();
+            if (versoPPI == '') {
+              versoPPI = 96;
+            }
+            let versoScale = (96 * (96/versoPPI) * scale) / 96;
+            versoScale = Math.round(versoScale*100) / 100;
+            verso.content.img.scale = versoScale;
+            verso.content.img_bg.scale = versoScale;
+            verso.content.scale = versoScale;
+          }
+        }
+        recto.stage.update();
+        verso.stage.update();
+      }
+      drawMasks();
+      }
+
   }
 }
 
@@ -503,8 +510,10 @@ function clearCanvas(sidename) {
   // remove data
   if (sidename == 'recto') {
     recto = createEmptySide('recto');
+    recto.stage.update();
   } else if (sidename == 'verso') {
     verso = createEmptySide('verso');
+    verso.stage.update();
   }
 
   // clearing fields
@@ -1795,6 +1804,9 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
 // the necessary data/information about the fragment.
 ipcRenderer.on('upload-edit-fragment', (event, data) => {
   LOGGER.receive('UPLOAD', 'upload-edit-fragment', data);
+  if ('tpop' in data) {
+    tpop = data['tpop'];
+  }
   loadData(data, false);
 });
 
