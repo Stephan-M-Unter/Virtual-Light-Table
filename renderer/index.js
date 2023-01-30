@@ -389,6 +389,14 @@ $(document).ready(function() {
   $('.workarea_size').on('keyup input change', function() {
     controller.updateWorkarea();
   });
+  $('.workarea_size').on('focusin', function() {
+    controller.setPermission('hotkeys', false);
+  });
+  $('.workarea_size').on('focusout', function() {
+    controller.setPermission('hotkeys', true);
+  });
+
+
   $('#workarea_clear').click(function() {
     $('#workarea-width').val('');
     $('#workarea-height').val('');
