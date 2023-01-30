@@ -32,6 +32,7 @@ const { send } = require('./statics/LOGGER');
 
 // Settings
 let devMode = false;
+let tpopEnabled = true;
 if (process.argv.includes('--dev')) {
   devMode = true;
 }
@@ -1404,20 +1405,30 @@ ipcMain.on('server-import-file', (event) => {
 // server-open-tpop
 ipcMain.on('server-open-tpop', (event, tableID) => {
   LOGGER.receive('SERVER', 'server-open-tpop', tableID);
-  activeTables.tpop = tableID;
 
-  if (!tpopWindow) {
-    tpopWindow = new Window({
-      file: './renderer/tpop.html',
-      type: 'tpop',
-      devMode: devMode,
-    });
-    tpopWindow.removeMenu();
-    tpopWindow.maximize();
-    tpopWindow.on('close', function() {
-      tpopWindow = null;
-      activeTables.tpop = null;
-    });
+  if (!tpopEnabled) {
+    const feedback = {
+      title: 'TPOP not available',
+      desc: 'The TPOP feature has not been enabled for your VLT version. Due to legal issues, the internal TPOP information will be available as soon as the database entries are published.',
+      color: color.error,
+    }
+    sendMessage(mainWindow, 'client-show-feedback', feedback);
+  } else {
+    activeTables.tpop = tableID;
+  
+    if (!tpopWindow) {
+      tpopWindow = new Window({
+        file: './renderer/tpop.html',
+        type: 'tpop',
+        devMode: devMode,
+      });
+      tpopWindow.removeMenu();
+      tpopWindow.maximize();
+      tpopWindow.on('close', function() {
+        tpopWindow = null;
+        activeTables.tpop = null;
+      });
+    }
   }
 });
 
