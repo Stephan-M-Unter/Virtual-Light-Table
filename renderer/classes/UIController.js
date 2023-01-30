@@ -481,6 +481,7 @@ class UIController {
       this.stage.updateWorkarea(0,0);
     }
     this.updateRulers();
+    this.saveToModel(true);
   }
   
   showContextMenu(event, context, id) {
