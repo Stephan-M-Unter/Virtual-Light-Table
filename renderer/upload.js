@@ -445,15 +445,17 @@ function handleMousewheel(event) {
   const zoomDirection = Math.sign(event.originalEvent.wheelDelta); // positive: zoom in; negative: zoom out
   if (recto.content.filepath != null || verso.content.filepath != null) {
     // only zoom if at least one canvas has content
-    // TODO zooming
     if ((scale > zoomStep && zoomDirection < 0) || zoomDirection > 0) {
       scale = scale + (zoomStep * zoomDirection);
       scale = Math.round(scale*100)/100;
       if (recto.content.img) {
         if (recto.content.scale) {
-          recto.content.scale += (zoomStep * zoomDirection);
-          recto.content.img.scale += (zoomStep * zoomDirection);
-          recto.content.img_bg.scale += (zoomStep * zoomDirection);
+          // recto.content.scale += (zoomStep * zoomDirection);
+          // recto.content.img.scale += (zoomStep * zoomDirection);
+          // recto.content.img_bg.scale += (zoomStep * zoomDirection);
+          recto.content.scale = scale;
+          recto.content.img.scale = scale;
+          recto.content.img_bg.scale = scale;
         } else {
           let rectoPPI = $('#recto_ppi').val();
           if (rectoPPI == '') {
@@ -468,9 +470,12 @@ function handleMousewheel(event) {
       }
       if (verso.content.img) {
         if (verso.content.scale) {
-          verso.content.scale += (zoomStep * zoomDirection);
-          verso.content.img.scale += (zoomStep * zoomDirection);
-          verso.content.img_bg.scale += (zoomStep * zoomDirection);
+          // verso.content.scale += (zoomStep * zoomDirection);
+          // verso.content.img.scale += (zoomStep * zoomDirection);
+          // verso.content.img_bg.scale += (zoomStep * zoomDirection);
+          verso.content.scale = scale;
+          verso.content.img.scale = scale;
+          verso.content.img_bg.scale = scale;
         } else {
           let versoPPI = $('#verso_ppi').val();
           if (versoPPI == '') {
@@ -1447,7 +1452,7 @@ $('.center').on('click', (event) => {
 $('.measure').on('click', (event) => {
   const target = $(event.target).attr('canvas');
   const button = $(event.target).parent();
-  $('.measure').removeClass('active');
+  // $('.measure').removeClass('active');
   $('canvas').removeClass('scale');
 
   if (button.hasClass('active')) {
@@ -1490,6 +1495,7 @@ $('html').keydown(function(event) {
     if (!$('tutorial_region').hasClass('unrendered')) {
       $('#tutorial_region').addClass('unrendered');
     }
+    endScaling();
   }
 });
 
