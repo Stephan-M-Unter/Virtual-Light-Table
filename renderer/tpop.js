@@ -379,9 +379,6 @@ function displayFolders(folderList) {
     if (!maxFolder || folder.amount > maxFolder) maxFolder = folder.amount;
   }
 
-  console.log("minFolder", minFolder, "maxFolder", maxFolder);
-  console.log("minPercentage", minPercent, "maxPercentage", maxPercent);
-
   $('#folder-grid').empty();
   $('#folder-overlay').css('display', 'flex');
   for (const folder of folderList) {

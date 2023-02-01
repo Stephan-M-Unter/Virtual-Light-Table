@@ -96,6 +96,14 @@ function toggleSidebar() {
 $(document).ready(function() {
   controller = new UIController('lighttable');
   controller.sendToServer('server-stage-loaded');
+  controller.sendToServer('server-online-status', navigator.onLine);
+
+  $(window).addEventListener('online', () => {
+    controller.sendToServer('server-online-status', navigator.onLine);
+  });
+  $(window).addEventListener('offline', () => {
+    controller.sendToServer('server-online-status', navigator.onLine);
+  });
 
   /* ##########################################
         #          INPUT/OUTPUT

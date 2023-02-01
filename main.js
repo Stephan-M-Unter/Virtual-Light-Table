@@ -49,8 +49,7 @@ app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
 let pythonCmd = 'python3';
-let tensorflowChecked = false;
-let tensorflowAvailable = false;
+let online = true;
 let config = {};
 
 // Initialisation
@@ -104,88 +103,9 @@ function main() {
   });
 
   startupWindow.once('ready-to-show', () => {
-    sendMessage(startupWindow, 'startup-status', 'Preparing Folders...');
-    CSC.removeLegacies(vltFolder);
-    // check if "Virtual Light Table" subfolder exists
-    if (!fs.existsSync(vltFolder)) {
-      // creating VLT subfolder in appdata
-      fs.mkdirSync(vltFolder);
-      LOGGER.log('SERVER', 'Created new VLT folder at ' + vltFolder);
-    }
-
-    // check if the "External Content" subfolder exists
-    if (!fs.existsSync(externalContentFolder)) {
-      fs.mkdirSync(externalContentFolder);
-      LOGGER.log('SERVER', 'Created new folder for external content at ' + externalContentFolder);
-    }
-    
-    sendMessage(startupWindow, 'startup-status', 'Checking Config File...');
-    // check if config file exists
-    if (!fs.existsSync(vltConfigFile)) {
-      // config file doesn't exist - load default values and save to file
-      config = loadDefaultConfig();
-      saveConfig();
-    } else {
-      // config file exists - read it
-      config = readConfig();
-      extendConfig();
-    }
-    
-    sendMessage(startupWindow, 'startup-status', 'Setting Up Logger...');
-    LOGGER.start(vltFolder, version);
-    
-    sendMessage(startupWindow, 'startup-status', 'Checking Python...');
-    // CHECK FOR PYTHON
-    check_python();
-    
-    sendMessage(startupWindow, 'startup-status', 'Checking Tensorflow...');
-    // TODO
-    sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
-    if (!(config.vltFolder)) config.vltFolder = vltFolder;
-    saveManager = new SaveManager(config);
-    tpopManager = new TPOPManager(externalContentFolder);
-    mlManager = new MLManager(vltFolder, pythonFolder);
-    
-    sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+    startUp();
     setTimeout(() => {
-      mainWindow = new Window({
-        file: './renderer/index.html',
-        type: 'main',
-        devMode: devMode,
-      });
-      mainWindow.maximize();
-      if (!devMode) {
-        mainWindow.removeMenu();
-      }
-      mainWindow.once('ready-to-show', () => {
-        mainWindow.show();
-        startupWindow.close();
-        if (saveManager.checkForAutosave()) {
-          sendMessage(mainWindow, 'client-confirm-autosave');
-        } else {
-          autosaveChecked = true;
-        }
-      });
-      mainWindow.on('close', function(event) {
-        if (quitting) {
-          app.quit();
-        } else {
-          const choice = dialog.showMessageBoxSync(event.target, {
-            type: 'question',
-            buttons: ['Yes', 'No'],
-            title: 'Confirm',
-            message: 'Are you sure you want to quit?',
-          });
-          if (choice == 1) {
-            event.preventDefault();
-          } else {
-            quitting = true;
-            LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
-            saveManager.removeAutosaveFiles();
-            app.quit();
-          }
-        }
-      });
+      createMainView();
     }, 2000);
   });
 }
@@ -195,6 +115,97 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
+function startUp() {
+  sendMessage(startupWindow, 'startup-status', 'Preparing Folders...');
+  CSC.removeLegacies(vltFolder);
+  // check if "Virtual Light Table" subfolder exists
+  if (!fs.existsSync(vltFolder)) {
+    // creating VLT subfolder in appdata
+    fs.mkdirSync(vltFolder);
+    LOGGER.log('SERVER', 'Created new VLT folder at ' + vltFolder);
+  }
+
+  // check if the "External Content" subfolder exists
+  if (!fs.existsSync(externalContentFolder)) {
+    fs.mkdirSync(externalContentFolder);
+    LOGGER.log('SERVER', 'Created new folder for external content at ' + externalContentFolder);
+  }
+  
+  sendMessage(startupWindow, 'startup-status', 'Checking Config File...');
+  checkConfig();
+  sendMessage(startupWindow, 'startup-status', 'Setting Up Logger...');
+  LOGGER.start(vltFolder, version);
+  sendMessage(startupWindow, 'startup-status', 'Checking Python and Tensorflow...');
+  check_python_and_tensorflow();
+  sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
+  createManagers();
+  sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+}
+
+function checkConfig() {
+  // check if config file exists
+  if (!fs.existsSync(vltConfigFile)) {
+    // config file doesn't exist - load default values and save to file
+    config = loadDefaultConfig();
+    saveConfig();
+  } else {
+    // config file exists - read it
+    config = readConfig();
+    extendConfig();
+  }
+  if (!(config.vltFolder)) config.vltFolder = vltFolder;
+}
+
+function checkTensorflow() {
+
+}
+
+function createManagers() {
+  saveManager = new SaveManager(config);
+  tpopManager = new TPOPManager(externalContentFolder);
+  mlManager = new MLManager(vltFolder, pythonFolder);
+}
+
+function createMainView() {
+  mainWindow = new Window({
+    file: './renderer/index.html',
+    type: 'main',
+    devMode: devMode,
+  });
+  mainWindow.maximize();
+  if (!devMode) {
+    mainWindow.removeMenu();
+  }
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    startupWindow.close();
+    if (saveManager.checkForAutosave()) {
+      sendMessage(mainWindow, 'client-confirm-autosave');
+    } else {
+      autosaveChecked = true;
+    }
+  });
+  mainWindow.on('close', function(event) {
+    if (quitting) {
+      app.quit();
+    } else {
+      const choice = dialog.showMessageBoxSync(event.target, {
+        type: 'question',
+        buttons: ['Yes', 'No'],
+        title: 'Confirm',
+        message: 'Are you sure you want to quit?',
+      });
+      if (choice == 1) {
+        event.preventDefault();
+      } else {
+        quitting = true;
+        LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
+        saveManager.removeAutosaveFiles();
+        app.quit();
+      }
+    }
+  });
+}
 
 /**
  *
@@ -502,7 +513,7 @@ function preprocess_loading_fragments(data) {
   // python.stdout.pipe(process.stdout);
 }
 
-function check_python() {
+function check_python_and_tensorflow() {
   let python = spawn('python3', [path.join(pythonFolder, 'python_test.py')], {detached: false});
   python.on('close', function(code) {
     if (code == 9009) {
@@ -521,6 +532,7 @@ function check_python() {
           LOGGER.log('SERVER', 'Setting python command to "python"');
           pythonCmd = 'python';
           mlManager.setPythonCommand(pythonCmd);
+          mlManager.checkForTensorflow();
         } else {
           LOGGER.err('SERVER', `[PYTHON] closed with code ${code}`);
           LOGGER.err('SERVER', 'Command "python" found, but other problem occurred, please resolve.');
@@ -534,6 +546,7 @@ function check_python() {
       LOGGER.log('SERVER', 'setting pythonCmd to python3');
       pythonCmd = 'python3';
       mlManager.setPythonCommand(pythonCmd);
+      mlManager.checkForTensorflow();
     } else {
       LOGGER.err('SERVER', `python3 closed with code ${code}`);
       LOGGER.err('SERVER', 'python3 found, but other problem occurred, please solve');
@@ -1717,7 +1730,7 @@ ipcMain.on('server-edit-auto-mask', (event, data) => {
   LOGGER.receive('SERVER', 'server-edit-auto-mask', data);
 
   var base64Data = data.change.replace(/^data:image\/png;base64,/, "");
-  const changeURL = "test.png";
+  const changeURL = "manual_mask_change.png";
   let changeMode = "remove";
   if (data.add) changeMode = "add";
 
@@ -1727,6 +1740,13 @@ ipcMain.on('server-edit-auto-mask', (event, data) => {
     python.on('close', function(code) {
       LOGGER.log('SERVER', `Edit Mask Result: code ${code}.`);
       sendMessage(uploadWindow, 'upload-mask-edited');
+      fs.removeSync(changeURL);
     });
   });
 });
+
+ipcMain.on('server-online-status', (event, onlineStatus) => {
+  LOGGER.receive('SERVER', 'server-online-status', onlineStatus);
+  online = onlineStatus;
+});
+
