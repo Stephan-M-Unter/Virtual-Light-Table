@@ -1699,15 +1699,6 @@ $('#mask_control_automatic_delete').click(() => {
   ipcRenderer.send('server-delete-masks');
 });
 
-$('#tensorflow-install').click(() => {
-  if ($('#tensorflow-install').attr('mode') != 'installing') {
-    LOGGER.send('UPLOAD', 'server-install-tensorflow');
-    ipcRenderer.send('server-install-tensorflow');
-    $('#tensorflow-install').attr('mode', 'installing');
-    $('#tensorflow-install').html('Installing...');
-  }
-});
-
 function updateAutomaticModelSelectionButtons() {
   const modelID = $('#mask_automatic_model').find(':selected').val();
   const selectionButton = $('#mask_selection_automatic_button');
@@ -1759,6 +1750,11 @@ $('#mask_control_automatic_cut').click(() => {
 
   LOGGER.send('UPLOAD', 'server-cut-automatic-masks', data);
   ipcRenderer.send('server-cut-automatic-masks', data);
+});
+
+$('#open-settings').click(function() {
+  LOGGER.send('UPLOAD', 'server-open-settings');
+  ipcRenderer.send('server-open-settings');
 });
 
 
@@ -1886,8 +1882,6 @@ ipcRenderer.on('upload-tensorflow-installed', (event, tensorflowInstalled) => {
   if (tensorflowInstalled) {
     $('#mask_control_tensorflow_panel').addClass('unrendered');
     $('#mask_control_automatic_selection_panel').removeClass('unrendered');
-    $('#tensorflow-install').attr('mode', '');
-    $('#tensorflow-install').html('Install Tensorflow');
     tensorflow = true;
   }
 })

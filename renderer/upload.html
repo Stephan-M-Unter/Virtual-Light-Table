@@ -7,10 +7,12 @@
         <script src="../js/libs/jquery-3.6.0.min.js"></script>
         <script>window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');</script>
     </head>
-    <body> <!-- Level 0 -->
-        <div class="wrapper" id="upper_region"> <!-- Level 1 -->
-            <div class="wrapper" id="canvas_region"> <!-- Level 2 -->
-                <div class="wrapper canvas_wrapper" id="recto_canvas_region"> <!-- Level 3 -->
+    <body> 
+        <!-- CANVAS REGION / UPPER REGION -->
+        <div class="wrapper" id="upper_region">
+            <!-- CANVASES -->
+            <div class="wrapper" id="canvas_region">
+                <div class="wrapper canvas_wrapper" id="recto_canvas_region">
                     <canvas id="recto_canvas"></canvas>
                     <div class="wrapper upload_wrapper" id="recto_upload_wrapper">
                         <div class="label upload_label">Upload Recto Image</div>
@@ -28,7 +30,7 @@
                         </div>
                     </div>
                 </div> <!-- </recto_canvas_region> -->
-                <div class="wrapper canvas_wrapper" id="verso_canvas_region"> <!-- Level 3 -->
+                <div class="wrapper canvas_wrapper" id="verso_canvas_region">
                     <canvas id="verso_canvas"></canvas>
                     <div class="wrapper upload_wrapper" id="verso_upload_wrapper">
                         <div class="label upload_label">Upload Verso Image</div>
@@ -47,7 +49,8 @@
                     </div>
                 </div> <!-- </verso_canvas_region> -->
             </div> <!-- </canvas_region> -->
-            <div class="wrapper hidden" id="button_region"> <!-- Level 2 -->
+            <!-- BUTTONS -->
+            <div class="wrapper hidden" id="button_region">
                 <div class="wrapper hidden" id="recto_button_region">
                     <div title="Remove image (doesn't delete any files on your computer)" class="button square_button delete" canvas="recto">
                         <img draggable="false" src="../imgs/symbol_bin.png" class="square_button_img" canvas="recto">
@@ -99,8 +102,10 @@
                 </div>
             </div> <!-- </button_region> -->
         </div> <!-- </upper_region> -->
-        <div class="wrapper" id="lower_region"> <!-- Level 1 -->
-            <div class="wrapper" id="manual_region"> <!-- Level 2 -->
+
+        <!-- LOWER REGION -->
+        <div class="wrapper" id="lower_region">
+            <div class="wrapper" id="manual_region">
                 <div class="header">Upload Custom Fragment</div>
                 <div id="manual_text">
                     <ul>
@@ -117,7 +122,7 @@
                     <div class="large_button_label">Instructions</div>
                 </div>
             </div> <!-- </manual_region> -->
-            <div class="wrapper unrendered" id="mask_region"> <!-- Level 2 -->
+            <div class="wrapper unrendered" id="mask_region">
                 <div class="header">Mask & Register</div>
                 <div id="mask_selection_region">
                     <div class="label" id="mask_selection_label">Select masking mode:</div>
@@ -163,10 +168,7 @@
                     </div>
                     <div class="mask_controls_wrapper automatic">
                         <div id="mask_control_tensorflow_panel" class="mask_tensorflow_installer unrendered">
-                            <div>You need to install <a href="https://tensorflow.org" target="_blank">Tensorflow</a> to use the automatic segmentation capacities of the Virtual Light Table. Do you want to proceed?</div>
-                            <div>
-                                <div class="button mask_control_button" id="tensorflow-install">Install Tensorflow</div>
-                            </div>
+                            <div>The Virtual Light Table makes use of the python library <a href="https://tensorflow.org" target="_blank">Tensorflow</a> to enable its machine learning capabilites, including the automatic segmentation of objects. However, no working Tensorflow installment has been found. You can try to install the package via the <a href="#" id="open-settings">Settings</a> menu or <a hreF="https://www.tensorflow.org/install" target="_blank">install manually</a>.</div>
                         </div>
                         <div id="mask_control_automatic_selection_panel" class="mask_controls automatic unrendered">
                             <select id="mask_automatic_model">
@@ -267,114 +269,6 @@
                 </div>
             </div>
         </div>
-
-        <!--
-        <div id="canvas_wrapper">
-            <div id="recto_canvas_wrapper">
-                <div class="canvas_label" id="recto_canvas_label">Recto</div>
-                <canvas class="canvas" id="recto_canvas"></canvas>
-                <div class="upload_wrapper">
-                    <div class="button upload_button local_upload_button" id="recto_local_upload">
-                        <img src="../imgs/symbol_upload_local.png"/>
-                    </div>
-                    <div class="button upload_button www_upload_button" id="recto_www_upload">
-                        <img src="../imgs/symbol_www.png"/>
-                    </div>
-                </div>
-                <div class="button_wrapper hidden" id="recto_buttons">
-                    <div class="button scale_button" id="recto_scale_button">
-                        <img src="../imgs/symbol_ruler.png"/>
-                    </div>
-                    <div class="button rotate_button" id="recto_rotate_button">
-                        <img src="../imgs/symbol_rotate90-large.png"/>
-                    </div>
-                    <div class="button bin_button" id="recto_bin_button">
-                        <img src="../imgs/symbol_bin.png"/>
-                    </div>
-                </div>
-                <div class="resolution_wrapper hidden" id="recto_resolution_wrapper">
-                    <label>Resolution:</label>
-                    <input type="text" class="resolution_input empty" id="recto_resolution"/>
-                    <label>ppi</label>
-                </div>
-            </div>
-            <div id="switch_wrapper" class="hidden">
-                <div class="button" id="switch_button">
-                    <img src="../imgs/symbol_switch.png"/>
-                </div>
-                <div id="mutex_wrapper">
-                    <div class="button active" id="move_button">
-                        <img src="../imgs/symbol_move.png"/>
-                    </div>
-                    <div class="button" id="rotate_button">
-                        <img src="../imgs/symbol_rotate.png"/>
-                    </div>
-                    <div class="button hidden" id="cut_button">
-                        <img src="../imgs/symbol_cut.png"/>
-                    </div>
-                    <div class="button hidden" id="undo_button">
-                        <img src="../imgs/symbol_undo.png"/>
-                    </div>
-                    <div class="button hidden" id="clear_polygon">
-                        <img src="../imgs/symbol_new_table.png"/>
-                    </div>
-                </div>
-            </div>
-            <div id="verso_canvas_wrapper">
-                <div class="canvas_label" id="verso_canvas_label">Verso</div>
-                <canvas class="canvas" id="verso_canvas"></canvas>
-                <div class="upload_wrapper">
-                    <div class="button upload_button local_upload_button" id="verso_local_upload">
-                        <img src="../imgs/symbol_upload_local.png"/>
-                    </div>
-                    <div class="button upload_button www_upload_button" id="verso_www_upload">
-                        <img src="../imgs/symbol_www.png"/>
-                    </div>
-                </div>
-                <div class="button_wrapper hidden" id="verso_buttons">
-                    <div class="button scale_button" id="verso_scale_button">
-                        <img src="../imgs/symbol_ruler.png"/>
-                    </div>
-                    <div class="button rotate_button" id="verso_rotate_button">
-                        <img src="../imgs/symbol_rotate90-large.png"/>
-                    </div>
-                    <div class="button bin_button" id="verso_bin_button">
-                        <img src="../imgs/symbol_bin.png"/>
-                    </div>
-                </div>
-                <div class="resolution_wrapper hidden" id="verso_resolution_wrapper">
-                    <label>ppi</label>
-                    <input type="text" class="resolution_input empty" id="verso_resolution"/>
-                    <label>Resolution:</label>
-                </div>
-            </div>
-        </div>
-        <div id="name_wrapper">
-            <input type="text" class="empty" id="name">
-            <div id="name_label">Fragment Name</div>
-        </div>
-        <div class="button disabled" id="load_button">Load</div>
-
-        <div id="mode_wrapper" class="hidden">
-            <div id="no_mask" class="button select_button selected no_select" mode="none">
-                <img src="../imgs/symbol_x.png">
-                <label>No Mask</label>
-            </div>
-            <div id="select_crop" class="button select_button no_select" mode="crop">
-                <img src="../imgs/symbol_crop.png">
-                <label>Crop / Box</label>
-            </div>
-            <div id="select_cut" class="button select_button no_select" mode="cut">
-                <img src="../imgs/symbol_cut.png">
-                <label>Cut / Polygon</label>
-            </div>
-            <div id="select_auto" class="button select_button no_select development" mode="auto">
-                <img src="../imgs/symbol_ml.png">
-                <label>Auto</label>
-            </div>
-        </div>
-    -->
-
 
         <script src="../js/libs/createjs.min.js"></script>
         <script src="../js/libs/preloadjs.min.js"></script>
