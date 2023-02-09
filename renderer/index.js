@@ -98,10 +98,10 @@ $(document).ready(function() {
   controller.sendToServer('server-stage-loaded');
   controller.sendToServer('server-online-status', navigator.onLine);
 
-  $(window).addEventListener('online', () => {
+  window.addEventListener('online', () => {
     controller.sendToServer('server-online-status', navigator.onLine);
   });
-  $(window).addEventListener('offline', () => {
+  window.addEventListener('offline', () => {
     controller.sendToServer('server-online-status', navigator.onLine);
   });
 

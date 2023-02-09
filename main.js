@@ -180,6 +180,7 @@ function createMainView() {
     mainWindow.show();
     startupWindow.close();
     if (saveManager.checkForAutosave()) {
+      console.log('+++ CHECKING FOR AUTOSAVE +++');
       sendMessage(mainWindow, 'client-confirm-autosave');
     } else {
       autosaveChecked = true;
@@ -1302,6 +1303,13 @@ ipcMain.on('server-new-session', (event) => {
     tableData: tableManager.getTable(selectedTable),
   };
   sendMessage(event.sender, 'client-load-model', data);
+
+  if (saveManager.checkForAutosave()) {
+    console.log('+++ CHECKING FOR AUTOSAVE +++');
+    sendMessage(mainWindow, 'client-confirm-autosave');
+  } else {
+    autosaveChecked = true;
+  }
 });
 
 // server-save-screenshot | data -> data.tableID, data.screenshot
