@@ -10,10 +10,10 @@ class MLManager {
     constructor(vltFolder, pythonFolder) {
         this.vltFolder = vltFolder;
         this.pythonFolder = pythonFolder;
-        this.pythonCmd;
+        this.pythonCmd = '';
 
         this.tensorflowChecked = false;
-        this.tensorflowAvailable;
+        this.tensorflowAvailable = false;
 
         // define ML subfolders
         const folderML = path.join(this.vltFolder, 'ML');
@@ -105,7 +105,7 @@ class MLManager {
         // }
     }
     checkForModel(modelID) {
-        return true; // to remove
+        return true; // TODO remove
         if (!(modelID in this.models)) {
             return false;
         }

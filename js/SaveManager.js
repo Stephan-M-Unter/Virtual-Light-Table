@@ -79,7 +79,7 @@ class SaveManager {
   }
 
   quicksave(tableData, tableID) {
-    if (!tableID in this.tableFilepaths || !fs.existsSync(this.tableFilepaths[tableID])) {
+    if (!(tableID in this.tableFilepaths) || !fs.existsSync(this.tableFilepaths[tableID])) {
       return this.save(tableData, tableID);
     } else {
       return this.saveTable(tableData, this.tableFilepaths[tableID]);
@@ -334,12 +334,6 @@ class SaveManager {
       return;
     }
     const images = fs.readdirSync(folder+'/imgs');
-
-    /*
-    images = images.map((item) => {
-      return path.resolve(folder+'/imgs/'+item);
-    });
-    */
 
     for (const sID in savefiles) {
       if (Object.prototype.hasOwnProperty.call(savefiles, sID)) {

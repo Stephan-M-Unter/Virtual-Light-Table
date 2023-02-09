@@ -184,7 +184,6 @@ function createEmptySide(sidename) {
       newSide.mask.auto.drawing.graphics.endStroke();
       
       newSide.stage.removeChild(newSide.mask.auto.drawing);
-      // brushing = false;
       sendChange(newSide);
       newSide.stage.update();
     }
@@ -297,14 +296,11 @@ function draw(sidename, center) {
       });
 
       side.stage.addChildAt(side.content.img_bg, shadow, side.content.img, side.mask.group, 0);
-      // side.canvas.attr('title', side.content.filepath);
-      //   drawMasks();
       if (center) centerImage(side);
     }
   } else if (tpop) {
     $('#'+sidename+'_canvas_region').find('.choose_tpop').removeClass('unrendered');
   }
-  // side.stage.update();
   drawMasks();
   checkGUI();
 }
@@ -713,7 +709,6 @@ function scaleImages() {
     const rectoPPI = $('#recto_ppi').val();
     if (rectoPPI != '') {
       const rectoScale = (96 * (96/rectoPPI) * scale) / 96;
-      // const rectoScale = 96/ (rectoPPI*scale);
       recto.content.scale = rectoScale;
       recto.content.img.scale = rectoScale;
       recto.content.img_bg.scale = rectoScale;
@@ -723,7 +718,6 @@ function scaleImages() {
     const versoPPI = $('#verso_ppi').val();
     if (versoPPI != '') {
       const versoScale = (96 * (96/versoPPI) * scale) / 96;
-      // const versoScale = 96 / (versoPPI*scale);
       verso.content.scale = versoScale;
       verso.content.img.scale = versoScale;
       verso.content.img_bg.scale = versoScale;
@@ -1279,18 +1273,6 @@ function uploadData() {
   data.verso = dataVerso;
 
   // RELATION
-  /*
-  if (recto.content.img && verso.content.img) {
-    const dataRelation = {};
-
-    dataRelation.d_rotation = verso.content.img.rotation - recto.content.img.rotation;
-    dataRelation.d_cx = verso.content.img.x - recto.content.img.x;
-    dataRelation.d_cy = verso.content.img.y - recto.content.img.y;
-
-    data.relation = dataRelation;
-  }
-  */
-
   data.name = $('#objectname').val();
   if (recto.content.img) {
     data.showRecto = true;
@@ -1461,7 +1443,6 @@ $('.center').on('click', (event) => {
 $('.measure').on('click', (event) => {
   const target = $(event.target).attr('canvas');
   const button = $(event.target).parent();
-  // $('.measure').removeClass('active');
   $('canvas').removeClass('scale');
 
   if (button.hasClass('active')) {
@@ -1566,8 +1547,6 @@ $('#mask_control_opacity_slider').on('change input', (event) => {
 });
 
 $('#mask_control_brush_slider').on('change input', (event) => {
-  const sliderValue = $('#mask_control_brush_slider').val();
-
   for (const side of [recto, verso]) {
     side.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,$('#mask_control_brush_slider').val())
   }

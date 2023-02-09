@@ -48,7 +48,7 @@ class UIController {
     /** @member {'dark' | 'bright'} */
     this.lightMode = 'dark';
     /** @member {String} */
-    this.darkBackground;
+    this.darkBackground = null;
     /** @member {Object} */
     this.permissions = {};
     /** @member {String[]} */
@@ -155,13 +155,6 @@ class UIController {
    */
   loadTable() {
     this.sendToServer('server-open-load', this.activeTable);
-    /*
-    if (!this.unsaved[this.activeTable]) {
-      this.sendToServer('server-open-load', this.activeTable);
-    } else if (this.confirmClearTable()) {
-      this.sendToServer('server-open-load', this.activeTable);
-    }
-    */
   }
 
   /**
@@ -186,14 +179,7 @@ class UIController {
    * from server. Only works if there are no currently unsaved changes or if user confirms.
    */
   clearTable() {
-    if (!this.unsaved[this.activeTable]) {
-      // this.clearMeasurements();
-      this.sendToServer('server-clear-table', this.activeTable);
-      this.setUnsavedState(this.activeTable, false);
-      this.firstSave = true;
-      this.resetPermissions();
-    } else if (this.confirmClearTable()) {
-      // this.clearMeasurements();
+    if (!this.unsaved[this.activeTable] || this.confirmClearTable()) {
       this.sendToServer('server-clear-table', this.activeTable);
       this.setUnsavedState(this.activeTable, false);
       this.firstSave = true;
@@ -1065,10 +1051,7 @@ class UIController {
    * @param {*} tableID
    */
   closeTable(tableID) {
-    if (!this.unsaved[tableID]) {
-      this.sendToServer('server-close-table', tableID);
-      this.topbar.removeTable(tableID);
-    } else if (this.confirmClearTable()) {
+    if (!this.unsaved[tableID] || this.confirmClearTable()) {
       this.sendToServer('server-close-table', tableID);
       this.topbar.removeTable(tableID);
     }

@@ -47,7 +47,6 @@ const vltConfigFile = path.join(vltFolder, 'vlt.config');
 const pythonFolder = path.join(appPath, 'python-scripts');
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
-// const out = fs.createWriteStream(path.join(vltFolder, 'out.txt'), {flags: 'w'});
 let pythonCmd = 'python3';
 let online = true;
 let config = {};
@@ -282,7 +281,6 @@ function uploadTpopFragments() {
     try {
       uploadWindow.close();
     } catch {}
-    // localUploadWindow = null;
     return;
   }
   
@@ -309,7 +307,6 @@ function uploadTpopFragments() {
     try {
       uploadWindow.close();
     } catch {}
-    // localUploadWindow = null;
   }
   uploadWindow = new Window({
     file: './renderer/upload.html',
@@ -330,10 +327,6 @@ function uploadTpopFragments() {
     sendMessage(mainWindow, 'client-stop-loading');
     uploadTpopFragments();
   });
-
-  /*
-  const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
-  */
 }
 
 /**
@@ -368,7 +361,7 @@ function preprocess_loading_fragments(data) {
   for (const key of Object.keys(fragments)) {
     fragment = fragments[key];
     if (!('processed' in fragment)) {
-      allProcessed = false,
+      allProcessed = false;
       fragmentKey = key;
       break;
     } else {
@@ -516,8 +509,6 @@ function preprocess_loading_fragments(data) {
     data.tableData.fragments[fragmentKey] = fragment;
     preprocess_loading_fragments(data);
   });
-  // python.stderr.pipe(process.stdout);
-  // python.stdout.pipe(process.stdout);
 }
 
 function check_python_and_tensorflow() {
@@ -529,10 +520,6 @@ function check_python_and_tensorflow() {
       python.on('close', function(code) {
         if (code == 9009) {
           LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
-          const warning = dialog.showMessageBoxSync(null, {
-            title: 'VLT cannot be started!',
-            message: 'The VLT needs a running version of Python 3.x - please head to https://www.python.org/ and install the latest stable version before running the Virtual Light Table.'
-          })
           app.quit();
         } else if (code == 0) {
           LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
@@ -676,8 +663,6 @@ function preprocess_fragment(data) {
     LOGGER.log('SERVER', `Python script finished (code ${code}), restarting...`);
     preprocess_fragment(data);
   });
-  // python.stderr.pipe(process.stdout);
-  // python.stdout.pipe(process.stdout);
 }
 
 function resolveTPOPUrls(fragments, tableID) {
@@ -740,8 +725,6 @@ function filterImages(tableID, urls) {
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
   const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  // python.stderr.pipe(process.stdout);
-  // python.stdout.pipe(process.stdout);
   python.on('close', function(code) {
     LOGGER.log('SERVER', `Python script finished graphical filtering with code ${code}.`)
     const response = {
@@ -778,8 +761,6 @@ function filterImage(tableID, data) {
     const jsonContent = JSON.stringify(filterData);
     fs.writeFileSync(jsonPath, jsonContent, 'utf8');
     const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-    // python.stderr.pipe(process.stdout);
-    // python.stdout.pipe(process.stdout);
     python.on('close', function(code) {
       LOGGER.log('SERVER', `Filtering finished with code ${code}.`)
       sendMessage(mainWindow, 'client-add-upload', data);
@@ -804,7 +785,7 @@ function resolveUrls(urlList, callback) {
   if (!(workFound)) {
     callback(urlList);
   } else {
-    var r = request(url, function(e, response) {
+    const r = request(url, function(e, response) {
       urlList[i] = r.uri.href;
       resolveUrls(urlList, callback);
     });
@@ -928,13 +909,6 @@ ipcMain.on('server-load-file', (event, filename) => {
   };
   data.tableData['loading'] = true;
   data.tableData['filename'] = filename;
-
-  const feedback = {
-    title: 'Table Loaded',
-    desc: 'Successfully loaded file: \n'+saveManager.getCurrentFilepath(),
-    color: color.success,
-  };
-  // sendMessage(mainWindow, 'client-show-feedback', feedback);
 
   preprocess_loading_fragments(data);
 });
@@ -1084,8 +1058,6 @@ ipcMain.on('server-open-upload', (event, tableID) => {
     });
     uploadWindow.on('close', function() {
       sendMessage(mainWindow, 'client-stop-loading');
-      // localUploadWindow = null;
-      // activeTables.uploading = null;
     });
   }
 });
@@ -1107,12 +1079,10 @@ ipcMain.on('server-upload-ready', (event, data) => {
     sendMessage(mainWindow, 'client-load-model', newTableData);
   }
   
-  // activeTables.uploading = null;
   if (uploadWindow) {
     try {
       uploadWindow.close();
     } catch {}
-    // localUploadWindow = null;
   }
 
   sendMessage(mainWindow, 'client-start-loading', activeTables.uploading);
@@ -1179,8 +1149,6 @@ ipcMain.on('server-change-fragment', (event, data) => {
   });
   uploadWindow.on('close', function() {
     sendMessage(mainWindow, 'client-stop-loading');
-    // localUploadWindow = null;
-    // activeTables.uploading = null;
   });
 });
 
@@ -1219,9 +1187,6 @@ ipcMain.on('server-confirm-autosave', (event, confirmation) => {
     sendMessage(mainWindow, 'client-show-feedback', feedback);
   } else {
     saveManager.removeAutosaveFiles();
-    // const data = createNewTable();
-    // activeTables.view = data.tableID;
-    // sendMessage(event.sender, 'client-load-model', data);
   }
 });
 
@@ -1766,7 +1731,7 @@ ipcMain.on('server-cut-automatic-masks', (event, data) => {
 ipcMain.on('server-edit-auto-mask', (event, data) => {
   LOGGER.receive('SERVER', 'server-edit-auto-mask', data);
 
-  var base64Data = data.change.replace(/^data:image\/png;base64,/, "");
+  const base64Data = data.change.replace(/^data:image\/png;base64,/, "");
   const changeURL = "manual_mask_change.png";
   let changeMode = "remove";
   if (data.add) changeMode = "add";
@@ -1786,4 +1751,3 @@ ipcMain.on('server-online-status', (event, onlineStatus) => {
   LOGGER.receive('SERVER', 'server-online-status', onlineStatus);
   online = onlineStatus;
 });
-

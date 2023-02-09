@@ -43,7 +43,6 @@ class Pin {
             if (this.mouseEvents) {
                 $('#'+this.annotationID).addClass('hover');
                 this.drawPin(CONFIG.COLOR.hover);
-                // this.annotationPopup.addHighlight(this.annotationID, 'hover');
                 this.stage.update();
             }
         });
@@ -56,7 +55,6 @@ class Pin {
                 } else {
                     this.drawPin(CONFIG.COLOR.stage);
                 }
-                // this.annotationPopup.removeHighlight(this.annotationID, 'hover');
                 this.stage.update();
             }
         });
@@ -65,7 +63,6 @@ class Pin {
             if (this.mouseEvents && !this.hidden) {
                 this.activate();
                 this.annotationPopup.open(event.nativeEvent);
-                // this.annotationPopup.addHighlight(this.annotationID, 'active');
             }
         });
 
@@ -88,7 +85,6 @@ class Pin {
         this.graphicalPin.shadow = null;
 
         if (!color) colorPrime = CONFIG.COLOR.stage;
-        // if (this.status == 'active') colorStroke = CONFIG.COLOR.activeStroke;
 
         if (this.customColor && (color == CONFIG.COLOR.stage || color == CONFIG.COLOR.fragment)) {
             color = this.customColor;
@@ -102,7 +98,6 @@ class Pin {
             let temp = colorPrime;
             colorPrime = colorStroke;
             colorStroke = temp;
-            // this.graphicalPin.shadow = new createjs.Shadow('#F5852C', 0, 0, 15);
             this.graphicalPin.shadow = new createjs.Shadow('#9191ee', 0, 0, 10);
         }
 
@@ -225,9 +220,7 @@ class Pin {
             else this.drawPin(CONFIG.COLOR.stage);
             this.toPin = true;
             this.scale();
-            // this.annotationPopup.addHighlight(this.annotationID, 'active');
             this.stage.update();
-            // this.annotationPopup.edit(this.annotationID);
         }
     }
     
@@ -237,7 +230,6 @@ class Pin {
             if (this.target.type == 'fragment') this.drawPin(CONFIG.COLOR.fragment);
             else this.drawPin(CONFIG.COLOR.stage);
             this.scale();
-            // this.annotationPopup.removeHighlight(this.annotationID, 'active');
             this.stage.update();
         }
     }

@@ -131,7 +131,6 @@ class Stage {
     });
     this.loadqueue.on('complete', () => {
       this.controller.finishedLoading();
-      // this.fitToScreen();
       this.update();
       this.controller.saveToModel(true);
     });
@@ -522,9 +521,6 @@ class Stage {
       }
       if ('area' in dataStage && dataStage.area) {
         this.updateWorkarea(dataStage.area.w, dataStage.area.h);
-        // this.area = dataStage.area;
-        // $('#workarea-width').val(Math.round(((this.area.w*2.54)/this.ppi)*100)/100);
-        // $('#workarea-height').val(Math.round(((this.area.h*2.54)/this.ppi)*100)/100);
       }
     }
   }
@@ -894,7 +890,6 @@ class Stage {
             this.controller.selectFragment(clickedId);
           }
         }
-        // this._moveToTop(this.fragmentList[clickedId]);
         this.update();
   
         this.mouseClickStart = {x: event.stageX, y: event.stageY};
@@ -941,7 +936,6 @@ class Stage {
       this.selectedList[id] = this.objectList[id];
       this.objectList[id].getImage().shadow = new createjs.Shadow(
           '#f15b40', 0, 0, 10);
-      // this._moveToTop(this.fragmentList[id]);
     }
     this._updateBb();
     this.update();
@@ -1086,7 +1080,6 @@ class Stage {
     for (const idx in this.selectedList) {
       if (Object.prototype.hasOwnProperty.call(this.selectedList, idx)) {
         const fragment = this.selectedList[idx];
-        // if (!fragment.isLocked()) fragment.rotateByAngle(deltaAngle);
         if (!fragment.isLocked()) fragment.rotateByMatrix(cx, cy, deltaAngle);
       }
     }
@@ -1236,8 +1229,6 @@ class Stage {
           fragment.rotateToAngle(180+fragment.getRotation());
         }
         fragment.moveBy(-(x-xNew), -(y-yNew));
-
-        // this._moveToBottom(fragment);
       }
     }
 
@@ -1307,7 +1298,6 @@ class Stage {
 
       this.flipper.addChild(shape);
 
-      // const bmp = new createjs.Bitmap('../imgs/symbol_flip.png');
       const bmp = new createjs.Bitmap('../imgs/symbol_horizontal_flip.svg');
       bmp.scale = 0.06;
       bmp.x = bmp.y = -15;
@@ -1557,7 +1547,6 @@ class Stage {
 
     if (fileFormat == 'jpg' || fileFormat == 'jpeg') {
       extension = 'jpg';
-      type = 'image/jpeg';
       const backgroundColor = $('.color_button.selected')
           .css('background-color');
 
@@ -1589,7 +1578,6 @@ class Stage {
       this.controller.setScaling(changeParameters.scale);
       this.setSelection(savedSelection);
       this.update();
-      // this._saveToModel();
       this.addElementsAfterExport(removedElements);
       return screenshot;
     } else {

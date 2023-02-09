@@ -169,13 +169,6 @@ class Fragment {
     } else {
       this.baseY = this.container.y / this.container.scale;
     }
-
-    /*
-    if (data.baseX && data.baseY) {
-      const newX = this.baseX * this.container.scale;
-      const newY = this.baseY * this.container.scale;
-      this.moveTo(newX, newY);
-    }*/
   }
 
   /**
@@ -386,10 +379,6 @@ class Fragment {
 
         this.updatePins();
 
-        // this.getImage().x = 0;
-        // this.getImage().y = 0;
-        // this.getInnerContainer.regX = this.relation.d_cx;
-        // this.getInnerContainer.regY += this.relation.d_cy;
         this.isBothSidesLoaded = true;
         this.framework._updateBb();
         this.controller.updateSidebarFragmentList();
@@ -600,19 +589,6 @@ class Fragment {
       data.verso = dataVerso;
     }
 
-    // RELATION
-    /*
-    if (this.recto && this.verso && this.recto.url && this.verso.url) {
-      const dataRelation = {};
-
-      dataRelation.d_rotation = this.relation.d_rotation;
-      dataRelation.d_cx = this.relation.d_cx;
-      dataRelation.d_cy = this.relation.d_cy;
-
-      data.relation = dataRelation;
-    }
-    */
-
     // GENERAL
     data.id = this.id;
     data.showRecto = this.isRecto;
@@ -629,43 +605,6 @@ class Fragment {
     if (this.tpop) data.tpop = this.tpop;
 
     return data;
-    /*
-    let rectoPolygon = null;
-    let versoPolygon = null;
-    if (this.recto.mask) {
-      rectoPolygon = this.recto.mask.polygon;
-    }
-    if (this.verso.mask) {
-      versoPolygon = this.verso.mask.polygon;
-    }
-    return {
-      'name': this.name,
-      'recto': this.isRecto,
-      'rectoURL': this.recto.url,
-      'versoURL': this.verso.url,
-      'xPos': this.container.x,
-      'baseX': this.baseX,
-      'yPos': this.container.y,
-      'baseY': this.baseY,
-      'rotation': this.container.rotation,
-      'containerRotation': this.recto.container.rotation,
-      'recto.mask': rectoPolygon,
-      'verso.mask': versoPolygon,
-      'originalScaleRecto': this.originalScaleRecto,
-      'originalScaleVerso': this.originalScaleVerso,
-      'ppiRecto': this.ppiRecto,
-      'ppiVerso': this.ppiVerso,
-      'rectoRotation': this.rectoRotation,
-      'versoRotation': this.versoRotation,
-      'relation.d_rotation': this.relation.d_rotation,
-      'offsetX': this.alignOffsetX,
-      'offsetY': this.alignOffsetY,
-      'imageWidthRecto': this.recto.container.imageWidth,
-      'imageHeightRecto': this.recto.container.imageHeight,
-      'imageWidthVerso': this.verso.container.imageWidth,
-      'imageHeightVerso': this.verso.container.imageHeight,
-      'scale': this.container.scale,
-    };*/
   }
 
   /**
@@ -674,13 +613,10 @@ class Fragment {
    */
   setData(data) {
     this.name = data.name;
-    // this.isRecto = data.showRecto;
     this.container.x = data.x;
     this.container.y = data.y;
     this.baseX = data.baseX;
     this.baseY = data.baseY;
-    // this.container.rotation = data.rotation;
-    // this.rotateToAngle(data.rotation);
     this.recto.container.rotation = data.rotation;
     this.verso.container.rotation = data.rotation;
 
@@ -911,7 +847,7 @@ class Fragment {
 
             const inversionMatrix = this.getImage().getMatrix().invert();
             const p = inversionMatrix.transformPoint(-maskCenter.x, -maskCenter.y);
-            let m = new createjs.Matrix2D(); // this.getMask().getMatrix();
+            let m = new createjs.Matrix2D();
             m = m.translate(p.x, p.y);
             m = m.rotate(-this.getImage().rotation);
             node = m.transformPoint(node.x, node.y);

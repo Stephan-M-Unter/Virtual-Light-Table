@@ -52,10 +52,7 @@ class MeasurementTool {
    * @param {*} event
    */
   handleMouseDown(event) {
-    if (this.measureMode) {
-      const point = {x: event.pageX, y: event.pageY};
-      this.measure(point);
-    }
+    this.measurePoint(event);
   }
 
   /**
@@ -63,6 +60,10 @@ class MeasurementTool {
    * @param {*} event
    */
   handleMouseUp(event) {
+    this.measurePoint(event);
+  }
+
+  measurePoint(event) {
     if (this.measureMode) {
       const point = {x: event.pageX, y: event.pageY};
       this.measure(point);

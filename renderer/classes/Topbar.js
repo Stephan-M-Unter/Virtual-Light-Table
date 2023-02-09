@@ -172,7 +172,6 @@ class Topbar {
   stopLoading(tableID) {
     if (this.screenshots[tableID]) {
       $('#'+tableID).find('.table_screenshot>img').attr('src', this.screenshots[tableID]);
-      // delete this.screenshots[tableID];
     } else {
       $('#'+tableID).find('.table_header').addClass('empty');
       $('#'+tableID).find('.table_screenshot').addClass('empty');
@@ -295,7 +294,6 @@ class Topbar {
   finishedLoading(tableID, screenshot) {
     if (this.screenshots[tableID]) {
       $('#'+tableID).find('.table_screenshot>img').attr('src', this.screenshots[tableID]);
-      // delete this.screenshots[tableID];
     } else if (screenshot) {
       $('#'+tableID).find('.table_screenshot>img').attr('src', screenshot);
     }

@@ -19,7 +19,6 @@ const filterOperators = {
 let requesting = false;
 
 $(document).ready(() => {
-  // requestFilter();
   checkForData();
 });
 
@@ -203,8 +202,8 @@ function loadPage(newPageNumber) {
 }
 
 function checkForRequest() {
-  h_offset = $('#tile-view').prop('offsetHeight');
-  h_scroll = $('#tile-view').prop('scrollHeight');
+  const h_offset = $('#tile-view').prop('offsetHeight');
+  const h_scroll = $('#tile-view').prop('scrollHeight');
   if (h_offset + 120 >= h_scroll) {
     requestBatch();
   }
@@ -617,20 +616,14 @@ function addTile(idx, n_objects, tpopJson) {
 }
 
 function checkAvailableMLFeatures() {
-  const fragmentFeatures = [];
+  let fragmentFeatures = [];
   for (const tile of $('.loading')) {
     let feats = $(tile).attr('data-features');
     if (feats) {
       feats = feats.split(',');
-      fragmentFeatures.concat(feats);
+      fragmentFeatures = fragmentFeatures.concat(feats);
     }
   }
-  /*
-  const sliderFeatures = {};
-  for (const slider of $('.ml-weight')) {
-    sliderFeatures[$(slider).attr('id').replace('ml-', '')] = true;
-  }
-  */
 }
 
 function checkMLFeatures(tpopid) {
@@ -686,7 +679,6 @@ function toggleSelected(id) {
  *
  */
 function checkFilterCompleteness() {
-  const attribute = $('#filter-attribute').val();
   const operator = $('.operator-selected').html();
   const value = $('#filter-value').val();
   let filterValid = true;
@@ -750,7 +742,7 @@ function updateMLIndicators() {
 
 function moveSelectionLeftRight(direction) {
   if ($('.selected').length > 0) {
-    var newID;
+    let newID;
     if (direction > 0) {
       newID = $('.selected').next().attr('id');
     } else {
@@ -837,9 +829,9 @@ $('#filter-add').click((event) => {
 
 $('#filter-attribute').on('change', () => {
   const attribute = $('#filter-attribute').val();
-  if (attribute in filters.map((obj) => {
+  if (filters.map((obj) => {
     return obj.attribute;
-  })) {
+  }).includes(attribute)) {
     const type = filters.find((filter) => {
       return filter.attribute === attribute;
     }).type;
@@ -913,7 +905,6 @@ $('#tpop-right-arrow').click(function(event) {
 
 $('#loading-left-arrow').click(function() {
   const scroll_w = $('#loading-view').scrollLeft();
-  // $('#loading-view').scrollLeft(scroll_w - 154);
   $('#loading-view').stop().animate({scrollLeft: scroll_w-154}, 100, () => {
     updateSelectedScrollers();
   });
@@ -921,7 +912,6 @@ $('#loading-left-arrow').click(function() {
 
 $('#loading-right-arrow').click(function() {
   const scroll_w = $('#loading-view').scrollLeft();
-  // $('#loading-view').scrollLeft(scroll_w + 154);
   $('#loading-view').stop().animate({scrollLeft: scroll_w+154}, 100, () => {
     updateSelectedScrollers();
   });
@@ -959,8 +949,6 @@ $('#detail-add-joins').click(function() {
 
 $('#detail-remove-joins').click(function() {
   const selectedID = $('#detail-find').attr('data-id');
-  const selectedName = $('#detail-name').html();
-  const selectedURL = $('#detail-recto').attr('src');
   deselectTile(selectedID);
   const  buttons = $('.detail-join-item.loading .detail-join-add-item');
   for (const button of buttons) {
@@ -1100,7 +1088,6 @@ ipcRenderer.on('tpop-position', (event, data) => {
   if (data.pos == -1) {
     $('#detail-page-warning').removeClass('hidden');
   } else {
-    const tpopID = data.tpopID;
     const page = Math.ceil(data.pos/maxPageSize)-1;
     if (page != currentPage) {
       loadPage(page);

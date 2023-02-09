@@ -41,8 +41,6 @@ class Measurement {
    * @param {double[]} point - Coordinate set [x,y].
    */
   setP1(point) {
-    const scaling = this.stage.getScaling() / 100;
-    const offset = this.stage.getOffset();
     this.p1 = {
       x: point[0],
       y: point[1],
@@ -57,8 +55,6 @@ class Measurement {
    * @param {double[]} point - Coordinate set [x,y].
    */
   setP2(point) {
-    const scaling = this.stage.getScaling() / 100;
-    const offset = this.stage.getOffset();
     this.p2 = {
       x: point[0],
       y: point[1],
@@ -144,15 +140,6 @@ class Measurement {
    */
   getDistanceInCm() {
     return this.distanceInCms;
-    /*
-    if (this.p1 && this.p2) {
-      const dist = this.getDistanceInPixel();
-      const CmInPx = (this.stage.getPPI()/2.54) * this.stage.getScaling()/100;
-      const distInCm = Math.round((dist/CmInPx)*100)/100;
-      return distInCm;
-    } else {
-      return '?';
-    }*/
   }
 
   pan(dx, dy) {

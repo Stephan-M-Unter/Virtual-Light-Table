@@ -120,16 +120,16 @@ $(document).ready(function() {
 
 ipcRenderer.on('settings-data', (event, settingsData) => {
     LOGGER.receive('settings-data', settingsData);
-    // console.log('Received message: [settings-data]', settingsData);
     loadData(settingsData);
 });
 
 ipcRenderer.on('tensorflow-installed', (event, result) => {
     LOGGER.receive('tensorflow-installed', result);
-    if (result == true) {
+    if (result) {
         $('#tensorflow-installation').addClass('unrendered');
         $('#tensorflow-installed').removeClass('unrendered');
     } else {
-
+        $('#tensorflow-installation').removeClass('unrendered');
+        $('#tensorflow-installed').addClass('unrendered');
     }
 });

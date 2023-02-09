@@ -107,7 +107,7 @@ class TPOPManager extends ContentManagerInterface {
         // -> download from Museo Egizio
         LOGGER.log('TPOP MANAGER', 'Trying to load the JSON from the Museo Egizio...');
         const requestURL = 'https://vlt.museoegizio.it/api/srv/vltdata?api_key=app.4087936422844370a7758639269652b9';
-        const request = https.get(requestURL, (res) => {
+        https.get(requestURL, (res) => {
           const filePath = fs.createWriteStream(this.vltjson);
           res.pipe(filePath);
           filePath.on('finish', () => {
@@ -249,8 +249,6 @@ class TPOPManager extends ContentManagerInterface {
         queried_features.push(weight);
       }
     }
-
-    // const distances = [];
 
     // initialise collection of query vectors
     const vecs = {};
@@ -592,8 +590,7 @@ class TPOPManager extends ContentManagerInterface {
 
     // check for emptiness
     if (op == 'empty' && objectValue != null && objectValue != '') return 0;
-    else if (op == 'not empty' && (objectValue == null || objectValue == '')) return 0;
-    else if (objectValue == null) return 0;
+    else if ((op == 'not empty' && (objectValue == null || objectValue == '')) || objectValue == null) return 0;
 
     if (type == 'string' && op == 'contains') {
       // Is 'xyz' contained in 'abcxyz'?
@@ -614,10 +611,9 @@ class TPOPManager extends ContentManagerInterface {
       let contained = false;
       for (let text of objectValue) {
         if (!caseSensitive) {
-          text = text.toLowerCase();
           filterValue = filterValue.toLowerCase();
         }
-        if (text.includes(filterValue)) contained = true;
+        if (text.toLowerCase().includes(filterValue)) contained = true;
       }
       if (!contained) return 0;
     } else if (type == 'list' && op == 'contains not') {
@@ -625,22 +621,21 @@ class TPOPManager extends ContentManagerInterface {
       let contained = false;
       for (let text of objectValue) {
         if (!caseSensitive) {
-          text = text.toLowerCase();
           filterValue = filterValue.toLowerCase();
         }
-        if (text.includes(filterValue)) contained = true;
+        if (text.toLowerCase().includes(filterValue)) contained = true;
       }
       if (contained) return 0;
     } else if (op == '<') {
-      if (!(objectValue < filterValue)) return 0;
+      if (objectValue >= filterValue) return 0;
     } else if (op == '<=') {
-      if (!(objectValue <= filterValue)) return 0;
+      if (objectValue > filterValue) return 0;
     } else if (op == '=') {
       if (objectValue != filterValue) return 0;
     } else if (op == '>=') {
-      if (!(objectValue >= filterValue)) return 0;
+      if (objectValue < filterValue) return 0;
     } else if (op == '>') {
-      if (!(objectValue > filterValue)) return 0;
+      if (objectValue <= filterValue) return 0;
     } else if (op == 'true') {
       if (!objectValue) return 0;
     } else if (op == 'false') {

@@ -207,11 +207,6 @@ $(document).ready(function() {
   $('#light_switch').click(function() {
     controller.toggleLight();
   });
-  /*
-  $('#light_box').on('change', function() {
-    controller.toggleLight();
-  });
-*/
   $('#calibration').on('click', function(event) {
     controller.sendToServer('server-open-calibration');
   });
@@ -227,20 +222,6 @@ $(document).ready(function() {
   $('#clear-measures').on('click', function() {
     controller.clearMeasurements();
   });
-
-  /*
-  $('#grid_box').on('change', function() {
-    controller.toggleGridMode();
-  });
-  $('#scale_box').on('change', function() {
-    controller.toggleScaleMode();
-  });
-  $('#fibre_box').on('change', function() {
-    controller.toggleFibreMode();
-  });
-  $('#ruler_box').on('change', function() {
-    controller.toggleRulerMode();
-  });*/
 
   $('#fibre-wrapper').on('click', function() {
     controller.toggleFibreMode();
@@ -512,9 +493,7 @@ $(document).ready(function() {
         const stepZoom = $('#zoom_slider').attr('step');
         const deltaZoom = stepZoom * Math.sign(event.deltaY);
         const newScaling = controller.getScaling() - deltaZoom;
-        // const x = event.pageX;
         const x = event.screenX;
-        // const y = event.pageY;
         const y = event.screenY;
         controller.setScaling(newScaling, x, y);
         $('#zoom_slider').val(newScaling);
