@@ -2,6 +2,7 @@ const { ipcRenderer } = require("electron");
 const LOGGER = require('../statics/LOGGER');
 
 function loadData(config) {
+    console.log('Loading config:', config);
     if ('ppi' in config && config.ppi) {
         const ppi = Math.round(config.ppi * 100) / 100;
         $('#ppi').html(ppi);
@@ -107,6 +108,9 @@ $('#stepZoom').on('keyup', function() {
 $('#default-save').click(function() {
     ipcRenderer.send('server-get-default', 'vltFolder');
 });
+$('#tensorflow-download').click(function() {
+    ipcRenderer.send('server-install-tensorflow');
+});
 
 
 $(document).ready(function() {
@@ -118,4 +122,14 @@ ipcRenderer.on('settings-data', (event, settingsData) => {
     LOGGER.receive('settings-data', settingsData);
     // console.log('Received message: [settings-data]', settingsData);
     loadData(settingsData);
+});
+
+ipcRenderer.on('tensorflow-installed', (event, result) => {
+    LOGGER.receive('tensorflow-installed', result);
+    if (result == true) {
+        $('#tensorflow-installation').addClass('unrendered');
+        $('#tensorflow-installed').removeClass('unrendered');
+    } else {
+
+    }
 });

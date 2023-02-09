@@ -37,6 +37,7 @@ header {
     border-radius: 5px;
     background-color: #ddd;
     margin: 5px;
+    cursor: pointer;
 }
 
 .button:hover {
@@ -93,6 +94,7 @@ header {
 
 .align-right {
     justify-content: end;
+    text-align: right;
 }
 
 .margin-vertical {
@@ -164,4 +166,31 @@ input.error {
 
 #ppi-label {
     margin-right: 20px;
+}
+
+.inline-button {
+    background-color: var(--cb_gray);
+    font-size: 1.4em;
+    padding: 5px 4px;
+    border-radius: 4px;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.inline-true {
+    background-color: rgb(130, 226, 118);
+    font-size: 1.4em;
+    padding: 5px 4px;
+    border-radius: 4px;
+    line-height: 20px;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.label {
+    font-size: 1.2em;
+    font-weight: 400;
+    color: var(--cb_darkred);
 }

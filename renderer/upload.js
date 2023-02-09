@@ -1877,8 +1877,8 @@ ipcRenderer.on('upload-tensorflow-checked', (event, tensorflowCheck) => {
   }
 });
 
-ipcRenderer.on('upload-tensorflow-installed', (event, tensorflowInstalled) => {
-  LOGGER.receive('UPLOAD', 'upload-tensorflow-installed', tensorflowInstalled);
+ipcRenderer.on('tensorflow-installed', (event, tensorflowInstalled) => {
+  LOGGER.receive('UPLOAD', 'tensorflow-installed', tensorflowInstalled);
   if (tensorflowInstalled) {
     $('#mask_control_tensorflow_panel').addClass('unrendered');
     $('#mask_control_automatic_selection_panel').removeClass('unrendered');

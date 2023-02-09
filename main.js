@@ -156,10 +156,6 @@ function checkConfig() {
   if (!(config.vltFolder)) config.vltFolder = vltFolder;
 }
 
-function checkTensorflow() {
-
-}
-
 function createManagers() {
   saveManager = new SaveManager(config);
   tpopManager = new TPOPManager(externalContentFolder);
@@ -1363,7 +1359,7 @@ ipcMain.on('server-open-settings', (event) => {
   settingsWindow = new Window({
     file: './renderer/settings.html',
     type: 'settings',
-    devMode: false,
+    devMode: devMode,
   });
   settingsWindow.removeMenu();
   settingsWindow.once('ready-to-show', () => {
@@ -1380,6 +1376,9 @@ ipcMain.on('server-close-settings', () => {
 ipcMain.on('server-settings-opened', (event) => {
   LOGGER.receive('SERVER', 'server-settings-opened');
   sendMessage(settingsWindow, 'settings-data', config);
+  mlManager.checkForTensorflow(function(tensorflowAvailable) {
+    sendMessage(settingsWindow, 'tensorflow-installed', tensorflowAvailable);
+  });
 });
 
 ipcMain.on('server-gather-ppi', (event) => {
@@ -1720,10 +1719,10 @@ ipcMain.on('server-check-tensorflow', () => {
   });
 });
 
-ipcMain.on('server-install-tensorflow', () => {
+ipcMain.on('server-install-tensorflow', (event) => {
   LOGGER.receive('SERVER', 'server-install-tensorflow');
   mlManager.installTensorflow(function(tensorflowInstalled) {
-    sendMessage(uploadWindow, 'upload-tensorflow-installed', tensorflowInstalled);
+    sendMessage(event.sender, 'tensorflow-installed', tensorflowInstalled);
   });
 });
 

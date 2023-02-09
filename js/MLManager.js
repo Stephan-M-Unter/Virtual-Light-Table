@@ -69,6 +69,8 @@ class MLManager {
     }
 
     checkForTensorflow(callback) {
+        console.log("tensorflow checked:", this.tensorflowChecked);
+        console.log("tensorflow available:", this.tensorflowAvailable);
         if (this.tensorflowChecked) {
             if (callback) callback(this.tensorflowAvailable);
             else return this.tensorflowAvailable;
@@ -85,8 +87,10 @@ class MLManager {
     }
     installTensorflow(callback) {
         const python = spawn(this.pythonCmd, [path.join(this.pythonFolder, 'tensorflow_install.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-        python.on('close', function(code) {
+        python.on('close', (code) => {
             LOGGER.log('ML MANAGER', `tensorflow_install.py - result: code ${code}.`)
+            this.tensorflowChecked = true;
+            this.tensorflowAvailable = (code == 0);
             callback(code == 0);
         });
     }

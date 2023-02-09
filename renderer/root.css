@@ -22,6 +22,10 @@
     user-select: none;
 }
 
+.unrendered {
+    display: none !important;
+}
+
 .development {
     display: none !important;
 }
