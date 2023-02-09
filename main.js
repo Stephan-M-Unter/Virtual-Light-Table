@@ -168,6 +168,16 @@ function createMainView() {
     type: 'main',
     devMode: devMode,
   });
+  mainWindow.webContents.setWindowOpenHandler(({url}) => {
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        frame: true,
+        width: 1500,
+        height: 2000,
+      }
+    };
+  });
   mainWindow.maximize();
   if (!devMode) {
     mainWindow.removeMenu();
@@ -1361,6 +1371,16 @@ ipcMain.on('server-open-settings', (event) => {
     type: 'settings',
     devMode: devMode,
   });
+  settingsWindow.webContents.setWindowOpenHandler(({url}) => {
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        frame: true,
+        width: 1000,
+        height: 2000,
+      }
+    };
+  });
   settingsWindow.removeMenu();
   settingsWindow.once('ready-to-show', () => {
     settingsWindow.show();
@@ -1441,6 +1461,16 @@ ipcMain.on('server-open-tpop', (event, tableID) => {
         file: './renderer/tpop.html',
         type: 'tpop',
         devMode: devMode,
+      });
+      tpopWindow.webContents.setWindowOpenHandler(({url}) => {
+        return {
+          action: 'allow',
+          overrideBrowserWindowOptions: {
+            frame: true,
+            width: 1500,
+            height: 2000,
+          }
+        };
       });
       tpopWindow.removeMenu();
       tpopWindow.maximize();
