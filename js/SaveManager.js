@@ -20,6 +20,7 @@ const fs = require('fs');
 const JSZip = require('jszip');
 const yauzl = require('yauzl');
 const LOGGER = require('../statics/LOGGER');
+const {CONFIG} = require('../statics/CONFIG');
 
 /**
  * TODO
@@ -31,27 +32,13 @@ class SaveManager {
      *                           system. If no "Virtual Light Table" subfolder is present, a new one
      *                           will be created.
      */
-  constructor(config) {
-    this.defaultSaveFolder = path.join(config.vltFolder, 'saves');
-    this.currentSaveFolder = this.defaultSaveFolder;
-    if (!fs.existsSync(this.defaultSaveFolder)) {
-      // creating saves subfolder
-      fs.mkdirSync(path.join(config.vltFolder, 'saves'));
-      fs.mkdirSync(path.join(config.vltFolder, 'saves', 'imgs'));
-    }
-
-    this.tempSaveFolder = path.join(config.vltFolder, 'temp');
-    if (!fs.existsSync(this.tempSaveFolder)) {
-      // creating temp subfolder for autosaves
-      fs.mkdirSync(path.join(config.vltFolder, 'temp'));
-      fs.mkdirSync(path.join(config.vltFolder, 'temp', 'imgs'));
-    }
-
+  constructor() {
+    this.currentSaveFolder = CONFIG.SAVES_FOLDER;
     this.filepath = null;
     this.tableFilepaths = {};
   }
 
-  save(tableData, tableID) {
+  createFilename() {
     const now = new Date();
 
     const year = now.getFullYear();
@@ -63,7 +50,11 @@ class SaveManager {
     const date = year+'-'+month+'-'+day;
     const time = hour+'h'+minute+'m'+second+'s';
     const filename = 'VLT_'+date+'_'+time;
+    return filename;
+  }
 
+  save(tableData, tableID) {
+    const filename = this.createFilename();
 
     // create save dialog
     const filepath = dialog.showSaveDialogSync({
@@ -87,7 +78,7 @@ class SaveManager {
   }
 
   autosave(tableData, tableID) {
-    const filepath = path.join(this.tempSaveFolder, tableID + '_temp.vlt');
+    const filepath = path.join(CONFIG.TEMP_FOLDER, tableID + '_temp.vlt');
     return this.saveTable(tableData, filepath);
   }
 
@@ -106,55 +97,13 @@ class SaveManager {
    *    String with the filepath of the just saved file.
    */
   saveTable(tableData, filepath) {
-    /*
-    let filepath;
-    if (autosave) {
-      filepath = path.join(this.tempSaveFolder, tableID + '_temp.vlt');
-    } else if (overwrite && this.filepath) {
-      filepath = this.filepath;
-    } else {
-      read current date for some default filename
-      const now = new Date();
-
-      const year = now.getFullYear();
-      const month = ((now.getMonth()+1) < 10 ? '0' : '') + (now.getMonth()+1);
-      const day = (now.getDate() < 10 ? '0' : '') + now.getDate();
-      const hour = now.getHours();
-      const minute = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-      const second = (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
-      const date = year+'-'+month+'-'+day;
-      const time = hour+'h'+minute+'m'+second+'s';
-      const filename = 'VLT_'+date+'_'+time;
-
-
-      // create save dialog
-      filepath = dialog.showSaveDialogSync({
-        title: 'Save Current Table Configuration',
-        defaultPath: path.join(this.currentSaveFolder, filename),
-        filters: [{
-          name: 'Virtual Light Table Save',
-          extensions: ['vlt'],
-        }],
-      });
-      // TODO: man könnte hier auch mit dialog.showSaveDialog
-      // arbeiten; die Parameter sind die gleichen, aber der
-      // main process würde nicht durch den save dialog blockiert
-      // werden. Als Ergebnis gibt es ein promise-Object,
-      // das dann vermutlich durch eine callback-Funktion abgefangen
-      // werden müssen. Quelle: https://www.electronjs.org/docs/api/dialog
-    }
-
-    if (filepath) {
-      if (!autosave) this.filepath = filepath;
-      */
-
     const imagepath = path.dirname(filepath) + '/imgs';
     if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
     for (const fID in tableData.fragments) {
       if (Object.prototype.hasOwnProperty.call(tableData.fragments, fID)) {
         const fragment = tableData.fragments[fID];
-        const tempImageFolder = path.resolve(this.tempSaveFolder + '/imgs');
+        const tempImageFolder = path.join(CONFIG.TEMP_FOLDER, 'imgs');
 
         if ('recto' in fragment) {
           const rectoImageDir = path.dirname(fragment.recto.url);
@@ -258,32 +207,6 @@ class SaveManager {
     }
   }
 
-  /**
-   * TODO
-   * @return {*}
-   */
-  getSaveFolder() {
-    const filepath = dialog.showOpenDialogSync({
-      title: 'Open VLT Configuration',
-      /*
-      filters: [{
-        name: 'Virtual Light Table Save',
-        extensions: ['vlt'],
-      }],
-      * TODO Das macht momentan Probleme - wenn ich den VLT auf Produktivbetrieb
-      * stelle, findet er den richtigen "Saves"-Folder nicht mehr, aber solange
-      * ich den Filter nur auf vlt-Dateien lasse, kann die NutzerIn nicht mehr
-      * frei durch die Ordner traversieren.
-      */
-      defaultPath: this.currentSaveFolder,
-      properties: [
-        'openDirectory',
-        'treatPackageAsDirectory',
-      ],
-    });
-
-    return filepath;
-  }
 
   selectFolder() {
     const filepath = dialog.showOpenDialogSync({
@@ -517,7 +440,7 @@ class SaveManager {
                   LOGGER.err('An error occurred with the readStream:');
                   LOGGER.log('SAVE MANAGER', err);
                 } else {
-                  let destination = path.join(this.defaultSaveFolder, entry.fileName);
+                  let destination = path.join(CONFIG.SAVES_FOLDER, entry.fileName);
 
                   if (fs.existsSync(destination)) {
                     if (destination.endsWith('.vlt')) {
@@ -559,14 +482,6 @@ class SaveManager {
   }
 
   /**
-   * TODO
-   * @return {*}
-   */
-  getDefaultFolder() {
-    return this.defaultSaveFolder;
-  }
-
-  /**
    * @return {*}
    */
   getCurrentFilepath() {
@@ -585,7 +500,7 @@ class SaveManager {
    * @return {Boolean}
    */
   checkForAutosave() {
-    const tempFiles = fs.readdirSync(this.tempSaveFolder);
+    const tempFiles = fs.readdirSync(CONFIG.TEMP_FOLDER);
     let autosaveFound = false;
     if (tempFiles.length > 0) {
       tempFiles.forEach((file) => {
@@ -602,11 +517,11 @@ class SaveManager {
    * @return {Object[]}
    */
   loadAutosaves() {
-    const tempFiles = fs.readdirSync(this.tempSaveFolder);
+    const tempFiles = fs.readdirSync(CONFIG.TEMP_FOLDER);
     const autosaves = [];
     tempFiles.forEach((file) => {
       if (file.includes('_temp.vlt')) {
-        const autosavePath = path.join(this.tempSaveFolder, file);
+        const autosavePath = path.join(CONFIG.TEMP_FOLDER, file);
         const autosave = this.loadSaveFile(autosavePath);
         autosave.tableID = file.slice(0, file.lastIndexOf('_'));
         autosaves.push(autosave);
@@ -635,7 +550,7 @@ class SaveManager {
       }
     };
 
-    removeDir(this.tempSaveFolder);
+    removeDir(CONFIG.TEMP_FOLDER);
   }
 
   /**
@@ -643,8 +558,8 @@ class SaveManager {
    * @param {*} tableID
    */
   removeAutosave(tableID) {
-    if (fs.existsSync(this.tempSaveFolder+tableID+'_temp.vlt')) {
-      fs.unlinkSync(this.tempSaveFolder+tableID+'_temp.vlt');
+    if (fs.existsSync(CONFIG.TEMP_FOLDER+tableID+'_temp.vlt')) {
+      fs.unlinkSync(CONFIG.TEMP_FOLDER+tableID+'_temp.vlt');
     }
   }
 
@@ -708,40 +623,6 @@ class SaveManager {
       }
     }
     return data;
-  }
-  
-  setSaveFolder(folderPath) {
-    const imgsPath = path.join(folderPath, 'imgs');
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
-    }
-    if (!fs.existsSync(imgsPath)) {
-      fs.mkdirSync(imgsPath);
-    }
-    const oldDefaultSaveFolder = this.defaultSaveFolder;
-    this.defaultSaveFolder = folderPath;
-    this.currentSaveFolder = folderPath;
-
-    for (const tableID of Object.keys(this.tableFilepaths)) {
-      const filepath = this.tableFilepaths[tableID];
-      const directory = path.dirname(filepath);
-      const filename = path.basename(filepath);
-
-      if (directory == oldDefaultSaveFolder) {
-        this.tableFilepaths[tableID] = path.join(this.defaultSaveFolder, filename);
-      }
-    }
-  }
-  
-  setTempFolder(folderPath) {
-    const imgsPath = path.join(folderPath, 'imgs');
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
-    }
-    if (!fs.existsSync(imgsPath)) {
-      fs.mkdirSync(imgsPath);
-    }
-    this.tempSaveFolder = folderPath;
   }
 }
 

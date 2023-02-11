@@ -1,0 +1,56 @@
+#########################################################################
+Starting Virtual Light Table, version v0.5 - 11.2.2023 14:31:43
+#########################################################################
+
+[11.2.2023 14:31:43] - [CONFIG] - VLT folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table.
+[11.2.2023 14:31:43] - [CONFIG] - TEMP folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table\temp.
+[11.2.2023 14:31:43] - [CONFIG] - SAVES folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table\saves.
+[11.2.2023 14:31:43] - [CONFIG] - EXTERNAL_CONTENT folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table\externalContent.
+[11.2.2023 14:31:43] - [CONFIG] - PYTHON folder changed to C:\Users\unter\Desktop\Virtual Light Table\python-scripts.
+[11.2.2023 14:31:43] - [SERVER] - Sending message: [startup-status].
+[11.2.2023 14:31:43] - [SERVER] - Sending message: [startup-status].
+[11.2.2023 14:31:43] - [SERVER] - Sending message: [startup-status].
+[11.2.2023 14:31:43] - [CONFIG] - VLT folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table.
+[11.2.2023 14:31:43] - [CONFIG] - TEMP folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table\temp.
+[11.2.2023 14:31:43] - [CONFIG] - SAVES folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table\saves.
+[11.2.2023 14:31:43] - [CONFIG] - EXTERNAL_CONTENT folder changed to C:\Users\unter\AppData\Roaming\Virtual Light Table\externalContent.
+[11.2.2023 14:31:43] - [SERVER] - Sending message: [startup-status].
+[11.2.2023 14:31:43] - [SERVER] - Sending message: [startup-status].
+[11.2.2023 14:31:43] - [ML MANAGER] - ML Capacities loaded:
+[11.2.2023 14:31:43] - [ML MANAGER] - [ 'segmentation' ]
+[11.2.2023 14:31:43] - [ML MANAGER] - ML model list loaded:
+[11.2.2023 14:31:43] - [ML MANAGER] - {
+  'BiNet_8.2_multiclass': {
+    requestPath: 'TODO',
+    outputLabels: [ 'background', 'scale', 'papyrus', 'black ink', 'red ink' ],
+    author: 'Stephan M. Unter',
+    lastChange: 'xx/xx/xx'
+  }
+}
+[11.2.2023 14:31:43] - [SERVER] - [PYTHON] closed with code 9009
+[11.2.2023 14:31:43] - [SERVER] - "python3" was not found, now testing with command "python"
+[11.2.2023 14:31:43] - [SERVER] - [PYTHON] closed with code 0
+[11.2.2023 14:31:43] - [SERVER] - Setting python command to "python"
+[11.2.2023 14:31:43] - [CONFIG] - PYTHON_CMD changed to python.
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [client-confirm-autosave].
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-gather-ppi].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [calibration-set-ppi].
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-new-session].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [client-load-model].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [client-confirm-autosave].
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-stage-loaded].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [calibration-set-ppi].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [client-set-zoom].
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-online-status]. Payload: true
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-save-to-model].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [client-redo-undo-update].
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-save-screenshot].
+[11.2.2023 14:31:45] - [SERVER] - Message received: [server-save-to-model].
+[11.2.2023 14:31:45] - [SERVER] - Sending message: [client-redo-undo-update].
+[11.2.2023 14:31:46] - [ML MANAGER] - tensorflow_test.py - result: code 0.
+[11.2.2023 14:31:46] - [SERVER] - Message received: [server-confirm-autosave].
+[11.2.2023 14:31:48] - [SERVER] - Message received: [server-open-settings].
+[11.2.2023 14:31:48] - [SERVER] - Message received: [server-settings-opened].
+[11.2.2023 14:31:48] - [SERVER] - Sending message: [settings-data].
+[11.2.2023 14:31:48] - [SERVER] - Sending message: [tensorflow-installed].
+[11.2.2023 14:31:57] - [SERVER] - Message received: [server-close-settings].

@@ -10,17 +10,16 @@ class LOGGER {
     static logfile = null;
     static outputfile = null;
 
-    constructor() {
-    };
+    constructor() {};
 
-    static start(vltFolderPath, version) {
+    static start(appPath, version) {
         console = new console.Console(process.stdout, process.stderr);
 
         const logStdout = process.stdout;
         const logStderr = process.stderr;
 
-        LOGGER.logfile = fs.createWriteStream(path.join(vltFolderPath, 'log.txt'), {flags: 'w'});
-        LOGGER.outputfile = fs.createWriteStream(path.join(vltFolderPath, 'out.txt'), {flags: 'w'});
+        LOGGER.logfile = fs.createWriteStream(path.join(appPath, 'log.txt'), {flags: 'w'});
+        LOGGER.outputfile = fs.createWriteStream(path.join(appPath, 'out.txt'), {flags: 'w'});
         
         console.log = function() {
             LOGGER.logfile.write(util.format.apply(null, arguments)+'\n');

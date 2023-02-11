@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const MATHS = require('../statics/MATHS');
-const CONFIG = require('../statics/CONFIG');
+const {CONFIG} = require('../statics/CONFIG');
 const { ContentManagerInterface } = require('../renderer/interfaces/ContentManagerInterface');
 const LOGGER = require('../statics/LOGGER');
 
@@ -20,10 +20,10 @@ class TPOPManager extends ContentManagerInterface {
      * @param {String} externalContentFolder - Path to the application data directory provided by the operating
      *                           system.
      */
-  constructor(externalContentFolder) {
+  constructor() {
     super();
     
-    this.tpopFolder = path.join(externalContentFolder, 'tpop');
+    this.tpopFolder = path.join(CONFIG.EXTERNAL_FOLDER, 'tpop');
     if (!fs.existsSync(this.tpopFolder)) {
       fs.mkdirSync(this.tpopFolder);
     }

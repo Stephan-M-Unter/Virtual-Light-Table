@@ -14,6 +14,11 @@
 'use strict';
 
 const {dialog} = require('electron');
+const path = require('path');
+const fs = require('fs-extra');
+const {spawn} = require('child_process');
+const {CONFIG} = require('../statics/CONFIG');
+const LOGGER = require('../statics/LOGGER');
 
 /**
  * TODO
@@ -67,6 +72,42 @@ class ImageManager {
     });
   }
   */
+
+  /**
+   * 
+   * @param {*} filters JS object containing the active filter settings for the currently selected table.
+   * @param {*} urls A list containing the URLs for the images to apply filters to.
+   * @param {*} tempFolder Folder where temporary files for autosaves and image processing are being stored.
+   * @param {*} callback Function to call once the filters have been applied. If no filters are given, this
+   *                          is a trivial operation. It is needed, however, for the filter process itself,
+   *                          as the execution of the python script is an asynchronous process.
+   * 
+   * TODO: remove global variables like tempoFolder, pythonCmd, vltFolder
+   */
+  applyGraphicalFilters(filters, urls, callback) {
+    if (filters == null) {
+      // no filters set, so we simply return the data
+      LOGGER.log('IMAGE', 'Applying graphical filter, no filter set.');
+      callback();
+    } else {
+      LOGGER.log('IMAGE', 'Applying graphical filter.');
+      // bundling all filter information for python process and saving it to file
+      const filterRequest = {
+        'urls': urls,
+        'filters': filters,
+      };
+      const filterJsonPath = path.join(CONFIG.TEMP_FOLDER, 'filters.json');
+      const filterJsonContent = JSON.stringify(filterRequest);
+      fs.writeFileSync(filterJsonPath, filterJsonContent, 'utf8');
+  
+      const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'filter_images.py'), CONFIG.VLT_FOLDER, filterJsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python.on('close', function(code) {
+        LOGGER.log('IMAGE', `Applying graphical filters finished with code ${code}.`);
+        fs.removeSync(filterJsonPath);
+        callback();
+      });
+    }
+  }
 }
 
 module.exports = ImageManager;

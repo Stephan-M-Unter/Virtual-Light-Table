@@ -27,8 +27,9 @@ const ImageManager = require('./js/ImageManager');
 const SaveManager = require('./js/SaveManager');
 const TPOPManager = require('./js/TPOPManager');
 const MLManager = require('./js/MLManager');
+const ConfigManager = require('./js/ConfigManager');
+const {CONFIG} = require('./statics/CONFIG');
 const LOGGER = require('./statics/LOGGER');
-const { send } = require('./statics/LOGGER');
 
 // Settings
 let devMode = false;
@@ -39,15 +40,13 @@ if (process.argv.includes('--dev')) {
 const version = 'v0.5';
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
-let vltFolder = path.join(appDataPath, 'Virtual Light Table');
-let externalContentFolder = path.join(vltFolder, 'externalContent');
-let saveFolder = path.join(vltFolder, 'saves');
-let tempFolder = path.join(vltFolder, 'temp');
-const vltConfigFile = path.join(vltFolder, 'vlt.config');
-const pythonFolder = path.join(appPath, 'python-scripts');
+LOGGER.start(appPath, version);
+CONFIG.set_app_path(appPath);
+CONFIG.set_vlt_folder(path.join(appDataPath, 'Virtual Light Table'));
+const vltConfigFile = path.join(CONFIG.VLT_FOLDER, 'vlt.config');
+CONFIG.set_python_folder(path.join(appPath, 'python-scripts'));
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
-let pythonCmd = 'python3';
 let online = true;
 let config = {};
 
@@ -58,12 +57,12 @@ const imageManager = new ImageManager();
 let mlManager;
 let tpopManager;
 let saveManager;
-// Windows
+let configManager;
+
+// Views
 let startupWindow;
 let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
-let detailWindow; // TODO additional window to show fragment details
-// let filterWindow; // TODO additional window to set database filters
 let uploadWindow;
 let calibrationWindow;
 let settingsWindow;
@@ -81,7 +80,7 @@ const activeTables = {
   tpop: null,
 };
 let autosaveChecked = false;
-let quitting = false;
+let app_is_quitting = false;
 
 const loadingQueue = [];
 
@@ -115,58 +114,58 @@ app.on('window-all-closed', () => {
 });
 
 function startUp() {
+  sendMessage(startupWindow, 'startup-status', 'Removing Legacy Files...');
+  CSC.removeLegacies();
   sendMessage(startupWindow, 'startup-status', 'Preparing Folders...');
-  CSC.removeLegacies(vltFolder);
-  // check if "Virtual Light Table" subfolder exists
-  if (!fs.existsSync(vltFolder)) {
-    // creating VLT subfolder in appdata
-    fs.mkdirSync(vltFolder);
-    LOGGER.log('SERVER', 'Created new VLT folder at ' + vltFolder);
-  }
-
-  // check if the "External Content" subfolder exists
-  if (!fs.existsSync(externalContentFolder)) {
-    fs.mkdirSync(externalContentFolder);
-    LOGGER.log('SERVER', 'Created new folder for external content at ' + externalContentFolder);
-  }
-  
-  sendMessage(startupWindow, 'startup-status', 'Checking Config File...');
-  checkConfig();
-  sendMessage(startupWindow, 'startup-status', 'Setting Up Logger...');
-  LOGGER.start(vltFolder, version);
-  sendMessage(startupWindow, 'startup-status', 'Checking Python and Tensorflow...');
-  check_python_and_tensorflow();
+  createFolders();
   sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
   createManagers();
+  sendMessage(startupWindow, 'startup-status', 'Checking Python and Tensorflow...');
+  check_requirements();
   sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
 }
 
-function checkConfig() {
-  // check if config file exists
-  if (!fs.existsSync(vltConfigFile)) {
-    // config file doesn't exist - load default values and save to file
-    config = loadDefaultConfig();
-    saveConfig();
-  } else {
-    // config file exists - read it
-    config = readConfig();
-    extendConfig();
+function createFolders() {
+  
+  // check if "Virtual Light Table" subfolder exists
+  if (!fs.existsSync(CONFIG.VLT_FOLDER)) {
+    // creating VLT subfolder in appdata
+    fs.mkdirSync(CONFIG.VLT_FOLDER);
+    LOGGER.log('SERVER', 'Created new VLT folder at ' + CONFIG.VLT_FOLDER);
   }
-  if (!(config.vltFolder)) config.vltFolder = vltFolder;
+
+  // check if the "External Content" subfolder exists
+  if (!fs.existsSync(CONFIG.EXTERNAL_FOLDER)) {
+    fs.mkdirSync(CONFIG.EXTERNAL_FOLDER);
+    LOGGER.log('SERVER', 'Created new folder for external content at ' + CONFIG.EXTERNAL_FOLDER);
+  }
 }
 
 function createManagers() {
-  saveManager = new SaveManager(config);
-  tpopManager = new TPOPManager(externalContentFolder);
-  mlManager = new MLManager(vltFolder, pythonFolder);
+  configManager = new ConfigManager(vltConfigFile);
+  saveManager = new SaveManager();
+  tpopManager = new TPOPManager();
+  mlManager = new MLManager();
 }
 
+/**
+ * Function to create the main view, the central view of the VLT, including important parameters for the window
+ * itself, functions to close the VLT, and some overridings for the Browserwindow behaviour.
+ * 
+ * @return {void}
+ */
 function createMainView() {
   mainWindow = new Window({
     file: './renderer/index.html',
     type: 'main',
     devMode: devMode,
   });
+
+  // Overriding some default properties for BrowserWindows opened in the MainView
+  // BrowserWindows: extra windows, opened when clicking a "target='_blank'" <a></a>.
+  // frame: without setting this to TRUE, some devices show a frameless browser window that cannot be closed
+  // height: set to a rather high value to display as much as possible; at least on
+  //    windows, this value is capped by the factual height of the screen
   mainWindow.webContents.setWindowOpenHandler(({url}) => {
     return {
       action: 'allow',
@@ -177,6 +176,7 @@ function createMainView() {
       }
     };
   });
+
   mainWindow.maximize();
   if (!devMode) {
     mainWindow.removeMenu();
@@ -185,16 +185,16 @@ function createMainView() {
     mainWindow.show();
     startupWindow.close();
     if (saveManager.checkForAutosave()) {
-      console.log('+++ CHECKING FOR AUTOSAVE +++');
       sendMessage(mainWindow, 'client-confirm-autosave');
     } else {
       autosaveChecked = true;
     }
   });
   mainWindow.on('close', function(event) {
-    if (quitting) {
+    if (app_is_quitting) {
       app.quit();
     } else {
+      // confirmation dialog, asking the user to confirm they want to quit the app
       const choice = dialog.showMessageBoxSync(event.target, {
         type: 'question',
         buttons: ['Yes', 'No'],
@@ -202,9 +202,11 @@ function createMainView() {
         message: 'Are you sure you want to quit?',
       });
       if (choice == 1) {
+        // NO, user doesn't want to quit
         event.preventDefault();
       } else {
-        quitting = true;
+        // YES, user wants to quit
+        app_is_quitting = true; // needed to prevent double check
         LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
         saveManager.removeAutosaveFiles();
         app.quit();
@@ -213,68 +215,6 @@ function createMainView() {
   });
 }
 
-/**
- *
- */
-function saveConfig() {
-  const configJSON = JSON.stringify(config);
-  fs.writeFile(vltConfigFile, configJSON, function(err) {
-    if (err) {
-      LOGGER.err('SERVER', 'Error while writing config file.');
-      LOGGER.err('SERVER', err);
-      return false;
-    } else {
-      LOGGER.log('SERVER', 'Config File successfully saved.');
-    }
-  });
-  return true;
-}
-
-/**
- *
- */
-function readConfig() {
-  if (!fs.existsSync(vltConfigFile)) return loadDefaultConfig();
-  const configJSON = fs.readFileSync(vltConfigFile);
-  try {
-    const config = JSON.parse(configJSON)
-    if (config.vltFolder) {
-      vltFolder = config.vltFolder;
-      saveFolder = path.join(vltFolder, 'saves');
-      tempFolder = path.join(vltFolder, 'temp');
-    }
-    return config;
-  } catch (err) {
-    LOGGER.err('SERVER', 'An error occurred while reading the config file.');
-    LOGGER.err('SERVER', err);
-    LOGGER.log('SERVER', 'Loading default configuration.');
-    return loadDefaultConfig();
-  }
-}
-
-/**
- *
- */
-function loadDefaultConfig() {
-  const newConfig = {};
-  newConfig.ppi = 96;
-  newConfig.minZoom = 0.1;
-  newConfig.maxZoom = 3.0;
-  newConfig.stepZoom = 0.1;
-  newConfig.vltFolder = vltFolder;
-  newConfig.saveFolder = saveFolder;
-  newConfig.tempFolder = tempFolder;
-  return newConfig;
-}
-
-function extendConfig() {
-  const defaultConfig = loadDefaultConfig();
-  for (const k of Object.keys(defaultConfig)) {
-    if (!(k in config)) {
-      config[k] = defaultConfig[k];
-    }
-  }
-}
 
 function uploadTpopFragments() {
   if (loadingQueue.length == 0) {
@@ -327,28 +267,6 @@ function uploadTpopFragments() {
     sendMessage(mainWindow, 'client-stop-loading');
     uploadTpopFragments();
   });
-}
-
-/**
- * Helper function to feed config settings into the config object and save everything to disk.
- * @param {String} key - Config attribute name.
- * @param {*} value - Config attribute value.
- */
-function setConfig(key, value) {
-  config[key] = value;
-  saveConfig();
-}
-
-/**
- * @return {Object}
- */
-function createNewTable() {
-  const tableID = tableManager.createNewTable();
-  const data = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  };
-  return data;
 }
 
 function preprocess_loading_fragments(data) {
@@ -481,24 +399,24 @@ function preprocess_loading_fragments(data) {
 
   if (fragment.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (fragment.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (fragment.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     } else {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
   } else if (fragment.maskMode == 'automatic') {
     // TODO
   }
-  const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
+  const newURL = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
   if (!rectoProcessed) {
     fragment.recto.url_view = newURL;
   } else {
@@ -511,45 +429,44 @@ function preprocess_loading_fragments(data) {
   });
 }
 
-function check_python_and_tensorflow() {
-  let python = spawn('python3', [path.join(pythonFolder, 'python_test.py')], {detached: false});
+function check_requirements() {
+  let python = spawn('python3', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false});
+  python.stdout.pipe(process.stdout);
+  python.stderr.pipe(process.stderr);
+  // STEP 1 - CHECK FOR PYTHON3 AS PYTHON COMMAND
   python.on('close', function(code) {
-    if (code == 9009) {
-      LOGGER.err('SERVER', 'Code 9009 - "python3" does not exist, now testing with command "python"');
-      python = spawn('python', [path.join(pythonFolder, 'python_test.py')], {detached: false});
+    if (code == 0) {
+      // SET PYTHONCMD TO PYTHON3
+      LOGGER.log('SERVER', `python3 closed with code ${code}`);
+      LOGGER.log('SERVER', 'setting python command to "python3"');
+      CONFIG.set_python_command('python3');
+      mlManager.checkForTensorflow();
+    } else {
+      LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+      if (code == 9009) LOGGER.log('SERVER', '"python3" was not found, now testing with command "python"');
+      else LOGGER.log('SERVER', '"python3" was found, but another problem stopped it from working. Now testing with command "python".');
+      // STEP 2 - CHECK FOR PYTHON AS PYTHON COMMAND
+      python = spawn('python', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false});
+      python.stdout.pipe(process.stdout);
+      python.stderr.pipe(process.stderr);
       python.on('close', function(code) {
-        if (code == 9009) {
-          LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
-          app.quit();
-        } else if (code == 0) {
+        if (code == 0) {
+          // SET PYTHONCMD TO PYTHON
           LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
           LOGGER.log('SERVER', 'Setting python command to "python"');
-          pythonCmd = 'python';
-          mlManager.setPythonCommand(pythonCmd);
+          CONFIG.set_python_command('python');
           mlManager.checkForTensorflow();
         } else {
-          LOGGER.err('SERVER', `[PYTHON] closed with code ${code}`);
-          LOGGER.err('SERVER', 'Command "python" found, but other problem occurred, please resolve.');
+          // ABORT - PYTHON3 AND PYTHON NOT AVAILABLE
+          LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+          if (code == 9009) LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
+          else LOGGER.err('SERVER', "Python was found, but another problem stops the installation from running.");
           app.quit();
         }
       });
-      python.stdout.pipe(process.stdout);
-      python.stderr.pipe(process.stderr);
-    } else if (code == 0) {
-      LOGGER.log('SERVER', `python3 closed with code ${code}`);
-      LOGGER.log('SERVER', 'setting pythonCmd to python3');
-      pythonCmd = 'python3';
-      mlManager.setPythonCommand(pythonCmd);
-      mlManager.checkForTensorflow();
-    } else {
-      LOGGER.err('SERVER', `python3 closed with code ${code}`);
-      LOGGER.err('SERVER', 'python3 found, but other problem occurred, please solve');
-      app.quit();
     }
-  })
-  python.stdout.pipe(process.stdout);
-  python.stderr.pipe(process.stderr);
-}
+  }
+)}
 
 /**
  *
@@ -567,7 +484,20 @@ function preprocess_fragment(data) {
 
   // IF recto and verso have been processed, send data to mainWindow
   if (rectoProcessed && versoProcessed) {
-    filterImage(activeTables.uploading, data);
+    const urls = [];
+    if ('recto' in data) {
+      if ('url_view' in data.recto && data.recto.url_view) urls.push(data.recto.url_view);
+      else if ('url' in data.recto && data.recto.url) urls.push(data.recto.url);
+    }
+    if ('verso' in data) {
+      if ('url_view' in data.verso && data.verso.url_view) urls.push(data.verso.url_view);
+      else if ('url' in data.verso && data.verso.url) urls.push(data.verso.url);
+    }
+    // filterImage(activeTables.uploading, data);
+    const filters = tableManager.getGraphicFilters(activeTables.uploading);
+    imageManager.applyGraphicalFilters(filters, urls, function() {
+      sendMessage(mainWindow, 'client-add-upload', data);
+    });
     return;
   }
 
@@ -633,27 +563,27 @@ function preprocess_fragment(data) {
 
   if (data.maskMode == 'no_mask') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (data.maskMode == 'boundingbox') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), vltFolder]), {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]};
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER]), {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]};
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   } else if (data.maskMode == 'polygon') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     } else {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
   } else if (data.maskMode == 'automatic') {
     if (mirror) {
-      python = spawn(pythonCmd, [path.join(pythonFolder, 'mirror_cut.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(pythonCmd, [path.join(pythonFolder, 'cut_image.py'), imageURL, "no_mask", vltFolder], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   }
-  const newURL = path.join(vltFolder, 'temp', 'imgs', filename);
+  const newURL = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
   if (!rectoProcessed) {
     data.recto.url_view = newURL;
   } else {
@@ -698,7 +628,7 @@ function resolveTPOPUrls(fragments, tableID) {
     }
     uploadTpopFragments();
   } else {
-    var r = request(url, function(e, response) {
+    const r = request(url, function(e, response) {
       fragment[urlKey] = r.uri.href;
       fragments[fragmentKey] = fragment;
       resolveTPOPUrls(fragments, tableID);
@@ -720,11 +650,11 @@ function filterImages(tableID, urls) {
     'urls': urls,
     'filters': tableManager.getGraphicFilters(tableID),
   };
-  const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
+  const jsonPath = path.join(CONFIG.VLT_FOLDER, 'temp', 'filters.json');
   const jsonContent = JSON.stringify(filterData);
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
 
-  const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+  const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'filter_images.py'), CONFIG.VLT_FOLDER, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
   python.on('close', function(code) {
     LOGGER.log('SERVER', `Python script finished graphical filtering with code ${code}.`)
     const response = {
@@ -734,38 +664,6 @@ function filterImages(tableID, urls) {
     sendMessage(mainWindow, 'client-load-model', response);
     activeTables.view = tableID;
   });
-}
-
-function filterImage(tableID, data) {
-  const graphicFilters = tableManager.getGraphicFilters(tableID);
-  if (graphicFilters == null) {
-    sendMessage(mainWindow, 'client-add-upload', data);
-  } else {
-    const urls = [];
-
-    if ('recto' in data) {
-      if ('url_view' in data.recto && data.recto.url_view) urls.push(data.recto.url_view);
-      else if ('url' in data.recto && data.recto.url) urls.push(data.recto.url);
-    }
-    if ('verso' in data) {
-      if ('url_view' in data.verso && data.verso.url_view) urls.push(data.verso.url_view);
-      else if ('url' in data.verso && data.verso.url) urls.push(data.verso.url);
-    }
-
-    const filterData = {
-      'tableID': tableID,
-      'urls': urls,
-      'filters': graphicFilters,
-    };
-    const jsonPath = path.join(vltFolder, 'temp', 'filters.json');
-    const jsonContent = JSON.stringify(filterData);
-    fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-    const python = spawn(pythonCmd, [path.join(pythonFolder, 'filter_images.py'), vltFolder, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-    python.on('close', function(code) {
-      LOGGER.log('SERVER', `Filtering finished with code ${code}.`)
-      sendMessage(mainWindow, 'client-add-upload', data);
-    });
-  }
 }
 
 function resolveUrls(urlList, callback) {
@@ -797,9 +695,17 @@ function uploadTpopImages(urlList) {
 }
 
 /* ##############################################################
+#################################################################
+#################################################################
+#################################################################
+#################################################################
 ###
 ###                    MESSAGES (SEND/RECEIVE)
 ###
+#################################################################
+#################################################################
+#################################################################
+#################################################################
 ############################################################## */
 
 /* SENDING MESSAGES */
@@ -870,30 +776,15 @@ ipcMain.on('server-clear-table', (event, tableID) => {
   sendMessage(event.sender, 'client-load-model', data);
 });
 
-// server-open-details
-ipcMain.on('server-open-details', (event, id) => {
-  LOGGER.receive('SERVER', 'server-open-details');
-  detailWindow = new Window({
-    file: './renderer/details.html',
-    type: 'detail',
-    devMode: devMode,
-  });
-  detailWindow.removeMenu();
-  detailWindow.maximize();
-  detailWindow.once('ready-to-show', () => {
-    detailWindow.show();
-  });
-});
-
 // server-load-file
 ipcMain.on('server-load-file', (event, filename) => {
-  LOGGER.receive('SERVER', 'server-load-file');
+  LOGGER.receive('SERVER', 'server-load-file', filename);
   let tableID = activeTables.loading;
   sendMessage(mainWindow, 'client-start-loading', tableID);
   activeTables.loading = null;
   loadWindow.close();
-  const savefolder = saveManager.getCurrentFolder();
-  const file = saveManager.loadSaveFile(path.join(savefolder, filename), tableID);
+  filename = path.join(saveManager.getCurrentFolder(), filename);
+  const file = saveManager.loadSaveFile(filename, tableID);
 
   if (!activeTables.view) {
     tableID = tableManager.createNewTable();
@@ -973,10 +864,7 @@ ipcMain.on('server-list-savefiles', (event, folder) => {
 // <- server-get-saves-folder
 ipcMain.on('server-get-saves-folder', (event) => {
   LOGGER.receive('SERVER', 'server-get-saves-folder');
-  const path = saveManager.getSaveFolder();
-  if (path) {
-    event.sender.send('load-receive-folder', path[0]);
-  }
+    event.sender.send('load-receive-folder', CONFIG.SAVES_FOLDER);
 });
 
 // server-open-load
@@ -1103,8 +991,8 @@ ipcMain.on('server-upload-image', (event) => {
       let filename = path.basename(filepath);
       const dotPos = filename.lastIndexOf('.');
       filename = filename.substring(0,dotPos) + '.jpg';
-      const newFilepath = path.join(tempFolder, 'imgs', filename);
-      const python = spawn(pythonCmd, [path.join(pythonFolder, 'convert_tiff.py'), filepath, newFilepath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      const newFilepath = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
+      const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'convert_tiff.py'), filepath, newFilepath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
       python.on('close', function(code) {
         LOGGER.log('SERVER', `[PYTHON] Converted TIFF to JPG, closing with code ${code}.`);
         sendMessage(uploadWindow, 'upload-receive-image', newFilepath);
@@ -1194,8 +1082,12 @@ ipcMain.on('server-confirm-autosave', (event, confirmation) => {
 ipcMain.on('server-create-table', (event) => {
   LOGGER.receive('SERVER', 'server-create-table');
   if (autosaveChecked) {
-    const data = createNewTable();
-    activeTables.view = data.tableID;
+    const newTableID = tableManager.createNewTable();
+    const data = {
+      tableID: newTableID,
+      tableData: tableManager.getTable(newTableID),
+    }
+    activeTables.view = newTableID;
     sendMessage(event.sender, 'client-load-model', data);
   } else {
     sendMessage(mainWindow, 'client-confirm-autosave');
@@ -1276,7 +1168,6 @@ ipcMain.on('server-new-session', (event) => {
   sendMessage(event.sender, 'client-load-model', data);
 
   if (saveManager.checkForAutosave()) {
-    console.log('+++ CHECKING FOR AUTOSAVE +++');
     sendMessage(mainWindow, 'client-confirm-autosave');
   } else {
     autosaveChecked = true;
@@ -1293,7 +1184,7 @@ ipcMain.on('server-save-screenshot', (event, data) => {
 
 ipcMain.on('server-ask-load-folders', (event) => {
   LOGGER.receive('SERVER', 'server-ask-load-folders');
-  sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
+  sendMessage(event.sender, 'load-set-default-folder', CONFIG.SAVES_FOLDER);
   sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
 });
 
@@ -1360,7 +1251,7 @@ ipcMain.on('server-close-settings', () => {
 
 ipcMain.on('server-settings-opened', (event) => {
   LOGGER.receive('SERVER', 'server-settings-opened');
-  sendMessage(settingsWindow, 'settings-data', config);
+  sendMessage(settingsWindow, 'settings-data', configManager.getConfig());
   mlManager.checkForTensorflow(function(tensorflowAvailable) {
     sendMessage(settingsWindow, 'tensorflow-installed', tensorflowAvailable);
   });
@@ -1373,6 +1264,7 @@ ipcMain.on('server-gather-ppi', (event) => {
 
 ipcMain.on('server-stage-loaded', (event) => {
   LOGGER.receive('SERVER', 'server-stage-loaded');
+  const config = configManager.getConfig();
   if ('ppi' in config && config.ppi) {
     sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
   }
@@ -1402,7 +1294,7 @@ ipcMain.on('server-calibrate', (event, ppi) => {
 ipcMain.on('server-import-file', (event) => {
   LOGGER.receive('SERVER', 'server-import-file');
   saveManager.importFile(() => {
-    sendMessage(event.sender, 'load-set-default-folder', saveManager.getDefaultFolder());
+    sendMessage(event.sender, 'load-set-default-folder', saveManager.CONFIG.SAVES_FOLDER);
     sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
   });
 });
@@ -1596,42 +1488,35 @@ ipcMain.on('server-save-config', function(event, newConfig) {
       title: 'Access Denied',
       message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
     });
-    newConfig.vltFolder = config.vltFolder;
+    newConfig.vltFolder = configManager.getConfig().vltFolder;
   }
 
-  config = newConfig;
-  
-  const saved = saveConfig();
-  if (saved) {
-    if ('vltFolder' in config && config.vltFolder && vltFolder != config.vltFolder && fs.existsSync(config.vltFolder)) {
-      if (fs.existsSync(path.join(vltFolder, 'saves'))) {
-        fs.moveSync(path.join(vltFolder, 'saves'), path.join(config.vltFolder, 'saves'));
-      }
-      if (fs.existsSync(path.join(vltFolder, 'temp'))) {
-        fs.moveSync(path.join(vltFolder, 'temp'), path.join(config.vltFolder, 'temp'));
-      }
-      if (fs.existsSync(path.join(vltFolder, 'tpop'))) {
-        fs.moveSync(path.join(vltFolder, 'tpop'), path.join(config.vltFolder, 'tpop'));
-      }
+  configManager.replaceWith(newConfig);
 
-      vltFolder = config.vltFolder;
-      saveFolder = path.join(vltFolder, 'saves');
-      tempFolder = path.join(vltFolder, 'temp');
+  if ('vltFolder' in newConfig && newConfig.vltFolder && CONFIG.VLT_FOLDER != newConfig.vltFolder && fs.existsSync(newConfig.vltFolder)) {
+    if (fs.existsSync(path.join(vltFolder, 'saves'))) {
+      fs.moveSync(path.join(CONFIG.VLT_FOLDER, 'saves'), path.join(newConfig.vltFolder, 'saves'));
+    }
+    if (fs.existsSync(path.join(CONFIG.VLT_FOLDER, 'temp'))) {
+      fs.moveSync(path.join(CONFIG.VLT_FOLDER, 'temp'), path.join(newConfig.vltFolder, 'temp'));
+    }
+    if (fs.existsSync(path.join(CONFIG.VLT_FOLDER, 'tpop'))) {
+      fs.moveSync(path.join(CONFIG.VLT_FOLDER, 'tpop'), path.join(newConfig.vltFolder, 'tpop'));
+    }
 
-      tpopManager.setTpopFolder(path.join(vltFolder, 'tpop'));
-      saveManager.setSaveFolder(saveFolder);
-      saveManager.setTempFolder(tempFolder);
+    CONFIG.set_vlt_folder(newConfig.vltFolder);
+
+    tpopManager.setTpopFolder(path.join(CONFIG.VLT_FOLDER, 'tpop'));  // TODO
+  }
+  if ('minZoom' in newConfig && newConfig.minZoom
+  && 'maxZoom' in newConfig && newConfig.maxZoom
+  && 'stepZoom' in newConfig && newConfig.stepZoom) {
+    const data = {
+      'minZoom': newConfig.minZoom,
+      'maxZoom': newConfig.maxZoom,
+      'stepZoom': newConfig.stepZoom,
     }
-    if ('minZoom' in config && config.minZoom
-    && 'maxZoom' in config && config.maxZoom
-    && 'stepZoom' in config && config.stepZoom) {
-      const data = {
-        'minZoom': config.minZoom,
-        'maxZoom': config.maxZoom,
-        'stepZoom': config.stepZoom,
-      }
-      sendMessage(mainWindow, 'client-set-zoom', data);
-    }
+    sendMessage(mainWindow, 'client-set-zoom', data);
   }
 });
 
@@ -1738,7 +1623,7 @@ ipcMain.on('server-edit-auto-mask', (event, data) => {
 
   fs.writeFile(changeURL, base64Data, 'base64', function(err) {
 
-    const python = spawn(pythonCmd, [path.join(pythonFolder, 'edit_mask.py'), data.maskURL, changeURL, changeMode], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'edit_mask.py'), data.maskURL, changeURL, changeMode], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     python.on('close', function(code) {
       LOGGER.log('SERVER', `Edit Mask Result: code ${code}.`);
       sendMessage(uploadWindow, 'upload-mask-edited');

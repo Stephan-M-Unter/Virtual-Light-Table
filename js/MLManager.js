@@ -1,39 +1,32 @@
 'use strict';
 
 const fs = require('fs-extra');
-const LOGGER = require("../statics/LOGGER");
 const path = require('path');
 const {spawn} = require('child_process');
+const LOGGER = require("../statics/LOGGER");
+const {CONFIG} = require('../statics/CONFIG');
 
 class MLManager {
 
-    constructor(vltFolder, pythonFolder) {
-        this.vltFolder = vltFolder;
-        this.pythonFolder = pythonFolder;
-        this.pythonCmd = '';
-
+    constructor() {
         this.tensorflowChecked = false;
         this.tensorflowAvailable = false;
 
         // define ML subfolders
-        const folderML = path.join(this.vltFolder, 'ML');
-        const folderMLmodels = path.join(folderML, 'models');
-        const folderMLresults = path.join(folderML, 'results');
+        this.folderML = path.join(CONFIG.VLT_FOLDER, 'ML');
+        this.folderMLmodels = path.join(this.folderML, 'models');
+        this.folderMLresults = path.join(this.folderML, 'results');
 
         // create ML subfolders if needed
-        if (!fs.existsSync(folderML)) fs.mkdir(folderML);
-        if (!fs.existsSync(folderMLmodels)) fs.mkdir(folderMLmodels); 
-        if (!fs.existsSync(folderMLresults)) fs.mkdir(folderMLresults);
+        if (!fs.existsSync(this.folderML)) fs.mkdir(this.folderML);
+        if (!fs.existsSync(this.folderMLmodels)) fs.mkdir(this.folderMLmodels); 
+        if (!fs.existsSync(this.folderMLresults)) fs.mkdir(this.folderMLresults);
 
         this.capacities = [];
         this.models = {};
 
         this.checkCapacities();
     };
-
-    setPythonCommand(cmd) {
-        this.pythonCmd = cmd;
-    }
 
     checkCapacities() {
         // Hardcoded Address
@@ -69,13 +62,11 @@ class MLManager {
     }
 
     checkForTensorflow(callback) {
-        console.log("tensorflow checked:", this.tensorflowChecked);
-        console.log("tensorflow available:", this.tensorflowAvailable);
         if (this.tensorflowChecked) {
             if (callback) callback(this.tensorflowAvailable);
             else return this.tensorflowAvailable;
         } else {
-            const python = spawn(this.pythonCmd, [path.join(this.pythonFolder, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+            const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
             python.on('close', (code) => {
                 LOGGER.log('ML MANAGER', `tensorflow_test.py - result: code ${code}.`);
                 this.tensorflowChecked = true;
@@ -85,20 +76,23 @@ class MLManager {
             });
         }
     }
+
     installTensorflow(callback) {
-        const python = spawn(this.pythonCmd, [path.join(this.pythonFolder, 'tensorflow_install.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+        const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_install.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
         python.on('close', (code) => {
             LOGGER.log('ML MANAGER', `tensorflow_install.py - result: code ${code}.`)
             this.tensorflowChecked = true;
             this.tensorflowAvailable = (code == 0);
-            callback(code == 0);
+            if (callback) {
+                callback(code == 0);
+            }
         });
     }
 
     downloadModel(modelID, callback) {
         // TODO: Download of model
         // if (modelID in this.models) {
-            const dummyPath = path.join(this.vltFolder, 'ML', 'models', 'model_8.2');
+            const dummyPath = path.join(CONFIG.VLT_FOLDER, 'ML', 'models', 'model_8.2');
             this.models['BiNet_8.2_multiclass'].localPath = dummyPath;
             LOGGER.log('ML MANAGER', `Model (ID: ${modelID}) downloaded to folder ${dummyPath}.`)
             callback(true);
@@ -119,14 +113,15 @@ class MLManager {
     }
     getModelPath(modelID) {
         // TODO
-        return path.join(this.vltFolder, 'ML', 'models', 'model_8.2')
+        return path.join(CONFIG.VLT_FOLDER, 'ML', 'models', 'model_8.2')
     }
+
     deleteModel(modelID) {}
 
     segmentImages(modelID, pathImage1, pathImage2, ppi1, ppi2, callback) {
         const resultFileName = 'segmentation_result.json';
-        const resultFileFolder = path.join(this.vltFolder, 'ML', 'results');
-        const python = spawn(this.pythonCmd, [path.join(this.pythonFolder, 'segment.py'),
+        const resultFileFolder = path.join(CONFIG.VLT_FOLDER, 'ML', 'results');
+        const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'segment.py'),
             resultFileFolder,
             resultFileName,
             this.getModelPath(modelID), // TODO
@@ -152,12 +147,13 @@ class MLManager {
               callback(null);
         }});
     }
+    
     registerImages(modelID, image1, mask1, image2, mask2, callback) {
-        const resultFileFolder = path.join(this.vltFolder, 'ML', 'results');
+        const resultFileFolder = path.join(this.folderML, 'results');
         const resultFileName = 'cut_results.json';
 
-        const python = spawn(this.pythonCmd, [
-            path.join(this.pythonFolder, 'cut_automatic_masks.py'),
+        const python = spawn(CONFIG.PYTHON_CMD, [
+            path.join(CONFIG.PYTHON_FOLDER, 'cut_automatic_masks.py'),
             resultFileFolder,
             resultFileName,
             modelID,
