@@ -33,6 +33,9 @@ class LOGGER {
                   
         console.log('#########################################################################');
         console.log(`Starting Virtual Light Table, version ${version} - ${this.timestamp()}`);
+        console.log()
+        console.log('Logfile:', path.join(appPath, 'log.txt'));
+        console.log('Outputfile:', path.join(appPath, 'out.txt'))
         console.log('#########################################################################\n');
 
         LOGGER.loggerInitialised = true;

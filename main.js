@@ -40,7 +40,7 @@ if (process.argv.includes('--dev')) {
 const version = 'v0.5';
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
-LOGGER.start(appPath, version);
+LOGGER.start(path.join(appDataPath, 'Virtual Light Table'), version);
 CONFIG.set_app_path(appPath);
 CONFIG.set_vlt_folder(path.join(appDataPath, 'Virtual Light Table'));
 const vltConfigFile = path.join(CONFIG.VLT_FOLDER, 'vlt.config');
