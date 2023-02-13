@@ -56,6 +56,10 @@ class ImageManager {
     }
   }
 
+  name() {
+    return "ImageManager";
+  }
+
   /* CURRENTLY NOT USED
 
   requestImage(url){

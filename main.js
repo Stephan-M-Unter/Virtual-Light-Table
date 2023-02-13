@@ -116,8 +116,6 @@ app.on('window-all-closed', () => {
 function startUp() {
   sendMessage(startupWindow, 'startup-status', 'Removing Legacy Files...');
   CSC.removeLegacies();
-  sendMessage(startupWindow, 'startup-status', 'Preparing Folders...');
-  createFolders();
   sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
   createManagers();
   sendMessage(startupWindow, 'startup-status', 'Checking Python and Tensorflow...');
@@ -125,27 +123,14 @@ function startUp() {
   sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
 }
 
-function createFolders() {
-  
-  // check if "Virtual Light Table" subfolder exists
-  if (!fs.existsSync(CONFIG.VLT_FOLDER)) {
-    // creating VLT subfolder in appdata
-    fs.mkdirSync(CONFIG.VLT_FOLDER);
-    LOGGER.log('SERVER', 'Created new VLT folder at ' + CONFIG.VLT_FOLDER);
-  }
-
-  // check if the "External Content" subfolder exists
-  if (!fs.existsSync(CONFIG.EXTERNAL_FOLDER)) {
-    fs.mkdirSync(CONFIG.EXTERNAL_FOLDER);
-    LOGGER.log('SERVER', 'Created new folder for external content at ' + CONFIG.EXTERNAL_FOLDER);
-  }
-}
-
 function createManagers() {
   configManager = new ConfigManager(vltConfigFile);
   saveManager = new SaveManager();
-  tpopManager = new TPOPManager();
   mlManager = new MLManager();
+
+  // external managers
+  tpopManager = new TPOPManager();
+  configManager.registerManager(tpopManager);
 }
 
 /**
@@ -215,33 +200,28 @@ function createMainView() {
   });
 }
 
-
-function uploadTpopFragments() {
+/**
+ * This function takes a list (array) of fragmentEntries. Each entry consists of an entry "table", containing
+ * the tableID, and an entry "fragment". For an example what can be contained in that fragmentEntry, see
+ * tpopManager.prepareLoadingQueueForUpload().
+ * The function recursively openes a new uploadWindow and sends the information for the first fragment
+ * in the queue to that window. Once the user has processed the fragment and closes the window (e.g. by 
+ * uploading the fragment to the mainView), this function is called again. If there are no fragments left,
+ * i.e. the loading queue has a length of 0, the process is stopped and the main view is informed that
+ * loading has finished.
+ */
+function sequentialUpload(loadingQueue) {
+  // if nothing is left in the queue, kill upload window and stop loading animation in main view
   if (loadingQueue.length == 0) {
     try {
       uploadWindow.close();
+      sendMessage(mainWindow, 'client-stop-loading');
     } catch {}
     return;
   }
   
   const data = loadingQueue.pop(0);
-  const fragmentData = data.fragment;
   activeTables.uploading = data.table;
-  const fragment = {
-    'x': 0,
-    'y': 0,
-    'name': fragmentData.name,
-    'tpop': fragmentData.id,
-    'urlTPOP': fragmentData.urlTPOP,
-    'recto': {
-      'url': fragmentData.urlRecto,
-      'www': true,
-    },
-    'verso': {
-      'url': fragmentData.urlVerso,
-      'www': true,
-    }
-  }
 
   if (uploadWindow) {
     try {
@@ -257,15 +237,15 @@ function uploadTpopFragments() {
   uploadWindow.removeMenu();
   uploadWindow.once('ready-to-show', () => {
     uploadWindow.webContents.once('did-finish-load', () => {
-      sendMessage(uploadWindow, 'upload-tpop-fragment', fragment);
+      sendMessage(uploadWindow, 'upload-fragment', data.fragment); // TODO - shouldn't be TPOP specific!
       uploadWindow.show();
     });
   });
 
-  uploadWindow.on('close', function() {
+  uploadWindow.on('close', () => {
     uploadWindow = null;
-    sendMessage(mainWindow, 'client-stop-loading');
-    uploadTpopFragments();
+    // once the upload window is closed, re-call this method to check for the next entry in the queue
+    sequentialUpload(loadingQueue);
   });
 }
 
@@ -595,55 +575,6 @@ function preprocess_fragment(data) {
   });
 }
 
-function resolveTPOPUrls(fragments, tableID) {
-  let allResolved = true;
-  let urlKey;
-  let fragmentKey;
-  let url;
-  let fragment;
-  for (const k in fragments) {
-    fragment = fragments[k];
-    if ('urlRecto' in fragment && fragment.urlRecto && !isURLResolved(fragment.urlRecto)) {
-      allResolved = false;
-      urlKey = 'urlRecto';
-      fragmentKey = k;
-      url = fragment.urlRecto;
-      break;
-    }
-    if ('urlVerso' in fragment && fragment.urlVerso && !isURLResolved(fragment.urlVerso)) {
-      allResolved = false;
-      urlKey = 'urlVerso';
-      fragmentKey = k;
-      url = fragment.urlVerso;
-      break;
-    }
-  }
-  if (allResolved) {
-    for (const f of fragments) {
-      const entry = {
-        'table': tableID,
-        'fragment': f,
-      };
-      loadingQueue.push(entry);
-    }
-    uploadTpopFragments();
-  } else {
-    const r = request(url, function(e, response) {
-      fragment[urlKey] = r.uri.href;
-      fragments[fragmentKey] = fragment;
-      resolveTPOPUrls(fragments, tableID);
-    });
-  }
-}
-
-function isURLResolved(url) {
-  const formats = ['jpg', 'jpeg', 'png', 'tif', 'tiff'];
-  for (const format of formats) {
-    if (url.indexOf('.'+format) != -1) return true;
-  }
-  return false;
-}
-
 function filterImages(tableID, urls) {
   const filterData = {
     'tableID': tableID,
@@ -693,6 +624,26 @@ function resolveUrls(urlList, callback) {
 function uploadTpopImages(urlList) {
   sendMessage(uploadWindow, 'upload-tpop-images', urlList);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ##############################################################
 #################################################################
@@ -1016,6 +967,7 @@ ipcMain.on('server-change-fragment', (event, data) => {
   LOGGER.receive('SERVER', 'server-change-fragment');
 
   const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
+  fragment.edit = true;
   if (uploadWindow) {
     try {
       uploadWindow.close();
@@ -1033,7 +985,7 @@ ipcMain.on('server-change-fragment', (event, data) => {
   uploadWindow.removeMenu();
   uploadWindow.once('ready-to-show', () => {
     uploadWindow.show();
-    sendMessage(uploadWindow, 'upload-edit-fragment', fragment);
+    sendMessage(uploadWindow, 'upload-fragment', fragment);
   });
   uploadWindow.on('close', function() {
     sendMessage(mainWindow, 'client-stop-loading');
@@ -1428,14 +1380,13 @@ ipcMain.on('server-open-load-folder', (event) => {
   shell.openPath(folder);
 });
 
-ipcMain.on('server-load-tpop-fragments', (event, data) => {
+ipcMain.on('server-load-tpop-fragments', (event, listOfTpopIds) => {
   LOGGER.receive('SERVER', 'server-load-tpop-fragments');
-  data = tpopManager.getBasicInfo(data);
-  sendMessage(mainWindow, 'client-start-loading', activeTables.tpop);
-  
-  const tableID = activeTables.tpop;
   tpopWindow.close();
-  resolveTPOPUrls(data, tableID);
+  const tableID = activeTables.tpop;
+  sendMessage(mainWindow, 'client-start-loading', tableID);
+
+  tpopManager.prepareIDsForUpload(listOfTpopIds, tableID, sequentialUpload);
 });
 
 ipcMain.on('server-display-folders', function(event) {
@@ -1476,48 +1427,28 @@ ipcMain.on('server-save-config', function(event, newConfig) {
   LOGGER.receive('SERVER', 'server-save-config', newConfig);
   settingsWindow.close();
   settingsWindow = null;
-  
+
+  configManager.replaceWith(newConfig, function() {
+      dialog.showMessageBox(mainWindow, {
+        buttons: ['OK'],
+        type: 'warning',
+        title: 'Access Denied',
+        message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
+      });
+  });
+
   try {
-    fs.accessSync(newConfig.vltFolder, fs.constants.R_OK | fs.constants.W_OK);
-  } catch (error) {
-    LOGGER.err('SERVER', "No writing permission to folder: " + newConfig.vltFolder);
-    LOGGER.err(error);
-    dialog.showMessageBox(mainWindow, {
-      buttons: ['OK'],
-      type: 'warning',
-      title: 'Access Denied',
-      message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
-    });
-    newConfig.vltFolder = configManager.getConfig().vltFolder;
-  }
-
-  configManager.replaceWith(newConfig);
-
-  if ('vltFolder' in newConfig && newConfig.vltFolder && CONFIG.VLT_FOLDER != newConfig.vltFolder && fs.existsSync(newConfig.vltFolder)) {
-    if (fs.existsSync(path.join(vltFolder, 'saves'))) {
-      fs.moveSync(path.join(CONFIG.VLT_FOLDER, 'saves'), path.join(newConfig.vltFolder, 'saves'));
-    }
-    if (fs.existsSync(path.join(CONFIG.VLT_FOLDER, 'temp'))) {
-      fs.moveSync(path.join(CONFIG.VLT_FOLDER, 'temp'), path.join(newConfig.vltFolder, 'temp'));
-    }
-    if (fs.existsSync(path.join(CONFIG.VLT_FOLDER, 'tpop'))) {
-      fs.moveSync(path.join(CONFIG.VLT_FOLDER, 'tpop'), path.join(newConfig.vltFolder, 'tpop'));
-    }
-
-    CONFIG.set_vlt_folder(newConfig.vltFolder);
-
-    tpopManager.setTpopFolder(path.join(CONFIG.VLT_FOLDER, 'tpop'));  // TODO
-  }
-  if ('minZoom' in newConfig && newConfig.minZoom
-  && 'maxZoom' in newConfig && newConfig.maxZoom
-  && 'stepZoom' in newConfig && newConfig.stepZoom) {
-    const data = {
+    // update main view with (potentially new) zoom information
+    const zoomData = {
       'minZoom': newConfig.minZoom,
       'maxZoom': newConfig.maxZoom,
       'stepZoom': newConfig.stepZoom,
     }
-    sendMessage(mainWindow, 'client-set-zoom', data);
+    sendMessage(mainWindow, 'client-set-zoom', zoomData);
+  } catch {
+    LOGGER.err('SERVER', 'WARNING - No zoom information was specified in the config file. Zoom for main view does not change.');
   }
+
 });
 
 ipcMain.on('server-get-default', function(event, valueType) {

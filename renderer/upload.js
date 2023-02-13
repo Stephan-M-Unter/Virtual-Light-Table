@@ -1313,7 +1313,7 @@ function canvasToImage(image, pointArray) {
   return result;
 }
 
-function loadData(data, center) {
+function loadData(data) {
   $('#upload_button').find('.large_button_label').html('Update object');
 
   if ('recto' in data) {
@@ -1364,6 +1364,13 @@ function loadData(data, center) {
   if ('maskMode' in data && data.maskMode) maskMode = data.maskMode;
   if ('id' in data && data.id) editData = data;
   if ('urlTPOP' in data) editData = data;
+
+  let center;
+  if ('edit' in data && data.edit) {
+    center = false;
+  } else {
+    center = true;
+  }
 
   draw('recto', center);
   draw('verso', center);
@@ -1775,20 +1782,10 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
   }
 });
 
-// Event triggered if window is opened to edit an already existing fragment, providing
-// the necessary data/information about the fragment.
-ipcRenderer.on('upload-edit-fragment', (event, data) => {
-  LOGGER.receive('UPLOAD', 'upload-edit-fragment', data);
-  if ('tpop' in data) {
-    tpop = data['tpop'];
-  }
-  loadData(data, false);
-});
-
-ipcRenderer.on('upload-tpop-fragment', (event, data) => {
-  LOGGER.receive('UPLOAD', 'upload-tpop-fragment', data);
-  tpop = data.tpop;
-  loadData(data, true);
+ipcRenderer.on('upload-fragment', (event, data) => {
+  LOGGER.receive('UPLOAD', 'upload-fragment', data);
+  if ('tpop' in data) tpop = data['tpop'];
+  loadData(data);
 });
 
 ipcRenderer.on('upload-tpop-images', (event, data) => {

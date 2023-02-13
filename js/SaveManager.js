@@ -38,6 +38,10 @@ class SaveManager {
     this.tableFilepaths = {};
   }
 
+  name() {
+    return "SaveManager";
+  }
+
   createFilename() {
     const now = new Date();
 

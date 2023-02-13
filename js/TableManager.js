@@ -86,6 +86,10 @@ class TableManager {
     this.tableIdRunner = 0;
   }
 
+  name() {
+    return "TableManager";
+  }
+
   /**
    * Deletes all tables from the manager, creates a new and empty one and returns its ID.
    * @return {String}

@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const MATHS = require('../statics/MATHS');
+const request = require('request');
 const {CONFIG} = require('../statics/CONFIG');
 const { ContentManagerInterface } = require('../renderer/interfaces/ContentManagerInterface');
 const LOGGER = require('../statics/LOGGER');
@@ -23,10 +24,7 @@ class TPOPManager extends ContentManagerInterface {
   constructor() {
     super();
     
-    this.tpopFolder = path.join(CONFIG.EXTERNAL_FOLDER, 'tpop');
-    if (!fs.existsSync(this.tpopFolder)) {
-      fs.mkdirSync(this.tpopFolder);
-    }
+    this.updateConfig();
 
     this.vltjson = path.join(this.tpopFolder, 'vltdata.json');
     this.cbdata = path.join(this.tpopFolder, 'cbdata.json');
@@ -38,6 +36,17 @@ class TPOPManager extends ContentManagerInterface {
     this.ctime = 'unknown';
     this.mtime = 'unknown';
   };
+
+  name() {
+    return "TPOPManager";
+  }
+
+  updateConfig() {
+    this.tpopFolder = path.join(CONFIG.EXTERNAL_FOLDER, 'tpop');
+    if (!fs.existsSync(this.tpopFolder)) {
+      fs.mkdirSync(this.tpopFolder);
+    }
+  }
 
   setTpopFolder(path) {
     this.tpopFolder = path;
@@ -678,6 +687,81 @@ class TPOPManager extends ContentManagerInterface {
       }
     }
     return result;
+  }
+
+  resolveTPOPurls(basicFragmentInfos, tableID, callback) {
+    let urlKey, fragmentKey, url, fragment;
+    let allResolved = true;
+
+    for (const k in basicFragmentInfos) {
+      fragment = basicFragmentInfos[k];
+      if ('urlRecto' in fragment && fragment.urlRecto && !this.isURLresolved(fragment.urlRecto)) {
+        allResolved = false;
+        urlKey = 'urlRecto';
+        fragmentKey = k;
+        url = fragment.urlRecto;
+        break;
+      }
+      if ('urlVerso' in fragment && fragment.urlVerso && !this.isURLresolved(fragment.urlVerso)) {
+        allResolved = false;
+        urlKey = 'urlVerso';
+        fragmentKey = k;
+        url = fragment.urlVerso;
+        break;
+      }
+    }
+    if (allResolved) {
+        this.prepareLoadingQueueForUpload(basicFragmentInfos, tableID, callback);
+    } else {
+      const r = request(url, () => {
+        fragment[urlKey] = r.uri.href;
+        basicFragmentInfos[fragmentKey] = fragment;
+        this.resolveTPOPurls(basicFragmentInfos, tableID, callback);
+      });
+    }
+  }
+
+  prepareIDsForUpload(tpopIDList, tableID, callback) {
+    console.log(callback);
+    // read all necessary basic infos per TPOP ID
+    const basicFragmentInfos = this.getBasicInfo(tpopIDList);
+    // recursively iterate over all TPOP urls and replace them with real URL
+    this.resolveTPOPurls(basicFragmentInfos, tableID, callback);
+  }
+  
+  prepareLoadingQueueForUpload(resolvedFragmentInfos, tableID, callback) {
+    const loadingQueue = [];
+    // push all fragments into the manager's loading queue
+    for (const f of resolvedFragmentInfos) {
+      const entry = {
+        'table': tableID,
+        'fragment': {
+          'x': 0,
+          'y': 0,
+          'name': f.name,
+          'tpop': f.id,
+          'urlTPOP': f.urlTPOP,
+          'recto': {
+            'url': f.urlRecto,
+            'www': true,
+          },
+          'verso': {
+            'url': f.urlVerso,
+            'www': true,
+          }
+        },
+      };
+      loadingQueue.push(entry);
+    }
+    callback(loadingQueue);
+  }
+
+  isURLresolved(url) {
+    const formats = ['jpg', 'jpeg', 'png', 'tif', 'tiff'];
+    for (const format of formats) {
+      if (url.indexOf('.'+format) != -1) return true;
+    }
+    return false;
   }
 
   getFolders() {

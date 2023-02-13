@@ -60,6 +60,10 @@ class MLManager {
             }
         });
     }
+    
+    name() {
+        return "MLManager";
+    }
 
     checkForTensorflow(callback) {
         if (this.tensorflowChecked) {
