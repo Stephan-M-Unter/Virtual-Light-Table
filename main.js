@@ -575,6 +575,7 @@ function preprocess_fragment(data) {
   });
 }
 
+
 function filterImages(tableID, urls) {
   const filterData = {
     'tableID': tableID,
@@ -753,6 +754,14 @@ ipcMain.on('server-load-file', (event, filename) => {
   data.tableData['filename'] = filename;
 
   preprocess_loading_fragments(data);
+
+  /*
+  imageManager.preprocess_objects(data, function(status) {
+    sendMessage(mainWindow, 'client-loading-progress', status);
+  }, function(data) {
+    sendMessage(mainWindow, 'client-load-model', data);
+    activeTables.view = data['tableID'];
+  });*/
 });
 
 // server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor
@@ -905,10 +914,12 @@ ipcMain.on('server-open-upload', (event, tableID) => {
 ipcMain.on('server-upload-ready', (event, data) => {
   LOGGER.receive('SERVER', 'server-upload-ready');
 
+  let tableID, tableData;
+
   if (!activeTables.uploading) {
     // if no table is currently associated with the upload, create a new table
-    const tableID = tableManager.createNewTable();
-    const tableData = tableManager.getTable(tableID);
+    tableID = tableManager.createNewTable();
+    tableData = tableManager.getTable(tableID);
     activeTables.uploading = tableID;
     const newTableData = {
       tableID: tableID,
@@ -916,6 +927,9 @@ ipcMain.on('server-upload-ready', (event, data) => {
     };
     // tell client to open the newly created table
     sendMessage(mainWindow, 'client-load-model', newTableData);
+  } else {
+    tableID = activeTables.uploading;
+    tableData = tableManager.getTable(tableID);
   }
   
   if (uploadWindow) {
@@ -925,8 +939,20 @@ ipcMain.on('server-upload-ready', (event, data) => {
   }
 
   sendMessage(mainWindow, 'client-start-loading', activeTables.uploading);
-
+  
   preprocess_fragment(data);
+
+  /*
+  // TODO
+  const successCallback = function(resultingObject) {
+    sendMessage(mainWindow, 'client-add-upload', resultingObject);
+  }
+  const failCallback = function() {
+    sendMessage(mainWindow, 'client-stop-loading');
+  }
+
+  imageManager.preprocess_object(data, successCallback, failCallback);
+  */
 });
 
 // server-upload-image | triggers a file dialog for the user to select a fragment
