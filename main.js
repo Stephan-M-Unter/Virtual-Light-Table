@@ -488,6 +488,7 @@ function preprocess_fragment(data) {
 
   let python;
   let imageURL;
+  let autoCutURL;
   let boxPoints;
   let polygonPoints;
   let filename;
@@ -504,11 +505,15 @@ function preprocess_fragment(data) {
   // at least one side must still be to be processed at this point, otherwise the data
   // would already have been sent to the main window
 
+  console.log(data.recto.auto);
+  console.log(data.verso.auto);
+
   if (!rectoProcessed) {
     // we are processing the recto side
     if ('url' in data.recto) {
       // recto data available
       imageURL = data.recto.url;
+      autoCutURL = data.recto.auto.cut;
       boxPoints = data.recto.box;
       polygonPoints = data.recto.polygon;
     } else {
@@ -516,6 +521,7 @@ function preprocess_fragment(data) {
       // set the mirror flag to true
       mirror = true;
       imageURL = data.verso.url;
+      autoCutURL = data.verso.auto.cut;
       boxPoints = data.verso.box;
       polygonPoints = data.verso.polygon;
       data.recto.ppi = data.verso.ppi;
@@ -525,6 +531,7 @@ function preprocess_fragment(data) {
     if ('url' in data.verso) {
       // verso data available
       imageURL = data.verso.url;
+      autoCutURL = data.verso.auto.cut;
       boxPoints = data.verso.box;
       polygonPoints = data.verso.polygon;
     } else {
@@ -532,6 +539,7 @@ function preprocess_fragment(data) {
       // set the mirror flag to true
       mirror = true;
       imageURL = data.recto.url;
+      autoCutURL = data.recto.auto.cut;
       boxPoints = data.recto.box;
       polygonPoints = data.recto.polygon;
       data.verso.ppi = data.recto.ppi;
@@ -557,11 +565,13 @@ function preprocess_fragment(data) {
     } else {
       python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-  } else if (data.maskMode == 'automatic') {
+  } else if (data.maskMode == 'automatic_cut') {
     if (mirror) {
-      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), autoCutURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), autoCutURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    if (mirror) filename = path.basename(autoCutURL).split('.')[0]+'_mirror.png';
+    else filename = path.basename(autoCutURL).split('.')[0]+'_frag.png';
   }
   const newURL = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
   if (!rectoProcessed) {
@@ -1311,7 +1321,7 @@ ipcMain.on('server-open-tpop', (event, tableID) => {
       tpopWindow.maximize();
       tpopWindow.on('close', function() {
         tpopWindow = null;
-        activeTables.tpop = null;
+        // activeTables.tpop = null;
       });
     }
   }
@@ -1410,6 +1420,8 @@ ipcMain.on('server-load-tpop-fragments', (event, listOfTpopIds) => {
   LOGGER.receive('SERVER', 'server-load-tpop-fragments');
   tpopWindow.close();
   const tableID = activeTables.tpop;
+  activeTables.tpop = null;
+  activeTables.uploading = tableID;
   sendMessage(mainWindow, 'client-start-loading', tableID);
 
   tpopManager.prepareIDsForUpload(listOfTpopIds, tableID, sequentialUpload);
@@ -1505,6 +1517,8 @@ ipcMain.on('server-check-tpop-data', () => {
   tpopManager.initialiseData(false, function() {
     sendMessage(tpopWindow, 'tpop-calculation-done')
   });
+  const activeFilters = tpopManager.getActiveFilters();
+  sendMessage(tpopWindow, 'tpop-active-filters', activeFilters);
 
 });
 
@@ -1546,7 +1560,6 @@ ipcMain.on('server-delete-model', (event, modelID) => {
 ipcMain.on('server-delete-masks', (event) => {
   LOGGER.receive('SERVER', 'server-delete-masks');
   // TODO delete masks
-  sendMessage(event.sender, 'upload-masks-deleted');
 });
 
 ipcMain.on('server-check-tensorflow', () => {

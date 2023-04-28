@@ -453,7 +453,7 @@ class Sidebar {
     const distance = $('<div>', {class: 'measure-distance'});
     distance.text('? cm');
 
-    const del = $('<div>', {class: 'button small_button no_select'});
+    const del = $('<div>', {class: 'button small_square no_select'});
     const delImg = $('<img>',
         {src: '../imgs/symbol_x.png'});
 

@@ -1,0 +1,188 @@
+/* Basic Button */
+.button {
+    position: relative;
+    background-color: #dddddd;
+    color: black;
+    overflow: hidden;
+    border: 2px solid #aaaaaa;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: all .2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button:hover {
+    background-color: white;
+    border-color: white;
+    box-shadow: 3px 3px 4px black;
+}
+
+.button:active {
+    background-color: var(--cb_blue);
+    box-shadow: inset 3px 3px 4px black, inset -1px -1px 4px white; 
+}
+
+.button img {
+    max-height: 100%;
+    max-width: 100%;
+    padding: 5px;
+    transition: padding .1s;
+}
+
+.button:not(.disabled):hover img {
+    padding: 2px;
+}
+
+.button.disabled,
+.button.disabled:hover
+{
+    box-shadow: none;
+    border: none;
+    background-color: #505050;
+}
+
+.button label {
+    flex-grow: 1;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+/* Broad Sidebar Button */
+.button.sidebar_wide {
+    width: 60%;
+    max-width: 300px;
+    height: 50px;
+    margin: 5px auto;
+    position: relative;
+    align-items: center;
+}
+
+/* Settings for Small Sidebar */
+.small .button label {
+    font-size: 0.9em;
+}
+.small .button.button.sidebar_wide {
+    width: 90%;
+}
+
+/* Square Button */
+.button.square {
+    height: 50px;
+    width: 50px;
+}
+
+/* Small Square Button */
+.button.small_square {
+    height: 25px;
+    width: 25px;
+}
+
+/* Tiny Button */
+.button.tiny {
+    display: inline-block;
+    height: 25px;
+    width: 25px;
+}
+.button.tiny img {
+    padding: 3px;
+}
+.button.tiny:hover img {
+    padding: 1px;
+}
+
+/* Small Square Button With Image and Text */
+.button.small_with_text {
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: 34%;
+    /* flex: 0 0 34%; */
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    max-width: 60px;
+}
+
+.button.small_with_text img {
+    max-width: 50%;
+}
+
+
+/* Square Button on Table */
+.button.square.on-table {
+    height: 40px;
+    width: 40px;
+}
+
+/* Large Button */
+.large_button {
+    flex-direction: row;
+    width: 200px;
+    height: 50px;
+    justify-content: center;
+    align-items: center;
+}
+
+.large_button_flexible {
+    flex-direction: row;
+    height: 50px;
+    justify-content: center;
+    align-items: center;
+    padding-right: 5px;
+}
+
+/* Button Numbers */
+.button_number {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ccc;
+    border-radius: 4px;
+    right: 3px;
+    bottom: 3px;
+    font-size: 10px;
+    line-height: 10px;
+}
+
+.disabled .button_number {
+    display: none;
+}
+
+
+
+/*
+
+.large_button {
+    display: flex;
+    flex-direction: row;
+    width: 200px;
+    height: 50px;
+    line-height: 50px;
+}
+
+.large_button_img {
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    transition: padding .1s;
+}
+
+.large_button:hover:not(.disabled) .large_button_img {
+    padding: 7px;
+}
+
+.large_button:active:not(.disabled) .large_button_img {
+    padding: 12px;
+}
+
+.large_button_label {
+    display: inline-block;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    padding: 0px 5px;
+}
+
+*/

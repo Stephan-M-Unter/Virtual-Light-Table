@@ -1,4 +1,5 @@
 @import 'root.css';
+@import 'buttons.css';
 
 * {
     box-sizing: border-box;
@@ -118,6 +119,8 @@ input[disabled] {
 
 #folder {
     width: 100%;
+    background-image: url('../imgs/symbol_folder.png    ');
+    cursor: pointer;
 }
 
 #save_list {
@@ -256,6 +259,7 @@ table tr td:last-child {
     flex-grow: 1;
     height: 30px;
     margin: 2px;
+    background-image: url('../imgs/symbol_magnifier.png');
 }
 
 label {

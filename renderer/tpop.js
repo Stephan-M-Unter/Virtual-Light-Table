@@ -23,6 +23,7 @@ $(document).ready(() => {
 });
 
 function checkForData() {
+  LOGGER.send('TPOP', 'server-check-tpop-data');
   ipcRenderer.send('server-check-tpop-data');
 }
 
@@ -45,6 +46,7 @@ function requestBatch() {
       'startIndex': lastIndex+1,
       'endIndex': endIndex,
     };
+    LOGGER.send('TPOP', 'server-load-tpop-json', data);
     ipcRenderer.send('server-load-tpop-json', data);
     lastIndex = endIndex;
   }
@@ -59,7 +61,7 @@ function resetTPOPView() {
   $('#tile-view').empty();
 }
 
-function addFilter(attribute, operator, value) {
+function addFilter(attribute, operator, value, ignoreRequest) {
   const filter = $('<div class="filter"></div>');
   filter.attr('data-attribute', attribute);
   filter.attr('data-operator', operator);
@@ -83,7 +85,9 @@ function addFilter(attribute, operator, value) {
   $('#filter-list').append(filter);
   $('#filter-overlay').css('display', 'none');
 
-  requestFilter();
+  if (!ignoreRequest) {
+    requestFilter();
+  }
 }
 
 /**
@@ -115,6 +119,7 @@ function requestFilter() {
     filterRequest.push(filterData);
   });
 
+  LOGGER.send('TPOP', 'server-tpop-filter', filterRequest);
   ipcRenderer.send('server-tpop-filter', filterRequest);
 }
 
@@ -123,6 +128,7 @@ function requestFilter() {
  * @param {*} tpopID
  */
 function requestPosition(tpopID) {
+  LOGGER.send('TPOP', 'server-tpop-position', tpopID);
   ipcRenderer.send('server-tpop-position', tpopID);
 }
 
@@ -131,6 +137,7 @@ function requestPosition(tpopID) {
  * @param {*} id
  */
 function requestDetails(id) {
+  LOGGER.send('TPOP', 'server-tpop-details', id);
   ipcRenderer.send('server-tpop-details', id);
 }
 
@@ -142,6 +149,7 @@ function displayDetails(details) {
   $('#detail-view .subtitle.hidden').removeClass('hidden');
   $('#detail-view .detail-symbol.hidden').removeClass('hidden');
   $('#detail-page-warning').addClass('hidden');
+  $('#detail-link').removeClass('hidden');
   $('#detail-link').attr('href', details.permalink);
   $('#detail-name').html(details.InventoryNumber);
   const imageRecto = details.ObjectImageRecto || '../imgs/symbol_no_pic.png';
@@ -180,6 +188,7 @@ function displayDetails(details) {
       // object has registered joins
       // $('#detail-joins').removeClass('hidden');
       $('#detail-joins').find('.subtitle').html('Registered Joins ('+details['TPOPidsJoins'].length+' objects)');
+      LOGGER.send('TPOP', 'server-tpop-basic-info', details['TPOPidsJoins']);
       ipcRenderer.send('server-tpop-basic-info', details['TPOPidsJoins']);
     }
   }
@@ -216,10 +225,10 @@ function updateLoadButton() {
   const objectsToLoad = $('#loading-view').children().length;
   if (objectsToLoad > 0) {
     $('#load-text').html('Add '+objectsToLoad+' fragment(s) to table');
-    $('#load').removeClass('inactive');
+    $('#load').removeClass('disabled');
   } else {
     $('#load-text').html('Select fragments');
-    $('#load').addClass('inactive');
+    $('#load').addClass('disabled');
   }
 }
 
@@ -819,6 +828,7 @@ $(window).on('mouseup', (event) => {
 });
 
 $('#select-folder').click((event) => {
+  LOGGER.send('TPOP', 'server-display-folders');
   ipcRenderer.send('server-display-folders');
 });
 
@@ -860,6 +870,7 @@ $('html').keydown(function(event) {
   if (event.keyCode == 27) {
     // ESC -> close filter and folder view
     $('#filter-overlay').css('display', 'none');
+    $('#folder-overlay').css('display', 'none');
   } else if (event.keyCode == 37) {
     // Left Arrow -> Move selection left
     moveSelectionLeftRight(-1);
@@ -918,6 +929,7 @@ $('#loading-right-arrow').click(function() {
 });
 
 $('#cancel').click(function() {
+  LOGGER.send('TPOP', 'server-close-tpop');
   ipcRenderer.send('server-close-tpop');
 });
 
@@ -983,11 +995,13 @@ $('#ml-calculate').click(function() {
       'weights': weights,
       'ids': tpopids,
     };
+    LOGGER.send('TPOP', 'server-calculate-distances', data);
     ipcRenderer.send('server-calculate-distances', data);
   }
 });
 
 $('#ml-reset').click(function() {
+  LOGGER.send('TPOP', 'server-reset-sorting');
   ipcRenderer.send('server-reset-sorting');
 });
 
@@ -995,6 +1009,7 @@ $('#reload-json').click(() => {
   if (!requesting) {
     $('#reload-json img').attr('src', '../imgs/loading-small.gif');
     requesting = true;
+    LOGGER.send('TPOP', 'server-reload-json');
     ipcRenderer.send('server-reload-json');
     $('.filter').remove();
     filters = [];
@@ -1016,11 +1031,14 @@ $('.ml-weight').on('input', () => {
 });
 
 $('#load').on('click', (event) => {
-  const selectedFragments = [];
-  for (const fragment of $('#loading-view .loading')) {
-    selectedFragments.push($(fragment).attr('id').replace('load-', ''));
+  if (!$('#load').hasClass('disabled')) { 
+    const selectedFragments = [];
+    for (const fragment of $('#loading-view .loading')) {
+      selectedFragments.push($(fragment).attr('id').replace('load-', ''));
+    }
+    LOGGER.send('TPOP', 'server-load-tpop-fragments', selectedFragments);
+    ipcRenderer.send('server-load-tpop-fragments', selectedFragments);
   }
-  ipcRenderer.send('server-load-tpop-fragments', selectedFragments);
 });
 
 ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
@@ -1060,6 +1078,16 @@ ipcRenderer.on('tpop-json-data', (event, tpopJson) => {
   } else {
     requesting = false;
   }
+});
+
+ipcRenderer.on('tpop-active-filters', (event, activeFilters) => {
+  LOGGER.receive('TPOP', 'tpop-active-filters', activeFilters);
+  activeFilters.forEach((filter) => {
+    const attribute = filter.attribute;
+    const operator = filter.operator;
+    const value = filter.value;
+    addFilter(attribute, operator, value, true);
+  });
 });
 
 $('#flip-grid').click(() => {
@@ -1155,7 +1183,10 @@ ipcRenderer.on('tpop-basic-info', (event, data) => {
         } else {
           // add item to selection
           const name = $(this).parent().attr('data-name');
-          const url = $(this).parent().attr('data-url-recto');
+          let url = '../imgs/symbol_no_pic.png';
+          if($(this).parent().attr('data-url-recto')) {
+            url = $(this).parent().attr('data-url-recto');
+          }
           selectTile(id, name, url);
         }
       });

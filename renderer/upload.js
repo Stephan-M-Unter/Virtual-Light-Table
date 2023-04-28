@@ -16,7 +16,6 @@ let scalePoint = null;
 let brushMode = false;
 let brushing = false;
 let scale = 1;
-let showingCut = false;
 let reposition = false;
 const mousestart = {};
 let id = null;
@@ -243,6 +242,7 @@ function draw(sidename, center) {
   if (side.content.filepath != null) {
     if (side.content.img == null) {
       // create a new image first from file
+      console.log('creating new image');
       createImage(sidename, center);
     } else {
       // draw canvas
@@ -298,8 +298,12 @@ function draw(sidename, center) {
       side.stage.addChildAt(side.content.img_bg, shadow, side.content.img, side.mask.group, 0);
       if (center) centerImage(side);
     }
-  } else if (tpop) {
-    $('#'+sidename+'_canvas_region').find('.choose_tpop').removeClass('unrendered');
+  } else {
+    side.stage.removeAllChildren();
+    side.stage.update();
+    if (tpop) {
+      $('#'+sidename+'_canvas_region').find('.choose_tpop').removeClass('unrendered');
+    }
   }
   drawMasks();
   checkGUI();
@@ -325,7 +329,20 @@ function getFittingScale(side) {
 function createImage(sidename, center) {
   const side = getSide(sidename);
   const newImage = new Image();
-  newImage.src = side.content.filepath;
+  if (maskMode == 'automatic') {
+    console.log('automatic mode');
+    const activeModelID = $('#mask_automatic_model').find(":selected").val();
+    if (side.mask.auto.cuts[activeModelID]) {
+      console.log('cut found');
+      newImage.src = side.mask.auto.cuts[activeModelID];
+    } else {
+      console.log('no cut found');
+      newImage.src = side.content.filepath;
+    }
+  } else {
+    console.log('standard image');
+    newImage.src = side.content.filepath;
+  }
   newImage.onload = function() {
     // extract PPI from EXIF if possible
     readExifPPI(newImage, sidename);
@@ -541,6 +558,13 @@ function swap() {
   draw('verso');
 }
 
+function checkAutoSegmentationRequirements(side) {
+  if (!side.content.filepath) return true;
+  const activeModelID = $('#mask_automatic_model').find(":selected").val();
+  if (!side.mask.auto.cuts[activeModelID]) return false;
+  return true;
+}
+
 /**
  *
  */
@@ -548,6 +572,14 @@ function checkRequiredFields() {
   let rectoFulfilled = true;
   let versoFulfilled = true;
   let nameFulfilled = true;
+  let automaticFulfilled = true;
+  if (maskMode == 'automatic') {
+    automaticFulfilled = false;
+  }
+  if (maskMode == 'automatic_cut') {
+    if (!checkAutoSegmentationRequirements(recto)) automaticFulfilled = false;
+    if (!checkAutoSegmentationRequirements(verso)) automaticFulfilled = false;
+  }
   if (recto.content.filepath) {
     if ($('#recto_ppi').val() == null) {
       rectoFulfilled = false;
@@ -589,7 +621,7 @@ function checkRequiredFields() {
     $('#objectname').removeClass('missing');
   }
 
-  if (rectoFulfilled && versoFulfilled && nameFulfilled) {
+  if (rectoFulfilled && versoFulfilled && nameFulfilled && automaticFulfilled) {
     $('#upload_button').removeClass('disabled');
   } else {
     $('#upload_button').addClass('disabled');
@@ -752,7 +784,7 @@ function drawMasks(reload) {
   } else if (maskMode == 'polygon') {
     // display polygonal mask
     drawPolygonMask();
-  } else if (maskMode == 'automatic') {
+  } else if (maskMode == 'automatic' || maskMode == 'automatic_cut') {
     // use ML result
     drawAutoMask(reload);
   } else {
@@ -1155,31 +1187,36 @@ function endActiveModes() {
  */
 function drawAutoMask(reload) {
   if (tensorflow == false) {
+    /* No information available if tensorflow is available; thus asking server to check */
     LOGGER.send('UPLOAD', 'server-check-tensorflow');
     ipcRenderer.send('server-check-tensorflow');
-  } else if (showingCut) {
   } else {
+    const activeModelID = $('#mask_automatic_model').find(":selected").val();
     for (const side of [recto, verso]) {
-      side.mask.group.removeAllChildren();
-      if (side.content.img) side.content.img.mask = null;
-      if (reload) {
-        if (side.mask.auto.mask != null) {
-          side.mask.group.removeChild(side.mask.auto.mask);
-          side.mask.auto.mask = null;
-        }
-        
-        const activeModelID = $('#mask_automatic_model').find(":selected").val();
-        if (activeModelID in side.mask.auto.paths && side.mask.auto.paths[activeModelID] != null) {
-          const maskPath = side.mask.auto.paths[activeModelID];
-          const autoMask = new Image();
-          autoMask.src = `${maskPath}?_=${+new Date()}`;
-          autoMask.onload = function() {          
-            const mask = new createjs.Bitmap(autoMask);
-            side.mask.auto.mask = mask;
-            mask.name = 'Automatic Mask ('+activeModelID+')';
-            mask.regX = side.content.img.regX;
-            mask.regY = side.content.img.regY;
-            mask.x = side.content.img.x;
+      if (!side.content.img) {
+        continue;
+      }
+      if (!side.mask.auto.cuts[activeModelID]) {
+
+        side.mask.group.removeAllChildren();
+        if (side.content.img) side.content.img.mask = null;
+        if (reload) {
+          if (side.mask.auto.mask != null) {
+            side.mask.group.removeChild(side.mask.auto.mask);
+            side.mask.auto.mask = null;
+          }
+          
+          if (activeModelID in side.mask.auto.paths && side.mask.auto.paths[activeModelID] != null) {
+            const maskPath = side.mask.auto.paths[activeModelID];
+            const autoMask = new Image();
+            autoMask.src = `${maskPath}?_=${+new Date()}`;
+            autoMask.onload = function() {          
+              const mask = new createjs.Bitmap(autoMask);
+              side.mask.auto.mask = mask;
+              mask.name = 'Automatic Mask ('+activeModelID+')';
+              mask.regX = side.content.img.regX;
+              mask.regY = side.content.img.regY;
+              mask.x = side.content.img.x;
             mask.y = side.content.img.y;
             mask.scale = side.content.img.scale;
             mask.alpha = $('#mask_control_opacity_slider').val() / 100;
@@ -1199,7 +1236,7 @@ function drawAutoMask(reload) {
         side.stage.update();
       } else {
       }
-
+    }
     }
   }
 }
@@ -1236,6 +1273,15 @@ function uploadData() {
     dataRecto.cy = recto.content.img.y;
     dataRecto.box = canvasToImage(recto.content.img, recto.mask.box);
     dataRecto.polygon = canvasToImage(recto.content.img, recto.mask.polygon);
+    dataRecto.auto = {};
+    dataRecto.auto.modelID = null;
+    dataRecto.auto.cut = null;
+    dataRecto.auto.mask = null;
+    if (maskMode == 'automatic_cut') {
+      dataRecto.auto.modelID = $('#mask_automatic_model').find(":selected").val();
+      dataRecto.auto.cut = recto.mask.auto.cuts[dataRecto.auto.modelID];
+      dataRecto.auto.mask = recto.mask.auto.paths[dataRecto.auto.modelID];
+    }
     dataRecto.www = recto.content.www;
 
     dataRecto.upload = {
@@ -1260,6 +1306,16 @@ function uploadData() {
     dataVerso.box_upload = verso.mask.box;
     dataVerso.polygon = canvasToImage(verso.content.img, verso.mask.polygon);
     dataVerso.polygon_upload = verso.mask.polygon;
+    dataVerso.auto = {};
+    dataVerso.auto.modelID = null;
+    dataVerso.auto.cut = null;
+    dataVerso.auto.mask = null;
+    if (maskMode == 'automatic_cut') {
+      dataVerso.auto.modelID = $('#mask_automatic_model').find(":selected").val();
+      dataVerso.auto.cut = verso.mask.auto.cuts[dataVerso.auto.modelID];
+      dataVerso.auto.mask = verso.mask.auto.paths[dataVerso.auto.modelID];
+    }
+
     dataVerso.www = verso.content.www;
 
     dataVerso.upload = {
@@ -1387,6 +1443,7 @@ function activateMaskMode(mode) {
   $('.list_item.'+maskMode).addClass('selected');
   $('.mask_controls.'+maskMode).addClass('selected');
   $('.mask_explanation.'+maskMode).addClass('selected');
+  checkGUI();
   drawMasks();
 }
 
@@ -1683,11 +1740,22 @@ $('#mask_control_automatic_register').click(() => {});
 $('#mask_control_automatic_delete').click(() => {
   LOGGER.send('UPLOAD', 'server-delete-masks');
   ipcRenderer.send('server-delete-masks');
+  recto.content.img = null;
+  recto.mask.group.removeAllChildren();
+  verso.content.img = null;
+  verso.mask.group.removeAllChildren();
+  const activeModelID = $('#mask_automatic_model').find(":selected").val();
+  recto.mask.auto.cuts[activeModelID] = null;
+  verso.mask.auto.cuts[activeModelID] = null;
+  draw('recto', true);
+  draw('verso', true);
 });
 
 function updateAutomaticModelSelectionButtons() {
   const modelID = $('#mask_automatic_model').find(':selected').val();
   const selectionButton = $('#mask_selection_automatic_button');
+  const buttonLabel = $('#mask_selection_automatic_button label');
+  const buttonImage = $('#mask_selection_automatic_button img');
   const deleteButton = $('#mask_selection_delete_model');
   let targetMode = 'download';
 
@@ -1699,15 +1767,18 @@ function updateAutomaticModelSelectionButtons() {
 
   selectionButton.removeClass('loading');
   if (targetMode == 'download') {
-    selectionButton.html('Download Model');
+    buttonLabel.html('Download Model');
+    buttonImage.attr('src', '../imgs/symbol_download.png');
     selectionButton.attr('mode', targetMode);
     deleteButton.addClass('unrendered');
   } else if (targetMode == 'compute') {
-    selectionButton.html('Compute Mask(s)');
+    buttonLabel.html('Compute Mask(s)');
+    buttonImage.attr('src', '../imgs/symbol_ml.png');
     selectionButton.attr('mode', targetMode);
     deleteButton.removeClass('unrendered');
   } else if (targetMode == 'processing') {
-    selectionButton.html('Loading...');
+    buttonLabel.html('Loading...');
+    buttonImage.attr('src', '../imgs/symbol_gear.png');
     selectionButton.addClass('loading');
     selectionButton.attr('mode', targetMode);
   }
@@ -1836,11 +1907,6 @@ ipcRenderer.on('upload-model-deleted', (event, modelID) => {
   updateAutomaticModelSelectionButtons();
 });
 
-ipcRenderer.on('upload-masks-deleted', () => {
-  LOGGER.receive('UPLOAD', 'upload-masks-deleted');
-  $('#mask_control_panel_automatic').addClass('unrendered');
-});
-
 ipcRenderer.on('upload-tensorflow-checked', (event, tensorflowCheck) => {
   LOGGER.receive('UPLOAD', 'upload-tensorflow-checked', tensorflowCheck);
   LOGGER.log('UPLOAD', 'Tensorflow Check Result: '+tensorflowCheck);
@@ -1880,15 +1946,15 @@ ipcRenderer.on('upload-images-cut', (event, data) => {
   if (data) {
     recto.mask.auto.cuts[data.modelID] = data.cut1;
     verso.mask.auto.cuts[data.modelID] = data.cut2;
-    recto.content.filepath = data.cut1;
+    // recto.content.filepath = data.cut1;
     recto.content.img = null;
     recto.mask.group.removeAllChildren();
-    verso.content.filepath = data.cut2;
+    // verso.content.filepath = data.cut2;
     verso.content.img = null;
     verso.mask.group.removeAllChildren();
-    showingCut = true;
     draw('recto', true);
     draw('verso', true);
+    maskMode = 'automatic_cut';
   }
 });
 

@@ -1,0 +1,19 @@
+Table
+
+annots
+editors
+fragments
+graphicFilters
+objectOrder
+screenshot
+stage
+    area
+        W
+        H
+    offset
+        x1
+        yAxis
+        baseX
+        baseY
+        scale
+    scaling

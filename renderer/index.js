@@ -263,26 +263,28 @@ $(document).ready(function() {
 
   // Hide HUD button - toggle visibility of GUI elements
   $('#hide_hud').click(function(event) {
+    const hud_elements = [
+      'left_sidebar',
+      'zoom_wrapper',
+      'table_button_wrapper',
+      'annot_button',
+      'fit_to_screen',
+      'reset_zoom',
+      'center_to_origin',
+      'topbar',
+      'rulers',
+    ]
+
     if ($('#hide_hud').hasClass('hide_active')) {
       // if the HUD is currently hidden, show it again
-      $('#left_sidebar').removeClass('hidden');
-      $('#zoom_wrapper').removeClass('hidden');
-      $('#table_button_wrapper').removeClass('hidden');
-      $('#annot_button').removeClass('hidden');
-      $('#fit_to_screen').removeClass('hidden');
-      $('#reset_zoom').removeClass('hidden');
-      $('#center_to_origin').removeClass('hidden');
-      $('#topbar').removeClass('hidden');
+      hud_elements.forEach((el) => {
+        $('#'+el).removeClass('hidden');
+      });
       $('#hide_hud').removeClass('hide_active');
     } else {
-      $('#left_sidebar').addClass('hidden');
-      $('#zoom_wrapper').addClass('hidden');
-      $('#table_button_wrapper').addClass('hidden');
-      $('#annot_button').addClass('hidden');
-      $('#fit_to_screen').addClass('hidden');
-      $('#reset_zoom').addClass('hidden');
-      $('#center_to_origin').addClass('hidden');
-      $('#topbar').addClass('hidden');
+      hud_elements.forEach((el) => {
+        $('#'+el).addClass('hidden');
+      });
       $('#hide_hud').addClass('hide_active');
     }
   });

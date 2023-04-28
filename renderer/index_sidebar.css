@@ -1,0 +1,163 @@
+#left_sidebar {
+    position: absolute;
+    background-color: rgba(29, 29, 27, 0.5);
+    top: 0px;
+    left: 0px;
+    width: 200px;
+    max-width: 50%;
+    min-width: 180px;
+    height: 100vh;
+    transition: 0.2s background-color;
+    float: left;
+}
+
+#left_sidebar:hover,
+#sidebar_handle:hover #left_sidebar {
+    background-color: rgba(29, 29, 27, 0.7);
+    transition: 0.2s background-color;
+}
+
+#fragment_list_content {
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+
+#sidebar_content {
+    position: absolute;
+    width: 100%;
+    color: var(--cb_grey);
+}
+
+#sidebar_content hr {
+    border-top: 1px solid white;
+}
+
+#sidebar_handle {
+    float: right;
+    position: relative;
+    height: 100vh;
+    width: 1px;
+    cursor: ew-resize;
+    background-color: black;
+    box-shadow: 3px 0px 10px black;
+}
+
+#sidebar_handle_grabber {
+    position: absolute;
+    top: 50%;
+    width: 20px;
+    height: 100px;
+    background-color: rgba(100, 100, 100, 1);
+    transform: translateX(-20%) translateY(-50%);
+    border: 1px solid rgb(40, 40, 40);
+    border-radius: 7px;
+    writing-mode: vertical-lr;
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: bold;
+    transition: 0.2s background-color;
+}
+
+#sidebar_handle_grabber:hover,
+#left_sidebar:hover #sidebar_handle_grabber {
+    background-color: rgba(200, 200, 200, 1);
+    transition: 0.2s background-color;
+}
+
+#left_sidebar:hover .sidebar_header,
+#sidebar_handle:hover .sidebar_header {
+    background-color: black;
+    transition: 0.2s background-color;
+}
+
+#left_sidebar:hover .expanded .sidebar_header,
+#sidebar_handle:hover .expanded .sidebar_header {
+    transition: 0.2s background-color;
+    background-color: rgba(164, 4, 42, 1);
+}
+
+#fragment_list_content {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: center;
+    padding: 5px;
+    height: calc(100vh - 250px);
+}
+
+#left_sidebar:not(.small) #fragment_list_content {
+    height: calc(100vh - 300px);
+}
+
+#export_detail_wrapper {
+    height: 0px;
+    overflow: hidden;
+    transition: all .2s;
+}
+
+#export_detail_wrapper.expanded {
+    height: auto;
+    transition: all .2s;
+}
+
+#clear-measures,
+#workarea_clear {
+    background-color: lightsalmon;
+    width: 200px;
+    max-width: 100%;
+    margin: 10px auto;
+    color: black;
+}
+
+#graphics-reset:not(:hover) {
+    background-color: var(--cb_orange);
+}
+
+#left_sidebar input[type='range'] {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 80%; /* Full-width */
+    height: 5px; /* Specified height */
+    background: #eee; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+#left_sidebar input[type='range']:hover {
+    opacity: 1;
+}
+
+#left_sidebar input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 12px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: var(--cb_orange); /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 2px;
+}
+
+
+#workarea-width {
+    background-image: url('../imgs/symbol_leftright.png');
+}
+#workarea-height {
+    background-image: url('../imgs/symbol_updown.png');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

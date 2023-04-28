@@ -134,8 +134,6 @@ class Stage {
       this.update();
       this.controller.saveToModel(true);
     });
-
-    this.controller.sendToServer('server-gather-ppi');
   }
 
   /**
@@ -501,12 +499,15 @@ class Stage {
    */
   _loadStageConfiguration(dataStage) {
     this.stage.scaling = 100; // default value
-    this.offset = {
-      x: this.stage.canvas.width / 2,
-      y: this.stage.canvas.height / 2,
-      baseX: this.stage.canvas.width / 2,
-      baseY: this.stage.canvas.height / 2,
-    };
+    if ((dataStage.offset.x == null) || (dataStage.offset.y == null)) {
+      this.offset = {
+        x: this.stage.canvas.width / 2,
+        y: this.stage.canvas.height / 2,
+        baseX: this.stage.canvas.width / 2,
+        baseY: this.stage.canvas.height / 2,
+        scale: 1,
+      };
+    }
     this.area = {
       w: 0,
       h: 0
@@ -516,7 +517,7 @@ class Stage {
       if ('scaling' in dataStage && dataStage.scaling) {
         this.controller.setScaling(dataStage.scaling);
       }
-      if ('offset' in dataStage && dataStage.offset) {
+      if ('offset' in dataStage && dataStage.offset && dataStage.offset.x != null && dataStage.offset.y != null) {
         this.offset = dataStage.offset;
       }
       if ('area' in dataStage && dataStage.area) {

@@ -54,6 +54,31 @@
     right: 20px;
 }
 
+.wrapper-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.wrapper-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+input.input-with-image {
+    padding-left: 26px;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    background-position: 5px 5px;
+}
+
+.small input.input-with-image {
+    background-size: 14px;
+    background-position: 3px 3px;
+}
+
 /* Animations */
 
 @keyframes slideUp {

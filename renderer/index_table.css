@@ -1,0 +1,222 @@
+#hide_hud {
+    /* width: 40px; */
+    /* height: 40px; */
+    position: absolute;
+    right: 50px;
+    top: 25px;
+    /* border: none; */
+}
+
+#hide_hud.hide_active {
+    right: 20px;
+    top: 20px;
+    box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 1);
+    background-color: var(--cb_blue);
+}
+
+
+#reset_zoom {
+    /* width: 40px; */
+    /* height: 40px; */
+    position: absolute;
+    right: 50px;
+    top: 160px;
+    /* border: none; */
+}
+
+#fit_to_screen {
+    /* width: 40px; */
+    /* height: 40px; */
+    /* background: white; */
+    /* opacity: 0.3; */
+    position: absolute;
+    top: 115px;
+    right: 50px;
+}
+
+#fit_to_screen:hover {
+    opacity: 1;
+}
+
+#fit_to_screen img {
+    height: 100%;
+    width: 100%;
+    padding: 5px;
+}
+
+#center_to_origin {
+    /* width: 40px; */
+    /* height: 40px; */
+    /* background: white; */
+    position: absolute;
+    top: 70px;
+    right: 50px;
+}
+
+/* Zoom Slider */
+
+#zoom_wrapper {
+    position: absolute;
+    top: 100px;
+    height: 50px;
+    right: -80px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    -webkit-transition: 0.2s;
+    transition: opacity 0.2s;
+}
+
+#zoom_wrapper * {
+    vertical-align: middle;
+}
+
+#zoom_wrapper:before {
+    content: "";
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+}
+
+#zoom_wrapper:hover #zoom_slider{
+    opacity: 1;
+    transition: all .2s;
+}
+
+#zoom_slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    transition: all 0.2s;
+    width: 40px;
+    height: 20px;
+    background: #f5842c;
+    border-radius: 5px;
+}
+
+#zoom_slider::-webkit-slider-thumb:hover {
+    background: rgb(231, 80, 54);
+}
+
+#zoom_slider::-webkit-slider-thumb:active {
+    background: rgb(255, 230, 7);
+}
+
+#zoom_slider {
+    -webkit-appearance: none;
+    transform: rotate(270deg);
+    opacity: 0.2;
+    outline: none;
+    height: 10px;
+    width: 200px;
+    border-radius: 5px;
+}
+
+#zoom_wrapper>.squareButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    position: relative;
+}
+
+#zoom_wrapper>.squareButton>.circularButtonImg {
+    vertical-align: middle;
+    position: absolute;
+    max-width: 15px;
+    max-height: 15px;
+    line-height: 36px;
+    left: 10px;
+}
+
+#zoom_factor {
+    position: absolute;
+    right: 120px;
+    bottom: -80px;
+    font-weight: 500;
+}
+
+#zoom_wrapper .tooltip {
+    top: 100%;
+    left: 30%;
+    width: 80px;
+}
+
+
+
+
+/* ################################ */
+/* ######     RULERS        ####### */
+/* ################################ */
+
+#rulers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+#ruler-left {
+    position: absolute;
+    width: 40px;
+    left: 200px;
+    height: 100vh;
+    background-color: #eee;
+    border-right: 3px solid #444;
+    pointer-events: none;
+}
+
+#ruler-bottom {
+    position: absolute;
+    bottom: 0;
+    width: calc(100vw - 200px);
+    left: 200px;
+    height: 30px;
+    background-color: #eee;
+    border-top: 3px solid #444;
+    pointer-events: none;
+}
+
+
+/* ################################ */
+/* ######     WORKAREA      ####### */
+/* ################################ */
+
+#wrapper_workarea {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+
+/* ################################ */
+/* ######    CONTEXTMENU    ####### */
+/* ################################ */
+
+#contextmenu {
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    padding: 2px;
+    opacity: 0;
+    left: -3000px;
+    top: -3000px;
+    transition: opacity .2s;
+}
+
+#contextmenu.toLeft .context-item .context-label {
+    width: 150px;
+    left: -150px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-right: 1px solid #eee;
+}
+
+#contextmenu.toLeft .context-item:hover .context-label {
+    left: -200px;
+}

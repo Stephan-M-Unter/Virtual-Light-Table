@@ -198,6 +198,7 @@ if cut2 is not None:
 result = {
     'cut1': target_path1,
     'cut2': target_path2,
+    'modelID': model_ID,
 }
 
 with open(os.path.join(path_output_folder, output_filename), 'w') as f:

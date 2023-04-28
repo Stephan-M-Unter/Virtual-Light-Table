@@ -1,4 +1,5 @@
 @import 'root.css';
+@import 'buttons.css';
 
 ::selection {
     background-color: var(--cb_orange);
@@ -96,36 +97,7 @@ body {
     background-color: var(--cb_blue) !important;
 }
 
-.large_button {
-    display: flex;
-    flex-direction: row;
-    width: 200px;
-    height: 50px;
-    line-height: 50px;
-}
 
-.large_button_img {
-    width: 50px;
-    height: 50px;
-    padding: 10px;
-    transition: padding .1s;
-}
-
-.large_button:hover:not(.disabled) .large_button_img {
-    padding: 7px;
-}
-
-.large_button:active:not(.disabled) .large_button_img {
-    padding: 12px;
-}
-
-.large_button_label {
-    display: inline-block;
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    padding: 0px 5px;
-}
 
 .square_button {
     width: 50px;
@@ -318,13 +290,6 @@ canvas.removePolygonNode {
     width: 100%;
 }
 
-#upload_button {
-    background-color: var(--cb_orange);
-    align-self: center;
-    width: 60%;
-    margin-top: 20px;
-}
-
 #objectname {
     width: 90%;
     height: 30px;
@@ -339,6 +304,10 @@ canvas.removePolygonNode {
     height: 40px;
     line-height: 40px;
     width: 100%;
+}
+
+#mask_selection {
+    z-index: 10;
 }
 
 .list {
@@ -399,6 +368,36 @@ canvas.removePolygonNode {
     align-content: center;
 }
 
+#mask_control_panel_automatic {
+    gap: 50px;
+}
+
+#wrapper-light {
+    height: 80px;
+}
+
+#wrapper-light-symbols {
+    flex-grow: 1;
+    height: 100%;
+    justify-content: space-between;
+}
+
+#wrapper-brush {
+    gap: 20px;
+}
+
+#mask_control_opacity_slider {
+    appearance: slider-vertical;
+    flex-shrink: 1;
+    width: 8px;
+    height: 80px;
+}
+
+.small_image {
+    /* width: 20px; */
+    height: 20px;
+}
+
 .mask_controls:not(.selected) {
     display: none;
 }
@@ -457,15 +456,15 @@ a {
     padding: 5px 2px;
     text-align: center;
 }
-
+/* 
 #mask_selection_automatic_button {
-    height: 50px;
-    padding: 10px;
-    width: 180px;
+    /* height: 50px; */
+    /* padding: 10px; */
+    /* width: 180px;
     display: flex;
     justify-content: center;
     align-items: center;
-}
+} */
 
 #mask_selection_delete_model,
 #mask_control_automatic_delete {

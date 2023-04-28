@@ -173,8 +173,8 @@ class MLManager {
             try {
               const cutJSON = fs.readFileSync(path.join(resultFileFolder, resultFileName));
               const cut = JSON.parse(cutJSON)
-              callback(cut);
               fs.remove(path.join(resultFileFolder, resultFileName));
+              callback(cut);
             } catch (err) {
               LOGGER.err('SERVER', 'Cutting result could not be read.');
               LOGGER.err('SERVER', err);

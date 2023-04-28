@@ -22,7 +22,20 @@ class Table {
         this.fragments = {};
     }
     clearStage() {
-        this.stage = {scaling: 100,};
+        this.stage = {
+            area: {
+                w: 0,
+                h: 0,
+            },
+            offset: {
+                x: null,
+                y: null,
+                baseX: null,
+                baseY: null,
+                scale: 1,
+            },
+            scaling: 100,
+        };
     }
     clearGraphicFilters() {
         this.graphicFilters = null;

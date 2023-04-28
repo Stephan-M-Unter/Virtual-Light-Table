@@ -31,6 +31,7 @@ class TPOPManager extends ContentManagerInterface {
     this.checkedForUpdates = false;
     this.fullTPOPData = null;
     this.activeTPOPData = null;
+    this.activeFilters = [];
     this.hideWithoutImages = false;
     this.filterTypes = null;
     this.ctime = 'unknown';
@@ -534,6 +535,8 @@ class TPOPManager extends ContentManagerInterface {
     // calculations could be reduced; depends on the performance if this is needed or not
     if (this.fullTPOPData == null) return false;
 
+    this.activeFilters = filters;
+
     this.activeTPOPData = this.fullTPOPData.slice(0);
 
     for (const idx in this.activeTPOPData) {
@@ -572,6 +575,10 @@ class TPOPManager extends ContentManagerInterface {
       return x !== null;
     });
   };
+
+  getActiveFilters() {
+    return this.activeFilters;
+  }
 
   /**
    *

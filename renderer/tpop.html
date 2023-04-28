@@ -11,20 +11,20 @@
         <div id="sidebar" class="area">
             <div>
                 <div id="version">Data Version: <span id="data-ctime"></span></br> (last download: <span id="data-mtime"></span>)</div>
-                <div id="reload-json" title="Reload Data from TPOP">
+                <div id="reload-json" class="button tiny" title="Reload Data from TPOP">
                     <img src="../imgs/symbol_reload.png">
                 </div>
             </div>
             <div id="filter-section" class="sidebar-section">
                 <hr>
                 <div class="title">Filters</div>
-                <div id="select-folder" class="button no-select">
+                <div id="select-folder" class="button large_button no-select">
                     <img src="../imgs/symbol_folder.png"/>
-                    <div class="button-label">Select Folder</div>
+                    <label>Select Folder</label>
                 </div>
-                <div id="filter-add" class="button no-select">
+                <div id="filter-add" class="button large_button no-select">
                     <img src="../imgs/symbol_plus_zoom.png"/>
-                    <div class="button-label">Add Filter</div>
+                    <label>Add Filter</label>
                 </div>
                 <div id="filter-list"></div>
             </div>
@@ -75,15 +75,15 @@
                 <div id="loading-right-arrow" class="no-select browse-arrow inactive">></div>
             </div>
             <div id="load-area" class="no-select">
-                <div id="cancel" class="button">
+                <div id="cancel" class="button large_button">
                     <img/>
-                    <div class="button-text">Cancel</div>
+                    <label>Cancel</label>
                 </div>
-                <div id="load" class="button inactive">
+                <div id="load" class="button large_button disabled">
                     <img/>
-                    <div id="load-text" class="button-text">Select fragments</div>
+                    <label id="load-text">Select fragments</label>
                 </div>
-                <div id="flip-grid" class="button">
+                <div id="flip-grid" class="button square">
                     <img src="../imgs/symbol_vertical_flip.png">
                     <div id="flip-grid-label" class="recto"></div>
                 </div>
@@ -94,19 +94,19 @@
         <div id="detail-view" class="area">
             <div class="title">Detail Information</div>
             <div id="detail-name" class="subtitle"></div>
-            <a id="detail-link" title="Open in TPOP (new window)" target="_blank" href="#"><img class="detail-symbol hidden" src="../imgs/symbol_extern.png"/></a>
+            <a id="detail-link" class="button tiny hidden" title="Open in TPOP (new window)" target="_blank" href="#"><img class="detail-symbol hidden" src="../imgs/symbol_extern.png"/></a>
             <!-- <div id="detail-find" title="Find in fragment grid"> -->
-            <img id="detail-find" class="detail-symbol hidden" title="Find page in fragment grid" src="../imgs/symbol_location.png"/>
+            <img id="detail-find" class="detail-symbol button tiny hidden" title="Find page in fragment grid" src="../imgs/symbol_location.png"/>
             <!-- </div> -->
             <div id="detail-page-warning" class="warning hidden">Fragment not contained in filtered fragment list</div>
             <div class="subtitle hidden">Recto
-                <a id="detail-recto-magnify" href="#" target="_blank">
+                <a id="detail-recto-magnify" class="button tiny hidden" href="#" target="_blank">
                     <img class="magnifier detail-symbol" title="Enlarge image" id="detail-recto-magnify" src="../imgs/symbol_magnifier.png"/>
                 </a>
             </div>
             <img id="detail-recto" src="" class="detail-image"/>
             <div class="subtitle hidden">Verso
-                <a id="detail-verso-magnify" href='#' target="_blank">
+                <a id="detail-verso-magnify" class="button tiny hidden" href='#' target="_blank">
                     <img class="magnifier detail-symbol" title="Enlarge image" src="../imgs/symbol_magnifier.png"/>
                 </a>
             </div>
@@ -114,8 +114,14 @@
             <div id="detail-meta">
                 <div id="detail-joins" class="hidden">
                     <div class="subtitle">Registered Joins</div>
-                    <div id="detail-add-joins" class="button no-select">Add All</div>
-                    <div id="detail-remove-joins" class="button no-select">Remove All</div>
+                    <div class="wrapper-row">
+                        <div id="detail-add-joins" class="button large_button no-select">
+                            <label>Add All</label>
+                        </div>
+                        <div id="detail-remove-joins" class="button large_button no-select">
+                            <label>Remove All</label>
+                        </div>
+                    </div>
                     <div id="detail-joins-list"></div>
                 </div>
             </div>

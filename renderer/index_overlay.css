@@ -1,0 +1,46 @@
+#overlay {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    background-color: rgba(0,0,0,0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.3em;
+}
+
+#overlay-central div {
+    text-align: center;
+}
+
+#progress-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 0px 5px 0px;
+}
+
+#progress {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    margin-right: 10px;
+    height: 30px;
+    -webkit-animation: animate-stripes 5s linear infinite;
+    animation: animate-stripes 5s linear infinite;
+}
+
+#progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+}
+
+#progress::-webkit-progress-value {
+    transition: all .2s;
+    background-image: -webkit-linear-gradient(left, var(--cb_blue), var(--cb_orange));
+    border-radius: 20px; 
+    background-size: /*35px 20px, 100% 100%,*/ 100% 100%;
+}
