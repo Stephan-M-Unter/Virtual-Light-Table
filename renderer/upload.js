@@ -1930,13 +1930,27 @@ ipcRenderer.on('tensorflow-installed', (event, tensorflowInstalled) => {
 
 ipcRenderer.on('upload-masks-computed', (event, data) => {
   LOGGER.receive('UPLOAD', 'upload-masks-computed', data);
-  modelsDownloaded[data.modelID] = true;
-  updateAutomaticModelSelectionButtons();
-  if (data) {
-    $('#mask_control_panel_automatic').removeClass('unrendered');
-    recto.mask.auto.paths[data.modelID] = data.pathMask1;
-    verso.mask.auto.paths[data.modelID] = data.pathMask2;
-    drawMasks(true);
+
+  if (data == null) {
+    /* some error happened, most likely with the execution of the script */
+    const selectionButton = $('#mask_selection_automatic_button');
+    const buttonLabel = $('#mask_selection_automatic_button label');
+    const buttonImage = $('#mask_selection_automatic_button img');
+
+    buttonLabel.html('ERROR!');
+    buttonImage.attr('src', '../imgs/symbol_exit.png');
+    selectionButton.removeClass('loading');
+    selectionButton.attr('mode', 'compute');
+
+  } else {
+    modelsDownloaded[data.modelID] = true;
+    updateAutomaticModelSelectionButtons();
+    if (data) {
+      $('#mask_control_panel_automatic').removeClass('unrendered');
+      recto.mask.auto.paths[data.modelID] = data.pathMask1;
+      verso.mask.auto.paths[data.modelID] = data.pathMask2;
+      drawMasks(true);
+    }
   }
 });
 
