@@ -17,6 +17,7 @@
     background-color: white;
     border-color: white;
     box-shadow: 3px 3px 4px black;
+    z-index: 1;
 }
 
 .button:active {

@@ -14,7 +14,6 @@ let konamiDetection = [];
 let konamiActive = false;
 
 let xyz; // REMOVE: entfernen
-let ann;
 
 /**
  * Checks if the last keystroke aligns with the famous konami code
@@ -272,19 +271,23 @@ $(document).ready(function() {
       'reset_zoom',
       'center_to_origin',
       'topbar',
-      'rulers',
     ]
 
     if ($('#hide_hud').hasClass('hide_active')) {
-      // if the HUD is currently hidden, show it again
+      // HUD is currently hidden => show it again
       hud_elements.forEach((el) => {
         $('#'+el).removeClass('hidden');
       });
       $('#hide_hud').removeClass('hide_active');
+      if ($('#ruler-wrapper').hasClass('button_active')) {
+        $('#rulers').removeClass('hidden');
+      }
     } else {
+      // HUD is currently visible => hide it
       hud_elements.forEach((el) => {
         $('#'+el).addClass('hidden');
       });
+      $('#rulers').addClass('hidden');
       $('#hide_hud').addClass('hide_active');
     }
   });
@@ -732,5 +735,4 @@ $(document).ready(function() {
   });
 
   xyz = controller.getStage(); // REMOVE
-  ann = controller.annotationPopup;
 });
