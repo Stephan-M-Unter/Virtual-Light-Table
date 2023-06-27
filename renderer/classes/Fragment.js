@@ -172,10 +172,14 @@ class Fragment {
   }
 
   /**
-   * TODO
+   * Summary/description of the function's functionality:
+   * - creates a new createjs.Bitmap object
+   * - sets the image of the bitmap to the image data of the event
+   *  (the image data is stored in the result property of the event)
+   * - sets the registration point of the bitmap to the center of the image
+   * - returns the bitmap
    * @param {*} eventData
    * @param {*} isRecto
-   * @return {*}
    */
   _createImage(eventData, isRecto) {
     let image;

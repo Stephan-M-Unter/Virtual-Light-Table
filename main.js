@@ -409,14 +409,15 @@ function preprocess_loading_fragments(data) {
   });
 }
 
-function check_requirements() {
-  let python = spawn('python3', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false});
+function check_python3() {
+  let python = spawn('python3', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false})
+  .on('error', function(err) {
+    check_python();
+  });
   python.stdout.pipe(process.stdout);
   python.stderr.pipe(process.stderr);
-  // STEP 1 - CHECK FOR PYTHON3 AS PYTHON COMMAND
   python.on('close', function(code) {
     if (code == 0) {
-      // SET PYTHONCMD TO PYTHON3
       LOGGER.log('SERVER', `python3 closed with code ${code}`);
       LOGGER.log('SERVER', 'setting python command to "python3"');
       CONFIG.set_python_command('python3');
@@ -425,28 +426,39 @@ function check_requirements() {
       LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
       if (code == 9009) LOGGER.log('SERVER', '"python3" was not found, now testing with command "python"');
       else LOGGER.log('SERVER', '"python3" was found, but another problem stopped it from working. Now testing with command "python".');
-      // STEP 2 - CHECK FOR PYTHON AS PYTHON COMMAND
-      python = spawn('python', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false});
-      python.stdout.pipe(process.stdout);
-      python.stderr.pipe(process.stderr);
-      python.on('close', function(code) {
-        if (code == 0) {
-          // SET PYTHONCMD TO PYTHON
-          LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
-          LOGGER.log('SERVER', 'Setting python command to "python"');
-          CONFIG.set_python_command('python');
-          mlManager.checkForTensorflow();
-        } else {
-          // ABORT - PYTHON3 AND PYTHON NOT AVAILABLE
-          LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
-          if (code == 9009) LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
-          else LOGGER.err('SERVER', "Python was found, but another problem stops the installation from running.");
-          app.quit();
-        }
-      });
+      check_python();
     }
-  }
-)}
+  });
+}
+
+function check_python() {
+  let python = spawn('python', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false})
+  .on('error', function(err) {
+    LOGGER.err('SERVER', 'Python was not found. Please install Python and add it to your PATH variable.');
+    app.quit();
+  });
+  python.stdout.pipe(process.stdout);
+  python.stderr.pipe(process.stderr);
+  python.on('close', function(code) {
+    if (code == 0) {
+      // SET PYTHONCMD TO PYTHON
+      LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+      LOGGER.log('SERVER', 'Setting python command to "python"');
+      CONFIG.set_python_command('python');
+      mlManager.checkForTensorflow();
+    } else {
+      // ABORT - PYTHON3 AND PYTHON NOT AVAILABLE
+      LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+      if (code == 9009) LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
+      else LOGGER.err('SERVER', "Python was found, but another problem stops the installation from running.");
+      app.quit();
+    }
+  });
+}
+
+function check_requirements() {
+  check_python3();
+}
 
 /**
  *
@@ -1605,4 +1617,32 @@ ipcMain.on('server-edit-auto-mask', (event, data) => {
 ipcMain.on('server-online-status', (event, onlineStatus) => {
   LOGGER.receive('SERVER', 'server-online-status', onlineStatus);
   online = onlineStatus;
+});
+
+ipcMain.on('server-local-drop', (event, dataArray) => {
+  LOGGER.receive('SERVER', 'server-drop-local', dataArray);
+
+  const loadingQueue = [];
+
+  const tableID = activeTables.view;
+
+  for (const url of dataArray) {
+    // url is a path to a file; read the filename (without extension) into the variable name
+    const name = path.basename(url, path.extname(url));
+    const entry = {
+      'table': tableID,
+      'fragment': {
+        'x': 0,
+        'y': 0,
+        'name': name,
+        'recto': {
+          'url': url,
+          'www': false,
+        },
+      },
+    };
+    loadingQueue.push(entry);
+  }
+
+  sequentialUpload(loadingQueue);
 });

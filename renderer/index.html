@@ -23,12 +23,12 @@
                     <div id="table_separator"></div>
                 </div>
                 <div title="Create new table" id="add_table">
-                    <img src="../imgs/symbol_plus_zoom.png">
+                    <img src="../imgs/symbol_plus_zoom.png" class="no-select">
                 </div>
             </div>
             <div id="topbar_handle" title="Toggle table bar">
                 <div id="topbar_handle_arrow">
-                    <img src="../imgs/symbol_arrow_down_swung.png">
+                    <img src="../imgs/symbol_arrow_down_swung.png" class="no-select">
                 </div>
             </div>
         </div>
@@ -46,31 +46,31 @@
     <!-- </zoom_wrapper> -->
 
     <div title="Fit content to screen" id="fit_to_screen" class="button square on-table">
-        <img src="../imgs/symbol_fit.png" />
+        <img src="../imgs/symbol_fit.png" class="no-select"/>
     </div>
 
     <div title="Reset View to Table Origin" id="center_to_origin" class="button square on-table">
-        <img src="../imgs/symbol_to_origin.png">
+        <img src="../imgs/symbol_to_origin.png" class="no-select">
     </div>
 
     <div title="Hide GUI elements" id="hide_hud" class="button square on-table">
-        <img src="../imgs/symbol_eye.png" />
+        <img src="../imgs/symbol_eye.png" class="no-select"/>
     </div>
 
     <div title="Reset zoom to 1x" id="reset_zoom" class="button square on-table">
-        <img src="../imgs/symbol_reset_zoom.png" />
+        <img src="../imgs/symbol_reset_zoom.png" class="no-select"/>
     </div>
 
     <div id="annot_window">
         <div id="annot_title" class="no-select">Annotations</div>
         <div id="annot_show" class="no-select">Show Hidden</div>
         <div id="annot_close" class="no-select">
-            <img class="no-select" src="../imgs/symbol_x.png" />
+            <img class="no-select" src="../imgs/symbol_x.png" class="no-select"/>
         </div>
         <div id="annot_view">
             <div id="annot_list"></div>
             <div id="annot_new" class="button no-select">
-                <img src="../imgs/symbol_plus_zoom.png">
+                <img src="../imgs/symbol_plus_zoom.png" class="no-select">
                 <div>New Annotation</div>
             </div>
         </div>
@@ -78,10 +78,10 @@
             <div id="annot_editor_label" class="no-select">Editor(s):</div>
             <input id="annot_editor" type="text"></input>
             <div id="annot_remove_pin" class="no-select hidden">
-                <img src="../imgs/symbol_no_pin.png">
+                <img src="../imgs/symbol_no_pin.png" class="no-select">
             </div>
             <div id="annot_set_pin" class="no-select">
-                <img src="../imgs/symbol_pin_black.png">
+                <img src="../imgs/symbol_pin_black.png" class="no-select">
                 <div class="">Set Pin</div>
             </div>
             <div id="annot_text_label" class="no-select">Annotation:</div>
@@ -96,13 +96,13 @@
 
     <div title="Make annotations" id="annot_button">
         <div id="annot_button_img_wrapper">
-            <img src="../imgs/symbol_annot.png" />
+            <img src="../imgs/symbol_annot.png" class="no-select"/>
         </div>
     </div>
 
     <div id="overlay" class="hidden">
         <div id="overlay-central">
-            <img id="loading-gif" src="../imgs/loading-large.gif">
+            <img id="loading-gif" src="../imgs/loading-large.gif" class="no-select">
             <div id="progress-wrapper" class="hidden">
                 <progress id="progress" value="3" max="30"></progress>
             </div>
@@ -127,32 +127,32 @@
             <div class="sidebar_content_wrapper expanded" id="control">
                 <div class="sidebar_header">
                     <div class="sidebar_header_title">Control Panel</div>
-                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-new-fragments">
+                    <img class="sidebar_header_help no-select" src="../imgs/help.png" target="help-new-fragments">
                     <div class="arrow down"></div>
                 </div>
                 <div class="sidebar_content" id="control_content">
                     <div class="sidebar_header_title">Table Commands</div>
                     <div title="Remove all elements from active table" id="clear_table" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_new_table.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_new_table.png" />
                         <label><span class="underline_double">C</span>lear</label>
                     </div>
 
                     <div  title="Save to existing file" id="save_quick" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_save.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_save.png" />
                         <label>(Quick-)<span class="underline_double">S</span>ave</label>
                     </div>                    
                     <div title="Save as new file" id="save_as" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_save.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_save.png" />
                         <label><span class="underline_dotted">S</span>ave As...</label>
                     </div>
 
                     <div title="Open new window to load existing file" id="load_table" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_load.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_load.png" />
                         <label><span class="underline_double">L</span>oad</label>
                     </div>
 
                     <div title="Download reconstruction as image file" id="export_table" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_export.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_export.png" />
                         <label>Export</label>
                     </div>
 
@@ -160,10 +160,10 @@
                         <div class="sidebar_header_title">Section / Complete</div>
                         <div id="jpg_wrapper" class="wrapper-row">
                             <div title="Download JPG, current view" id="jpg_snap" class="button square no_select">
-                                <img class="button_img" src="../imgs/symbol_jpg_snap.png" />
+                                <img class="button_img no-select" src="../imgs/symbol_jpg_snap.png" />
                             </div>
                             <div title="Download JPG, full table" id="jpg_full" class="button square no_select">
-                                <img class="button_img" src="../imgs/symbol_jpg_full.png" />
+                                <img class="button_img no-select" src="../imgs/symbol_jpg_full.png" />
                             </div>
                         </div>
                         <div id="color_wrapper">
@@ -175,29 +175,29 @@
                         </div>
                         <div id="png_wrapper" class="wrapper-row">
                             <div title="Download PNG, current view" id="png_snap" class="button square no_select">
-                                <img class="button_img" src="../imgs/symbol_png_snap.png" />
+                                <img class="button_img no-select" src="../imgs/symbol_png_snap.png" />
                             </div>
                             <div title="Download PNG, full table" id="png_full" class="button square no_select">
-                                <img class="button_img" src="../imgs/symbol_png_full.png" />
+                                <img class="button_img no-select" src="../imgs/symbol_png_full.png" />
                             </div>
                         </div>
                         <div id="tiff_wrapper" class="wrapper-row">
                             <div title="Download TIFF, current view" id="tiff_snap" class="button square no_select">
-                                <img class="button_img" src="../imgs/symbol_tif_snap.png" />
+                                <img class="button_img no-select" src="../imgs/symbol_tif_snap.png" />
                             </div>
                             <div title="Download TIFF, full table" id="tiff_full" class="button square no_select">
-                                <img class="button_img" src="../imgs/symbol_tif_full.png" />
+                                <img class="button_img no-select" src="../imgs/symbol_tif_full.png" />
                             </div>
                         </div>
                     </div>
 
                     <div title="VLT Settings" id="settings" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_gear.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_gear.png" />
                         <label>Settings</label>
                     </div>
 
                     <div title="Quit Virtual Light Table" id="quit" class="button sidebar_wide no_select">
-                        <img class="button_img" src="../imgs/symbol_x.png" />
+                        <img class="button_img no-select" src="../imgs/symbol_x.png" />
                         <label>Quit</label>
                     </div>
 
@@ -206,12 +206,12 @@
                     <div class="sidebar_header_title">Undo/Redo</div>
                     <div class="sidebar-wrapper-row">
                         <div title="Undo last step" id="undo" class="button small_with_text no_select disabled">
-                            <img class="button_img" src="../imgs/symbol_undo.png" />
+                            <img class="button_img no-select" src="../imgs/symbol_undo.png" />
                             <div class="button_number"></div>
                             <label>Undo</label>
                         </div>
                         <div title="Redo last step" id="redo" class="button small_with_text no_select disabled">
-                            <img class="button_img" src="../imgs/symbol_redo.png" />
+                            <img class="button_img no-select" src="../imgs/symbol_redo.png" />
                             <div class="button_number"></div>
                             <label>Redo</label>
                         </div>
@@ -237,7 +237,7 @@
                     <div class="wrapper_tool" id="wrapper_measure">
                         <div><span class="underline sidebar_header_subtitle">M</span>easurement</div>
                         <div title="Add new measurement" class="button square no_select" id="new_measure">
-                            <img class="button_img" src="../imgs/symbol_new_measure.png"/>
+                            <img class="button_img no-select" src="../imgs/symbol_new_measure.png"/>
                         </div>
                         <div id="clear-measures" class="no_select hidden">Remove All</div>
                     </div>
@@ -247,27 +247,27 @@
                     <div class="sidebar_header_title">Display</div>
                     <div class="sidebar-wrapper-row">
                         <div class="small_with_text button" id="light-wrapper">
-                            <img src="../imgs/symbol_light.png">
+                            <img src="../imgs/symbol_light.png" class="no-select">
                             <label><span class="underline">L</span>ight</label>
                         </div>
                         <div class="small_with_text button" id="grid-wrapper">
-                            <img src="../imgs/symbol_grid.png">
+                            <img src="../imgs/symbol_grid.png" class="no-select">
                             <label><span class="underline">G</span>rid</label>
                         </div>
                         <div class="small_with_text button" id="scale-wrapper">
-                            <img src="../imgs/symbol_scale.png">
+                            <img src="../imgs/symbol_scale.png" class="no-select">
                             <label><span class="underline">S</span>cale</label>
                         </div>
                         <div class="small_with_text button" id="ruler-wrapper">
-                            <img src="../imgs/symbol_ruler.png">
+                            <img src="../imgs/symbol_ruler.png" class="no-select">
                             <label><span class="underline">R</span>ulers</label>
                         </div>
                         <div class="small_with_text button" id="flip-vert-wrapper">
-                            <img src="../imgs/symbol_vertical_flip.svg">
+                            <img src="../imgs/symbol_vertical_flip.svg" class="no-select">
                             <label>Flip Table (vert)</label>
                         </div>
                         <div class="small_with_text button" id="flip-hor-wrapper">
-                            <img src="../imgs/symbol_horizontal_flip.svg">
+                            <img src="../imgs/symbol_horizontal_flip.svg" class="no-select">
                             <label>Flip Table (hor)</label>
                         </div>
                     </div>
@@ -277,13 +277,13 @@
             <div class="sidebar_content_wrapper" id="graphical_filters">
                 <div class="sidebar_header">
                     <div class="sidebar_header_title">Graphical Filters</div>
-                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-graphical-filters">
+                    <img class="sidebar_header_help nos-select" src="../imgs/help.png" target="help-graphical-filters">
                     <div class="arrow"></div>
                 </div>
                 <div class="sidebar_content" id="graphical_filters_content">
                     <div class="graphics-filter">
                         <div title="Reset images" id="graphics-reset" class="button sidebar_wide no_select">
-                            <img class="button_img" src="../imgs/symbol_reset.png" />
+                            <img class="button_img no-select" src="../imgs/symbol_reset.png" />
                             <label>Reset</label>
                         </div>
                     </div>
@@ -312,15 +312,15 @@
             <div class="sidebar_content_wrapper" id="fragment_list">
                 <div class="sidebar_header">
                     <div class="sidebar_header_title">Fragments</div>
-                    <img class="sidebar_header_help" src="../imgs/help.png" target="help-fragment-list">
+                    <img class="sidebar_header_help no-select" src="../imgs/help.png" target="help-fragment-list">
                     <div class="arrow"></div>
                 </div>
                 <div title="Upload custom fragments from your local drive" id="upload_local" class="button sidebar_wide">
-                    <img class="button_img" src="../imgs/symbol_upload_local.png" />
+                    <img class="button_img no-select" src="../imgs/symbol_upload_local.png" />
                     <label>Upload Fragment</label>
                 </div>
                 <div title="Browse and select fragments from the TPOP collection" id="upload_tpop" class="button sidebar_wide tpop">
-                    <img class="button_img" src="../imgs/symbol_tpop.png" />
+                    <img class="button_img no-select" src="../imgs/symbol_tpop.png" />
                     <label>TPOP Fragments</label>
                 </div>
                 <hr>
@@ -342,28 +342,33 @@
     <div id="contextmenu" class="no-select">
         <div class="context-item">
             <div class="context-img-wrapper">
-                <img class="context-img" src="../imgs/symbol_edit.png">
+                <img class="context-img no-select" src="../imgs/symbol_edit.png">
             </div>
             <div class="context-label">Edit Fragment</div>
         </div>
         <div class="context-item">
             <div class="context-img-wrapper">
-                <img class="context-img" src="../imgs/symbol_x.png">
+                <img class="context-img no-select" src="../imgs/symbol_x.png">
             </div>
             <div class="context-label">Remove Fragment</div>
         </div>
         <div class="context-item">
             <div class="context-img-wrapper">
-                <img class="context-img" src="../imgs/symbol_unlocked.png">
+                <img class="context-img no-select" src="../imgs/symbol_unlocked.png">
             </div>
             <div class="context-label">Lock Fragment</div>
         </div>
         <div class="context-item">
             <div class="context-img-wrapper">
-                <img class="context-img" src="../imgs/symbol_flip.png">
+                <img class="context-img no-select" src="../imgs/symbol_flip.png">
             </div>
             <div class="context-label">Flip Fragment</div>
         </div>
+    </div>
+
+    <div id="overlay-drop" class="no-select">
+        <div class="drop-text">Drop files here to upload</div>
+        <img src="../imgs/symbol_upload_local.png" class="no-select">
     </div>
 
 

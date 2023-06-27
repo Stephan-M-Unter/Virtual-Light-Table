@@ -1118,3 +1118,45 @@ input[type='checkbox']:checked {
     justify-content: center;
     justify-items: center;
 }
+
+
+#overlay-drop {
+    position: fixed;
+    /* display: flex; */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+    background-color: rgba(200,200,200,1);
+    z-index: 100;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 4px 4px 10px black;
+    border: 3px dashed black;
+    display: none;
+}
+
+#overlay-drop.hovered {
+    background-color: rgba(240,240,240,1);
+}
+
+#overlay-drop .drop-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+#overlay-drop img {
+    max-height: 100px;
+    max-width: 100px;
+    animation: animate-drop 1s infinite;    
+}
+
+@keyframes animate-drop {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0px); }
+}

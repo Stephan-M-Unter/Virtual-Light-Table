@@ -493,6 +493,62 @@ $(document).ready(function() {
     controller.resizeCanvas(window.innerWidth, window.innerHeight);
   });
 
+  let drags = 0;
+
+  $(window).on('dragenter', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drags = drags + 1;
+    console.log('dragenter (drags: '+drags+')');
+    $('#overlay-drop').css('display', 'flex');
+  });
+
+  $(window).on('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drags = drags - 1;
+    console.log('dragleave (drags: '+drags+')');
+    if (drags == 0) {
+      $('#overlay-drop').css('display', 'none');
+    }
+  });
+
+  $(window).on('dragend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drags = 0;
+    console.log('dragend (drags: '+drags+')');
+    $('#overlay-drop').css('display', 'none');
+  });
+
+  $(window).on('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  $('#overlay-drop').on('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drags = 0;
+    console.log('drop (drags: '+drags+')');
+    $('#overlay-drop').css('display', 'none');
+    
+    let pathArr = [];
+    for (const f of event.dataTransfer.files) {
+      pathArr.push(f.path);
+    }
+    
+    controller.sendToServer('server-local-drop', pathArr);
+  });
+  
+  $(window).on('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drags = 0;
+    $('#overlay-drop').css('display', 'none');
+  });
+
+
   document.getElementById('lighttable')
       .addEventListener('wheel', function(event) {
         const stepZoom = $('#zoom_slider').attr('step');
