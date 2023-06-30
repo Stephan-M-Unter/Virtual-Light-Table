@@ -649,7 +649,23 @@ function uploadTpopImages(urlList) {
 }
 
 
-
+function uploadLocalImage(filepath) {
+  const ext = path.extname(filepath);
+  const conversionRequired = ['.tiff', '.tif', '.TIFF', '.TIF'];
+  if (conversionRequired.includes(ext)) {
+    let filename = path.basename(filepath);
+    const dotPos = filename.lastIndexOf('.');
+    filename = filename.substring(0,dotPos) + '.jpg';
+    const newFilepath = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
+    const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'convert_tiff.py'), filepath, newFilepath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    python.on('close', function(code) {
+      LOGGER.log('SERVER', `[PYTHON] Converted TIFF to JPG, closing with code ${code}.`);
+      sendMessage(uploadWindow, 'upload-receive-image', newFilepath);
+    });
+  } else {
+    sendMessage(uploadWindow, 'upload-receive-image', filepath);
+  }
+}
 
 
 
@@ -984,24 +1000,15 @@ ipcMain.on('server-upload-image', (event) => {
   const filepath = imageManager.selectImageFromFilesystem();
 
   if (filepath) {
-    const ext = path.extname(filepath);
-    const conversionRequired = ['.tiff', '.tif', '.TIFF', '.TIF'];
-    if (conversionRequired.includes(ext)) {
-      let filename = path.basename(filepath);
-      const dotPos = filename.lastIndexOf('.');
-      filename = filename.substring(0,dotPos) + '.jpg';
-      const newFilepath = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
-      const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'convert_tiff.py'), filepath, newFilepath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-      python.on('close', function(code) {
-        LOGGER.log('SERVER', `[PYTHON] Converted TIFF to JPG, closing with code ${code}.`);
-        sendMessage(uploadWindow, 'upload-receive-image', newFilepath);
-      });
-    } else {
-      sendMessage(uploadWindow, 'upload-receive-image', filepath);
-    }
+    uploadLocalImage(filepath);
   } else {
     sendMessage(uploadWindow, 'upload-receive-image');
   }
+});
+
+ipcMain.on('server-upload-image-given-filepath', (event, filepath) => {
+  LOGGER.receive('SERVER', 'server-upload-image-given-filepath', filepath);
+  uploadLocalImage(filepath);
 });
 
 // server-quit-table

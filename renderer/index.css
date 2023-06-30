@@ -1129,7 +1129,7 @@ input[type='checkbox']:checked {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 30%;
+    width: 40%;
     background-color: rgba(200,200,200,1);
     z-index: 100;
     padding: 20px;
@@ -1153,10 +1153,4 @@ input[type='checkbox']:checked {
     max-height: 100px;
     max-width: 100px;
     animation: animate-drop 1s infinite;    
-}
-
-@keyframes animate-drop {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(10px); }
-    100% { transform: translateY(0px); }
 }

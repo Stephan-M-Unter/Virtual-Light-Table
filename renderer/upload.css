@@ -632,3 +632,34 @@ a {
     background-size: 300% 300%;
     animation: loading-moving 10s ease infinite;
 }
+
+.overlay-drop {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 40%;
+    background-color: rgba(200,200,200,1.0);
+    padding: 20px;
+    border-radius: 10px;
+    border: 3px dashed black;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    box-shadow: 3px 3px 10px black;
+}
+
+.overlay-drop .label {
+    font-size: 1.5em;
+    font-variant: small-caps;
+    padding: 10px 0px;
+}
+
+.overlay-drop img {
+    max-height: 100px;
+    max-width: 100px;
+    animation: animate-drop 1s infinite;  
+}

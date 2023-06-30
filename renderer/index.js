@@ -499,7 +499,6 @@ $(document).ready(function() {
     e.preventDefault();
     e.stopPropagation();
     drags = drags + 1;
-    console.log('dragenter (drags: '+drags+')');
     $('#overlay-drop').css('display', 'flex');
   });
 
@@ -507,8 +506,8 @@ $(document).ready(function() {
     e.preventDefault();
     e.stopPropagation();
     drags = drags - 1;
-    console.log('dragleave (drags: '+drags+')');
-    if (drags == 0) {
+    if (drags <= 0) {
+      drags = 0;
       $('#overlay-drop').css('display', 'none');
     }
   });
@@ -517,7 +516,6 @@ $(document).ready(function() {
     e.preventDefault();
     e.stopPropagation();
     drags = 0;
-    console.log('dragend (drags: '+drags+')');
     $('#overlay-drop').css('display', 'none');
   });
 
@@ -530,7 +528,6 @@ $(document).ready(function() {
     e.preventDefault();
     e.stopPropagation();
     drags = 0;
-    console.log('drop (drags: '+drags+')');
     $('#overlay-drop').css('display', 'none');
     
     let pathArr = [];

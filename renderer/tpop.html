@@ -128,35 +128,40 @@
             </div>
         </div>
 
-        <div id="filter-overlay" class="no-select flex-vert">
-            <div class="no-select flex-hor">
-                <div class="title">Select a New Filter Criterion:</div>
-            </div>
-            <div id="filter-attribute-container" class="no-select flex-hor">
-                <div class="no-select filter-container">
-                    <div class="filter-title">Filter Attribute</div>
-                    <div class="no-select flex-hor">
-                        <input id="filter-attribute" class="filter-input" placeholder="Query Attribute:">
-                        <div id="filter-attribute-list" class="hidden"></div>
-                        <div id="filter-attribute-dropdown"></div>
-                    </div>
+        <div id="filter-overlay" class="no-select flex-hor">
+            <div id="filter-wrapper" class="no-select">
+                <div class="no-select flex-hor">
+                    <div class="title">Define a New Filter</div>
                 </div>
-                <div id="filter-operator-container" class="no-select hidden filter-container">
-                    <div class="filter-title">Operator</div>
-                    <div class="no-select flex-hor">
-                        <div id="filter-operator-wheel">
-                            <div>contains</div>
-                            <div>contains not</div>
-                            <div>empty</div>
-                            <div>not empty</div>
+                <div class="no-select flex-hor">
+                    <div id="filter-attribute-container" class="no-select flex-hor">
+                        <div class="no-select filter-container">
+                            <div class="filter-title">Filter Attribute</div>
+                            <div class="no-select flex-hor">
+                                <input id="filter-attribute" class="filter-input" placeholder="Query Attribute:">
+                                <div id="filter-attribute-list" class="hidden"></div>
+                                <div id="filter-attribute-dropdown" class="collapsed">
+                                    <img src="../imgs/symbol_arrow_down_triangle.png"/>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div id="filter-value-container" class="no-select hidden filter-container">
-                    <div class="filter-title">Filter Value</div>
-                    <div class="no-select flex-hor">
-                        <input id="filter-value" class="filter-input" placeholder="Query Input:">
-                    </div>
+                        <div id="filter-operator-container" class="no-select filter-container">
+                            <div class="filter-title">Operator</div>
+                            <div class="no-select flex-hor">
+                                <div id="filter-operator-wheel">
+                                    <div>contains</div>
+                                    <div>contains not</div>
+                                    <div>empty</div>
+                                    <div>not empty</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="filter-value-container" class="no-select filter-container">
+                            <div class="filter-title">Filter Value</div>
+                            <div class="no-select flex-hor">
+                                <input id="filter-value" class="filter-input" placeholder="Query:">
+                            </div>
+                        </div>
                 </div>
             </div>
             <div class="no-select flex-hor">
@@ -164,6 +169,8 @@
             </div>
             <div id="filter-close">x</div>
         </div>
+
+
 
         <div id="folder-overlay" class="no-select">
             <div id="folder-grid"></div>

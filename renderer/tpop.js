@@ -7,6 +7,7 @@ let activeTPOPs = [];
 let maxIndex = null;
 let lastIndex = -1;
 let currentPage = 0;
+let isScrolling = null;
 const maxPageSize = 200;
 let filters = [];
 let gridView = 'recto';
@@ -491,9 +492,9 @@ function resetFilterSelection() {
   $('#filter-value').val('');
   $('.operator-selected').removeClass('operator-selected');
   $('#filter-attribute').val('');
-  $('#filter-operator-container').addClass('hidden');
-  $('#filter-value-container').addClass('hidden');
-  $('#filter-add-button').addClass('hidden');
+  // $('#filter-operator-container').addClass('hidden');
+  // $('#filter-value-container').addClass('hidden');
+  // $('#filter-add-button').addClass('hidden');
 }
 
 /**
@@ -618,6 +619,7 @@ function addTile(idx, n_objects, tpopJson) {
       addTile(idx, n_objects, tpopJson);
     } else {
       requesting = false;
+      if (isScrolling) scrollToID(isScrolling);
       updateMLIndicators();
       checkForRequest();
     }
@@ -664,6 +666,7 @@ function checkMLFeatures(tpopid) {
  */
 function closeAllLists(exceptionElement) {
   $('#filter-attribute-list').addClass('hidden');
+  $('#filter-attribute-dropdown').addClass('collapsed');
   const listElements = $('.autocomplete-items');
   listElements.each((idx, list) => {
     const listID = $(list).attr('id');
@@ -945,7 +948,10 @@ $('#filter-value').on('input', checkFilterCompleteness);
 $('#filter-attribute-dropdown').click(function() {
   const closed = $('#filter-attribute-list').hasClass('hidden');
   closeAllLists();
-  if (closed) $('#filter-attribute-list').removeClass('hidden');
+  if (closed) {
+    $('#filter-attribute-dropdown').removeClass('collapsed');
+    $('#filter-attribute-list').removeClass('hidden');
+  }
 });
 
 $('#detail-add-joins').click(function() {
@@ -1111,6 +1117,19 @@ ipcRenderer.on('tpop-filtered', () => {
   requestBatch();
 });
 
+function scrollToID(id) {
+  // check if tile with ID is available; if not, request more tiles
+  if ($('#'+id).length == 0) {
+    isScrolling = id;
+    requestBatch();
+  } else {
+    isScrolling = null;
+    $('#tile-view').stop().animate({
+      scrollTop: $('#tile-view').scrollTop() + $('#'+id).position().top - 100
+    }, 1000);
+  }
+}
+
 ipcRenderer.on('tpop-position', (event, data) => {
   LOGGER.receive('TPOP', 'tpop-position', data);
   if (data.pos == -1) {
@@ -1120,6 +1139,9 @@ ipcRenderer.on('tpop-position', (event, data) => {
     if (page != currentPage) {
       loadPage(page);
     }
+    
+    const id = data.tpopID;
+    scrollToID(id);
   }
 });
 

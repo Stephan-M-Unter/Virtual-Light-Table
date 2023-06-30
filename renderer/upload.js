@@ -1814,7 +1814,59 @@ $('#open-settings').click(function() {
   ipcRenderer.send('server-open-settings');
 });
 
+let drags = 0;
 
+$(window).on('dragenter', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  drags = drags + 1;
+  if (!recto.content.filepath) {
+    $('#recto_canvas_region .overlay-drop').css('display', 'flex');
+  }
+  if (!verso.content.filepath) {
+    $('#verso_canvas_region .overlay-drop').css('display', 'flex');
+  }
+});
+$(window).on('dragleave', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  drags = drags - 1;
+  if (drags <= 0) {
+    drags = 0;
+    $('#recto_canvas_region .overlay-drop').css('display', 'none');
+    $('#verso_canvas_region .overlay-drop').css('display', 'none');
+  }
+});
+
+$(window).on('dragover', (e) => {
+  e.preventDefault();
+});
+
+$(window).on('drop', (e) => {
+  e.preventDefault();
+  drags = 0;
+  $('#recto_canvas_region .overlay-drop').css('display', 'none');
+  $('#verso_canvas_region .overlay-drop').css('display', 'none');
+});
+
+$('.overlay-drop').on('drop', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  drags = 0;
+  $('#recto_canvas_region .overlay-drop').css('display', 'none');
+  $('#verso_canvas_region .overlay-drop').css('display', 'none');
+
+  currentUpload = $(e.target).attr('canvas')
+  if (!currentUpload) {
+    currentUpload = $(e.target).parent().attr('canvas')
+  }
+  let pathArr = [];
+  for (const f of event.dataTransfer.files) {
+    pathArr.push(f.path);
+  }
+
+  ipcRenderer.send('server-upload-image-given-filepath', pathArr[0]);
+});
 
 /* Input Fields */
 
