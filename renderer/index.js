@@ -155,13 +155,14 @@ $(document).ready(function() {
 
   // Export Buttons - toggle display of additional export buttons
   $('#export_table').click(function() {
-    if ($('#export_detail_wrapper').hasClass('expanded')) {
-      $('#export_table').removeClass('button_active');
-      $('#export_detail_wrapper').removeClass('expanded');
-    } else {
-      $('#export_table').addClass('button_active');
-      $('#export_detail_wrapper').addClass('expanded');
-    }
+    controller.sendToServer('server-open-export');
+    // if ($('#export_detail_wrapper').hasClass('expanded')) {
+    //   $('#export_table').removeClass('button_active');
+    //   $('#export_detail_wrapper').removeClass('expanded');
+    // } else {
+    //   $('#export_table').addClass('button_active');
+    //   $('#export_detail_wrapper').addClass('expanded');
+    // }
   });
   $('#jpg_snap').click(function() {
     controller.exportCanvas('jpg', false, false);
@@ -597,6 +598,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 67) {
         // Ctrl + C -> Clear Table
         controller.clearTable();
+      } else if (event.keyCode == 86) {
+        // Ctrl + V -> Test
+        controller.sendToServer('server-test');
       }
     } else {
       if (event.keyCode == 46) {

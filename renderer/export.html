@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Export</title>
+    <link rel="stylesheet" type="text/css" href="export.css">
+    <script src="../js/libs/jquery-3.6.0.min.js"></script>
+    <script>window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');</script>
+</head>
+
+<body>
+    
+    <div class="flex-hor fullsize">
+        <div class="flex-vert">
+            <div id="layout-canvas" class="flex-vert">
+                <div class="wrapper-canvas recto">
+                    <canvas id="canvas-recto" class="fullsize recto"></canvas>                    
+                    <label class="no-select">Recto</label>
+                </div>
+                <div class="wrapper-canvas verso">
+                    <canvas id="canvas-verso" class="fullsize verso"></canvas>
+                    <label class="no-select">Verso</label>
+                </div>
+            </div>
+            <div id="bottombar" class="flex-hor">
+                <div class="flex-vert">
+                    <!-- Mode Selection -->
+                    <div class="mode button active" mode="rgb">Standard</div>
+                    <div class="mode button" mode="filters">Graphical Filters</div>
+                    <div class="mode button" mode="faksimile">Faksimile</div>
+                </div>
+                
+                <div class="flex-vert">
+                    <!-- Mode Options -->
+                    <div id="mode-options-filters" class="flex-vert mode-options hidden">
+                        <div class="flex-hor">
+                            <label>Contrast</label>
+                            <input type="range" id="contrast" min="0" max="100" value="50">
+                            <div id="contrast-value">50</div>
+                        </div>
+    
+                        <div class="flex-hor">
+                            <label>Brightness</label>
+                            <input type="range" id="brightness" min="0" max="100" value="50">
+                            <div id="brightness-value">50</div>
+                        </div>
+    
+                        <label>Colour Inversion</label>
+                        <div class="flip-buttons no-select">
+                            <div class="flip-button R" data="R">R</div>
+                            <div class="flip-button G" data="G">G</div>
+                            <div class="flip-button B" data="B">B</div>
+                        </div>
+                        <div class="button">Reset</div>
+                    </div>
+
+                    <div id="mode-options-faksimile" class="flex-vert mode-options  hidden">
+                        <select id="select-faksimile-model">
+                            <option value="0">Model 1</option>
+                            <option value="1">Model 2</option>
+                            <option value="2">Model 3</option>
+                        </select>
+                        <div class="button">Download Model</div>
+                        <div class="button">Compute Faksimile</div>
+        
+                        <div class="flex-hor">
+                            <label>Threshold Papyrus</label>
+                            <input type="range" id="threshold-papyrus" min="0" max="100" value="50">
+                            <div id="threshold-papyrus-value">50</div>
+                        </div>
+
+                        <div class="flex-hor">
+                            <label>Threshold Black Ink</label>
+                            <input type="range" id="threshold-black" min="0" max="100" value="50">
+                            <div id="threshold-black-value">50</div>
+                        </div>
+
+                        <div class="flex-hor">
+                        	<label>Threshold Red Ink</label>
+                            <input type="range" id="threshold-red" min="0" max="100" value="50">
+                            <div id="threshold-red-value">50</div>
+                        </div>
+
+                        <div class="button">Show/Hide Papyrus Outline</div>
+                        <!-- Functionality will be added at a later stage of development -->
+                        <!--
+                        <div class="button">Remove Papyrus</div>
+                        <div class="button">Remove Black Ink</div>
+                        <div class="button">Remove Red Ink</div>
+                        <div class="button">Restore</div>
+                        -->
+                    </div>
+                    
+                </div>
+                
+                <!-- Annotation Tools - preserved for a later stage of development -->
+                <!--
+                <div class="flex-vert">
+                    <div class="button">Add Text</div>
+                    <div class="button">Add Polygon</div>
+                </div>
+                -->
+                
+                <div class="flex-vert">
+                    <!-- Export Tools -->
+                    <div id="rotate-layout" class="button">Rotate Layout</div>
+                    <div id="scale" class="button">Show/Hide Scale</div>
+                    <div class="button">Crop</div>
+                    <div class="button">Reset</div>
+                    <div class="flex-hor">
+                        <div id='jpg-button' class="format button square">JPG</div>
+                        <div id="jpg-color">
+                            <input id="colorpicker" type="color">
+                            <label class="no-select">Select JPG Color</label>
+                        </div>
+                        <div id="png-button" class="format button square active-format">PNG</div>
+                        <div id="tiff-button" class="format button square">TIFF</div>
+                        <!-- JSON download - preserved for later stage of development -->
+                        <!--
+                        <div id="json-button" class="format button square">JSON</div>
+                        -->
+                    </div>
+                    <div id="download" class="button">Download</div>
+                    <div id="close" class="button">Close</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="../js/libs/createjs.min.js"></script>
+    <script src="../js/libs/preloadjs.min.js"></script>
+    <script src="../node_modules/exif-js/exif.js"></script>
+    <script src="export.js"></script>
+</body>
+</html>

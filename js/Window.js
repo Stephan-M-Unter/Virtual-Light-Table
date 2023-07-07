@@ -93,6 +93,18 @@ const tpopProps = {
   },
 };
 
+const exportProps = {
+  width: 1024,
+  height: 800,
+  // frame: false,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+}
+
 const propsPresets = {
   'main': mainProps,
   'tpop': tpopProps,
@@ -101,6 +113,7 @@ const propsPresets = {
   'upload': uploadProps,
   'load': loadProps,
   'start': startProps,
+  'export': exportProps,
 }
 
 /**

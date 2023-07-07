@@ -16,6 +16,7 @@
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
+const https = require('follow-redirects').https;
 const request = require('request');
 const process = require('process');
 const {spawn} = require('child_process');
@@ -67,6 +68,7 @@ let uploadWindow;
 let calibrationWindow;
 let settingsWindow;
 let tpopWindow;
+let exportWindow;
 
 
 const color = {
@@ -1256,6 +1258,12 @@ ipcMain.on('server-close-settings', () => {
   settingsWindow = null;
 });
 
+ipcMain.on('server-close-export', () => {
+  LOGGER.receive('SERVER', 'server-close-export');
+  exportWindow.close();
+  exportWindow = null;
+});
+
 ipcMain.on('server-settings-opened', (event) => {
   LOGGER.receive('SERVER', 'server-settings-opened');
   sendMessage(settingsWindow, 'settings-data', configManager.getConfig());
@@ -1458,6 +1466,10 @@ ipcMain.on('server-graphics-filter', function(event, data) {
   filterImages(data.tableID, data.urls);
 });
 
+ipcMain.on('server-graphics-filter-export', function(event, data) {
+  
+});
+
 ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
   LOGGER.receive('SERVER', 'server-reset-graphics-filter', tableID);
   // remove all filter images
@@ -1652,4 +1664,52 @@ ipcMain.on('server-local-drop', (event, dataArray) => {
   }
 
   sequentialUpload(loadingQueue);
+});
+
+ipcMain.on('server-test', (event) => {
+  const modelfilepath = 'https://huggingface.co/S-Unter/PapyrusSegmentationBiNet4.2/resolve/main/model.h5';
+  const pythonfilepath = 'https://huggingface.co/S-Unter/PapyrusSegmentationBiNet4.2/resolve/main/VLT.py';
+  const accessToken = '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'
+
+  // Download the python file from pythonfilepath, using the provided access token
+  const pythonfile = fs.createWriteStream('VLT.py');
+  const pythonRequest = https.get(pythonfilepath, {headers: {'Authorization': `Bearer ${accessToken}`}}, function(response) {
+    response.pipe(pythonfile);
+    pythonfile.on('finish', () => {
+      pythonfile.close();
+      console.log('Python File downloaded');
+    });
+  });
+
+  const modelfile = fs.createWriteStream('model.h5');
+  const modelRequest = https.get(modelfilepath, {headers: {'Authorization': `Bearer ${accessToken}`}}, function(response) {
+    response.pipe(modelfile);
+    modelfile.on('finish', () => {
+      modelfile.close();
+      console.log('Model File downloaded');
+    });
+  });
+});
+
+ipcMain.on('server-open-export', (event, tableID) => {
+  LOGGER.receive('SERVER', 'server-open-export', tableID);
+  if (!exportWindow) {
+    exportWindow = new Window({
+      file: './renderer/export.html',
+      type: 'export',
+      devMode: devMode,
+    });
+    exportWindow.removeMenu();
+    exportWindow.maximize();
+    exportWindow.on('close', function() {
+      exportWindow = null;
+    });
+  }
+});
+
+ipcMain.on('server-get-active-table', (event) => {
+  LOGGER.receive('SERVER', 'server-get-active-table');
+  const tableID = activeTables.view;
+  const table = tableManager.getTable(tableID);
+  sendMessage(event.sender, 'active-table', table);
 });

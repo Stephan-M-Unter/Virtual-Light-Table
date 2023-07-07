@@ -15,16 +15,17 @@
                     <img src="../imgs/symbol_reload.png">
                 </div>
             </div>
+            <hr>
+            <div id="select-folder" class="button large_button no-select">
+                <img src="../imgs/symbol_folder.png"/>
+                <label>Select Papyrus Folder</label>
+            </div>
+            <hr>
             <div id="filter-section" class="sidebar-section">
-                <hr>
                 <div class="title">Filters</div>
-                <div id="select-folder" class="button large_button no-select">
-                    <img src="../imgs/symbol_folder.png"/>
-                    <label>Select Folder</label>
-                </div>
                 <div id="filter-add" class="button large_button no-select">
                     <img src="../imgs/symbol_plus_zoom.png"/>
-                    <label>Add Filter</label>
+                    <label>Add New Filter</label>
                 </div>
                 <div id="filter-list"></div>
             </div>
@@ -136,7 +137,7 @@
                 <div class="no-select flex-hor">
                     <div id="filter-attribute-container" class="no-select flex-hor">
                         <div class="no-select filter-container">
-                            <div class="filter-title">Filter Attribute</div>
+                            <div class="filter-title">1. Database Attribute</div>
                             <div class="no-select flex-hor">
                                 <input id="filter-attribute" class="filter-input" placeholder="Query Attribute:">
                                 <div id="filter-attribute-list" class="hidden"></div>
@@ -146,7 +147,7 @@
                             </div>
                         </div>
                         <div id="filter-operator-container" class="no-select filter-container">
-                            <div class="filter-title">Operator</div>
+                            <div class="filter-title">2. Operator</div>
                             <div class="no-select flex-hor">
                                 <div id="filter-operator-wheel">
                                     <div>contains</div>
@@ -157,16 +158,15 @@
                             </div>
                         </div>
                         <div id="filter-value-container" class="no-select filter-container">
-                            <div class="filter-title">Filter Value</div>
+                            <div class="filter-title">3. Query Value</div>
                             <div class="no-select flex-hor">
                                 <input id="filter-value" class="filter-input" placeholder="Query:">
                             </div>
                         </div>
+                    </div>
                 </div>
             </div>
-            <div class="no-select flex-hor">
-                <div id="filter-add-button" class="">Apply Filter</div>
-            </div>
+            <div id="filter-add-button" class="button disabled">Apply Filter</div>
             <div id="filter-close">x</div>
         </div>
 

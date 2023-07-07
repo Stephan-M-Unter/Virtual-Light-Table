@@ -13,6 +13,7 @@
   "dependencies": {
     "dialogs": "^2.0.1",
     "exif-js": "^2.3.0",
+    "follow-redirects": "^1.15.2",
     "jszip": "^3.7.1",
     "request": "^2.88.2",
     "socket.io-client": "^4.1.3",

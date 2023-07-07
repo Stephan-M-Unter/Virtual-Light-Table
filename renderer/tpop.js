@@ -375,7 +375,6 @@ function deselectTile(id) {
 }
 
 function displayFolders(folderList) {
-  console.log(folderList);
   let total = 0;
   let minFolder = null;
   let maxFolder = null;
@@ -490,11 +489,12 @@ function setMaxWidthMainArea() {
  */
 function resetFilterSelection() {
   $('#filter-value').val('');
-  $('.operator-selected').removeClass('operator-selected');
   $('#filter-attribute').val('');
-  // $('#filter-operator-container').addClass('hidden');
-  // $('#filter-value-container').addClass('hidden');
-  // $('#filter-add-button').addClass('hidden');
+  $('#filter-add-button').addClass('disabled');
+  $('.operator-selected').removeClass('operator-selected');
+  $('#filter-value').attr('disabled', true);
+  $('#filter-operator-wheel').empty();
+  $('#filter-operator-wheel').append('<div>Select Valid Attribute</div>');
 }
 
 /**
@@ -706,9 +706,9 @@ function checkFilterCompleteness() {
   }
 
   if (filterValid) {
-    $('#filter-add-button').removeClass('hidden');
+    $('#filter-add-button').removeClass('disabled');
   } else {
-    $('#filter-add-button').addClass('hidden');
+    $('#filter-add-button').addClass('disabled');
   }
 }
 
@@ -717,10 +717,9 @@ function checkFilterCompleteness() {
  * @param {*} attributeValue
  */
 function checkOperators(attributeValue) {
-  $('#filter-value-container').addClass('hidden');
+  $("#filter-value").prop("disabled", true);
   $('#filter-value').val('');
   if (filters.map((e) => e.attribute).includes(attributeValue)) {
-    $('#filter-operator-container').removeClass('hidden');
     $('#filter-operator-wheel').empty();
     const type = filters.find((e) => {
       return e.attribute === attributeValue;
@@ -731,9 +730,9 @@ function checkOperators(attributeValue) {
         $('.operator-selected').removeClass('operator-selected');
         $(this).addClass('operator-selected');
         if (['empty', 'not empty', 'true', 'false'].includes($(this).html())) {
-          $('#filter-value-container').addClass('hidden');
+          $("#filter-value").prop("disabled", true);
         } else {
-          $('#filter-value-container').removeClass('hidden');
+          $("#filter-value").prop("disabled", false);
         }
         checkFilterCompleteness();
         closeAllLists();
@@ -741,8 +740,8 @@ function checkOperators(attributeValue) {
       $('#filter-operator-wheel').append(operatorItem);
     }
   } else {
-    $('#filter-operator-container').addClass('hidden');
     $('#filter-operator-wheel').empty();
+    $('#filter-operator-wheel').append('<div>Select Valid Attribute</div>');
   }
 }
 
@@ -857,7 +856,9 @@ $('#filter-add-button').click(() => {
   const operator = $('.operator-selected').html();
   let value = $('#filter-value').val();
 
-  addFilter(attribute, operator, value);
+  if (!($('#filter-add-button').hasClass('disabled'))) {
+    addFilter(attribute, operator, value);
+  }
 });
 
 $('#filter-close').click(function(event) {

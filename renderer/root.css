@@ -24,7 +24,7 @@
     -webkit-user-drag: none;
 }
 
-.unrendered {
+.unrendered, .hidden {
     display: none !important;
 }
 
