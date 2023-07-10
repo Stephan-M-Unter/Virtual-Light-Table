@@ -242,7 +242,6 @@ function draw(sidename, center) {
   if (side.content.filepath != null) {
     if (side.content.img == null) {
       // create a new image first from file
-      console.log('creating new image');
       createImage(sidename, center);
     } else {
       // draw canvas
@@ -330,17 +329,13 @@ function createImage(sidename, center) {
   const side = getSide(sidename);
   const newImage = new Image();
   if (maskMode == 'automatic') {
-    console.log('automatic mode');
     const activeModelID = $('#mask_automatic_model').find(":selected").val();
     if (side.mask.auto.cuts[activeModelID]) {
-      console.log('cut found');
       newImage.src = side.mask.auto.cuts[activeModelID];
     } else {
-      console.log('no cut found');
       newImage.src = side.content.filepath;
     }
   } else {
-    console.log('standard image');
     newImage.src = side.content.filepath;
   }
   newImage.onload = function() {
@@ -1959,13 +1954,13 @@ ipcRenderer.on('upload-model-deleted', (event, modelID) => {
   updateAutomaticModelSelectionButtons();
 });
 
-ipcRenderer.on('upload-tensorflow-checked', (event, tensorflowCheck) => {
-  LOGGER.receive('UPLOAD', 'upload-tensorflow-checked', tensorflowCheck);
-  LOGGER.log('UPLOAD', 'Tensorflow Check Result: '+tensorflowCheck);
+ipcRenderer.on('tensorflow-checked', (event, tensorflowCheck) => {
+  LOGGER.receive('UPLOAD', 'tensorflow-checked', tensorflowCheck);
   if (tensorflowCheck == true) {
     tensorflow = true;
     $('#mask_control_automatic_selection_panel').removeClass('unrendered');
     drawAutoMask();
+    ipcRenderer.send('server-get-ml-models', 'SEG');
   } else {
     $('#mask_control_tensorflow_panel').removeClass('unrendered');
   }
@@ -2027,4 +2022,26 @@ ipcRenderer.on('upload-images-cut', (event, data) => {
 ipcRenderer.on('upload-mask-edited', (event) => {
   LOGGER.receive('UPLOAD', 'upload-mask-edited');
   drawMasks(true);
+});
+
+ipcRenderer.on('ml-models', (event, models) => {
+  LOGGER.receive('UPLOAD', 'ml-models');
+  // for every entry in models, add a new option to #mask_automatic_model
+  for (const model of models) {
+    const modelID = model['modelID'];
+    const size = model['size'];
+    let text = `${model['name']} (${size})`;
+
+    if (model['localPath']) {
+      text = '✅ ' + text;
+    } else if (model['unreachable']) {
+      text = '❌ ' + text;
+    }
+
+    const option = $('<option>', {
+      value: modelID,
+      text: text,
+    });
+    $('#mask_automatic_model').append(option);
+  }
 });

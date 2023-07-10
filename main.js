@@ -115,14 +115,23 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-function startUp() {
+async function startUp() {
+  LOGGER.log('STARTUP', 'Removing Legacy Files...');
   sendMessage(startupWindow, 'startup-status', 'Removing Legacy Files...');
   CSC.removeLegacies();
-  sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
-  createManagers();
+  LOGGER.log('STARTUP', 'Checking Python and Tensorflow...');
   sendMessage(startupWindow, 'startup-status', 'Checking Python and Tensorflow...');
-  check_requirements();
-  sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+  try {
+    await check_requirements();
+    LOGGER.log('STARTUP', 'Installing Managers...');
+    sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
+    createManagers();
+    LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
+    sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+  } catch (error) {
+    LOGGER.log('SERVER', 'Quitting Application.');
+    app.quit();
+  }
 }
 
 function createManagers() {
@@ -411,55 +420,48 @@ function preprocess_loading_fragments(data) {
   });
 }
 
-function check_python3() {
-  let python = spawn('python3', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false})
-  .on('error', function(err) {
-    check_python();
-  });
-  python.stdout.pipe(process.stdout);
-  python.stderr.pipe(process.stderr);
-  python.on('close', function(code) {
-    if (code == 0) {
-      LOGGER.log('SERVER', `python3 closed with code ${code}`);
-      LOGGER.log('SERVER', 'setting python command to "python3"');
-      CONFIG.set_python_command('python3');
-      mlManager.checkForTensorflow();
-    } else {
-      LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
-      if (code == 9009) LOGGER.log('SERVER', '"python3" was not found, now testing with command "python"');
-      else LOGGER.log('SERVER', '"python3" was found, but another problem stopped it from working. Now testing with command "python".');
-      check_python();
-    }
-  });
-}
+async function checkPythonVersion(pythonCommand) {
+  return new Promise((resolve, reject) => {
+    const python = spawn(pythonCommand, [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], { detached: false });
+    python.stdout.pipe(process.stdout);
+    python.stderr.pipe(process.stderr);
 
-function check_python() {
-  let python = spawn('python', [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], {detached: false})
-  .on('error', function(err) {
-    LOGGER.err('SERVER', 'Python was not found. Please install Python and add it to your PATH variable.');
-    app.quit();
-  });
-  python.stdout.pipe(process.stdout);
-  python.stderr.pipe(process.stderr);
-  python.on('close', function(code) {
-    if (code == 0) {
-      // SET PYTHONCMD TO PYTHON
-      LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
-      LOGGER.log('SERVER', 'Setting python command to "python"');
-      CONFIG.set_python_command('python');
-      mlManager.checkForTensorflow();
-    } else {
-      // ABORT - PYTHON3 AND PYTHON NOT AVAILABLE
-      LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
-      if (code == 9009) LOGGER.err('SERVER', "Code 9009 - no working version of python found.");
-      else LOGGER.err('SERVER', "Python was found, but another problem stops the installation from running.");
-      app.quit();
-    }
+    python.on('error', (error) => {
+      reject(error);
+    });
+
+    python.on('close', (code) => {
+      if (code == 0) {
+
+        LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+        LOGGER.log('SERVER', `Setting python command to "${pythonCommand}"`);
+        CONFIG.set_python_command(pythonCommand);
+        resolve();
+      } else {
+        reject();
+      }
+    });
   });
 }
 
 function check_requirements() {
-  check_python3();
+  return new Promise(async (resolve, reject) => {
+    try {
+      LOGGER.log('SERVER', 'Checking for PYTHON3...');
+      await checkPythonVersion('python3');
+      resolve();
+    } catch (error) {
+      LOGGER.log('SERVER', `Command "python3" not found.`);
+      try {
+        LOGGER.log('SERVER', 'Checking for PYTHON...');
+        await checkPythonVersion('python');
+        resolve();
+      } catch (error) {
+        LOGGER.log('SERVER', `Command "python" not found. Python not installed on this system.`);
+        reject(error);
+      }
+    }
+  });
 }
 
 /**
@@ -1593,10 +1595,10 @@ ipcMain.on('server-delete-masks', (event) => {
   // TODO delete masks
 });
 
-ipcMain.on('server-check-tensorflow', () => {
+ipcMain.on('server-check-tensorflow', (event) => {
   LOGGER.receive('SERVER', 'server-check-tensorflow');
-  mlManager.checkForTensorflow(function(tensorflowAvailable) {
-    sendMessage(uploadWindow, 'upload-tensorflow-checked', tensorflowAvailable);
+  mlManager.checkForTensorflow((tensorflowAvailable) => {
+    sendMessage(event.sender, 'tensorflow-checked', tensorflowAvailable);
   });
 });
 
@@ -1712,4 +1714,16 @@ ipcMain.on('server-get-active-table', (event) => {
   const tableID = activeTables.view;
   const table = tableManager.getTable(tableID);
   sendMessage(event.sender, 'active-table', table);
+});
+
+ipcMain.on('server-get-ml-models', (event, code) => {
+  LOGGER.receive('SERVER', 'server-get-ml-models', code);
+  const models = mlManager.getModelsByCode(code);
+  sendMessage(event.sender, 'ml-models', models);
+});
+
+ipcMain.on('server-get-ml-model-details', (event, modelID) => {
+  LOGGER.receive('SERVER', 'server-get-ml-model-details', modelID);
+  const model = mlManager.getModelDetails(modelID);
+  sendMessage(event.sender, 'ml-model-details', model);
 });

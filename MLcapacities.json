@@ -1,10 +1,44 @@
 {
     "segmentation": {
-        "BiNet_8.2_multiclass": {
+        "SEG_01": {
+            "name": "BiNet_8.2_multiclass",
             "requestPath": "TODO",
             "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
             "author": "Stephan M. Unter",
-            "lastChange": "xx/xx/xx"
+            "lastChange": "xx/xx/xx",
+            "size": 0
+        },
+        "SEG_02": {
+            "name": "BiNet_4.2_multiclass",
+            "requestPath": "TODO",
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
+            "author": "Stephan M. Unter",
+            "lastChange": "xx/xx/xx",
+            "size": 0
+        },
+        "SEG_03": {
+            "name": "BiNet_2.1_multiclass",
+            "requestPath": "TODO",
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
+            "author": "Stephan M. Unter",
+            "lastChange": "xx/xx/xx",
+            "size": 0
+        },
+        "SEG_04": {
+            "name": "SegFormer",
+            "requestPath": "TODO",
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
+            "author": "Stephan M. Unter",
+            "lastChange": "xx/xx/xx",
+            "size": 0
+        },
+        "SEG_05": {
+            "name": "TransUNet",
+            "requestPath": "TODO",
+            "outputLabels": ["background", "papyrus"],
+            "author": "Stephan M. Unter",
+            "lastChange": "xx/xx/xx",
+            "size": 0
         }
     }
 }

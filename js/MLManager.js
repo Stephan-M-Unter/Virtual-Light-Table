@@ -9,8 +9,8 @@ const {CONFIG} = require('../statics/CONFIG');
 class MLManager {
 
     constructor() {
-        this.tensorflowChecked = false;
-        this.tensorflowAvailable = false;
+        this.tensorflowAvailable = null;
+        this.checkForTensorflow();
 
         // define ML subfolders
         this.folderML = path.join(CONFIG.VLT_FOLDER, 'ML');
@@ -29,7 +29,8 @@ class MLManager {
     };
 
     checkCapacities() {
-        // Hardcoded Address
+        // TODO Hardcoded Address
+        // should instead be some URL where the most current version could be downloaded
         const MLCapacitiesPath = "./MLcapacities.json"
 
         fs.exists(MLCapacitiesPath, (exists) => {
@@ -43,6 +44,9 @@ class MLManager {
                         for (const capacity of Object.keys(MLCapacities)) {
                             for (const modelID of Object.keys(MLCapacities[capacity])) {
                                 this.models[modelID] = MLCapacities[capacity][modelID];
+                                const modelPath = this.checkForModel(modelID); // can be null if model is not available
+                                this.models[modelID].localPath = modelPath;
+                                this.models[modelID].unreachable = false;
                             }
                         }
                         
@@ -66,18 +70,22 @@ class MLManager {
     }
 
     checkForTensorflow(callback) {
-        if (this.tensorflowChecked) {
-            if (callback) callback(this.tensorflowAvailable);
-            else return this.tensorflowAvailable;
-        } else {
+        if (this.tensorflowAvailable === null) {
+            // check if tensorflow is available
             const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
             python.on('close', (code) => {
                 LOGGER.log('ML MANAGER', `tensorflow_test.py - result: code ${code}.`);
                 this.tensorflowChecked = true;
                 this.tensorflowAvailable = (code == 0);
+                LOGGER.log('ML MANAGER', `tensorflowAvailable: ${this.tensorflowAvailable}`);
                 if (callback) callback(this.tensorflowAvailable);
                 else return this.tensorflowAvailable;
             });
+        } else {
+            // tensorflow already checked
+            // return result
+            if (callback) callback(this.tensorflowAvailable);
+            else return this.tensorflowAvailable;
         }
     }
 
@@ -87,6 +95,7 @@ class MLManager {
             LOGGER.log('ML MANAGER', `tensorflow_install.py - result: code ${code}.`)
             this.tensorflowChecked = true;
             this.tensorflowAvailable = (code == 0);
+            LOGGER.log('ML MANAGER', `tensorflowAvailable: ${this.tensorflowAvailable}`);
             if (callback) {
                 callback(code == 0);
             }
@@ -103,21 +112,15 @@ class MLManager {
         // }
     }
     checkForModel(modelID) {
-        return true; // TODO remove
-        if (!(modelID in this.models)) {
-            return false;
+        // check if there is a subfolder named modelID in the ML/models folder
+        const modelPath = path.join(this.folderMLmodels, modelID);
+        if (fs.existsSync(modelPath)) {
+            return modelPath;
         }
-        if (!('localPath' in Object.keys(this.models[modelID]))) {
-            return false;
-        }
-        if (!(fs.existsSync(this.models[modelID].localPath))) {
-            return false;
-        }
-        return true;
+        return null;
     }
     getModelPath(modelID) {
-        // TODO
-        return path.join(CONFIG.VLT_FOLDER, 'ML', 'models', 'model_8.2')
+        return this.models[modelID].localPath;
     }
 
     deleteModel(modelID) {}
@@ -181,6 +184,31 @@ class MLManager {
               callback(null);
             }
         });
+    }
+
+    /**
+     * Return all models where the code is contained in the modelID. Return per model
+     * an object including the modelID, the model name, and the model size.
+     * @param {*} code 
+     */
+    getModelsByCode(code) {
+        const result = [];
+        for (const modelID in this.models) {
+            if (modelID.includes(code)) {
+                // create copy of model object
+                const model = Object.assign({}, this.models[modelID]);
+                model.modelID = modelID;
+                result.push(model);
+            }
+        }
+        return result;
+    }
+
+    getModelDetails(modelID) {
+        if (modelID in this.models) {
+            return this.models[modelID];
+        }
+        return null;
     }
 
     cleanResults() {}
