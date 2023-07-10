@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 
 <html>
+
 <head>
-    <title>Export</title>
+    <title>Export | Virtual Light Table</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="export.css">
     <script src="../js/libs/jquery-3.6.0.min.js"></script>
     <script>window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');</script>
@@ -27,7 +29,7 @@
                     <!-- Mode Selection -->
                     <div class="mode button active" mode="rgb">Standard</div>
                     <div class="mode button" mode="filters">Graphical Filters</div>
-                    <div class="mode button" mode="faksimile">Faksimile</div>
+                    <div class="mode button" requirement="tensorflow" mode="faksimile">Faksimile</div>
                 </div>
                 
                 <div class="flex-vert">
@@ -56,32 +58,34 @@
 
                     <div id="mode-options-faksimile" class="flex-vert mode-options  hidden">
                         <select id="select-faksimile-model">
-                            <option value="0">Model 1</option>
-                            <option value="1">Model 2</option>
-                            <option value="2">Model 3</option>
+                            <!--
+                                <option value="0">Model 1</option>
+                                <option value="1">Model 2</option>
+                                <option value="2">Model 3</option>
+                            -->
                         </select>
-                        <div class="button">Download Model</div>
-                        <div class="button">Compute Faksimile</div>
+                        <div id="download-model" class="button">Download Model</div>
+                        <div id="compute-model" class="button">Compute Faksimile</div>
         
-                        <div class="flex-hor">
+                        <div id="papyrus-wrapper" class="flex-hor">
                             <label>Threshold Papyrus</label>
                             <input type="range" id="threshold-papyrus" min="0" max="100" value="50">
                             <div id="threshold-papyrus-value">50</div>
                         </div>
 
-                        <div class="flex-hor">
+                        <div id="black-wrapper" class="flex-hor">
                             <label>Threshold Black Ink</label>
                             <input type="range" id="threshold-black" min="0" max="100" value="50">
                             <div id="threshold-black-value">50</div>
                         </div>
 
-                        <div class="flex-hor">
+                        <div id="red-wrapper" class="flex-hor">
                         	<label>Threshold Red Ink</label>
                             <input type="range" id="threshold-red" min="0" max="100" value="50">
                             <div id="threshold-red-value">50</div>
                         </div>
 
-                        <div class="button">Show/Hide Papyrus Outline</div>
+                        <div id="papyrus-outline" class="button">Show/Hide Papyrus Outline</div>
                         <!-- Functionality will be added at a later stage of development -->
                         <!--
                         <div class="button">Remove Papyrus</div>
@@ -105,8 +109,11 @@
                     <!-- Export Tools -->
                     <div id="rotate-layout" class="button">Rotate Layout</div>
                     <div id="scale" class="button">Show/Hide Scale</div>
+                    <!-- Crop Export Area - preserved for later stage of development -->
+                    <!--
                     <div class="button">Crop</div>
                     <div class="button">Reset</div>
+                    -->
                     <div class="flex-hor">
                         <div id='jpg-button' class="format button square">JPG</div>
                         <div id="jpg-color">

@@ -42,6 +42,7 @@ $(document).ready(function(){
     updateColorpicker();
 
     send('server-get-active-table', null);
+    send('server-check-tensorflow');
 });
 
 function send(message, data) {
@@ -130,8 +131,15 @@ function displayImage(event) {
 }
 
 function centerStages() {
-    const recto_bounds = recto.getBounds();
-    const verso_bounds = verso.getBounds();
+    let recto_bounds = recto.getBounds();
+    let verso_bounds = verso.getBounds();
+
+    if (recto_bounds === null) {
+        recto_bounds = {width: 1, height: 1};
+    }
+    if (verso_bounds === null) {
+        verso_bounds = {width: 1, height: 1};
+    }
 
     // determine scaling ratio to ensure that the image fits on the canvas
     const recto_scale_x = recto.canvas.width / recto_bounds.width;
@@ -424,15 +432,17 @@ $('#rotate-layout').click(function() {
 });
 
 $('.mode.button').click(function() {
-    const targetMode = $(this).attr('mode');
+    if (!$(this).hasClass('disabled')) {
+        const targetMode = $(this).attr('mode');
+        
+        $('.active').removeClass('active');
+        $(this).addClass('active');
     
-    $('.active').removeClass('active');
-    $(this).addClass('active');
-
-    $('.mode-options').addClass('hidden');
-    $(`#mode-options-${targetMode}`).removeClass('hidden');
-
-    switchDisplay(targetMode);
+        $('.mode-options').addClass('hidden');
+        $(`#mode-options-${targetMode}`).removeClass('hidden');
+    
+        switchDisplay(targetMode);
+    }
 });
 
 $('.format.button').click(function(event) {
@@ -460,6 +470,21 @@ $('#contrast').on('input', requestFilters);
 $('.flip-button').click(function() {
     $(this).toggleClass('inverted');
     requestFilters();
+});
+
+$('#select-faksimile-model').on('change', function() {
+    const modelID = $(this).val();
+    const modelName = $(this).find("option:selected").text();
+
+    if (modelName.includes('✅')) {
+        $('#compute-model').removeClass('hidden');
+        $('#download-model').addClass('hidden');
+    } else {
+        $('#download-model').removeClass('hidden');
+        $('#compute-model').addClass('hidden');
+    }
+
+    ipcRenderer.send('server-get-ml-model-details', modelID);
 });
 
 
@@ -499,4 +524,64 @@ ipcRenderer.on('active-table', (event, data) => {
    }
 
    loadObjects();
+});
+
+ipcRenderer.on('tensorflow-checked', (event, tensorflowAvailable) => {
+    LOGGER.receive('EXPORT', 'tensorflow-checked', tensorflowAvailable);
+    if (!tensorflowAvailable) {
+        // select all mode buttons where the attribute requirement says "tensorflow"
+        // add class "disabled" and append text "(tensorflow not available)"
+        $('.mode.button[requirement="tensorflow"]').addClass('disabled').append(' (tensorflow not available)');
+    } else {
+        ipcRenderer.send('server-get-ml-models', 'SEG');
+    }
+});
+
+ipcRenderer.on('ml-models', (event, models) => {
+    LOGGER.receive('EXPORT', 'ml-models', models);
+    for (const model of models) {
+        const modelID = model['modelID'];
+        const size = model['size'];
+        let text = `${model['name']} (${size})`;
+    
+        if (model['localPath']) {
+          text = '✅ ' + text;
+        } else if (model['unreachable']) {
+          text = '❌ ' + text;
+        }
+    
+        const option = $('<option>', {
+          value: modelID,
+          text: text,
+        });
+        $('#select-faksimile-model').append(option);
+      }
+
+      $('#select-faksimile-model').trigger('change');
+});
+
+ipcRenderer.on('ml-model-details', (event, model) => {
+    LOGGER.receive('EXPORT', 'ml-model-details', model);
+    const outputLabels = model['outputLabels'];
+    // check if "red ink" is in the output labels
+    const available = model['localPath'] != null;
+    const redInk = outputLabels.includes('red ink');
+    const blackInk = outputLabels.includes('black ink');
+    const papyrus = outputLabels.includes('papyrus');
+
+    $('#papyrus-wrapper').addClass('hidden');
+    $('#papyrus-outline').addClass('hidden');
+    $('#red-wrapper').addClass('hidden');
+    $('#black-wrapper').addClass('hidden');
+
+    if (available && papyrus) {
+        $('#papyrus-wrapper').removeClass('hidden');
+        $('#papyrus-outline').removeClass('hidden');
+    }
+    if (available && redInk) {
+        $('#red-wrapper').removeClass('hidden');
+    }
+    if (available && blackInk) {
+        $('#black-wrapper').removeClass('hidden');
+    }
 });
