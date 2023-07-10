@@ -59,6 +59,8 @@
     box-shadow: none;
     border: none;
     background-color: #505050;
+    color: #aaaaaa;
+    cursor: default;
 }
 
 .button label {
