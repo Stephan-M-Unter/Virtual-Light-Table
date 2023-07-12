@@ -2,7 +2,6 @@
 
 const {ipcRenderer} = require('electron');
 const LOGGER = require('../statics/LOGGER');
-const request = require('request');
 
 let recto;
 let verso;
@@ -19,10 +18,10 @@ const recto_filters = new createjs.Container();
 recto_filters.name = 'Recto Filters';
 const verso_filters = new createjs.Container();
 verso_filters.name = 'Verso Filters';
-const recto_faksimile = new createjs.Container();
-recto_faksimile.name = 'Recto Faskimile';
-const verso_faksimile = new createjs.Container();
-verso_faksimile.name = 'Verso Faskimile';
+const recto_facsimile = new createjs.Container();
+recto_facsimile.name = 'Recto Facsimile';
+const verso_facsimile = new createjs.Container();
+verso_facsimile.name = 'Verso Facsimile';
 
 let objects = {};
 
@@ -32,8 +31,8 @@ $(document).ready(function(){
 
 
 
-    recto.addChild(recto_rgb, recto_filters, recto_faksimile);
-    verso.addChild(verso_rgb, verso_filters, verso_faksimile);
+    recto.addChild(recto_rgb, recto_filters, recto_facsimile);
+    verso.addChild(verso_rgb, verso_filters, verso_facsimile);
 
     recto.addChild(recto_scale);
     verso.addChild(verso_scale);
@@ -66,11 +65,25 @@ function loadObjects(imageMode='rgb') {
     We insert the image urls together with the corresponding object id in the queue.
     Whenever an image is loaded, we check if the image is a recto or a verso image and add it to the corresponding canvas.
     */
+
+    if (imageMode === 'rgb') {
+        recto_rgb.removeAllChildren();
+        verso_rgb.removeAllChildren();
+    } else if (imageMode === 'filters') {
+        recto_filters.removeAllChildren();
+        verso_filters.removeAllChildren();
+    } else if (imageMode === 'facsimile') {
+        recto_facsimile.removeAllChildren();
+        verso_facsimile.removeAllChildren();
+    }
+
     const queue = new createjs.LoadQueue();
     for (const fragment_id in objects) {
         const fragment = objects[fragment_id];
-        queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'recto', 'src': fragment['recto']['url']});
-        queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'verso', 'src': fragment['verso']['url']});
+        const url_recto = fragment['recto']['url'][imageMode];
+        const url_verso = fragment['verso']['url'][imageMode];
+        queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'recto', 'src': url_recto});
+        queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'verso', 'src': url_verso});
     }
     queue.on('fileload', displayImage);
     queue.on('complete', function() {
@@ -82,9 +95,9 @@ function loadObjects(imageMode='rgb') {
         } else if (imageMode === 'filters') {
             recto.addChild(recto_filters);
             verso.addChild(verso_filters);
-        } else if (imageMode === 'faskimile') {
-            recto.addChild(recto_faksimile);
-            verso.addChild(verso_faksimile);
+        } else if (imageMode === 'facsimile') {
+            recto.addChild(recto_facsimile);
+            verso.addChild(verso_facsimile);
         }
         recto.addChild(recto_scale);
         verso.addChild(verso_scale);
@@ -123,10 +136,10 @@ function displayImage(event) {
         recto_filters.addChild(image);
     } else if (imageMode === 'filters' && side === 'verso') {
         verso_filters.addChild(image);
-    } else if (imageMode === 'faskimile' && side === 'recto') {
-        recto_faksimile.addChild(image);
-    } else if (imageMode === 'faskimile' && side === 'verso') {
-        verso_faksimile.addChild(image);
+    } else if (imageMode === 'facsimile' && side === 'recto') {
+        recto_facsimile.addChild(image);
+    } else if (imageMode === 'facsimile' && side === 'verso') {
+        verso_facsimile.addChild(image);
     }
 }
 
@@ -362,13 +375,8 @@ function download() {
 
 function getURLs() {
     const urls = [];
-    for (const fragment of recto.children) {
-        const url = fragment.url;
-        if (url) {
-            urls.push(url);
-        }
-    }
-    for (const fragment of verso.children) {
+    const children = recto.children.concat(verso.children);
+    for (const fragment of children) {
         const url = fragment.url;
         if (url) {
             urls.push(url);
@@ -403,9 +411,9 @@ function switchDisplay(imageMode) {
         recto.addChild(recto_filters);
         verso.addChild(verso_filters);
     }
-    else if (imageMode === 'faksimile' && recto_faksimile.children.length > 0) {
-        recto.addChild(recto_faksimile);
-        verso.addChild(verso_faksimile);
+    else if (imageMode === 'facsimile' && recto_facsimile.children.length > 0) {
+        recto.addChild(recto_facsimile);
+        verso.addChild(verso_facsimile);
     } else {
         recto.addChild(recto_rgb);
         verso.addChild(verso_rgb);
@@ -414,9 +422,150 @@ function switchDisplay(imageMode) {
     recto.addChild(recto_scale);
     verso.addChild(verso_scale);
 
+    centerStages();
+
     recto.update();
     verso.update();
 }
+
+function getThresholds() {
+    let t_papyrus = $('#threshold-papyrus').val();
+    let t_black = $('#threshold-black').val();
+    let t_red = $('#threshold-red').val();
+    let t_outline = $('#papyrus-outline').val();
+    t_papyrus = (t_papyrus / 100).toFixed(2);
+    t_black = (t_black / 100).toFixed(2);
+    t_red = (t_red / 100).toFixed(2);
+
+    const thresholds = {
+        0: -1,
+        1: -1,
+        2: t_papyrus,
+        3: t_black,
+        4: t_red,
+        'outline': t_outline,
+    }
+
+    return thresholds;
+}
+
+function getColors() {
+    const colors = {
+        0: [0, 0, 0, 0], // background
+        1: [0, 0, 0, 0], // scale
+        2: [255, 255, 255, 255], // papyrus
+        3: [0, 0, 0, 255], // black
+        4: [255, 0, 0, 255], // red
+    }
+
+    return colors;
+}
+
+function requestFacsimile() {
+    const inputData = [];
+    const modelID = $('#select-facsimile-model').val();
+    for (const fragment_id in objects) {
+        const fragment = objects[fragment_id];
+        for (const side of [fragment['recto'], fragment['verso']]) {
+            const url = side.url.rgb;
+            const ppi = side.ppi;
+            if (url) {
+                inputData.push({
+                    'modelID': modelID,
+                    'image_path': url,
+                    'image_ppi': ppi,
+                });
+            }
+        }
+    }
+
+    const requestData = {
+        'thresholds': getThresholds(),
+        'colors': getColors(),
+        'inputData': inputData,
+    }
+
+    send('server-facsimilate-images', requestData);
+}
+
+function requestThreshold() {
+    const inputData = [];
+    for (const fragment_id in objects) {
+        const fragment = objects[fragment_id];
+        for (const side of [fragment['recto'], fragment['verso']]) {
+            const url = side.url.rgb;
+            // get filename from url, regardless if delimiters are /, \ or \\
+            let filename = url.split('/').pop().split('\\').pop();
+            // remove file extension
+            filename = filename.split('.')[0];
+            // add _segmentation.npy
+            filename = filename + '_segmentation.npy';
+            inputData.push(filename);
+        }
+    }
+
+    const requestData = {
+        'inputData': inputData,
+        'thresholds': getThresholds(),
+        'colors': getColors(),
+    }
+
+    send('server-threshold-images', requestData);
+}
+
+function updateThresholdSliders() {
+    let t_papyrus = $('#threshold-papyrus').val();
+    let t_black = $('#threshold-black').val();
+    let t_red = $('#threshold-red').val();
+    let t_outline = $('#papyrus-outline').val();
+
+    // convert values such that they display decimal values with up to 2 decimal places
+    t_papyrus = (t_papyrus / 100).toFixed(2);
+    t_black = (t_black / 100).toFixed(2);
+    t_red = (t_red / 100).toFixed(2);
+    
+    // update slider values
+    $('#threshold-papyrus-value').text(t_papyrus);
+    $('#threshold-black-value').text(t_black);
+    $('#threshold-red-value').text(t_red);
+    $('#papyrus-outline-value').text(t_outline);
+}
+
+function displayThresholdImages() {
+    const folder = "C:\\Users\\unter\\AppData\\Roaming\\Virtual Light Table\\ML\\results";
+
+    for (const fragment_id in objects) {
+        const fragment = objects[fragment_id];
+        const recto_url = fragment['recto']['url']['rgb'];
+        const verso_url = fragment['verso']['url']['rgb'];
+        const recto_filename = recto_url.split('/').pop().split('\\').pop().split('.')[0];
+        const verso_filename = verso_url.split('/').pop().split('\\').pop().split('.')[0];
+        objects[fragment_id]['recto']['url']['facsimile'] = `${folder}\\${recto_filename}_threshold.png`;
+        objects[fragment_id]['verso']['url']['facsimile'] = `${folder}\\${verso_filename}_threshold.png`;
+    }
+
+    loadObjects('facsimile');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 $('#rotate-layout').click(function() {
     const layout_canvas = $('#layout-canvas');
@@ -472,7 +621,7 @@ $('.flip-button').click(function() {
     requestFilters();
 });
 
-$('#select-faksimile-model').on('change', function() {
+$('#select-facsimile-model').on('change', function() {
     const modelID = $(this).val();
     const modelName = $(this).find("option:selected").text();
 
@@ -486,6 +635,13 @@ $('#select-faksimile-model').on('change', function() {
 
     ipcRenderer.send('server-get-ml-model-details', modelID);
 });
+
+$('#compute-model').click(requestFacsimile);
+$('#compute-threshold').click(requestThreshold);
+$('#threshold-papyrus').on('input', updateThresholdSliders);
+$('#threshold-black').on('input', updateThresholdSliders);
+$('#threshold-red').on('input', updateThresholdSliders);
+$('#papyrus-outline').on('input', updateThresholdSliders);
 
 
 ipcRenderer.on('active-table', (event, data) => {
@@ -506,20 +662,29 @@ ipcRenderer.on('active-table', (event, data) => {
     const fragment = data['fragments'][fragment_id];
     const fragmentData = {
         'recto': {
-            'url': fragment['recto']['url_view'],
+            'url': {
+                'rgb': fragment['recto']['url_view'],
+                'filters': null,
+                'facsimile': null,
+            },
             'x': fragment['baseX'],
             'y': fragment['baseY'],
             'ppi': fragment['recto']['ppi'],
-            'rotation': fragment['recto']['rotation'],
+            'rotation': fragment['rotation'] + fragment['recto']['rotation'],
         },
         'verso': {
-            'url': fragment['verso']['url_view'],
+            'url': {
+                'rgb': fragment['verso']['url_view'],
+                'filters': null,
+                'facsimile': null,
+            },
             'x': -fragment['baseX'],
             'y': fragment['baseY'],
             'ppi': fragment['verso']['ppi'],
-            'rotation': fragment['verso']['rotation'],
+            'rotation': -fragment['rotation'] + fragment['verso']['rotation'],
         },
     }
+    console.log('recto', fragmentData['recto']['rotation'], 'verso', fragmentData['verso']['rotation']);
     objects[fragment_id] = fragmentData;
    }
 
@@ -554,10 +719,10 @@ ipcRenderer.on('ml-models', (event, models) => {
           value: modelID,
           text: text,
         });
-        $('#select-faksimile-model').append(option);
+        $('#select-facsimile-model').append(option);
       }
 
-      $('#select-faksimile-model').trigger('change');
+      $('#select-facsimile-model').trigger('change');
 });
 
 ipcRenderer.on('ml-model-details', (event, model) => {
@@ -584,4 +749,9 @@ ipcRenderer.on('ml-model-details', (event, model) => {
     if (available && blackInk) {
         $('#black-wrapper').removeClass('hidden');
     }
+});
+
+ipcRenderer.on('thresholded-images', (event) => {
+    LOGGER.receive('EXPORT', 'thresholded-images');
+    displayThresholdImages();
 });

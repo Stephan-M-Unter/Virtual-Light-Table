@@ -29,7 +29,7 @@
                     <!-- Mode Selection -->
                     <div class="mode button active" mode="rgb">Standard</div>
                     <div class="mode button" mode="filters">Graphical Filters</div>
-                    <div class="mode button" requirement="tensorflow" mode="faksimile">Faksimile</div>
+                    <div class="mode button" requirement="tensorflow" mode="facsimile">Facsimile</div>
                 </div>
                 
                 <div class="flex-vert">
@@ -56,8 +56,8 @@
                         <div class="button">Reset</div>
                     </div>
 
-                    <div id="mode-options-faksimile" class="flex-vert mode-options  hidden">
-                        <select id="select-faksimile-model">
+                    <div id="mode-options-facsimile" class="flex-vert mode-options  hidden">
+                        <select id="select-facsimile-model">
                             <!--
                                 <option value="0">Model 1</option>
                                 <option value="1">Model 2</option>
@@ -65,27 +65,35 @@
                             -->
                         </select>
                         <div id="download-model" class="button">Download Model</div>
-                        <div id="compute-model" class="button">Compute Faksimile</div>
+                        <div id="compute-model" class="button">Compute Facsimile</div>
         
-                        <div id="papyrus-wrapper" class="flex-hor">
-                            <label>Threshold Papyrus</label>
-                            <input type="range" id="threshold-papyrus" min="0" max="100" value="50">
-                            <div id="threshold-papyrus-value">50</div>
-                        </div>
+                        <!-- useless? 
+                            <div id="papyrus-wrapper" class="flex-hor">
+                                <label>Threshold Papyrus</label>
+                                <input type="range" id="threshold-papyrus" min="0" max="100" value="50">
+                                <div id="threshold-papyrus-value">0.50</div>
+                            </div>
+                        -->
 
                         <div id="black-wrapper" class="flex-hor">
                             <label>Threshold Black Ink</label>
-                            <input type="range" id="threshold-black" min="0" max="100" value="50">
-                            <div id="threshold-black-value">50</div>
+                            <input type="range" id="threshold-black" min="0" max="100" value="20">
+                            <div id="threshold-black-value">0.20</div>
                         </div>
 
                         <div id="red-wrapper" class="flex-hor">
                         	<label>Threshold Red Ink</label>
-                            <input type="range" id="threshold-red" min="0" max="100" value="50">
-                            <div id="threshold-red-value">50</div>
+                            <input type="range" id="threshold-red" min="0" max="100" value="20">
+                            <div id="threshold-red-value">0.20</div>
                         </div>
 
-                        <div id="papyrus-outline" class="button">Show/Hide Papyrus Outline</div>
+                        <div id="papyrus-outline-wrapper" class="flex-hor">
+                            <label>Show Papyrus Outline</label>
+                            <input type="range" id="papyrus-outline" min="0" max="10" value="5">
+                            <div id="papyrus-outline-value">5</div>
+                        </div>
+
+                        <div id="compute-threshold" class="button">Compute Threshold</div>
                         <!-- Functionality will be added at a later stage of development -->
                         <!--
                         <div class="button">Remove Papyrus</div>

@@ -123,7 +123,16 @@ class MLManager {
         return this.models[modelID].localPath;
     }
 
-    deleteModel(modelID) {}
+    deleteModel(modelID) {
+        // check if the model with modelID exists
+        if (this.checkForModel(modelID)) {
+            // delete the folder
+            fs.rmdirSync(this.getModelPath(modelID), {recursive: true});
+            // delete the model from the list
+            delete this.models[modelID];
+            LOGGER.log('ML MANAGER', `Model (ID: ${modelID}) deleted.`);
+        }
+    }
 
     segmentImages(modelID, pathImage1, pathImage2, ppi1, ppi2, callback) {
         const resultFileName = 'segmentation_result.json';
@@ -153,6 +162,93 @@ class MLManager {
               LOGGER.err('ML MANAGER', err);
               callback(null);
         }});
+    }
+
+    facsimilateImages(inputData, callback) {
+        /*
+            the input data is a list of objects with the following structure:
+            {
+                modelID: 'SEG_01',
+                image_path: 'path/to/image',
+                image_ppi: 300,
+            }
+            this is a recursive function; once there are no more objects in
+            inputData, the callback is called with the result
+        */
+
+        // check if inputData is empty
+        if (inputData.length == 0) {
+            callback(true);
+        } else {
+            const resultFileName = 'fascimilation_result.json';
+            const resultFileFolder = this.folderMLresults;
+            const ppi = inputData[0].image_ppi;
+            const image_path = inputData[0].image_path;
+            const modelID = inputData[0].modelID;
+            const model_path = this.getModelPath(modelID);
+            const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'facsimilate.py'),
+                resultFileFolder,
+                resultFileName,
+                model_path,
+                modelID,
+                image_path,
+                ppi],
+                {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]}
+            );
+
+            python.on('close', (code) => {
+                LOGGER.log('ML MANAGER', `Facsimilation Result: code ${code}.`)
+                // remove the first element from inputData
+                inputData.shift();
+                // call the function again
+                this.facsimilateImages(inputData, callback);
+            });
+        }
+    }
+
+    thresholdImages(inputData, thresholds, colors, callback) {
+        /*
+            the input data is a list of segmentation_paths
+            thresholds is a dictionary of class indices and threshold values
+            colors is a dictionary of class indices and color values
+            this is a recursive function; once there are no more objects in
+            inputData, the callback is called with the result
+        */
+
+        // check if inputData is empty
+        if (inputData.length == 0) {
+            callback(true);
+        } else {
+            const path_segmentation = path.join(this.folderMLresults, inputData[0]);
+            const path_output_file = path_segmentation.replace('_segmentation.npy', '_threshold.png');
+
+            const controlJSON = JSON.stringify({
+                'path_output_file': path_output_file,
+                'path_segmentation': path_segmentation,
+                'thresholds': thresholds,
+                'colors': colors,
+            });
+            const controlJSONname = 'threshold.json';
+            const controlJSONpath = path.join(this.folderML, controlJSONname);
+
+            // write controlJSON to file
+            fs.writeFileSync(controlJSONpath, controlJSON);
+
+            const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'threshold.py'),
+                controlJSONpath],
+                {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]}
+            );
+
+            python.on('close', (code) => {
+                LOGGER.log('ML MANAGER', `Threshold Result: code ${code}.`)
+                // remove controlJSON
+                fs.removeSync(controlJSONpath);
+                // remove the first element from inputData
+                inputData.shift();
+                // call the function again
+                this.thresholdImages(inputData, thresholds, colors, callback);
+            });
+        }
     }
     
     registerImages(modelID, image1, mask1, image2, mask2, callback) {

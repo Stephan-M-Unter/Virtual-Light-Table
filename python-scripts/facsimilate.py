@@ -2,46 +2,39 @@ import os, sys, json
 import numpy as np
 from PIL import Image
 from urllib import request
+import tensorflow as tf
 
 # Input Arguments:
 # [0] script name
 # [1] path output folder
-# [2] output file name
+# [2] path output filename
 # [3] model path
 # [4] model ID
-# [5] path image 1
-# [6] path image 2
-# [7] ppi image 1
-# [8] ppi image 2
+# [5] path image
+# [6] ppi image
 
 path_output_folder = sys.argv[1]
-output_filename = sys.argv[2]
+path_output_filename = sys.argv[2]
 path_model = sys.argv[3]
 model_ID = sys.argv[4]
 path_image1 = sys.argv[5]
-path_image2 = sys.argv[6]
-ppi1 = sys.argv[7]
-ppi2 = sys.argv[8]
+ppi1 = sys.argv[6]
 
-print(f'segment.py - Input[0]: script')
+print('segment.py - Input[0]: script')
 print(f'segment.py - Input[1] (path output folder): {path_output_folder}')
-print(f'segment.py - Input[2] (output file): {output_filename}')
+print(f'segment.py - Input[2] (path output file): {path_output_filename}')
 print(f'segment.py - Input[3] (model): {path_model}')
 print(f'segment.py - Input[4] (model ID): {model_ID}')
 print(f'segment.py - Input[5] (image1): {path_image1}')
-print(f'segment.py - Input[6] (image2): {path_image2}')
-print(f'segment.py - Input[7] (ppi1): {ppi1}')
-print(f'segment.py - Input[8] (ppi2): {ppi2}')
+print(f'segment.py - Input[6] (ppi1): {ppi1}')
 
 sys.path.insert(0, path_model)
 import VLT
 
 model = VLT.VLTInferenceModel(path_model)
 
-segmentation1 = None
-segmentation2 = None
-target_path1 = None
-target_path2 = None
+segmentation = None
+target_path = None
 
 def segment_image(path_to_image, ppi):
     try:
@@ -52,31 +45,28 @@ def segment_image(path_to_image, ppi):
         request.urlretrieve(path_to_image, temp_url)
         image = Image.open(temp_url).convert('RGB')
         os.remove(temp_url)
-    segmentation = model.predict(image, ppi, argmax=True)
-    segmentation[segmentation <= 1] = 0 # background and scale -> background
-    segmentation[segmentation > 1] = 255 # papyrus, black ink, red ink -> foreground
-    segmentation = Image.fromarray(segmentation)
-    segmentation = segmentation.resize(image.size)
-    segmentation = segmentation.convert('RGBA')
+    segmentation = model.predict(image, ppi, argmax=False)
+
+    image_size = image.size
+    # swap width and height of image_size, keep all other dimensions
+    image_size = (image_size[1], image_size[0], *image_size[2:])
+
+    # segmentation is now a numpy array of shape (height, width, output_channels), where
+    # output_channels: number of classes detected by the model
+    # height/width: scaled image sizes for a target_ppi of 400 at maximum
+    # thus, the segmentation needs to be scaled back to the original image size
+    segmentation = tf.image.resize(segmentation, size=image_size, method='bilinear')
 
     image_name = os.path.basename(path_to_image)
     image_name = image_name[:image_name.rfind('.')]
-    target_name = f'{image_name}_segmentation_{model_ID}.png' 
+    target_name = f'{image_name}_segmentation.npy' 
     target_path = os.path.join(path_output_folder, target_name)
-    segmentation.save(target_path)
+    
+    np.save(target_path, segmentation.numpy())
 
     return target_path
 
 if path_image1 != 'null' and ppi1 != '':
     target_path1 = segment_image(path_image1, ppi1)
 
-if path_image2 != 'null' and ppi2 != '':
-    target_path2 = segment_image(path_image2, ppi2)
-
-result = {
-    'pathMask1': target_path1,
-    'pathMask2': target_path2,
-}
-
-with open(os.path.join(path_output_folder, output_filename), 'w') as f:
-    json.dump(result, f)
+sys.exit(0);
