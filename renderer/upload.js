@@ -1960,6 +1960,7 @@ ipcRenderer.on('tensorflow-checked', (event, tensorflowCheck) => {
     tensorflow = true;
     $('#mask_control_automatic_selection_panel').removeClass('unrendered');
     drawAutoMask();
+    LOGGER.send('UPLOAD', 'server-get-ml-models', 'SEG');
     ipcRenderer.send('server-get-ml-models', 'SEG');
   } else {
     $('#mask_control_tensorflow_panel').removeClass('unrendered');
@@ -2044,4 +2045,5 @@ ipcRenderer.on('ml-models', (event, models) => {
     });
     $('#mask_automatic_model').append(option);
   }
+  $('#mask_automatic_model').trigger('change');
 });

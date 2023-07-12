@@ -115,6 +115,7 @@ $('#tensorflow-download').click(function() {
 
 $(document).ready(function() {
     $('#save-path').attr('readonly', true);
+    LOGGER.send('SETTINGS', 'server-settings-opened');
     ipcRenderer.send('server-settings-opened');
 });
 

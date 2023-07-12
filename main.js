@@ -32,6 +32,9 @@ const ConfigManager = require('./js/ConfigManager');
 const {CONFIG} = require('./statics/CONFIG');
 const LOGGER = require('./statics/LOGGER');
 
+// EventHandlers
+const { registerAllEventHandlers } = require('./protocol/registerEvents');
+
 // Settings
 let devMode = false;
 let tpopEnabled = true;
@@ -69,6 +72,26 @@ let calibrationWindow;
 let settingsWindow;
 let tpopWindow;
 let exportWindow;
+
+// ViewGetters
+function getStartWindow() {return startupWindow;}
+function getMainWindow() {return mainWindow;}
+function getLoadWindow() {return loadWindow;}
+function getUploadWindow() {return uploadWindow;}
+function getCalibrationWindow() {return calibrationWindow;}
+function getSettingsWindow() {return settingsWindow;}
+function getTpopWindow() {return tpopWindow;}
+function getExportWindow() {return exportWindow;}
+
+// ViewSetters
+function setStartWindow(window) {startupWindow = window;}
+function setMainWindow(window) {mainWindow = window;}
+function setLoadWindow(window) {loadWindow = window;}
+function setUploadWindow(window) {uploadWindow = window;}
+function setCalibrationWindow(window) {calibrationWindow = window;}
+function setSettingsWindow(window) {settingsWindow = window;}
+function setTpopWindow(window) {tpopWindow = window;}
+function setExportWindow(window) {exportWindow = window;}
 
 
 const color = {
@@ -126,12 +149,15 @@ async function startUp() {
     LOGGER.log('STARTUP', 'Installing Managers...');
     sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
     createManagers();
-    LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
-    sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
   } catch (error) {
     LOGGER.log('SERVER', 'Quitting Application.');
     app.quit();
   }
+    LOGGER.log('STARTUP', 'Registering EventHandlers...');
+    sendMessage(startupWindow, 'startup-status', 'Registering EventHandlers...');
+    registerEventHandlers();
+    LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
+    sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
 }
 
 function createManagers() {
@@ -142,6 +168,61 @@ function createManagers() {
   // external managers
   tpopManager = new TPOPManager();
   configManager.registerManager(tpopManager);
+}
+
+function getDependencies() {
+  const deps = {
+    'ipcMain': ipcMain,
+    'app': app,
+    'sendMessage': sendMessage,
+    'mlManager': mlManager,
+    'tableManager': tableManager,
+    'saveManager': saveManager,
+    'activeTables': activeTables,
+    'autosaveChecked': autosaveChecked,
+    'calibrationWindow': calibrationWindow,
+    'devMode': devMode,
+    'settingsWindow': settingsWindow,
+    'exportWindow': exportWindow,
+    'configManager': configManager,
+    'config': config,
+    'mainWindow': mainWindow,
+    'Window': Window,
+    'dialog': dialog,
+    'path': path,
+    'tpopManager': tpopManager,
+    'resolveUrls': resolveUrls, // TODO
+    'tpopWindow': tpopWindow,
+    'uploadWindow': uploadWindow,
+    'preprocess_fragment': preprocess_fragment, // TODO
+    'preprocess_loading_fragments': preprocess_loading_fragments,
+    'color': color,
+    'getStartWindow': getStartWindow,
+    'getMainWindow': getMainWindow,
+    'getLoadWindow': getLoadWindow,
+    'getUploadWindow': getUploadWindow,
+    'getCalibrationWindow': getCalibrationWindow,
+    'getSettingsWindow': getSettingsWindow,
+    'getTpopWindow': getTpopWindow,
+    'getExportWindow': getExportWindow,
+    'imageManager': imageManager,
+    'uploadLocalImage': uploadLocalImage,
+    'tpopEnabled': tpopEnabled,
+    'setStartWindow': setStartWindow,
+    'setMainWindow': setMainWindow,
+    'setLoadWindow': setLoadWindow,
+    'setUploadWindow': setUploadWindow,
+    'setCalibrationWindow': setCalibrationWindow,
+    'setSettingsWindow': setSettingsWindow,
+    'setTpopWindow': setTpopWindow,
+    'setExportWindow': setExportWindow,
+  };
+  return deps;
+}
+
+function registerEventHandlers() {
+  const deps = getDependencies();
+  registerAllEventHandlers(deps);
 }
 
 /**
@@ -226,7 +307,6 @@ function sequentialUpload(loadingQueue) {
   if (loadingQueue.length == 0) {
     try {
       uploadWindow.close();
-      sendMessage(mainWindow, 'client-stop-loading');
     } catch {}
     return;
   }
@@ -255,6 +335,7 @@ function sequentialUpload(loadingQueue) {
 
   uploadWindow.on('close', () => {
     uploadWindow = null;
+    sendMessage(mainWindow, 'client-stop-loading');
     // once the upload window is closed, re-call this method to check for the next entry in the queue
     sequentialUpload(loadingQueue);
   });
@@ -686,8 +767,6 @@ function uploadLocalImage(filepath) {
 
 
 
-
-
 /* ##############################################################
 #################################################################
 #################################################################
@@ -718,135 +797,18 @@ function sendMessage(recipientWindow, message, data=null) {
 
 /* RECEIVING MESSAGES */
 
-// server-save-to-model | data -> data.tableID, data.tableData, data.skipDoStep
-ipcMain.on('server-save-to-model', (event, data) => {
-  LOGGER.receive('SERVER', 'server-save-to-model');
-
-  tableManager.updateTable(data.tableID, data.tableData, data.skipDoStep);
-  if (Object.keys(data.tableData.fragments).length > 0) {
-    // no need to autosave when there are no fragments
-    saveManager.autosave(tableManager.getTable(data.tableID), data.tableID);
-  }
-
-  sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(data.tableID));
-});
-
-// server-undo-step
-ipcMain.on('server-undo-step', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-undo-step');
-  const isUndone = tableManager.undoStep(tableID);
-  if (isUndone) {
-    // undo step was successful
-    const tableData = tableManager.getTable(tableID);
-    tableData['undo'] = true;
-    // TODO evtl. zusammenfassen???
-    sendMessage(event.sender, 'client-redo-model', tableData);
-    sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
-  }
-});
 
 // server-redo-step
-ipcMain.on('server-redo-step', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-redo-step');
-  const isRedone = tableManager.redoStep(tableID);
-  if (isRedone) {
-    // redo step was successful
-    const tableData = tableManager.getTable(tableID);
-    tableData['undo'] = true;
-    // TODO evtl. zusammenfassen???
-    sendMessage(event.sender, 'client-redo-model', tableData);
-    sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
-  }
-});
+
 
 // server-clear-table
-ipcMain.on('server-clear-table', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-clear-table');
-  tableManager.clearTable(tableID);
-  const data = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  };
-  sendMessage(event.sender, 'client-load-model', data);
-});
+
 
 // server-load-file
-ipcMain.on('server-load-file', (event, filename) => {
-  LOGGER.receive('SERVER', 'server-load-file', filename);
-  let tableID = activeTables.loading;
-  sendMessage(mainWindow, 'client-start-loading', tableID);
-  activeTables.loading = null;
-  loadWindow.close();
-  filename = path.join(saveManager.getCurrentFolder(), filename);
-  const file = saveManager.loadSaveFile(filename, tableID);
 
-  if (!activeTables.view) {
-    tableID = tableManager.createNewTable();
-    activeTables.view = tableID;
-  } else if (tableManager.hasFragments(activeTables.view)) {
-    tableID = tableManager.createNewTable();
-  }
-
-  tableManager.loadFile(tableID, file);
-  const data = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  };
-  data.tableData['loading'] = true;
-  data.tableData['filename'] = filename;
-
-  preprocess_loading_fragments(data);
-
-  /*
-  imageManager.preprocess_objects(data, function(status) {
-    sendMessage(mainWindow, 'client-loading-progress', status);
-  }, function(data) {
-    sendMessage(mainWindow, 'client-load-model', data);
-    activeTables.view = data['tableID'];
-  });*/
-});
 
 // server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor
-ipcMain.on('server-save-file', (event, data) => {
-  LOGGER.receive('SERVER', 'server-save-file');
-  tableManager.setScreenshot(data.tableID, data.screenshot);
 
-  if (data.quicksave && !data.editor) {
-    // non-initial quicksave, only update editor modified time
-    tableManager.updateEditor(data.tableID);
-  } else {
-    // add new editor
-    tableManager.addEditor(data.tableID, data.editor);
-  }
-
-  let filepath; let response;
-  const tableData = tableManager.getTable(data.tableID);
-  if (data.quicksave) {
-    // overwrite old file
-    filepath = saveManager.quicksave(tableData, data.tableID);
-    response = {
-      title: 'Quicksave',
-      desc: 'Quicksave successful',
-      color: color.success,
-    };
-  } else {
-    // don't overwrite but ask for new file destination
-    filepath = saveManager.save(tableData);
-    response = {
-      title: 'Save',
-      desc: 'Lighttable has successfully been saved',
-      color: color.success,
-    };
-  }
-  if (filepath && response) {
-    sendMessage(mainWindow, 'client-show-feedback', response);
-    const saveData = {
-      tableID: data.tableID,
-      filename: path.basename(filepath),
-    };
-    sendMessage(mainWindow, 'client-file-saved', saveData);
-  }
-});
 
 // server-list-savefiles
 ipcMain.on('server-list-savefiles', (event, folder) => {
@@ -911,402 +873,14 @@ ipcMain.on('server-delete-file', (event, filename) => {
   }
 });
 
-// server-write-annotation | data -> data.tableID, data.aData
-ipcMain.on('server-write-annotation', (event, data) => {
-  LOGGER.receive('SERVER', 'server-write-annotation');
-  tableManager.writeAnnotation(data.tableID, data.annotation);
-});
-
-// server-remove-annotation | data -> data.tableID, data.aID
-ipcMain.on('server-remove-annotation', (event, data) => {
-  LOGGER.receive('SERVER', 'server-remove-annotation');
-  tableManager.removeAnnotation(data.tableID, data.aID);
-});
-
-// server-open-upload
-ipcMain.on('server-open-upload', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-open-upload');
-  activeTables.uploading = tableID;
-  
-  if (uploadWindow) {
-    try {
-      uploadWindow.close();
-    } catch {};
-    uploadWindow = null;
-  }
-
-  if (!uploadWindow) {
-    uploadWindow = new Window({
-      file: './renderer/upload.html',
-      type: 'upload',
-      devMode: devMode,
-    });
-    uploadWindow.maximize();
-    uploadWindow.removeMenu();
-    uploadWindow.once('ready-to-show', () => {
-      uploadWindow.show();
-    });
-    uploadWindow.on('close', function() {
-      sendMessage(mainWindow, 'client-stop-loading');
-    });
-  }
-});
-
-// server-upload-ready
-ipcMain.on('server-upload-ready', (event, data) => {
-  LOGGER.receive('SERVER', 'server-upload-ready');
-
-  let tableID, tableData;
-
-  if (!activeTables.uploading) {
-    // if no table is currently associated with the upload, create a new table
-    tableID = tableManager.createNewTable();
-    tableData = tableManager.getTable(tableID);
-    activeTables.uploading = tableID;
-    const newTableData = {
-      tableID: tableID,
-      tableData: tableData,
-    };
-    // tell client to open the newly created table
-    sendMessage(mainWindow, 'client-load-model', newTableData);
-  } else {
-    tableID = activeTables.uploading;
-    tableData = tableManager.getTable(tableID);
-  }
-  
-  if (uploadWindow) {
-    try {
-      uploadWindow.close();
-    } catch {}
-  }
-
-  sendMessage(mainWindow, 'client-start-loading', activeTables.uploading);
-  
-  preprocess_fragment(data);
-
-  /*
-  // TODO
-  const successCallback = function(resultingObject) {
-    sendMessage(mainWindow, 'client-add-upload', resultingObject);
-  }
-  const failCallback = function() {
-    sendMessage(mainWindow, 'client-stop-loading');
-  }
-
-  imageManager.preprocess_object(data, successCallback, failCallback);
-  */
-});
-
-// server-upload-image | triggers a file dialog for the user to select a fragment
-// image which will then be displayed in the upload window
-ipcMain.on('server-upload-image', (event) => {
-  LOGGER.receive('SERVER', 'server-upload-image');
-  const filepath = imageManager.selectImageFromFilesystem();
-
-  if (filepath) {
-    uploadLocalImage(filepath);
-  } else {
-    sendMessage(uploadWindow, 'upload-receive-image');
-  }
-});
-
 ipcMain.on('server-upload-image-given-filepath', (event, filepath) => {
   LOGGER.receive('SERVER', 'server-upload-image-given-filepath', filepath);
   uploadLocalImage(filepath);
 });
 
-// server-quit-table
-ipcMain.on('server-quit-table', (event) => {
-  LOGGER.receive('SERVER', 'server-quit-table');
-  app.quit();
-});
 
-// server-change-fragment | data -> data.tableID, data.fragmentID
-ipcMain.on('server-change-fragment', (event, data) => {
-  LOGGER.receive('SERVER', 'server-change-fragment');
 
-  const fragment = tableManager.getFragment(data.tableID, data.fragmentID);
-  fragment.edit = true;
-  if (uploadWindow) {
-    try {
-      uploadWindow.close();
-    } catch {};
-  }
 
-  activeTables.uploading = data.tableID;
-
-  uploadWindow = new Window({
-    file: './renderer/upload.html',
-    type: 'upload',
-    devMode: devMode,
-  });
-  uploadWindow.maximize();
-  uploadWindow.removeMenu();
-  uploadWindow.once('ready-to-show', () => {
-    uploadWindow.show();
-    sendMessage(uploadWindow, 'upload-fragment', fragment);
-  });
-  uploadWindow.on('close', function() {
-    sendMessage(mainWindow, 'client-stop-loading');
-  });
-});
-
-// server-confirm-autosave | confirmation -> Boolean
-ipcMain.on('server-confirm-autosave', (event, confirmation) => {
-  LOGGER.receive('SERVER', 'server-confirm-autosave', confirmation);
-  autosaveChecked = true;
-  if (confirmation) {
-    let tableID;
-    const autosaves = saveManager.loadAutosaves();
-    autosaves.forEach((autosave, key, autosaves) => {
-      if (Object.keys(autosave).includes('tableID')) {
-        tableID = tableManager.createNewTable(autosave.tableID);
-      } else {
-        tableID = tableManager.createNewTable();
-      }
-      tableManager.loadFile(tableID, autosave);
-      const data = {
-        tableID: tableID,
-        tableData: tableManager.getTable(tableID),
-      };
-      sendMessage(mainWindow, 'client-inactive-model', data);
-    });
-    const data = {
-      tableID: tableID,
-      tableData: tableManager.getTable(tableID),
-    };
-    activeTables.view = tableID;
-    data.tableData['loading'] = true;
-    sendMessage(mainWindow, 'client-load-model', data);
-    const feedback = {
-      title: 'Table Loaded',
-      desc: 'Successfully loaded last autosave',
-      color: color.success,
-    };
-    sendMessage(mainWindow, 'client-show-feedback', feedback);
-  } else {
-    saveManager.removeAutosaveFiles();
-  }
-});
-
-// server-create-table
-ipcMain.on('server-create-table', (event) => {
-  LOGGER.receive('SERVER', 'server-create-table');
-  if (autosaveChecked) {
-    const newTableID = tableManager.createNewTable();
-    const data = {
-      tableID: newTableID,
-      tableData: tableManager.getTable(newTableID),
-    }
-    activeTables.view = newTableID;
-    sendMessage(event.sender, 'client-load-model', data);
-  } else {
-    sendMessage(mainWindow, 'client-confirm-autosave');
-  }
-});
-
-// server-open-table
-ipcMain.on('server-open-table', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-open-table', tableID);
-  const data = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  };
-  activeTables.view = tableID;
-  sendMessage(event.sender, 'client-load-model', data);
-});
-
-// server-close-table
-ipcMain.on('server-close-table', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-close-table', tableID);
-  const newTableID = tableManager.removeTable(tableID);
-  saveManager.removeAutosave(tableID);
-  if (tableID == activeTables.view) {
-    const data = {
-      tableID: newTableID,
-      tableData: tableManager.getTable(newTableID),
-    };
-    activeTables.view = newTableID;
-    sendMessage(event.sender, 'client-load-model', data);
-  }
-});
-
-// server-send-model
-ipcMain.on('server-send-model', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-send-model', tableID);
-  const data = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  };
-  sendMessage(event.sender, 'client-get-model', data);
-});
-
-ipcMain.on('server-send-all', (event) => {
-  LOGGER.receive('SERVER', 'server-send-all');
-  if (devMode) {
-    sendMessage(event.sender, 'client-get-all', tableManager.getTables());
-  }
-});
-
-ipcMain.on('server-new-session', (event) => {
-  LOGGER.receive('SERVER', 'server-new-session');
-  activeTables.view = null;
-  activeTables.loading = null;
-  activeTables.uploading = null;
-
-  // if no tables are yet created, create a new one
-  if (tableManager.getNumberOfTables() == 0) {
-    tableManager.createNewTable();
-  }
-
-  // checking for all registered tables
-  const registeredTables = tableManager.getTableIds();
-  const selectedTable = registeredTables.pop();
-
-  registeredTables.forEach((tableID) => {
-    const data = {
-      tableID: tableID,
-      tableData: tableManager.getInactiveTable(tableID),
-    };
-    sendMessage(event.sender, 'client-inactive-model', data);
-  });
-
-  activeTables.view = selectedTable;
-  const data = {
-    tableID: selectedTable,
-    tableData: tableManager.getTable(selectedTable),
-  };
-  sendMessage(event.sender, 'client-load-model', data);
-
-  if (saveManager.checkForAutosave()) {
-    sendMessage(mainWindow, 'client-confirm-autosave');
-  } else {
-    autosaveChecked = true;
-  }
-});
-
-// server-save-screenshot | data -> data.tableID, data.screenshot
-ipcMain.on('server-save-screenshot', (event, data) => {
-  LOGGER.receive('SERVER', 'server-save-screenshot');
-  if (data.tableID && data.screenshot) {
-    tableManager.setScreenshot(data.tableID, data.screenshot);
-  }
-});
-
-ipcMain.on('server-ask-load-folders', (event) => {
-  LOGGER.receive('SERVER', 'server-ask-load-folders');
-  sendMessage(event.sender, 'load-set-default-folder', CONFIG.SAVES_FOLDER);
-  sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
-});
-
-ipcMain.on('server-open-calibration', (event) => {
-  LOGGER.receive('SERVER', 'server-open-calibration');
-
-  if (calibrationWindow) {
-    try {
-      calibrationWindow.close();
-    } catch {}
-    calibrationWindow = null;
-  }
-
-  calibrationWindow = new Window({
-    file: './renderer/calibration.html',
-    type: 'calibration',
-    devMode: false,
-  });
-  calibrationWindow.removeMenu();
-  calibrationWindow.once('ready-to-show', () => {
-    calibrationWindow.show();
-  });
-  calibrationWindow.on('close', function() {
-    calibrationWindow = null;
-  });
-});
-
-ipcMain.on('server-open-settings', (event) => {
-  LOGGER.receive('SERVER', 'server-open-settings');
-
-  if (settingsWindow) {
-    try {
-      settingsWindow.close();
-    } catch {}
-    settingsWindow = null;
-  }
-
-  settingsWindow = new Window({
-    file: './renderer/settings.html',
-    type: 'settings',
-    devMode: devMode,
-  });
-  settingsWindow.webContents.setWindowOpenHandler(({url}) => {
-    return {
-      action: 'allow',
-      overrideBrowserWindowOptions: {
-        frame: true,
-        width: 1000,
-        height: 2000,
-      }
-    };
-  });
-  settingsWindow.removeMenu();
-  settingsWindow.once('ready-to-show', () => {
-    settingsWindow.show();
-  })
-});
-
-ipcMain.on('server-close-settings', () => {
-  LOGGER.receive('SERVER', 'server-close-settings');
-  settingsWindow.close();
-  settingsWindow = null;
-});
-
-ipcMain.on('server-close-export', () => {
-  LOGGER.receive('SERVER', 'server-close-export');
-  exportWindow.close();
-  exportWindow = null;
-});
-
-ipcMain.on('server-settings-opened', (event) => {
-  LOGGER.receive('SERVER', 'server-settings-opened');
-  sendMessage(settingsWindow, 'settings-data', configManager.getConfig());
-  mlManager.checkForTensorflow(function(tensorflowAvailable) {
-    sendMessage(settingsWindow, 'tensorflow-installed', tensorflowAvailable);
-  });
-});
-
-ipcMain.on('server-gather-ppi', (event) => {
-  LOGGER.receive('SERVER', 'server-gather-ppi');
-  sendMessage(event.sender, 'calibration-set-ppi', config.ppi);
-});
-
-ipcMain.on('server-stage-loaded', (event) => {
-  LOGGER.receive('SERVER', 'server-stage-loaded');
-  const config = configManager.getConfig();
-  if ('ppi' in config && config.ppi) {
-    sendMessage(mainWindow, 'calibration-set-ppi', config.ppi);
-  }
-  if ('minZoom' in config && config.minZoom
-  && 'maxZoom' in config && config.maxZoom
-  && 'stepZoom' in config && config.stepZoom) {
-    const data = {
-      'minZoom': config.minZoom,
-      'maxZoom': config.maxZoom,
-      'stepZoom': config.stepZoom,
-    };
-    sendMessage(mainWindow, 'client-set-zoom', data);
-  }
-});
-
-ipcMain.on('server-calibrate', (event, ppi) => {
-  LOGGER.receive('SERVER', 'server-calibrate', ppi);
-  calibrationWindow.close();
-  calibrationWindow = null;
-  sendMessage(mainWindow, 'calibration-set-ppi', ppi);
-  const response = {
-    'ppi': ppi,
-  };
-  sendMessage(settingsWindow, 'settings-data', response);
-});
 
 ipcMain.on('server-import-file', (event) => {
   LOGGER.receive('SERVER', 'server-import-file');
@@ -1317,78 +891,14 @@ ipcMain.on('server-import-file', (event) => {
 });
 
 // server-open-tpop
-ipcMain.on('server-open-tpop', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-open-tpop', tableID);
-
-  if (!tpopEnabled) {
-    const feedback = {
-      title: 'TPOP not available',
-      desc: 'The TPOP feature has not been enabled for your VLT version. Due to legal issues, the internal TPOP information will be available as soon as the database entries are published.',
-      color: color.error,
-    }
-    sendMessage(mainWindow, 'client-show-feedback', feedback);
-  } else {
-    activeTables.tpop = tableID;
-  
-    if (!tpopWindow) {
-      tpopWindow = new Window({
-        file: './renderer/tpop.html',
-        type: 'tpop',
-        devMode: devMode,
-      });
-      tpopWindow.webContents.setWindowOpenHandler(({url}) => {
-        return {
-          action: 'allow',
-          overrideBrowserWindowOptions: {
-            frame: true,
-            width: 1500,
-            height: 2000,
-          }
-        };
-      });
-      tpopWindow.removeMenu();
-      tpopWindow.maximize();
-      tpopWindow.on('close', function() {
-        tpopWindow = null;
-        // activeTables.tpop = null;
-      });
-    }
-  }
-});
-
 // server-load-tpop-json | data -> data.startIndex, data.endIndex
-ipcMain.on('server-load-tpop-json', (event, data) => {
-  LOGGER.receive('SERVER', 'server-load-tpop-json');
-  let tpopData;
 
-  if (data) {
-    tpopData = tpopManager.getData(data.startIndex, data.endIndex);
-  } else {
-    tpopData = tpopManager.getData();
-  }
-  /*
-    1. Check: ist bereits ein TPOP-Json vorhanden?
-    2. Check: Kann eine Verbindung zum ME-Server hergestellt werden?
-    3. Falls ja: muss das JSON neu heruntergeladen werden?
-    4. Übermittlung der Daten an das TPOP-Window
-    5. Falls kein JSON vorhanden: Übermittlung dass keine Daten vorhanden
-  */
-
-  const activeTPOPs = tableManager.getTPOPIds(activeTables.tpop);
-  tpopData.activeTPOPs = activeTPOPs;
-
-  if (tpopData == null) {
-    sendMessage(tpopWindow, 'tpop-json-failed');
-  } else {
-    sendMessage(tpopWindow, 'tpop-json-data', tpopData);
-  }
-});
 
 ipcMain.on('server-tpop-details', (event, id) => {
   LOGGER.receive('SERVER', 'server-tpop-details', id);
   const details = tpopManager.loadDetails(id);
 
-  sendMessage(tpopWindow, 'tpop-details', details);
+  sendMessage(event.sender, 'tpop-details', details);
 });
 
 ipcMain.on('server-tpop-filter', (event, filters) => {
@@ -1484,76 +994,10 @@ ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
   sendMessage(event.sender, 'client-load-model', response);
 });
 
-ipcMain.on('server-select-folder', function(event, folderType) {
-  LOGGER.receive('SERVER', 'server-select-folder', folderType);
-  const path = saveManager.selectFolder();
-  if (path) {
-    const response = {};
-    response[folderType] = path;
-    sendMessage(settingsWindow, 'settings-data', response);
-  }
-});
-
-ipcMain.on('server-save-config', function(event, newConfig) {
-  LOGGER.receive('SERVER', 'server-save-config', newConfig);
-  settingsWindow.close();
-  settingsWindow = null;
-
-  configManager.replaceWith(newConfig, function() {
-      dialog.showMessageBox(mainWindow, {
-        buttons: ['OK'],
-        type: 'warning',
-        title: 'Access Denied',
-        message: 'No writing permission to selected save folder. Please select another location or adjust reading and writing permissions. Setting save location to original state.'
-      });
-  });
-
-  try {
-    // update main view with (potentially new) zoom information
-    const zoomData = {
-      'minZoom': newConfig.minZoom,
-      'maxZoom': newConfig.maxZoom,
-      'stepZoom': newConfig.stepZoom,
-    }
-    sendMessage(mainWindow, 'client-set-zoom', zoomData);
-  } catch {
-    LOGGER.err('SERVER', 'WARNING - No zoom information was specified in the config file. Zoom for main view does not change.');
-  }
-
-});
-
-ipcMain.on('server-get-default', function(event, valueType) {
-  LOGGER.receive('SERVER', 'server-get-default', valueType);
-  let defaultValue;
-  if (valueType == 'vltFolder') {
-    defaultValue = path.join(appDataPath, 'Virtual Light Table');
-  }
-  if (defaultValue) {
-    const response = {};
-    response[valueType] = defaultValue;
-    sendMessage(settingsWindow, 'settings-data', response);
-  }
-});
-
 ipcMain.on('console', function(event, data) {
   LOGGER.log('SERVER', data);
 });
 
-ipcMain.on('server-select-other-tpops', (event, data) => {
-  LOGGER.receive('SERVER', 'server-select-other-tpops');
-  const imageArray = tpopManager.getImageLinks(data.tpop);
-  resolveUrls(imageArray, uploadTpopImages);
-});
-
-ipcMain.on('server-check-tpop-data', () => {
-  LOGGER.receive('SERVER', 'server-check-tpop-data');
-  tpopManager.initialiseData(false, function() {
-    sendMessage(tpopWindow, 'tpop-calculation-done')
-  });
-  const activeFilters = tpopManager.getActiveFilters();
-  sendMessage(tpopWindow, 'tpop-active-filters', activeFilters);
-
-});
 
 ipcMain.on('server-check-model-availability', (event, modelID) => {
   LOGGER.receive('SERVER', 'server-check-model-availability', modelID);
@@ -1722,8 +1166,50 @@ ipcMain.on('server-get-ml-models', (event, code) => {
   sendMessage(event.sender, 'ml-models', models);
 });
 
-ipcMain.on('server-get-ml-model-details', (event, modelID) => {
-  LOGGER.receive('SERVER', 'server-get-ml-model-details', modelID);
-  const model = mlManager.getModelDetails(modelID);
-  sendMessage(event.sender, 'ml-model-details', model);
+// ipcMain.on('server-get-ml-model-details', (event, modelID) => {
+//   LOGGER.receive('SERVER', 'server-get-ml-model-details', modelID);
+//   const model = mlManager.getModelDetails(modelID);
+//   sendMessage(event.sender, 'ml-model-details', model);
+// });
+
+ipcMain.on('server-facsimilate-images', (event, data) => {
+  LOGGER.receive('SERVER', 'server-facsimilate-images', data);
+  const inputData_facsimile = data.inputData;
+  // deep copy inputData_facsimile into inputData
+  const inputData = JSON.parse(JSON.stringify(inputData_facsimile));
+  const thresholds = data.thresholds;
+  const colors = data.colors;
+
+  const callback_facsimile = () => {
+    const inputData_threshold = [];
+
+    for (const entry of inputData) {
+      const image_path = entry['image_path'];
+      const basename = path.basename(image_path, path.extname(image_path));
+      const segmentation_filename = `${basename}_segmentation.npy`;
+      inputData_threshold.push(segmentation_filename);
+    }
+    const callback_threshold = function() {
+      sendMessage(event.sender, 'thresholded-images');
+    };
+
+    mlManager.thresholdImages(inputData_threshold, thresholds, colors, callback_threshold);
+  }
+
+  mlManager.facsimilateImages(inputData_facsimile, callback_facsimile);
+
+
+});
+
+ipcMain.on('server-threshold-images', (event, data) => {
+  LOGGER.receive('SERVER', 'server-threshold-images', data);
+  const inputData = data.inputData;
+  const thresholds = data.thresholds;
+  const colors = data.colors;
+
+  const callback = function() {
+    sendMessage(event.sender, 'thresholded-images');
+  };
+
+  mlManager.thresholdImages(inputData, thresholds, colors, callback);
 });
