@@ -434,9 +434,11 @@ function getThresholds() {
     let t_black = $('#threshold-black').val();
     let t_red = $('#threshold-red').val();
     let t_outline = $('#papyrus-outline').val();
+    let t_anti_aliasing = $('#anti-aliasing').val();
     t_papyrus = (t_papyrus / 100).toFixed(2);
     t_black = (t_black / 100).toFixed(2);
     t_red = (t_red / 100).toFixed(2);
+    t_anti_aliasing = (t_anti_aliasing / 100).toFixed(2);
 
     const thresholds = {
         0: -1,
@@ -445,6 +447,7 @@ function getThresholds() {
         3: t_black,
         4: t_red,
         'outline': t_outline,
+        'anti_aliasing': t_anti_aliasing,
     }
 
     return thresholds;
@@ -487,6 +490,9 @@ function requestFacsimile() {
     }
 
     send('server-facsimilate-images', requestData);
+
+    const progressText = $('#facsimilate .progress-text');
+    progressText.text('0%');
 }
 
 function requestThreshold() {
@@ -512,6 +518,9 @@ function requestThreshold() {
     }
 
     send('server-threshold-images', requestData);
+
+    const progressText = $('#threshold .progress-text');
+    progressText.text('0%');
 }
 
 function updateThresholdSliders() {
@@ -519,17 +528,20 @@ function updateThresholdSliders() {
     let t_black = $('#threshold-black').val();
     let t_red = $('#threshold-red').val();
     let t_outline = $('#papyrus-outline').val();
+    let t_anti_aliasing = $('#anti-aliasing').val();
 
     // convert values such that they display decimal values with up to 2 decimal places
     t_papyrus = (t_papyrus / 100).toFixed(2);
     t_black = (t_black / 100).toFixed(2);
     t_red = (t_red / 100).toFixed(2);
+    t_anti_aliasing = (t_anti_aliasing / 100).toFixed(2);
     
     // update slider values
     $('#threshold-papyrus-value').text(t_papyrus);
     $('#threshold-black-value').text(t_black);
     $('#threshold-red-value').text(t_red);
     $('#papyrus-outline-value').text(t_outline);
+    $('#anti-aliasing-value').text(t_anti_aliasing);
 }
 
 function displayThresholdImages() {
@@ -639,21 +651,22 @@ $('#select-facsimile-model').on('change', function() {
     const modelName = $(this).find("option:selected").text();
 
     if (modelName.includes('✅')) {
-        $('#compute-model').removeClass('hidden');
+        $('#facsimilate').removeClass('hidden');
         $('#download-model').addClass('hidden');
     } else {
         $('#download-model').removeClass('hidden');
-        $('#compute-model').addClass('hidden');
+        $('#facsimilate').addClass('hidden');
     }
 
     ipcRenderer.send('server-get-ml-model-details', modelID);
 });
 
-$('#compute-model').click(requestFacsimile);
-$('#compute-threshold').click(requestThreshold);
+$('#facsimilate').click(requestFacsimile);
+$('#threshold').click(requestThreshold);
 $('#threshold-papyrus').on('input', updateThresholdSliders);
 $('#threshold-black').on('input', updateThresholdSliders);
 $('#threshold-red').on('input', updateThresholdSliders);
+$('#anti-aliasing').on('input', updateThresholdSliders);
 $('#papyrus-outline').on('input', updateThresholdSliders);
 
 
@@ -767,4 +780,34 @@ ipcRenderer.on('ml-model-details', (event, model) => {
 ipcRenderer.on('thresholded-images', (event) => {
     LOGGER.receive('EXPORT', 'thresholded-images');
     displayThresholdImages();
+});
+
+ipcRenderer.on('facsimile-progress', (event, ratio) => {
+    LOGGER.receive('EXPORT', 'facsimile-progress', ratio);
+    const progressBar = $('#facsimilate .progress-bar');
+    const progressText = $('#facsimilate .progress-text');
+    progressBar.css('width', `${ratio * 100}%`);
+    progressText.text(`${Math.round(ratio * 100)}%`);
+
+    if (ratio === 1) {
+        setTimeout(() => {
+            progressBar.css('width', '0%');
+            progressText.text('Facsimilate');
+        }, 2000);
+    }
+});
+
+ipcRenderer.on('threshold-progress', (event, ratio) => {
+    LOGGER.receive('EXPORT', 'threshold-progress', ratio);
+    const progressBar = $('#threshold .progress-bar');
+    const progressText = $('#threshold .progress-text');
+    progressBar.css('width', `${ratio * 100}%`);
+    progressText.text(`${Math.round(ratio * 100)}%`);
+
+    if (ratio === 1) {
+        setTimeout(() => {
+            progressBar.css('width', '0%');
+            progressText.text('Compute Treshold');
+        }, 2000);
+    }
 });

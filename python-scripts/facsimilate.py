@@ -38,12 +38,12 @@ target_path = None
 
 def segment_image(path_to_image, ppi):
     try:
-        image = Image.open(path_to_image).convert('RGB')
+        image = Image.open(path_to_image).convert('RGBA')
     except OSError:
         image_extension = path_to_image[path_to_image.rfind(".")+1:]
         temp_url = os.path.join(path_output_folder, 'temp.'+image_extension)
         request.urlretrieve(path_to_image, temp_url)
-        image = Image.open(temp_url).convert('RGB')
+        image = Image.open(temp_url).convert('RGBA')
         os.remove(temp_url)
     segmentation = model.predict(image, ppi, argmax=False)
 
@@ -56,6 +56,12 @@ def segment_image(path_to_image, ppi):
     # height/width: scaled image sizes for a target_ppi of 400 at maximum
     # thus, the segmentation needs to be scaled back to the original image size
     segmentation = tf.image.resize(segmentation, size=image_size, method='bilinear')
+
+    image_array = tf.convert_to_tensor(np.array(image))
+    alpha_channel = image_array[:, :, 3]
+    alpha_mask = (alpha_channel == 0)
+    background_channel = tf.ones_like(segmentation[:,:,0])
+    segmentation = tf.where(alpha_mask[:, :, tf.newaxis], tf.concat([background_channel[:, :, tf.newaxis], tf.zeros_like(segmentation[:, :, 1:])], axis=2), segmentation)
 
     image_name = os.path.basename(path_to_image)
     image_name = image_name[:image_name.rfind('.')]

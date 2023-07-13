@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div id="bottombar" class="flex-hor">
-                <div class="flex-vert">
+                <div id="mode-buttons" class="flex-vert">
                     <!-- Mode Selection -->
                     <div class="mode button active" mode="rgb">Standard</div>
                     <div class="mode button" mode="filters">Graphical Filters</div>
@@ -65,7 +65,10 @@
                             -->
                         </select>
                         <div id="download-model" class="button">Download Model</div>
-                        <div id="compute-model" class="button">Compute Facsimile</div>
+                        <div id="facsimilate" class="button">
+                            <div class="progress-bar"></div>
+                            <span class="progress-text">Compute Facsimile</span>
+                        </div>
         
                         <!-- useless? 
                             <div id="papyrus-wrapper" class="flex-hor">
@@ -93,7 +96,16 @@
                             <div id="papyrus-outline-value">5</div>
                         </div>
 
-                        <div id="compute-threshold" class="button">Compute Threshold</div>
+                        <div class="flex-hor">
+                            <label>Anti-Aliasing</label>
+                            <input type="range" id="anti-aliasing" min="0" max="100" value="0">
+                            <div id="anti-aliasing-value">0</div>
+                        </div>
+
+                        <div id="threshold" class="button">
+                            <div class="progress-bar"></div>
+                            <span class="progress-text">Compute Threshold</span>
+                        </div>
                         <!-- Functionality will be added at a later stage of development -->
                         <!--
                         <div class="button">Remove Papyrus</div>

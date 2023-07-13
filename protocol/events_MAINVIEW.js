@@ -102,7 +102,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
         const uploadWindow = new Window({
           file: './renderer/upload.html',
           type: 'upload',
-          devMode: devMode,
+          devMode: get('devMode'),
         });
         uploadWindow.maximize();
         uploadWindow.removeMenu();
@@ -110,7 +110,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
             uploadWindow.show();
             send(uploadWindow, 'upload-fragment', fragment);
         });
-        get('uploadWindow').on('close', function() {
+        uploadWindow.on('close', function() {
             set('uploadWindow', null);
             send(get('mainWindow'), 'client-stop-loading');
         });

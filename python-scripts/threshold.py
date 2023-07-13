@@ -67,6 +67,7 @@ path_segmentation = control_json['path_segmentation']
 thresholds = control_json['thresholds']
 colors = control_json['colors']
 outline = int(thresholds['outline'])
+anti_aliasing = float(thresholds['anti_aliasing'])
 
 # load segmentation
 segmentation = np.load(path_segmentation)
@@ -96,7 +97,6 @@ if outline > 0:
     # pad segmentation_papyrus with 0 to avoid border artifacts
     padding_size = 20
     segmentation_papyrus = np.pad(segmentation_papyrus, padding_size, mode='constant', constant_values=0)
-    print('MIMIMI', np.unique(segmentation_papyrus))
     contours = measure.find_contours(segmentation_papyrus, 0.5)
     # move all contours back to original position
     for contour in contours:
@@ -108,6 +108,10 @@ segmentation[segmentation == 2] = 0
 for class_id in range(n_classes):
     color = colors[str(class_id)]
     thresholded_image[segmentation == class_id] = color
+
+# if anti-aliasing is enabled, blur the image
+if anti_aliasing > 0:
+    thresholded_image = cv2.GaussianBlur(thresholded_image, (0, 0), anti_aliasing)
 
 if outline > 0:
     for contour in contours:

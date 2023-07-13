@@ -16,12 +16,21 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         const inputData = data.inputData;
         const thresholds = data.thresholds;
         const colors = data.colors;
+
+        const n_operations_total = inputData.length;
+        let n_operations_done = 0;
+        
+        const callback_count = () => {
+          n_operations_done++;
+          const ratio_done = n_operations_done / n_operations_total;
+          send(event.sender, 'threshold-progress', ratio_done);
+        }
       
         const callback = function() {
           send(event.sender, 'thresholded-images');
         };
       
-        get('mlManager').thresholdImages(inputData, thresholds, colors, callback);
+        get('mlManager').thresholdImages(inputData, thresholds, colors, callback_count, callback);
     });
 
     ipcMain.on('server-facsimilate-images', (event, data) => {
@@ -31,6 +40,15 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         const inputData = JSON.parse(JSON.stringify(inputData_facsimile));
         const thresholds = data.thresholds;
         const colors = data.colors;
+
+        const n_operations_total = inputData.length * 2;
+        let n_operations_done = 0;
+
+        const callback_count = () => {
+          n_operations_done++;
+          const ratio_done = n_operations_done / n_operations_total;
+          send(event.sender, 'facsimile-progress', ratio_done);
+        };
       
         const callback_facsimile = () => {
           const inputData_threshold = [];
@@ -45,10 +63,10 @@ function registerEventHandlersML(ipcMain, send, get, set) {
             send(event.sender, 'thresholded-images');
           };
       
-          get('mlManager').thresholdImages(inputData_threshold, thresholds, colors, callback_threshold);
+          get('mlManager').thresholdImages(inputData_threshold, thresholds, colors, callback_count, callback_threshold);
         }
       
-        get('mlManager').facsimilateImages(inputData_facsimile, callback_facsimile);
+        get('mlManager').facsimilateImages(inputData_facsimile, callback_count, callback_facsimile);
     });
 
     ipcMain.on('server-get-ml-models', (event, code) => {

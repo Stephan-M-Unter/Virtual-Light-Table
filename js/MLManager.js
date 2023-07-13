@@ -164,7 +164,7 @@ class MLManager {
         }});
     }
 
-    facsimilateImages(inputData, callback) {
+    facsimilateImages(inputData, callback_after_item, callback_after_all) {
         /*
             the input data is a list of objects with the following structure:
             {
@@ -178,7 +178,7 @@ class MLManager {
 
         // check if inputData is empty
         if (inputData.length == 0) {
-            callback(true);
+            callback_after_all(true);
         } else {
             const resultFileName = 'fascimilation_result.json';
             const resultFileFolder = this.folderMLresults;
@@ -201,12 +201,13 @@ class MLManager {
                 // remove the first element from inputData
                 inputData.shift();
                 // call the function again
-                this.facsimilateImages(inputData, callback);
+                callback_after_item();
+                this.facsimilateImages(inputData, callback_after_item, callback_after_all);
             });
         }
     }
 
-    thresholdImages(inputData, thresholds, colors, callback) {
+    thresholdImages(inputData, thresholds, colors, callback_after_item, callback_after_all) {
         /*
             the input data is a list of segmentation_paths
             thresholds is a dictionary of class indices and threshold values
@@ -217,7 +218,7 @@ class MLManager {
 
         // check if inputData is empty
         if (inputData.length == 0) {
-            callback(true);
+            callback_after_all(true);
         } else {
             const path_segmentation = path.join(this.folderMLresults, inputData[0]);
             const path_output_file = path_segmentation.replace('_segmentation.npy', '_threshold.png');
@@ -245,8 +246,9 @@ class MLManager {
                 fs.removeSync(controlJSONpath);
                 // remove the first element from inputData
                 inputData.shift();
+                callback_after_item();
                 // call the function again
-                this.thresholdImages(inputData, thresholds, colors, callback);
+                this.thresholdImages(inputData, thresholds, colors, callback_after_item, callback_after_all);
             });
         }
     }
