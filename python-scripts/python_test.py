@@ -38,6 +38,20 @@ except:
         except Exception as e:
             print('Failure - could not install CV2!')
             print(e)
+try:
+    import skimage
+    print("Python: Scikit-Image available")
+except:
+    try:
+        subprocess.check_call([sys.executable, '-m', 'pip3', 'install', '--user', 'scikit-image'])
+        print('Package newly installed: scikit-image (pip3)')
+    except:
+        try:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'scikit-image'])
+            print('Package newly installed: scikit-image (pip)')
+        except Exception as e:
+            print('Failure - could not install SciKit-Image!')
+            print(e)
 
 try:
     import PIL
