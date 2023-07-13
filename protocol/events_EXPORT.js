@@ -1,4 +1,5 @@
 const LOGGER = require('../statics/LOGGER');
+const Window = require('../js/Window');
 
 function registerEventHandlersEXPORT(ipcMain, send, get, set) {
     ipcMain.on('server-open-export', (event, tableID) => {
@@ -7,15 +8,15 @@ function registerEventHandlersEXPORT(ipcMain, send, get, set) {
           const exportWindow = new Window({
             file: './renderer/export.html',
             type: 'export',
-            devMode: devMode,
+            devMode: get('devMode'),
           });
           exportWindow.removeMenu();
           exportWindow.maximize();
           exportWindow.on('close', function() {
             set('exportWindow', null);
           });
+          set('exportWindow', exportWindow);
         }
-        set('exportWindow', exportWindow);
       });
 
     ipcMain.on('server-close-export', () => {
