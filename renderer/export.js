@@ -102,6 +102,7 @@ function loadObjects(imageMode='rgb') {
         recto.addChild(recto_scale);
         verso.addChild(verso_scale);
         centerStages();
+        updateDownloadSize();
     });
     
 }
@@ -317,7 +318,7 @@ function scale() {
 function download() {
     const pseudoLink_recto = document.createElement('a');
     const pseudoLink_verso = document.createElement('a');
-    const magnifyingFactor = 10;
+    const magnifyingFactor = $('#download-size').val();
 
     // determine file extension
     let extension;
@@ -547,6 +548,17 @@ function displayThresholdImages() {
     loadObjects('facsimile');
 }
 
+function updateDownloadSize() {
+    const baseWidth = recto.canvas.width;
+    const baseHeight = recto.canvas.height;
+    const magFactor = $('#download-size').val();
+    const scaleFactor = recto.scaleX;
+
+    const outputWidth = Math.floor(baseWidth * magFactor / scaleFactor);
+    const outputHeight = Math.floor(baseHeight * magFactor / scaleFactor);
+
+    $('#download-size-value').text(`factor x${magFactor} (${outputWidth} x ${outputHeight} px)`);
+}
 
 
 
@@ -601,6 +613,7 @@ $('.format.button').click(function(event) {
 });
 
 $('#scale').click(scale);
+$('#download-size').on('input', updateDownloadSize);
 $('#download').click(download);
 
 $('#close').click(function(){
