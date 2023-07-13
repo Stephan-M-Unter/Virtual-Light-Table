@@ -19,8 +19,9 @@ const fs = require('fs-extra');
 const https = require('follow-redirects').https;
 const request = require('request');
 const process = require('process');
+const opener = require('opener');
 const {spawn} = require('child_process');
-const CSC = require('./statics/CRIME_SCENE_CLEANER');
+const CSC = require('./statics/CRIME_SCENE_CLEANER')
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -202,15 +203,15 @@ async function startUp() {
     LOGGER.log('STARTUP', 'Installing Managers...');
     sendMessage(startWindow, 'startup-status', 'Installing Managers...');
     await createManagers();
-  } catch (error) {
-    LOGGER.log('SERVER', 'Quitting Application.');
-    app.quit();
-  }
     LOGGER.log('STARTUP', 'Registering EventHandlers...');
     sendMessage(startWindow, 'startup-status', 'Registering EventHandlers...');
     registerEventHandlers();
     LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
     sendMessage(startWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+  } catch (error) {
+    LOGGER.log('SERVER', 'Quitting Application.');
+    app.quit();
+  }
 }
 
 function createManagers() {
@@ -541,7 +542,9 @@ function check_requirements() {
         resolve();
       } catch (error) {
         LOGGER.log('SERVER', `Command "python" not found. Python not installed on this system.`);
-        reject(error);
+        opener('https://www.python.org/downloads/', {}, () => {
+          reject(error);
+        });
       }
     }
   });
