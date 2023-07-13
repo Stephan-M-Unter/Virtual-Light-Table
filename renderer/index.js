@@ -601,6 +601,9 @@ $(document).ready(function() {
       } else if (event.keyCode == 86) {
         // Ctrl + V -> Test
         controller.sendToServer('server-test');
+      } else if (event.keyCode == 69) {
+        // Ctrl + E -> Export
+        controller.sendToServer('server-open-export');
       }
     } else {
       if (event.keyCode == 46) {
