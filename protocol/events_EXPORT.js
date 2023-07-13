@@ -1,10 +1,33 @@
 const LOGGER = require('../statics/LOGGER');
 
-function registerEventHandlersEXPORT(deps) {
-    deps.ipcMain.on('server-close-export', () => {
+function registerEventHandlersEXPORT(ipcMain, send, get, set) {
+    ipcMain.on('server-open-export', (event, tableID) => {
+        LOGGER.receive('SERVER', 'server-open-export', tableID);
+        if (!get('exportWindow')) {
+          const exportWindow = new Window({
+            file: './renderer/export.html',
+            type: 'export',
+            devMode: devMode,
+          });
+          exportWindow.removeMenu();
+          exportWindow.maximize();
+          exportWindow.on('close', function() {
+            set('exportWindow', null);
+          });
+        }
+        set('exportWindow', exportWindow);
+      });
+
+    ipcMain.on('server-close-export', () => {
         LOGGER.receive('SERVER', 'server-close-export');
-        deps.exportWindow.close();
-        deps.exportWindow = null;
+        get('exportWindow').close();
+    });
+
+    ipcMain.on('server-get-active-table', (event) => {
+        LOGGER.receive('SERVER', 'server-get-active-table');
+        const tableID = get('activeTables').view;
+        const table = get('tableManager').getTable(tableID);
+        send(event.sender, 'active-table', table);
     });
 }
   

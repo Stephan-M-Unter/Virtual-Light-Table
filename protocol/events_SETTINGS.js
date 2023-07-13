@@ -1,22 +1,24 @@
 const LOGGER = require('../statics/LOGGER');
+const Window = require('../js/Window');
+const path = require('path');
 
-function registerEventHandlersSETTINGS(deps) {
-    deps.ipcMain.on('server-open-settings', (event) => {
+function registerEventHandlersSETTINGS(ipcMain, send, get, set) {
+    ipcMain.on('server-open-settings', (event) => {
         LOGGER.receive('SERVER', 'server-open-settings');
       
-        if (deps.settingsWindow) {
+        if (get('settingsWindow')) {
           try {
-            deps.settingsWindow.close();
+            get('settingsWindow').close();
           } catch {}
-          deps.settingsWindow = null;
+          set('settingsWindow', null);
         }
       
-        deps.settingsWindow = new deps.Window({
+        const settingsWindow = new Window({
           file: './renderer/settings.html',
           type: 'settings',
-          devMode: deps.devMode,
+          devMode: get('devMode'),
         });
-        deps.settingsWindow.webContents.setWindowOpenHandler(({url}) => {
+        settingsWindow.webContents.setWindowOpenHandler(({url}) => {
           return {
             action: 'allow',
             overrideBrowserWindowOptions: {
@@ -26,44 +28,47 @@ function registerEventHandlersSETTINGS(deps) {
             }
           };
         });
-        deps.settingsWindow.removeMenu();
-        deps.settingsWindow.once('ready-to-show', () => {
-            deps.settingsWindow.show();
+        settingsWindow.removeMenu();
+        settingsWindow.once('ready-to-show', () => {
+          settingsWindow.show();
         })
+        settingsWindow.on('close', function() {
+          set('settingsWindow', null);
+        });
+        set('settingsWindow', settingsWindow);
     });
 
-    deps.ipcMain.on('server-close-settings', () => {
+    ipcMain.on('server-close-settings', () => {
         LOGGER.receive('SERVER', 'server-close-settings');
-        deps.settingsWindow.close();
-        deps.settingsWindow = null;
+        get('settingsWindow').close();
+        set('settingsWindow', null);
     });
 
 
-    deps.ipcMain.on('server-settings-opened', (event) => {
+    ipcMain.on('server-settings-opened', (event) => {
         LOGGER.receive('SERVER', 'server-settings-opened');
-        deps.sendMessage(event.sender, 'settings-data', deps.configManager.getConfig());
-        deps.mlManager.checkForTensorflow(function(tensorflowAvailable) {
-            deps.sendMessage(event.sender, 'tensorflow-installed', tensorflowAvailable);
+        send(event.sender, 'settings-data', get('configManager').getConfig());
+        get('mlManager').checkForTensorflow(function(tensorflowAvailable) {
+            send(event.sender, 'tensorflow-installed', tensorflowAvailable);
         });
     });
 
-    deps.ipcMain.on('server-select-folder', function(event, folderType) {
+    ipcMain.on('server-select-folder', function(event, folderType) {
         LOGGER.receive('SERVER', 'server-select-folder', folderType);
-        const path = deps.saveManager.selectFolder();
+        const path = get('saveManager').selectFolder();
         if (path) {
           const response = {};
           response[folderType] = path;
-          deps.sendMessage(event.sender, 'settings-data', response);
+          send(event.sender, 'settings-data', response);
         }
     });
 
-    deps.ipcMain.on('server-save-config', function(event, newConfig) {
+    ipcMain.on('server-save-config', function(event, newConfig) {
         LOGGER.receive('SERVER', 'server-save-config', newConfig);
-        deps.settingsWindow.close();
-        deps.settingsWindow = null;
+        get('settingsWindow').close();
       
-        deps.configManager.replaceWith(newConfig, function() {
-            deps.dialog.showMessageBox(deps.mainWindow, {
+        get('configManager').replaceWith(newConfig, function() {
+            get('dialog').showMessageBox(get('mainWindow'), {
               buttons: ['OK'],
               type: 'warning',
               title: 'Access Denied',
@@ -78,23 +83,23 @@ function registerEventHandlersSETTINGS(deps) {
             'maxZoom': newConfig.maxZoom,
             'stepZoom': newConfig.stepZoom,
           }
-          deps.sendMessage(deps.mainWindow, 'client-set-zoom', zoomData);
+          send(get('mainWindow'), 'client-set-zoom', zoomData);
         } catch {
           LOGGER.err('SERVER', 'WARNING - No zoom information was specified in the config file. Zoom for main view does not change.');
         }
       
     });
 
-    deps.ipcMain.on('server-get-default', function(event, valueType) {
+    ipcMain.on('server-get-default', function(event, valueType) {
         LOGGER.receive('SERVER', 'server-get-default', valueType);
         let defaultValue;
         if (valueType == 'vltFolder') {
-          defaultValue = deps.path.join(appDataPath, 'Virtual Light Table');
+          defaultValue = path.join(appDataPath, 'Virtual Light Table');
         }
         if (defaultValue) {
           const response = {};
           response[valueType] = defaultValue;
-          deps.sendMessage(event.sender, 'settings-data', response);
+          send(event.sender, 'settings-data', response);
         }
     });
 }

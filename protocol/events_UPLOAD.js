@@ -1,86 +1,81 @@
 const LOGGER = require('../statics/LOGGER');
+const Window = require('../js/Window');
 
-function registerEventHandlersUPLOAD(deps) {
-    deps.ipcMain.on('server-open-upload', (event, tableID) => {
+function registerEventHandlersUPLOAD(ipcMain, send, get, set) {
+    ipcMain.on('server-open-upload', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-open-upload');
-        deps.activeTables.uploading = tableID;
+        get('activeTables').uploading = tableID;
         
-        if (deps.uploadWindow) {
+        if (get('uploadWindow')) {
           try {
-            deps.uploadWindow.close();
+            get('uploadWindow').close();
           } catch {};
-          deps.uploadWindow = null;
+          set('uploadWindow', null);
         }
       
-        if (!deps.uploadWindow) {
-            deps.uploadWindow = new Window({
+        if (!get('uploadWindow')) {
+            const uploadWindow = new Window({
             file: './renderer/upload.html',
             type: 'upload',
-            devMode: deps.devMode,
+            devMode: get('devMode'),
           });
-          deps.uploadWindow.maximize();
-          deps.uploadWindow.removeMenu();
-          deps.uploadWindow.once('ready-to-show', () => {
-            deps.uploadWindow.show();
+          uploadWindow.maximize();
+          uploadWindow.removeMenu();
+          uploadWindow.once('ready-to-show', () => {
+            uploadWindow.show();
           });
-          deps.uploadWindow.on('close', function() {
-            deps.sendMessage(deps.mainWindow, 'client-stop-loading');
+          uploadWindow.on('close', function() {
+            set('uploadWindow', null);
+            send(get('mainWindow'), 'client-stop-loading');
           });
+          set('uploadWindow', uploadWindow);
         }
     });
 
-    deps.ipcMain.on('server-upload-ready', (event, data) => {
+    ipcMain.on('server-upload-ready', (event, data) => {
         LOGGER.receive('SERVER', 'server-upload-ready');
       
         let tableID, tableData;
       
-        if (!deps.activeTables.uploading) {
+        if (!get('activeTables').uploading) {
           // if no table is currently associated with the upload, create a new table
-          tableID = deps.tableManager.createNewTable();
-          tableData = deps.tableManager.getTable(tableID);
-          deps.activeTables.uploading = tableID;
+          tableID = get('tableManager').createNewTable();
+          tableData = get('tableManager').getTable(tableID);
+          get('activeTables').uploading = tableID;
           const newTableData = {
             tableID: tableID,
             tableData: tableData,
           };
           // tell client to open the newly created table
-          deps.sendMessage(deps.mainWindow, 'client-load-model', newTableData);
-        } else {
-          tableID = deps.activeTables.uploading;
-          tableData = deps.tableManager.getTable(tableID);
+          send(get('mainWindow'), 'client-load-model', newTableData);
         }
         
-        if (deps.uploadWindow) {
+        if (get('uploadWindow')) {
           try {
-            deps.uploadWindow.close();
+            get('uploadWindow').close();
           } catch {}
         }
       
-        deps.sendMessage(mainWindow, 'client-start-loading', activeTables.uploading);
+        send(get('mainWindow'), 'client-start-loading', get('activeTables').uploading);
         
-        deps.preprocess_fragment(data);
+        get('preprocess_fragment')(data);
     });
 
-    deps.ipcMain.on('server-upload-image', (event) => {
+    ipcMain.on('server-upload-image', (event) => {
         LOGGER.receive('SERVER', 'server-upload-image');
-        const filepath = deps.imageManager.selectImageFromFilesystem();
+        const filepath = get('imageManager').selectImageFromFilesystem();
       
         if (filepath) {
-            deps.uploadLocalImage(filepath);
+            get('uploadLocalImage')(filepath);
         } else {
-            deps.sendMessage(event.sender, 'upload-receive-image');
+            send(event.sender, 'upload-receive-image');
         }
     });
 
-    deps.ipcMain.on('server-upload-image', (event) => {
-        LOGGER.receive('SERVER', 'server-upload-image');
-        const filepath = deps.imageManager.selectImageFromFilesystem();
-      
-        if (filepath) {
-            deps.uploadLocalImage(filepath);
-        } else {
-            deps.sendMessage(event.sender, 'upload-receive-image');
-        }
+    
+    ipcMain.on('server-upload-image-given-filepath', (event, filepath) => {
+      LOGGER.receive('SERVER', 'server-upload-image-given-filepath', filepath);
+      get('uploadLocalImage')(filepath);
     });
 }
   

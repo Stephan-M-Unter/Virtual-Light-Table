@@ -1,40 +1,42 @@
 const LOGGER = require('../statics/LOGGER');
+const Window = require('../js/Window');
+const path = require('path');
 
-function registerEventHandlersMAINVIEW(deps) {
-    deps.ipcMain.on('server-close-table', (event, tableID) => {
+function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
+    ipcMain.on('server-close-table', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-close-table', tableID);
-        const newTableID = deps.tableManager.removeTable(tableID);
-        deps.saveManager.removeAutosave(tableID);
-        if (tableID == deps.activeTables.view) {
+        const newTableID = get('tableManager').removeTable(tableID);
+        get('saveManager').removeAutosave(tableID);
+        if (tableID == get('activeTables').view) {
           const data = {
             tableID: newTableID,
-            tableData: deps.tableManager.getTable(newTableID),
+            tableData: get('tableManager').getTable(newTableID),
           };
-          deps.activeTables.view = newTableID;
-          deps.sendMessage(event.sender, 'client-load-model', data);
+          get('activeTables').view = newTableID;
+          send(event.sender, 'client-load-model', data);
         }
     });
 
-    deps.ipcMain.on('server-open-table', (event, tableID) => {
+    ipcMain.on('server-open-table', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-open-table', tableID);
         const data = {
           tableID: tableID,
-          tableData: deps.tableManager.getTable(tableID),
+          tableData: get('tableManager').getTable(tableID),
         };
-        deps.activeTables.view = tableID;
-        deps.sendMessage(event.sender, 'client-load-model', data);
+        get('activeTables').view = tableID;
+        send(event.sender, 'client-load-model', data);
     });
 
-    deps.ipcMain.on('server-gather-ppi', (event) => {
+    ipcMain.on('server-gather-ppi', (event) => {
         LOGGER.receive('SERVER', 'server-gather-ppi');
-        deps.sendMessage(event.sender, 'calibration-set-ppi', deps.config.ppi);
+        send(event.sender, 'calibration-set-ppi', get('config').ppi);
     });
       
-    deps.ipcMain.on('server-stage-loaded', (event) => {
+    ipcMain.on('server-stage-loaded', (event) => {
         LOGGER.receive('SERVER', 'server-stage-loaded');
-        const config = deps.configManager.getConfig();
+        const config = get('configManager').getConfig();
         if ('ppi' in config && config.ppi) {
-            deps.sendMessage(event.sender, 'calibration-set-ppi', config.ppi);
+            send(event.sender, 'calibration-set-ppi', config.ppi);
         }
         if ('minZoom' in config && config.minZoom
         && 'maxZoom' in config && config.maxZoom
@@ -44,117 +46,204 @@ function registerEventHandlersMAINVIEW(deps) {
             'maxZoom': config.maxZoom,
             'stepZoom': config.stepZoom,
             };
-            deps.sendMessage(event.sender, 'client-set-zoom', data);
+            send(event.sender, 'client-set-zoom', data);
         }
     });
 
-    deps.ipcMain.on('server-undo-step', (event, tableID) => {
+    ipcMain.on('server-undo-step', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-undo-step');
-        const isUndone = deps.tableManager.undoStep(tableID);
+        const isUndone = get('tableManager').undoStep(tableID);
         if (isUndone) {
           // undo step was successful
           const tableData = tableManager.getTable(tableID);
           tableData['undo'] = true;
           // TODO evtl. zusammenfassen???
-          deps.sendMessage(event.sender, 'client-redo-model', tableData);
-          deps.sendMessage(event.sender, 'client-redo-undo-update', deps.tableManager.getRedoUndo(tableID));
+          send(event.sender, 'client-redo-model', tableData);
+          send(event.sender, 'client-redo-undo-update', get('tableManager').getRedoUndo(tableID));
         }
     });
 
-    deps.ipcMain.on('server-redo-step', (event, tableID) => {
+    ipcMain.on('server-redo-step', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-redo-step');
-        const isRedone = deps.tableManager.redoStep(tableID);
+        const isRedone = get('tableManager').redoStep(tableID);
         if (isRedone) {
           // redo step was successful
           const tableData = tableManager.getTable(tableID);
           tableData['undo'] = true;
           // TODO evtl. zusammenfassen???
-          deps.sendMessage(event.sender, 'client-redo-model', tableData);
-          deps.sendMessage(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
+          send(event.sender, 'client-redo-model', tableData);
+          send(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
         }
     });
 
-    deps.ipcMain.on('server-clear-table', (event, tableID) => {
+    ipcMain.on('server-clear-table', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-clear-table');
-        deps.tableManager.clearTable(tableID);
+        get('tableManager').clearTable(tableID);
         const data = {
           tableID: tableID,
-          tableData: deps.tableManager.getTable(tableID),
+          tableData: get('tableManager').getTable(tableID),
         };
         sendMessage(event.sender, 'client-load-model', data);
     });
 
-    deps.ipcMain.on('server-change-fragment', (event, data) => {
+    ipcMain.on('server-change-fragment', (event, data) => {
         LOGGER.receive('SERVER', 'server-change-fragment');
       
-        const fragment = deps.tableManager.getFragment(data.tableID, data.fragmentID);
+        const fragment = get('tableManager').getFragment(data.tableID, data.fragmentID);
         fragment.edit = true;
-        if (deps.uploadWindow) {
+        if (get('uploadWindow')) {
           try {
-            deps.uploadWindow.close();
+            get('uploadWindow').close();
           } catch {};
         }
       
-        deps.activeTables.uploading = data.tableID;
+        get('activeTables').uploading = data.tableID;
       
-        deps.uploadWindow = new Window({
+        const uploadWindow = new Window({
           file: './renderer/upload.html',
           type: 'upload',
           devMode: devMode,
         });
-        deps.uploadWindow.maximize();
-        deps.uploadWindow.removeMenu();
-        deps.uploadWindow.once('ready-to-show', () => {
-            deps.uploadWindow.show();
-            deps.sendMessage(uploadWindow, 'upload-fragment', fragment);
+        uploadWindow.maximize();
+        uploadWindow.removeMenu();
+        uploadWindow.once('ready-to-show', () => {
+            uploadWindow.show();
+            send(uploadWindow, 'upload-fragment', fragment);
         });
-        deps.uploadWindow.on('close', function() {
-            deps.sendMessage(mainWindow, 'client-stop-loading');
+        get('uploadWindow').on('close', function() {
+            set('uploadWindow', null);
+            send(get('mainWindow'), 'client-stop-loading');
         });
     });
 
-    deps.ipcMain.on('server-create-table', (event) => {
+    ipcMain.on('server-create-table', (event) => {
         LOGGER.receive('SERVER', 'server-create-table');
-        if (deps.autosaveChecked) {
-          const newTableID = deps.tableManager.createNewTable();
+        if (get('autosaveChecked')) {
+          const newTableID = get('tableManager').createNewTable();
           const data = {
             tableID: newTableID,
-            tableData: deps.tableManager.getTable(newTableID),
+            tableData: get('tableManager').getTable(newTableID),
           }
-          deps.activeTables.view = newTableID;
-          deps.sendMessage(event.sender, 'client-load-model', data);
+          get('activeTables').view = newTableID;
+          send(event.sender, 'client-load-model', data);
         } else {
-            deps.sendMessage(event.sender, 'client-confirm-autosave');
+            send(event.sender, 'client-confirm-autosave');
         }
     });
 
-    deps.ipcMain.on('server-send-model', (event, tableID) => {
+    ipcMain.on('server-send-model', (event, tableID) => {
         LOGGER.receive('SERVER', 'server-send-model', tableID);
         const data = {
           tableID: tableID,
-          tableData: deps.tableManager.getTable(tableID),
+          tableData: get('tableManager').getTable(tableID),
         };
-        deps.sendMessage(event.sender, 'client-get-model', data);
+        send(event.sender, 'client-get-model', data);
     });
 
-    deps.ipcMain.on('server-send-all', (event) => {
+    ipcMain.on('server-send-all', (event) => {
         LOGGER.receive('SERVER', 'server-send-all');
-        if (deps.devMode) {
-          deps.sendMessage(event.sender, 'client-get-all', deps.tableManager.getTables());
+        if (get('devMode')) {
+          send(event.sender, 'client-get-all', get('tableManager').getTables());
         }
     });
 
     // server-write-annotation | data -> data.tableID, data.aData
-    deps.ipcMain.on('server-write-annotation', (event, data) => {
+    ipcMain.on('server-write-annotation', (event, data) => {
         LOGGER.receive('SERVER', 'server-write-annotation');
-        deps.tableManager.writeAnnotation(data.tableID, data.annotation);
+        get('tableManager').writeAnnotation(data.tableID, data.annotation);
     });
     
     // server-remove-annotation | data -> data.tableID, data.aID
-    deps.ipcMain.on('server-remove-annotation', (event, data) => {
+    ipcMain.on('server-remove-annotation', (event, data) => {
         LOGGER.receive('SERVER', 'server-remove-annotation');
-        deps.tableManager.removeAnnotation(data.tableID, data.aID);
+        get('tableManager').removeAnnotation(data.tableID, data.aID);
     });
+
+
+    ipcMain.on('server-local-drop', (event, dataArray) => {
+      LOGGER.receive('SERVER', 'server-drop-local', dataArray);
+    
+      const loadingQueue = [];
+    
+      const tableID = get('activeTables').view;
+    
+      for (const url of dataArray) {
+        // url is a path to a file; read the filename (without extension) into the variable name
+        const name = path.basename(url, path.extname(url));
+        const entry = {
+          'table': tableID,
+          'fragment': {
+            'x': 0,
+            'y': 0,
+            'name': name,
+            'recto': {
+              'url': url,
+              'www': false,
+            },
+          },
+        };
+        loadingQueue.push(entry);
+      }
+    
+      get('sequentialUpload')(loadingQueue);
+    });
+
+    
+
+    ipcMain.on('server-new-session', (event) => {
+      LOGGER.receive('SERVER', 'server-new-session');
+      get('activeTables').view = null;
+      get('activeTables').loading = null;
+      get('activeTables').uploading = null;
+    
+      // if no tables are yet created, create a new one
+      if (get('tableManager').getNumberOfTables() == 0) {
+        get('tableManager').createNewTable();
+      }
+    
+      // checking for all registered tables
+      const registeredTables = get('tableManager').getTableIds();
+      const selectedTable = registeredTables.pop();
+    
+      registeredTables.forEach((tableID) => {
+        const data = {
+          tableID: tableID,
+          tableData: get('tableManager').getInactiveTable(tableID),
+        };
+        send(event.sender, 'client-inactive-model', data);
+      });
+    
+      get('activeTables').view = selectedTable;
+      const data = {
+        tableID: selectedTable,
+        tableData: get('tableManager').getTable(selectedTable),
+      };
+      send(event.sender, 'client-load-model', data);
+    
+      if (get('saveManager').checkForAutosave()) {
+        send(event.sender, 'client-confirm-autosave');
+      } else {
+        set('autosaveChecked', true);
+      }
+  });
+
+  ipcMain.on('server-graphics-filter', function(event, data) {
+    LOGGER.receive('SERVER', 'server-graphics-filter');
+    get('tableManager').setGraphicFilters(data['tableID'], data.filters);
+    get('filterImages')(data.tableID, data.urls);
+  });
+
+  ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
+    LOGGER.receive('SERVER', 'server-reset-graphics-filter', tableID);
+    // remove all filter images
+    // resend model to trigger reload
+    get('tableManager').resetGraphicFilters(tableID);
+    const response = {
+      tableID: tableID,
+      tableData: get('tableManager').getTable(tableID),
+    }
+    send(event.sender, 'client-load-model', response);
+  });
 }
   
 module.exports = { registerEventHandlersMAINVIEW };

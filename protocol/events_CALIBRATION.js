@@ -1,39 +1,41 @@
 const LOGGER = require('../statics/LOGGER');
+const Window = require('../js/Window');
 
-function registerEventHandlersCALIBRATION(deps) {
-    deps.ipcMain.on('server-open-calibration', (event) => {
+function registerEventHandlersCALIBRATION(ipcMain, send, get, set) {
+    ipcMain.on('server-open-calibration', (event) => {
         LOGGER.receive('SERVER', 'server-open-calibration');
       
-        if (deps.calibrationWindow) {
+        if (get('calibrationWindow')) {
           try {
-            deps.calibrationWindow.close();
+            get('calibrationWindow').close();
           } catch {}
-          deps.calibrationWindow = null;
+          set('calibrationWindow', null);
         }
       
-        deps.calibrationWindow = new deps.Window({
+        const calibrationWindow = new Window({
           file: './renderer/calibration.html',
           type: 'calibration',
           devMode: false,
         });
-        deps.calibrationWindow.removeMenu();
-        deps.calibrationWindow.once('ready-to-show', () => {
-          deps.calibrationWindow.show();
+        calibrationWindow.removeMenu();
+        calibrationWindow.once('ready-to-show', () => {
+          calibrationWindow.show();
         });
-        deps.calibrationWindow.on('close', function() {
-          deps.calibrationWindow = null;
+        calibrationWindow.on('close', function() {
+          set('calibrationWindow', null);
         });
+        set('calibrationWindow', calibrationWindow);
     });
 
-    deps.ipcMain.on('server-calibrate', (event, ppi) => {
+    ipcMain.on('server-calibrate', (event, ppi) => {
         LOGGER.receive('SERVER', 'server-calibrate', ppi);
-        deps.calibrationWindow.close();
-        deps.calibrationWindow = null;
-        deps.sendMessage(deps.mainWindow, 'calibration-set-ppi', ppi);
+        get('calibrationWindow').close();
+        set('calibrationWindow', null);
+        send(get('mainWindow'), 'calibration-set-ppi', ppi);
         const response = {
           'ppi': ppi,
         };
-        deps.sendMessage(deps.settingsWindow, 'settings-data', response);
+        send(get('settingsWindow'), 'settings-data', response);
     });
 }
   

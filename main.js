@@ -33,7 +33,7 @@ const {CONFIG} = require('./statics/CONFIG');
 const LOGGER = require('./statics/LOGGER');
 
 // EventHandlers
-const { registerAllEventHandlers } = require('./protocol/registerEvents');
+const { registerAllEventHandlers, sendMessage } = require('./protocol/registerEvents');
 
 // Settings
 let devMode = false;
@@ -64,7 +64,7 @@ let saveManager;
 let configManager;
 
 // Views
-let startupWindow;
+let startWindow;
 let mainWindow; // main window containing the light table itself
 let loadWindow; // window for loading configurations
 let uploadWindow;
@@ -72,27 +72,6 @@ let calibrationWindow;
 let settingsWindow;
 let tpopWindow;
 let exportWindow;
-
-// ViewGetters
-function getStartWindow() {return startupWindow;}
-function getMainWindow() {return mainWindow;}
-function getLoadWindow() {return loadWindow;}
-function getUploadWindow() {return uploadWindow;}
-function getCalibrationWindow() {return calibrationWindow;}
-function getSettingsWindow() {return settingsWindow;}
-function getTpopWindow() {return tpopWindow;}
-function getExportWindow() {return exportWindow;}
-
-// ViewSetters
-function setStartWindow(window) {startupWindow = window;}
-function setMainWindow(window) {mainWindow = window;}
-function setLoadWindow(window) {loadWindow = window;}
-function setUploadWindow(window) {uploadWindow = window;}
-function setCalibrationWindow(window) {calibrationWindow = window;}
-function setSettingsWindow(window) {settingsWindow = window;}
-function setTpopWindow(window) {tpopWindow = window;}
-function setExportWindow(window) {exportWindow = window;}
-
 
 const color = {
   success: 'rgba(0,255,0,0.6)',
@@ -109,6 +88,80 @@ let app_is_quitting = false;
 
 const loadingQueue = [];
 
+
+function get(key) {
+  const variables = {
+    'activeTables': activeTables,
+    'app': app,
+    'appPath': appPath,
+    'autosaveChecked': autosaveChecked,
+    'calibrationWindow': calibrationWindow,
+    'color': color,
+    'config': config,
+    'configManager': configManager,
+    'devMode': devMode,
+    'dialog': dialog,
+    'exportWindow': exportWindow,
+    'filterImages': filterImages, // TODO
+    'loadWindow': loadWindow,
+    'startWindow': startWindow,
+    'imageManager': imageManager,
+    'ipcMain': ipcMain,
+    'mainWindow': mainWindow,
+    'mlManager': mlManager,
+    'online': online,
+    'path': path,
+    'preprocess_fragment': preprocess_fragment, // TODO
+    'preprocess_loading_fragments': preprocess_loading_fragments,
+    'resolveUrls': resolveUrls, // TODO
+    'saveManager': saveManager,
+    'sendMessage': sendMessage,
+    'sequentialUpload': sequentialUpload,
+    'settingsWindow': settingsWindow,
+    'tableManager': tableManager,
+    'tpopEnabled': tpopEnabled,
+    'tpopManager': tpopManager,
+    'tpopWindow': tpopWindow,
+    'uploadLocalImage': uploadLocalImage,
+    'uploadWindow': uploadWindow,
+  };
+
+  if (key in variables) {
+    return variables[key];
+  }
+  return null;
+}
+
+function set(key, value) {
+  if (key === 'autosaveChecked') {
+    autosaveChecked = value;
+  } else if (key === 'calibrationWindow') {
+    calibrationWindow = value;
+  } else if (key === 'config') {
+    config = value;
+  } else if (key === 'exportWindow') {
+    exportWindow = value;
+  }  else if (key === 'mainWindow') {
+    mainWindow = value;
+  } else if (key === 'startWindow') {
+    startWindow = value;
+  } else if (key === 'loadWindow') {
+    loadWindow = value;
+  } else if (key === 'mlManager') {
+    mlManager = value;
+  } else if (key === 'settingsWindow') {
+    settingsWindow = value;
+  } else if (key === 'tpopEnabled') {
+    tpopEnabled = value;
+  } else if (key === 'tpopWindow') {
+    tpopWindow = value;
+  } else if (key === 'uploadWindow') {
+    uploadWindow = value;
+  } else if (key === 'online') {
+    online = value;
+  }
+}
+
 /* ##############################################################
 ###
 ###                         MAIN PROCESS
@@ -119,13 +172,13 @@ const loadingQueue = [];
  * TODO
  */
 function main() {
-  startupWindow = new Window({
+  startWindow = new Window({
     file: './renderer/start.html',
     type: 'start',
     devMode: devMode,
   });
 
-  startupWindow.once('ready-to-show', () => {
+  startWindow.once('ready-to-show', () => {
     startUp();
     setTimeout(() => {
       createMainView();
@@ -140,24 +193,24 @@ app.on('window-all-closed', () => {
 
 async function startUp() {
   LOGGER.log('STARTUP', 'Removing Legacy Files...');
-  sendMessage(startupWindow, 'startup-status', 'Removing Legacy Files...');
+  sendMessage(startWindow, 'startup-status', 'Removing Legacy Files...');
   CSC.removeLegacies();
   LOGGER.log('STARTUP', 'Checking Python and Tensorflow...');
-  sendMessage(startupWindow, 'startup-status', 'Checking Python and Tensorflow...');
+  sendMessage(startWindow, 'startup-status', 'Checking Python and Tensorflow...');
   try {
     await check_requirements();
     LOGGER.log('STARTUP', 'Installing Managers...');
-    sendMessage(startupWindow, 'startup-status', 'Installing Managers...');
-    createManagers();
+    sendMessage(startWindow, 'startup-status', 'Installing Managers...');
+    await createManagers();
   } catch (error) {
     LOGGER.log('SERVER', 'Quitting Application.');
     app.quit();
   }
     LOGGER.log('STARTUP', 'Registering EventHandlers...');
-    sendMessage(startupWindow, 'startup-status', 'Registering EventHandlers...');
+    sendMessage(startWindow, 'startup-status', 'Registering EventHandlers...');
     registerEventHandlers();
     LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
-    sendMessage(startupWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+    sendMessage(startWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
 }
 
 function createManagers() {
@@ -170,59 +223,8 @@ function createManagers() {
   configManager.registerManager(tpopManager);
 }
 
-function getDependencies() {
-  const deps = {
-    'ipcMain': ipcMain,
-    'app': app,
-    'sendMessage': sendMessage,
-    'mlManager': mlManager,
-    'tableManager': tableManager,
-    'saveManager': saveManager,
-    'activeTables': activeTables,
-    'autosaveChecked': autosaveChecked,
-    'calibrationWindow': calibrationWindow,
-    'devMode': devMode,
-    'settingsWindow': settingsWindow,
-    'exportWindow': exportWindow,
-    'configManager': configManager,
-    'config': config,
-    'mainWindow': mainWindow,
-    'Window': Window,
-    'dialog': dialog,
-    'path': path,
-    'tpopManager': tpopManager,
-    'resolveUrls': resolveUrls, // TODO
-    'tpopWindow': tpopWindow,
-    'uploadWindow': uploadWindow,
-    'preprocess_fragment': preprocess_fragment, // TODO
-    'preprocess_loading_fragments': preprocess_loading_fragments,
-    'color': color,
-    'getStartWindow': getStartWindow,
-    'getMainWindow': getMainWindow,
-    'getLoadWindow': getLoadWindow,
-    'getUploadWindow': getUploadWindow,
-    'getCalibrationWindow': getCalibrationWindow,
-    'getSettingsWindow': getSettingsWindow,
-    'getTpopWindow': getTpopWindow,
-    'getExportWindow': getExportWindow,
-    'imageManager': imageManager,
-    'uploadLocalImage': uploadLocalImage,
-    'tpopEnabled': tpopEnabled,
-    'setStartWindow': setStartWindow,
-    'setMainWindow': setMainWindow,
-    'setLoadWindow': setLoadWindow,
-    'setUploadWindow': setUploadWindow,
-    'setCalibrationWindow': setCalibrationWindow,
-    'setSettingsWindow': setSettingsWindow,
-    'setTpopWindow': setTpopWindow,
-    'setExportWindow': setExportWindow,
-  };
-  return deps;
-}
-
 function registerEventHandlers() {
-  const deps = getDependencies();
-  registerAllEventHandlers(deps);
+  registerAllEventHandlers(ipcMain, get, set);
 }
 
 /**
@@ -260,7 +262,7 @@ function createMainView() {
   }
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    startupWindow.close();
+    startWindow.close();
     if (saveManager.checkForAutosave()) {
       sendMessage(mainWindow, 'client-confirm-autosave');
     } else {
@@ -781,252 +783,6 @@ function uploadLocalImage(filepath) {
 #################################################################
 ############################################################## */
 
-/* SENDING MESSAGES */
-
-/**
- * TODO
- * @param {Window} recipientWindow
- * @param {String} message
- * @param {Object} data
- */
-function sendMessage(recipientWindow, message, data=null) {
-  LOGGER.send('SERVER', message);
-  recipientWindow.send(message, data);
-}
-
-
-/* RECEIVING MESSAGES */
-
-
-// server-redo-step
-
-
-// server-clear-table
-
-
-// server-load-file
-
-
-// server-save-file | data -> data.tableID, data.screenshot, data.quicksave, data.editor
-
-
-// server-list-savefiles
-ipcMain.on('server-list-savefiles', (event, folder) => {
-  LOGGER.receive('SERVER', 'server-list-savefiles');
-
-  // if the requested folder uses relative pathing, indicated either by
-  // "./" or "../", combine it with the absolute appPath, that is the folder the
-  // application runs from
-  if (folder.startsWith('.')) {
-    folder = path.join(appPath, folder);
-  }
-
-  const savefiles = saveManager.getSaveFiles(folder);
-  event.sender.send('load-receive-saves', savefiles);
-});
-
-// <- server-get-saves-folder
-ipcMain.on('server-get-saves-folder', (event) => {
-  LOGGER.receive('SERVER', 'server-get-saves-folder');
-    event.sender.send('load-receive-folder', CONFIG.SAVES_FOLDER);
-});
-
-// server-open-load
-ipcMain.on('server-open-load', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-open-load');
-
-  activeTables.loading = tableID;
-
-  if (loadWindow != null) {
-    loadWindow.show();
-  } else {
-    loadWindow = new Window({
-      file: './renderer/load.html',
-      type: 'load',
-      devMode: devMode,
-    });
-    loadWindow.removeMenu();
-    loadWindow.once('read-to-show', () => {
-      loadWindow.show();
-    });
-    loadWindow.on('close', function() {
-      loadWindow = null;
-      activeTables.loading = null;
-    });
-  }
-});
-
-// server-export-file
-ipcMain.on('server-export-file', (event, filename) => {
-  LOGGER.receive('SERVER', 'server-export-file');
-  saveManager.exportFile(filename);
-});
-
-// server-delete-file
-ipcMain.on('server-delete-file', (event, filename) => {
-  LOGGER.receive('SERVER', 'server-delete-file');
-  const deleted = saveManager.deleteFile(filename);
-  if (deleted) {
-    const folder = saveManager.getCurrentFolder();
-    const savefiles = saveManager.getSaveFiles(folder);
-    event.sender.send('load-receive-saves', savefiles);
-  }
-});
-
-ipcMain.on('server-upload-image-given-filepath', (event, filepath) => {
-  LOGGER.receive('SERVER', 'server-upload-image-given-filepath', filepath);
-  uploadLocalImage(filepath);
-});
-
-
-
-
-
-ipcMain.on('server-import-file', (event) => {
-  LOGGER.receive('SERVER', 'server-import-file');
-  saveManager.importFile(() => {
-    sendMessage(event.sender, 'load-set-default-folder', saveManager.CONFIG.SAVES_FOLDER);
-    sendMessage(event.sender, 'load-receive-folder', saveManager.getCurrentFolder());
-  });
-});
-
-// server-open-tpop
-// server-load-tpop-json | data -> data.startIndex, data.endIndex
-
-
-ipcMain.on('server-tpop-details', (event, id) => {
-  LOGGER.receive('SERVER', 'server-tpop-details', id);
-  const details = tpopManager.loadDetails(id);
-
-  sendMessage(event.sender, 'tpop-details', details);
-});
-
-ipcMain.on('server-tpop-filter', (event, filters) => {
-  LOGGER.receive('SERVER', 'server-tpop-filter');
-  tpopManager.filterData(filters);
-  sendMessage(tpopWindow, 'tpop-filtered');
-});
-
-
-ipcMain.on('server-close-tpop', () => {
-  LOGGER.receive('SERVER', 'server-close-tpop');
-  tpopWindow.close();
-  tpopWindow = null;
-});
-
-ipcMain.on('server-tpop-position', (event, tpopID) => {
-  LOGGER.receive('SERVER', 'server-tpop-position', tpopID);
-  const pos = tpopManager.getPosition(tpopID);
-  const data = {
-    tpopID: tpopID,
-    pos: pos,
-  };
-  sendMessage(tpopWindow, 'tpop-position', data);
-});
-
-ipcMain.on('server-tpop-basic-info', (event, data) => {
-  LOGGER.receive('SERVER', 'server-tpop-basic-info');
-  const result = tpopManager.getBasicInfo(data);
-  sendMessage(tpopWindow, 'tpop-basic-info', result);
-});
-
-ipcMain.on('server-calculate-distances', (event, data) => {
-  LOGGER.receive('SERVER', 'server-calculate-distances');
-  tpopManager.sortByDistance(data);
-  sendMessage(tpopWindow, 'tpop-calculation-done');
-});
-
-ipcMain.on('server-reload-json', (event) => {
-  LOGGER.receive('SERVER', 'server-reload-json');
-  tpopManager.initialiseData(true, () => {
-    sendMessage(tpopWindow, 'tpop-calculation-done');
-  });
-});
-
-ipcMain.on('server-reset-sorting', (event) => {
-  LOGGER.receive('SERVER', 'server-reset-sorting');
-  tpopManager.sortByName();
-  sendMessage(tpopWindow, 'tpop-calculation-done');
-});
-
-ipcMain.on('server-open-load-folder', (event) => {
-  LOGGER.receive('SERVER', 'server-open-load-folder');
-  const folder = saveManager.getCurrentFolder();
-  shell.openPath(folder);
-});
-
-ipcMain.on('server-load-tpop-fragments', (event, listOfTpopIds) => {
-  LOGGER.receive('SERVER', 'server-load-tpop-fragments');
-  tpopWindow.close();
-  const tableID = activeTables.tpop;
-  activeTables.tpop = null;
-  activeTables.uploading = tableID;
-  sendMessage(mainWindow, 'client-start-loading', tableID);
-
-  tpopManager.prepareIDsForUpload(listOfTpopIds, tableID, sequentialUpload);
-});
-
-ipcMain.on('server-display-folders', function(event) {
-  LOGGER.receive('SERVER', 'server-display-folders');
-  const data = tpopManager.getFolders();
-  sendMessage(event.sender, 'tpop-display-folders', data);
-});
-
-ipcMain.on('server-graphics-filter', function(event, data) {
-  LOGGER.receive('SERVER', 'server-graphics-filter');
-  tableManager.setGraphicFilters(data['tableID'], data.filters);
-  filterImages(data.tableID, data.urls);
-});
-
-ipcMain.on('server-graphics-filter-export', function(event, data) {
-  
-});
-
-ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
-  LOGGER.receive('SERVER', 'server-reset-graphics-filter', tableID);
-  // remove all filter images
-  // resend model to trigger reload
-  tableManager.resetGraphicFilters(tableID);
-  const response = {
-    tableID: tableID,
-    tableData: tableManager.getTable(tableID),
-  }
-  sendMessage(event.sender, 'client-load-model', response);
-});
-
-ipcMain.on('console', function(event, data) {
-  LOGGER.log('SERVER', data);
-});
-
-
-ipcMain.on('server-check-model-availability', (event, modelID) => {
-  LOGGER.receive('SERVER', 'server-check-model-availability', modelID);
-  let modelAvailable = mlManager.checkForModel(modelID);
-  const responseData = {
-    modelID: modelID,
-    modelAvailability: modelAvailable,
-  };
-  sendMessage(event.sender, 'upload-model-availability', responseData);
-});
-
-ipcMain.on('server-download-model', (event, modelID) => {
-  LOGGER.receive('SERVER', 'server-download-model', modelID);
-  
-  mlManager.downloadModel(modelID, function(modelDownloaded) {
-    const responseData = {
-      modelID: modelID,
-      modelAvailability: modelDownloaded,
-    };
-    sendMessage(event.sender, 'upload-model-availability', responseData);
-  });
-});
-
-ipcMain.on('server-compute-automatic-masks', (event, data) => {
-  LOGGER.receive('SERVER', 'server-compute-automatic-masks', data);
-  mlManager.segmentImages(data.modelID, data.pathImage1, data.pathImage2, data.ppi1, data.ppi2, function(responseData) {
-    sendMessage(uploadWindow, 'upload-masks-computed', responseData);
-  });
-});
 
 ipcMain.on('server-delete-model', (event, modelID) => {
   LOGGER.receive('SERVER', 'server-delete-model', modelID);
@@ -1037,79 +793,6 @@ ipcMain.on('server-delete-model', (event, modelID) => {
 ipcMain.on('server-delete-masks', (event) => {
   LOGGER.receive('SERVER', 'server-delete-masks');
   // TODO delete masks
-});
-
-ipcMain.on('server-check-tensorflow', (event) => {
-  LOGGER.receive('SERVER', 'server-check-tensorflow');
-  mlManager.checkForTensorflow((tensorflowAvailable) => {
-    sendMessage(event.sender, 'tensorflow-checked', tensorflowAvailable);
-  });
-});
-
-ipcMain.on('server-install-tensorflow', (event) => {
-  LOGGER.receive('SERVER', 'server-install-tensorflow');
-  mlManager.installTensorflow(function(tensorflowInstalled) {
-    sendMessage(event.sender, 'tensorflow-installed', tensorflowInstalled);
-  });
-});
-
-ipcMain.on('server-cut-automatic-masks', (event, data) => {
-  LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
-  mlManager.registerImages(data.modelID, data.image1, data.mask1, data.image2, data.mask2, function(responseData) {
-    sendMessage(uploadWindow, 'upload-images-cut', responseData);
-  });
-});
-    
-ipcMain.on('server-edit-auto-mask', (event, data) => {
-  LOGGER.receive('SERVER', 'server-edit-auto-mask', data);
-
-  const base64Data = data.change.replace(/^data:image\/png;base64,/, "");
-  const changeURL = "manual_mask_change.png";
-  let changeMode = "remove";
-  if (data.add) changeMode = "add";
-
-  fs.writeFile(changeURL, base64Data, 'base64', function(err) {
-
-    const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'edit_mask.py'), data.maskURL, changeURL, changeMode], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-    python.on('close', function(code) {
-      LOGGER.log('SERVER', `Edit Mask Result: code ${code}.`);
-      sendMessage(uploadWindow, 'upload-mask-edited');
-      fs.removeSync(changeURL);
-    });
-  });
-});
-
-ipcMain.on('server-online-status', (event, onlineStatus) => {
-  LOGGER.receive('SERVER', 'server-online-status', onlineStatus);
-  online = onlineStatus;
-});
-
-ipcMain.on('server-local-drop', (event, dataArray) => {
-  LOGGER.receive('SERVER', 'server-drop-local', dataArray);
-
-  const loadingQueue = [];
-
-  const tableID = activeTables.view;
-
-  for (const url of dataArray) {
-    // url is a path to a file; read the filename (without extension) into the variable name
-    const name = path.basename(url, path.extname(url));
-    const entry = {
-      'table': tableID,
-      'fragment': {
-        'x': 0,
-        'y': 0,
-        'name': name,
-        'recto': {
-          'url': url,
-          'www': false,
-        },
-      },
-    };
-    loadingQueue.push(entry);
-  }
-
-  sequentialUpload(loadingQueue);
 });
 
 ipcMain.on('server-test', (event) => {
@@ -1137,79 +820,4 @@ ipcMain.on('server-test', (event) => {
   });
 });
 
-ipcMain.on('server-open-export', (event, tableID) => {
-  LOGGER.receive('SERVER', 'server-open-export', tableID);
-  if (!exportWindow) {
-    exportWindow = new Window({
-      file: './renderer/export.html',
-      type: 'export',
-      devMode: devMode,
-    });
-    exportWindow.removeMenu();
-    exportWindow.maximize();
-    exportWindow.on('close', function() {
-      exportWindow = null;
-    });
-  }
-});
 
-ipcMain.on('server-get-active-table', (event) => {
-  LOGGER.receive('SERVER', 'server-get-active-table');
-  const tableID = activeTables.view;
-  const table = tableManager.getTable(tableID);
-  sendMessage(event.sender, 'active-table', table);
-});
-
-ipcMain.on('server-get-ml-models', (event, code) => {
-  LOGGER.receive('SERVER', 'server-get-ml-models', code);
-  const models = mlManager.getModelsByCode(code);
-  sendMessage(event.sender, 'ml-models', models);
-});
-
-// ipcMain.on('server-get-ml-model-details', (event, modelID) => {
-//   LOGGER.receive('SERVER', 'server-get-ml-model-details', modelID);
-//   const model = mlManager.getModelDetails(modelID);
-//   sendMessage(event.sender, 'ml-model-details', model);
-// });
-
-ipcMain.on('server-facsimilate-images', (event, data) => {
-  LOGGER.receive('SERVER', 'server-facsimilate-images', data);
-  const inputData_facsimile = data.inputData;
-  // deep copy inputData_facsimile into inputData
-  const inputData = JSON.parse(JSON.stringify(inputData_facsimile));
-  const thresholds = data.thresholds;
-  const colors = data.colors;
-
-  const callback_facsimile = () => {
-    const inputData_threshold = [];
-
-    for (const entry of inputData) {
-      const image_path = entry['image_path'];
-      const basename = path.basename(image_path, path.extname(image_path));
-      const segmentation_filename = `${basename}_segmentation.npy`;
-      inputData_threshold.push(segmentation_filename);
-    }
-    const callback_threshold = function() {
-      sendMessage(event.sender, 'thresholded-images');
-    };
-
-    mlManager.thresholdImages(inputData_threshold, thresholds, colors, callback_threshold);
-  }
-
-  mlManager.facsimilateImages(inputData_facsimile, callback_facsimile);
-
-
-});
-
-ipcMain.on('server-threshold-images', (event, data) => {
-  LOGGER.receive('SERVER', 'server-threshold-images', data);
-  const inputData = data.inputData;
-  const thresholds = data.thresholds;
-  const colors = data.colors;
-
-  const callback = function() {
-    sendMessage(event.sender, 'thresholded-images');
-  };
-
-  mlManager.thresholdImages(inputData, thresholds, colors, callback);
-});
