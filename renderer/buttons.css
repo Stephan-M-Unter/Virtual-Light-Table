@@ -189,32 +189,40 @@
     font-weight: bold;
     transition: all .2s;
     text-align: center;
+    border-radius: 3px;
 }
 
 .flip-button.R {
-    background-color: rgb(238, 76, 76);
+    /* background-color: rgb(238, 76, 76); */
+    /* transition from dark red to silver to light red, from the bottom left to the top right */
+    background-image: linear-gradient(to top right, rgb(151, 0, 0), rgb(238, 76, 76), rgb(151, 0, 0));
 }
 
 .flip-button.R.inverted {
     background-color: gray;
+    background-image: none;
     color: rgb(151, 0, 0);
 }
 
 .flip-button.G {
-    background-color: rgb(86, 224, 86);
+    /* background-color: rgb(86, 224, 86); */
+    background-image: linear-gradient(to top right, rgb(0, 151, 0), rgb(86, 224, 86), rgb(0, 151, 0));
 }
 
 .flip-button.G.inverted {
+    background-image: none;
     background-color: gray;
     color: rgb(86, 224, 86);
 }
 
 .flip-button.B {
-    background-color: rgb(102, 102, 209);
+    background-image: linear-gradient(to top right, rgb(10, 10, 128), rgb(102, 102, 209), rgb(10, 10, 128));
+    /* background-color: rgb(102, 102, 209); */
 }
 
 .flip-button.B.inverted {
     background-color: gray;
+    background-image: none;
     color: rgb(10, 10, 128);
 }
 

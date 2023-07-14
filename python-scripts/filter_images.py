@@ -32,19 +32,39 @@ for url in urls:
         image = Image.open(temp_url).convert('RGBA')
         os.remove(temp_url)
     if not '_mirror.' in url:
-        if filters['brightness'] != 1:
+        # if 'brightness' is set: change brightness
+        if 'brightness' in filters and filters['brightness'] != 1:
             enhancer = ImageEnhance.Brightness(image)
             image = enhancer.enhance(float(filters['brightness']))
-        if filters['contrast'] != 1:
+        # if 'contrast' is set: change contrast
+        if 'contrast' in filters and filters['contrast'] != 1:
             enhancer = ImageEnhance.Contrast(image)
             image = enhancer.enhance(float(filters['contrast']))
+        # if 'saturation' is set: change saturation
+        if 'saturation' in filters and filters['saturation'] != 1:
+            enhancer = ImageEnhance.Color(image)
+            image = enhancer.enhance(float(filters['saturation']))
+        # if 'sharpness' is set: change sharpness
+        if 'sharpness' in filters and filters['sharpness'] != 1:
+            enhancer = ImageEnhance.Sharpness(image)
+            image = enhancer.enhance(float(filters['sharpness']))
         image = np.array(image)
+        # invert color channels
         if filters['invertR']:
             image[:,:,0] = 255-image[:,:,0]
         if filters['invertG']:
             image[:,:,1] = 255-image[:,:,1]
         if filters['invertB']:
             image[:,:,2] = 255-image[:,:,2]
+
+        # if 'blackwhite' is true: convert to black and white
+        if filters['blackwhite']:
+            alpha = image[:,:,3]
+            image = np.mean(image[:,:,:3], axis=2)
+            image = np.stack((image,)*3, axis=-1)
+            image = np.dstack((image, alpha))
+            image = np.uint8(image)
+
         image = Image.fromarray(image)
 
     filename = os.path.basename(url)

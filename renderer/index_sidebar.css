@@ -147,7 +147,15 @@
     background-image: url('../imgs/symbol_updown.png');
 }
 
+#graphics-bw {
+    font-size: 1.3em;
+    font-weight: bold;
+}
 
+#graphics-bw.inverted {
+    background-color: var(--cb_black);
+    color: var(--cb_white);
+}
 
 
 

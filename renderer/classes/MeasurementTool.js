@@ -203,6 +203,13 @@ class MeasurementTool {
     }
     return color;
   }
+
+  setColor(id, color) {
+    if (id in this.measurements) {
+      this.measurements[id].setColor(color);
+      this.update();
+    }
+  }
 }
 
 module.exports.MeasurementTool = MeasurementTool;

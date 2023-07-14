@@ -293,6 +293,10 @@ class Measurement {
     return this.color;
   }
 
+  setColor(color) {
+    this.color = color;
+  }
+
   /**
    * TODO
    * @return {Boolean}

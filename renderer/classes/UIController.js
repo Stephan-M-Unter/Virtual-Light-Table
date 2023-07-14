@@ -515,12 +515,21 @@ class UIController {
 
   sendGraphicsFilterToServer() {
     const filters = {
-      'brightness': $('#graphics-brightness').val(),
-      'contrast': $('#graphics-contrast').val(),
+      // 'brightness': $('#graphics-brightness').val(),
+      // 'contrast': $('#graphics-contrast').val(),
       'invertR': $('.flip-button.R').hasClass('inverted'),
       'invertG': $('.flip-button.G').hasClass('inverted'),
       'invertB': $('.flip-button.B').hasClass('inverted'),
+      'blackwhite': $('#graphics-bw').hasClass('inverted'),
     };
+
+    // get all sliders of class .graphics-slider and add their values to the filters object
+    // the keyword is stored as data-attribute, the value is the value of the slider
+    $('.graphics-slider').each(function() {
+      const keyword = $(this).attr('data');
+      const value = $(this).val();
+      filters[keyword] = value;
+    });
 
     const data = {
       tableID: this.activeTable,
@@ -568,6 +577,10 @@ class UIController {
 
   scaleMeasurements() {
     this.measurementTool.scaleMeasurements();
+  }
+
+  setMeasurementColor(id, color) {
+    this.measurementTool.setColor(id, color);
   }
 
   /**

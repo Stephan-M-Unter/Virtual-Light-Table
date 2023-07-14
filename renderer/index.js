@@ -244,10 +244,7 @@ $(document).ready(function() {
   $('#graphics-reset').on('click', function(event) {
     controller.resetGraphicsFilters();
   });
-  $('#graphics-brightness').on('change', function(event) {
-    controller.sendGraphicsFilterToServer();
-  });
-  $('#graphics-contrast').on('change', function(event) {
+  $('.graphics-slider').on('change', function(event) {
     controller.sendGraphicsFilterToServer();
   });
   $('.flip-button').on('click', function(event) {

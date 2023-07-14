@@ -274,6 +274,7 @@
                 </div>
             </div>
 
+            <!-- Graphical Filters -->
             <div class="sidebar_content_wrapper" id="graphical_filters">
                 <div class="sidebar_header">
                     <div class="sidebar_header_title">Graphical Filters</div>
@@ -289,11 +290,19 @@
                     </div>
                     <div class="graphics-filter">
                         <label class="sidebar_header_title">Brightness</label>
-                        <input type="range" min="0" max="2" value="1" step="0.1" id="graphics-brightness"/>
+                        <input type="range" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider" id="graphics-brightness"/>
                     </div>
                     <div class="graphics-filter">
                         <label class="sidebar_header_title">Contrast</label>
-                        <input type="range" min="-4" max="5" value="1" step="0.1" id="graphics-contrast"/>
+                        <input type="range" min="-4" max="5" value="1" step="0.1" data="contrast" class="graphics-slider" id="graphics-contrast"/>
+                    </div>
+                    <div class="graphics-filter">
+                        <label class="sidebar_header_title">Saturation</label>
+                        <input type="range" min="0" max="1" value="1" step="0.1" data="saturation" class="graphics-slider" id="graphics-saturation"/>
+                    </div>
+                    <div class="graphics-filter">
+                        <label class="sidebar_header_title">Sharpness</label>
+                        <input type="range" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider" id="graphics-sharpness"/>
                     </div>
                     <div class="graphics-filter">
                         <label class="sidebar_header_title">Colour Inversion</label>
@@ -303,9 +312,7 @@
                             <div class="flip-button B" data="B">B</div>
                         </div>
                     </div>
-                    <div class="graphics-filter">
-                        Under construction.
-                    </div>
+                    <div class="flip-button button sidebar_wide BW" id="graphics-bw" data="BW">Black/White</div>
                 </div>
             </div>
             <!-- </graphical filters> -->

@@ -433,8 +433,11 @@ class Sidebar {
 
   resetGraphicsFilters() {
     $('.flip-button').removeClass('inverted');
+    $('#graphics-bw').removeClass('inverted');
     $('#graphics-brightness').val(1);
     $('#graphics-contrast').val(1);
+    $('#graphics-saturation').val(1);
+    $('#graphics-sharpness').val(1);
   }
 
   /**
@@ -449,9 +452,20 @@ class Sidebar {
 
     const measurement = $('<div>',
         {id: 'measurement-'+id, class: 'measurement active'});
+
+    const lineWrapper = $('<div>', {class: 'measure-line-wrapper'});
     const line = $('<div>', {class: 'measure-line'});
     line.css('background', color);
+    const colorpicker = $('<input>', {type: 'color', class: 'measure-color'});
+    colorpicker.val(color);
+    lineWrapper.append(line);
+    lineWrapper.append(colorpicker);
 
+    colorpicker.on('input', (event) => {
+      line.css('background', event.target.value);
+      this.controller.setMeasurementColor(id, event.target.value);
+    });
+    
     const distance = $('<div>', {class: 'measure-distance'});
     distance.text('? cm');
 
@@ -470,7 +484,7 @@ class Sidebar {
     });
 
     measurement.append(del);
-    measurement.append(line);
+    measurement.append(lineWrapper);
     measurement.append(distance);
     measurement.append(distance);
     del.append(delImg);
