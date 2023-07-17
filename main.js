@@ -798,30 +798,3 @@ ipcMain.on('server-delete-masks', (event) => {
   LOGGER.receive('SERVER', 'server-delete-masks');
   // TODO delete masks
 });
-
-ipcMain.on('server-test', (event) => {
-  const modelfilepath = 'https://huggingface.co/S-Unter/PapyrusSegmentationBiNet4.2/resolve/main/model.h5';
-  const pythonfilepath = 'https://huggingface.co/S-Unter/PapyrusSegmentationBiNet4.2/resolve/main/VLT.py';
-  const accessToken = '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'
-
-  // Download the python file from pythonfilepath, using the provided access token
-  const pythonfile = fs.createWriteStream('VLT.py');
-  const pythonRequest = https.get(pythonfilepath, {headers: {'Authorization': `Bearer ${accessToken}`}}, function(response) {
-    response.pipe(pythonfile);
-    pythonfile.on('finish', () => {
-      pythonfile.close();
-      console.log('Python File downloaded');
-    });
-  });
-
-  const modelfile = fs.createWriteStream('model.h5');
-  const modelRequest = https.get(modelfilepath, {headers: {'Authorization': `Bearer ${accessToken}`}}, function(response) {
-    response.pipe(modelfile);
-    modelfile.on('finish', () => {
-      modelfile.close();
-      console.log('Model File downloaded');
-    });
-  });
-});
-
-

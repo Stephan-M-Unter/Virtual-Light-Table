@@ -1,32 +1,48 @@
 {
     "segmentation": {
         "SEG_01": {
-            "name": "BiNet_8.2_multiclass",
-            "requestPath": "TODO",
+            "name": "[8.2] BiNet - multiclass - 400dpi",
+            "targetDPI": 400,
+            "runNumber": 8.2,
+            "requestPaths": [
+                "https://huggingface.co/S-Unter/SEG_01/resolve/main/model.h5",
+                "https://huggingface.co/S-Unter/SEG_01/resolve/main/VLT.py"
+            ],
             "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
             "author": "Stephan M. Unter",
-            "lastChange": "xx/xx/xx",
-            "size": 0
+            "lastChange": "07/06/2021",
+            "size": "519 MB"
         },
         "SEG_02": {
-            "name": "BiNet_4.2_multiclass",
-            "requestPath": "TODO",
+            "name": "[4.2] BiNet - multiclass - 400dpi",
+            "targetDPI": 400,
+            "runNumber": 4.2,
+            "requestPaths": [
+                "https://huggingface.co/S-Unter/SEG_02/resolve/main/model.h5",
+                "https://huggingface.co/S-Unter/SEG_02/resolve/main/VLT.py"
+            ],
             "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
             "author": "Stephan M. Unter",
-            "lastChange": "xx/xx/xx",
-            "size": 0
+            "lastChange": "04/06/2021",
+            "size": "519 MB"
         },
         "SEG_03": {
-            "name": "BiNet_2.1_multiclass",
-            "requestPath": "TODO",
+            "name": "[2.1] BiNet - multiclass - 400dpi",
+            "targetDPI": 400,
+            "runNumber": 2.1,
+            "requestPaths": [
+                "https://huggingface.co/S-Unter/SEG_03/resolve/main/model.h5",
+                "https://huggingface.co/S-Unter/SEG_03/resolve/main/VLT.py"
+            ],
             "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
             "author": "Stephan M. Unter",
-            "lastChange": "xx/xx/xx",
-            "size": 0
+            "lastChange": "14/05/2021",
+            "size": "519 MB"
         },
         "SEG_04": {
             "name": "SegFormer",
-            "requestPath": "TODO",
+            "targetDPI": 400,
+            "requestPaths": "TODO",
             "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
             "author": "Stephan M. Unter",
             "lastChange": "xx/xx/xx",
@@ -34,7 +50,8 @@
         },
         "SEG_05": {
             "name": "TransUNet",
-            "requestPath": "TODO",
+            "targetDPI": 400,
+            "requestPaths": "TODO",
             "outputLabels": ["background", "papyrus"],
             "author": "Stephan M. Unter",
             "lastChange": "xx/xx/xx",

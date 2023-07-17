@@ -5,10 +5,13 @@ const path = require('path');
 const {spawn} = require('child_process');
 const LOGGER = require("../statics/LOGGER");
 const {CONFIG} = require('../statics/CONFIG');
+const https = require('follow-redirects').https;
 
 class MLManager {
 
     constructor() {
+        this.accessToken = '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'; // TODO: get access token from MLCapacities file, currently not possible
+
         this.tensorflowAvailable = null;
         this.checkForTensorflow();
 
@@ -103,13 +106,31 @@ class MLManager {
     }
 
     downloadModel(modelID, callback) {
-        // TODO: Download of model
-        // if (modelID in this.models) {
-            const dummyPath = path.join(CONFIG.VLT_FOLDER, 'ML', 'models', 'model_8.2');
-            this.models['BiNet_8.2_multiclass'].localPath = dummyPath;
-            LOGGER.log('ML MANAGER', `Model (ID: ${modelID}) downloaded to folder ${dummyPath}.`)
-            callback(true);
-        // }
+        if (modelID in this.models) {
+            const requestPaths = this.models[modelID].requestPaths;
+            let downloaded = 0;
+
+            // create folder for model
+            const modelPath = path.join(this.folderMLmodels, modelID);
+            fs.mkdirSync(modelPath);
+
+            for (const requestPath of requestPaths) {
+                const filename = path.basename(requestPath);
+                const filestream = fs.createWriteStream(path.join(modelPath, filename));
+                const request = https.get(requestPath, {headers: {'Authorization': `Bearer ${this.accessToken}`}}, (response) => {
+                    response.pipe(filestream);
+                    filestream.on('finish', () => {
+                        filestream.close();
+                        downloaded++;
+                        LOGGER.log('ML MANAGER', `File ${filename} downloaded to ${modelPath}.`);
+                        if (downloaded == requestPaths.length) {
+                            this.models[modelID].localPath = modelPath;
+                            callback(true);
+                        }
+                    });
+                });
+            }
+        }
     }
     checkForModel(modelID) {
         // check if there is a subfolder named modelID in the ML/models folder
