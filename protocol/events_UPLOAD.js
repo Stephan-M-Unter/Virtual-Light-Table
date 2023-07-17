@@ -15,20 +15,20 @@ function registerEventHandlersUPLOAD(ipcMain, send, get, set) {
       
         if (!get('uploadWindow')) {
             const uploadWindow = new Window({
-            file: './renderer/upload.html',
-            type: 'upload',
-            devMode: get('devMode'),
-          });
-          uploadWindow.maximize();
-          uploadWindow.removeMenu();
-          uploadWindow.once('ready-to-show', () => {
-            uploadWindow.show();
-          });
-          uploadWindow.on('close', function() {
-            set('uploadWindow', null);
-            send(get('mainWindow'), 'client-stop-loading');
-          });
-          set('uploadWindow', uploadWindow);
+              file: './renderer/upload.html',
+              type: 'upload',
+              devMode: get('devMode'),
+            });
+              uploadWindow.maximize();
+              uploadWindow.removeMenu();
+              uploadWindow.once('ready-to-show', () => {
+                uploadWindow.show();
+            });
+            uploadWindow.on('close', function() {
+                set('uploadWindow', null);
+                send(get('mainWindow'), 'client-stop-loading');
+            });
+            set('uploadWindow', uploadWindow);
         }
     });
 

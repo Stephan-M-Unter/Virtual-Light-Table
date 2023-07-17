@@ -1194,7 +1194,10 @@ function drawAutoMask(reload) {
       if (!side.mask.auto.cuts[activeModelID]) {
 
         side.mask.group.removeAllChildren();
-        if (side.content.img) side.content.img.mask = null;
+        if (side.content.img) {
+          side.content.img.mask = null;
+          side.content.img.rotation = 0;
+        }
         if (reload) {
           if (side.mask.auto.mask != null) {
             side.mask.group.removeChild(side.mask.auto.mask);

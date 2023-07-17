@@ -5,7 +5,7 @@ function registerEventHandlersTPOP(ipcMain, send, get, set) {
     ipcMain.on('server-select-other-tpops', (event, data) => {
         LOGGER.receive('SERVER', 'server-select-other-tpops');
         const imageArray = get('tpopManager').getImageLinks(data.tpop);
-        get('resolveUrls')(imageArray, uploadTpopImages);
+        get('resolveUrls')(imageArray, get('uploadTpopImages'));
     });
 
     ipcMain.on('server-check-tpop-data', (event) => {

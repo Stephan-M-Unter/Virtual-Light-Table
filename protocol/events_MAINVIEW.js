@@ -114,6 +114,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
             set('uploadWindow', null);
             send(get('mainWindow'), 'client-stop-loading');
         });
+        set('uploadWindow', uploadWindow);
     });
 
     ipcMain.on('server-create-table', (event) => {

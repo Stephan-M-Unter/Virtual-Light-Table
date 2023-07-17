@@ -124,6 +124,7 @@ function get(key) {
     'tpopManager': tpopManager,
     'tpopWindow': tpopWindow,
     'uploadLocalImage': uploadLocalImage,
+    'uploadTpopImages': uploadTpopImages,
     'uploadWindow': uploadWindow,
   };
 
