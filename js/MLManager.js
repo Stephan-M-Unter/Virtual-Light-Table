@@ -310,13 +310,35 @@ class MLManager {
      * an object including the modelID, the model name, and the model size.
      * @param {*} code 
      */
-    getModelsByCode(code) {
+    getModelsByCode(code, requiredCapacities=[]) {
         const result = [];
         for (const modelID in this.models) {
             if (modelID.includes(code)) {
                 // create copy of model object
                 const model = Object.assign({}, this.models[modelID]);
                 model.modelID = modelID;
+
+
+                // check if model has all required capacities
+                const modelCapacities = model.outputLabels;
+                let hasAllCapacities = true;
+
+                console.log(modelCapacities);
+
+                for (const capacity of requiredCapacities) {
+                    console.log(capacity);
+                    if (!modelCapacities.includes(capacity)) {
+                        hasAllCapacities = false;
+                        break;
+                    }
+                }
+
+                console.log(hasAllCapacities);
+
+                if (!hasAllCapacities) {
+                    continue;
+                }
+                
                 result.push(model);
             }
         }

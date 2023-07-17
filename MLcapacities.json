@@ -52,7 +52,7 @@
             "name": "TransUNet",
             "targetDPI": 400,
             "requestPaths": "TODO",
-            "outputLabels": ["background", "papyrus"],
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
             "author": "Stephan M. Unter",
             "lastChange": "xx/xx/xx",
             "size": 0

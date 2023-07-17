@@ -40,7 +40,9 @@ $(document).ready(function(){
     resizeCanvas();
     updateColorpicker();
 
+    LOGGER.send('EXPORT', 'server-get-active-table', null)
     send('server-get-active-table', null);
+    LOGGER.send('EXPORT', 'server-check-tensorflow');
     send('server-check-tensorflow');
 });
 
@@ -489,6 +491,7 @@ function requestFacsimile() {
         'inputData': inputData,
     }
 
+    LOGGER.send('EXPORT', 'server-facsimilate-images', requestData);
     send('server-facsimilate-images', requestData);
 
     const progressText = $('#facsimilate .progress-text');
@@ -517,6 +520,7 @@ function requestThreshold() {
         'colors': getColors(),
     }
 
+    LOGGER.send('EXPORT', 'server-threshold-images', requestData);
     send('server-threshold-images', requestData);
 
     const progressText = $('#threshold .progress-text');
@@ -572,7 +576,12 @@ function updateDownloadSize() {
     $('#download-size-value').text(`factor x${magFactor} (${outputWidth} x ${outputHeight} px)`);
 }
 
+function downloadModel() {
+    const modelID = $('#select-facsimile-model').val();
 
+    LOGGER.send('EXPORT', 'server-download-model', modelID)
+    send('server-download-model', modelID);
+}
 
 
 
@@ -629,6 +638,7 @@ $('#download-size').on('input', updateDownloadSize);
 $('#download').click(download);
 
 $('#close').click(function(){
+    LOGGER.send('EXPORT', 'server-close-export')
     ipcRenderer.send('server-close-export');
 });
 
@@ -658,6 +668,7 @@ $('#select-facsimile-model').on('change', function() {
         $('#facsimilate').addClass('hidden');
     }
 
+    LOGGER.send('EXPORT', 'server-get-ml-model-details', modelID)
     ipcRenderer.send('server-get-ml-model-details', modelID);
 });
 
@@ -668,6 +679,7 @@ $('#threshold-black').on('input', updateThresholdSliders);
 $('#threshold-red').on('input', updateThresholdSliders);
 $('#anti-aliasing').on('input', updateThresholdSliders);
 $('#papyrus-outline').on('input', updateThresholdSliders);
+$('#download-model').click(downloadModel);
 
 
 ipcRenderer.on('active-table', (event, data) => {
@@ -710,7 +722,6 @@ ipcRenderer.on('active-table', (event, data) => {
             'rotation': -fragment['rotation'] + fragment['verso']['rotation'],
         },
     }
-    console.log('recto', fragmentData['recto']['rotation'], 'verso', fragmentData['verso']['rotation']);
     objects[fragment_id] = fragmentData;
    }
 
@@ -724,7 +735,12 @@ ipcRenderer.on('tensorflow-checked', (event, tensorflowAvailable) => {
         // add class "disabled" and append text "(tensorflow not available)"
         $('.mode.button[requirement="tensorflow"]').addClass('disabled').append(' (tensorflow not available)');
     } else {
-        ipcRenderer.send('server-get-ml-models', 'SEG');
+        const request = {
+            'code': 'SEG',
+            'requiredCapacities': ['papyrus', 'black ink', 'red ink'],
+        };
+        LOGGER.send('EXPORT', 'server-get-ml-models', request)
+        ipcRenderer.send('server-get-ml-models', request);
     }
 });
 
@@ -761,9 +777,11 @@ ipcRenderer.on('ml-model-details', (event, model) => {
     const papyrus = outputLabels.includes('papyrus');
 
     $('#papyrus-wrapper').addClass('hidden');
-    $('#papyrus-outline').addClass('hidden');
+    $('#papyrus-outline-wrapper').addClass('hidden');
+    $('#anti-aliasing-wrapper').addClass('hidden');
     $('#red-wrapper').addClass('hidden');
     $('#black-wrapper').addClass('hidden');
+    $('#threshold').addClass('hidden');
 
     if (available && papyrus) {
         $('#papyrus-wrapper').removeClass('hidden');
@@ -774,6 +792,10 @@ ipcRenderer.on('ml-model-details', (event, model) => {
     }
     if (available && blackInk) {
         $('#black-wrapper').removeClass('hidden');
+    }
+    if (available) {
+        $('#anti-aliasing-wrapper').removeClass('hidden');
+        $('#threshold').removeClass('hidden');
     }
 });
 
@@ -810,4 +832,17 @@ ipcRenderer.on('threshold-progress', (event, ratio) => {
             progressText.text('Compute Treshold');
         }, 2000);
     }
+});
+
+ipcRenderer.on('model-availability', (event, data) => {
+    LOGGER.receive('EXPORT', 'model-availability', data);
+    const modelID = data.modelID;
+    const modelAvailability = data.modelAvailability;
+    const option = $(`#select-facsimile-model option[value="${modelID}"]`);
+    if (modelAvailability) {
+        option.text('✅ ' + option.text());
+    } else {
+        option.text('❌ ' + option.text());
+    }
+    $('#select-facsimile-model').trigger('change');
 });

@@ -1931,8 +1931,8 @@ ipcRenderer.on('upload-tpop-images', (event, data) => {
   $('#tpop-select-overlay').removeClass('unrendered');
 });
 
-ipcRenderer.on('upload-model-availability', (event, data) => {
-  LOGGER.receive('UPLOAD', 'upload-model-availability', data);
+ipcRenderer.on('model-availability', (event, data) => {
+  LOGGER.receive('UPLOAD', 'model-availability', data);
   const modelID = data.modelID;
   const modelAvailability = data.modelAvailability;
   if (modelAvailability) {
@@ -1963,8 +1963,12 @@ ipcRenderer.on('tensorflow-checked', (event, tensorflowCheck) => {
     tensorflow = true;
     $('#mask_control_automatic_selection_panel').removeClass('unrendered');
     drawAutoMask();
-    LOGGER.send('UPLOAD', 'server-get-ml-models', 'SEG');
-    ipcRenderer.send('server-get-ml-models', 'SEG');
+    const request = {
+      'code': 'SEG',
+      'requiredCapacities': ['papyrus'],
+    }
+    LOGGER.send('UPLOAD', 'server-get-ml-models', request);
+    ipcRenderer.send('server-get-ml-models', request);
   } else {
     $('#mask_control_tensorflow_panel').removeClass('unrendered');
   }

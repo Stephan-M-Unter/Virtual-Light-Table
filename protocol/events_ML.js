@@ -69,9 +69,13 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         get('mlManager').facsimilateImages(inputData_facsimile, callback_count, callback_facsimile);
     });
 
-    ipcMain.on('server-get-ml-models', (event, code) => {
-        LOGGER.receive('SERVER', 'server-get-ml-models', code);
-        const models = get('mlManager').getModelsByCode(code);
+    ipcMain.on('server-get-ml-models', (event, data) => {
+        LOGGER.receive('SERVER', 'server-get-ml-models', data);
+
+        const code = data.code;
+        const requiredCapacities = data.requiredCapacities;
+        
+        const models = get('mlManager').getModelsByCode(code, requiredCapacities);
         send(event.sender, 'ml-models', models);
     });
 
@@ -128,12 +132,12 @@ function registerEventHandlersML(ipcMain, send, get, set) {
     ipcMain.on('server-download-model', (event, modelID) => {
         LOGGER.receive('SERVER', 'server-download-model', modelID);
         
-        get('mlManager').downloadModel(modelID, function(modelDownloaded) {
+        get('mlManager').downloadModel(modelID, (modelDownloaded) => {
           const responseData = {
             modelID: modelID,
             modelAvailability: modelDownloaded,
           };
-          send(event.sender, 'upload-model-availability', responseData);
+          send(event.sender, 'model-availability', responseData);
         });
     });
 
@@ -144,7 +148,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
           modelID: modelID,
           modelAvailability: modelAvailable,
         };
-        send(event.sender, 'upload-model-availability', responseData);
+        send(event.sender, 'model-availability', responseData);
     });
 }
   
