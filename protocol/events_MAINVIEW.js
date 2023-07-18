@@ -83,7 +83,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
           tableID: tableID,
           tableData: get('tableManager').getTable(tableID),
         };
-        sendMessage(event.sender, 'client-load-model', data);
+        send(event.sender, 'client-load-model', data);
     });
 
     ipcMain.on('server-change-fragment', (event, data) => {

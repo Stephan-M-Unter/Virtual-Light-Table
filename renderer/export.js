@@ -785,7 +785,7 @@ ipcRenderer.on('ml-model-details', (event, model) => {
 
     if (available && papyrus) {
         $('#papyrus-wrapper').removeClass('hidden');
-        $('#papyrus-outline').removeClass('hidden');
+        $('#papyrus-outline-wrapper').removeClass('hidden');
     }
     if (available && redInk) {
         $('#red-wrapper').removeClass('hidden');
