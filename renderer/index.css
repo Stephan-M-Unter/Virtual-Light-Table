@@ -421,7 +421,7 @@ body {
 #lighttable {
     position: fixed;
     /* background-image: url("../imgs/cb_logo_back.png"); */
-    background-image: url("../imgs/VLT_logo_square.png");
+    background-image: url("../imgs/VLT_logo_square_background.png");
     /* filter: invert(30%); */
     background-repeat: no-repeat;
     background-position: center;
@@ -1133,4 +1133,12 @@ input[type='checkbox']:checked {
     max-height: 100px;
     max-width: 100px;
     animation: animate-drop 1s infinite;    
+}
+
+#loading-gif {
+    padding: 20px;
+    border-radius: 20px;
+    background-color: black;
+    width: 500px;
+    height: 500px;
 }

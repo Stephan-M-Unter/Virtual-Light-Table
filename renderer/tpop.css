@@ -897,3 +897,11 @@ input[type=text].inactive {
 #tpop-loading-text {
 
 }
+
+#loading-gif {
+    padding: 20px;
+    border-radius: 20px;
+    background-color: black;
+    width: 500px;
+    height: 500px;
+}
