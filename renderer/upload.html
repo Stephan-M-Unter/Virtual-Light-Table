@@ -80,12 +80,12 @@
                 </div>
                 <div class="wrapper" id="general_button_region">
                     <div title="Activate move mode for images" class="button square active_mode" id="move" mode="move">
-                        <img draggable="false" src="../imgs/symbol_move.png">
+                        <img draggable="false" src="../imgs/symbol_move.png" mode="move">
                     </div>
                     <div title="Swap images for Recto and Verso" class="button square" id="swap">
                         <img draggable="false" src="../imgs/symbol_switch.png">
                     </div>
-                    <div title="Activate rotation mode for images" class="button square" id="rotate">
+                    <div title="Activate rotation mode for images" class="button square" id="rotate" mode="rotate">
                         <img draggable="false" src="../imgs/symbol_rotate.png" mode="rotate">
                     </div>
                 </div>
@@ -125,10 +125,13 @@
                         <li><span class="red_text">Red fields</span> are obligatory.</li>
                     </ul>
                 </div>
-                <div class="button large_button" id="manual_instructions">
-                    <img draggable="false" src="../imgs/symbol_question.png">
-                    <label>Instructions</label>
-                </div>
+                <!-- removed for the release -->
+                <!--
+                    <div class="button large_button" id="manual_instructions">
+                        <img draggable="false" src="../imgs/symbol_question.png">
+                        <label>Instructions</label>
+                    </div>
+                -->
             </div> <!-- </manual_region> -->
             <div class="wrapper unrendered" id="mask_region">
                 <div class="header">Mask & Register</div>
@@ -189,9 +192,9 @@
                                 <label>Download Model</label>
                             </div>
                             <!-- <div class="button mask_control_button square unrendered" id="mask_selection_delete_model"> -->
-                            <div class="button mask_control_button square" id="mask_selection_delete_model">
+                            <!-- <div class="button mask_control_button square" id="mask_selection_delete_model">
                                 <img src="../imgs/symbol_bin.png"/>
-                            </div>
+                            </div> -->
                         </div>
                         <div id="mask_control_panel_automatic" class="mask_controls automatic automatic_cut unrendered wrapper-row">
                             <div class="wrapper-col" id="wrapper-brush">
@@ -258,7 +261,7 @@
             </div> <!-- </load_region> -->
         </div> <!-- </lower_region> -->
 
-        <div class="unrendered" id="tutorial_region"> <!-- Level 1 -->
+        <!-- <div class="unrendered" id="tutorial_region"> 
             <div id="tutorial_shadow"></div>
             <div id="tutorial_box">
                 <div id="tutorial_close">
@@ -284,7 +287,7 @@
                 <div class="tutorial_text">
                     As a final step, adapt (or define, if not yet filled in) the name of your custom fragment to your wishes and press "Add to Table". The fragment will now be loaded to the Virtual Light Table.
                 </div>
-            </div>
+            </div> -->
 
         </div> <!-- </tutorial_region> -->
 
