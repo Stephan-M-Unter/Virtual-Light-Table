@@ -35,16 +35,22 @@
                 <div class="flex-vert">
                     <!-- Mode Options -->
                     <div id="mode-options-filters" class="flex-vert mode-options hidden">
-                        <div class="flex-hor">
-                            <label>Contrast</label>
-                            <input type="range" id="contrast" min="0" max="100" value="50">
-                            <div id="contrast-value">50</div>
-                        </div>
-    
-                        <div class="flex-hor">
+                        
+                        <div class="flex-hor graphics-filter">
                             <label>Brightness</label>
-                            <input type="range" id="brightness" min="0" max="100" value="50">
-                            <div id="brightness-value">50</div>
+                            <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider">
+                        </div>
+                        <div class="flex-hor graphics-filter">
+                            <label>Contrast</label>
+                            <input type="range" id="contrast" min="-4" max="5" value="1" step="0.1" data="contrast" class="graphics-slider">
+                        </div>
+                        <div class="flex-hor graphics-filter">
+                            <label>Saturation</label>
+                            <input type="range" id="saturation" min="0" max="1" value="1" step="0.1" data="saturation" class="graphics-slider">
+                        </div>
+                        <div class="flex-hor graphics-filter">
+                            <label>Sharpness</label>
+                            <input type="range" id="sharpness" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider">
                         </div>
     
                         <label>Colour Inversion</label>
@@ -53,6 +59,7 @@
                             <div class="flip-button G" data="G">G</div>
                             <div class="flip-button B" data="B">B</div>
                         </div>
+                        <div class="flip-button button sidebar_wide BW" id="blackwhite" data="BW">Black & White</div>
                         <div class="button">Reset</div>
                     </div>
 
