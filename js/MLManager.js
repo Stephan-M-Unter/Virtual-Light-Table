@@ -17,6 +17,7 @@ class MLManager {
 
         // define ML subfolders
         this.folderML = path.join(CONFIG.VLT_FOLDER, 'ML');
+        this.MLCapacitiesPath = path.join(this.folderML, 'MLcapacities.json');
         this.folderMLmodels = path.join(this.folderML, 'models');
         this.folderMLresults = path.join(this.folderML, 'results');
 
@@ -28,17 +29,54 @@ class MLManager {
         this.capacities = [];
         this.models = {};
 
-        this.checkCapacities();
+        this.checkForCapacities();
     };
 
-    checkCapacities() {
-        // TODO Hardcoded Address
-        // should instead be some URL where the most current version could be downloaded
-        const MLCapacitiesPath = "./MLcapacities.json"
-
-        fs.exists(MLCapacitiesPath, (exists) => {
+    checkForCapacities() {
+        // first, check if the MLCapacities file exists
+        fs.exists(this.MLCapacitiesPath, (exists) => {
             if (exists) {
-                fs.readFile(MLCapacitiesPath, (err, data) => {
+                // if it exists, check if it is up to date
+                fs.stat(this.MLCapacitiesPath, (err, stats) => {
+                    if (!err) {
+                        const lastModified = stats.mtimeMs;
+                        const now = Date.now();
+                        const timeDiff = now - lastModified;
+                        const timeDiffDays = timeDiff / (1000 * 60 * 60 * 24);
+                        if (timeDiffDays > 30) {
+                            // if it is older than 30 days, download the capacities
+                            this.downloadCapacities();
+                        } else {
+                            // if it is not older than 30 days, load the capacities
+                            this.loadCapacities();
+                        }
+                    } else {
+                        LOGGER.err('ML MANAGER', err);
+                    }
+                });
+            } else {
+                // if it does not exist, download the capacities
+                this.downloadCapacities();
+            }
+        });
+    }
+    
+    downloadCapacities() {
+        const MLCapacitiesPath = "https://huggingface.co/S-Unter/VLT/resolve/main/MLcapacities.json";
+        const filestream = fs.createWriteStream(this.MLCapacitiesPath);
+        const request = https.get(MLCapacitiesPath, {headers: {'Authorization': `Bearer ${this.accessToken}`}}, (response) => {
+            response.pipe(filestream);
+            filestream.on('finish', () => {
+                filestream.close();
+                this.loadCapacities();
+            });
+        });
+    }
+
+    loadCapacities() {
+        fs.exists(this.MLCapacitiesPath, (exists) => {
+            if (exists) {
+                fs.readFile(this.MLCapacitiesPath, (err, data) => {
                     if (!err) {
                         const MLCapacities = JSON.parse(data);
                         
