@@ -1014,7 +1014,7 @@ $('#ml-reset').click(function() {
 
 $('#reload-json').click(() => {
   if (!requesting) {
-    $('#reload-json img').attr('src', '../imgs/loading-small.gif');
+    $('#reload-json img').attr('src', '../imgs/VLT_small.gif');
     requesting = true;
     LOGGER.send('TPOP', 'server-reload-json');
     ipcRenderer.send('server-reload-json');
