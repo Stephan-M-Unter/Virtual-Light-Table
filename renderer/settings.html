@@ -9,68 +9,105 @@
             window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');
         </script>
     </head>
-    <body class="wrapper-vertical">
-        <header class="margin-vertical">Settings</header>
+    <body class="wrapper-horizontal">
+        <div id="main" class="wrapper-vertical fullsize on-display">
 
-        <div class="wrapper wrapper-horizontal centered">
-            <!-- PPI -->
-            <div class="wrapper wrapper-horizontal centered margin-horizontal">
-                <div id="ppi-label"><span id="ppi">[unknown]</span> px = 1 inch</div>
-                <div title="Open calibration tool" class="button large_button" id="calibrate">
-                    <img src="../imgs/symbol_calibration.png">
-                    <label>Calibrate</label>
-                </div>
-            </div>
-            <div class="vertical-line"></div>
+            <header class="margin-vertical">Settings</header>
     
-            <!-- Zoom -->
-            <div class="wrapper margin-row">
-                <div class="wrapper wrapper-horizontal">
-                    <input type="text" class="input-with-image input-number" id="minZoom" placeholder="unknown">
-                    <div class="label">Min Zoom</div>
-                </div>
-                <div class="wrapper wrapper-row">
-                    <input type="text" class="input-with-image input-number" id="maxZoom" placeholder="unknown">
-                    <div class="label">Max Zoom</div>
-                </div>
-                <div class="wrapper wrapper-row">
-                    <input type="text" class="input-with-image input-number" id="stepZoom" placeholder="unknown">
-                    <div class="label">Zoom Steps</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="wrapper wrapper-vertical full-width">
-            <!-- Location Saves -->
-            <div class="wrapper wrapper-vertical margin-vertical full-width">
-                <div class="wrapper wrapper-horizontal centered">
-                    <div class="label label-left">Local VLT Folder</div>
-                    <input type="url" class="input-with-image input-url" id="save-path" placeholder="unknown">
-                </div>
-                <div class="wrapper wrapper-horizontal align-right">
-                    <div title="Select new savefolder" class="button large_button" id="select-save">
-                        <img src="../imgs/symbol_folder.png">
-                        <label>Select folder</label>
+            <div class="wrapper wrapper-horizontal centered">
+                <!-- PPI -->
+                <div class="wrapper wrapper-horizontal centered margin-horizontal">
+                    <div id="ppi-label"><span id="ppi">[unknown]</span> px = 1 inch</div>
+                    <div title="Open calibration tool" class="button large_button" id="calibrate">
+                        <img src="../imgs/symbol_calibration.png">
+                        <label>Calibrate</label>
                     </div>
-                    <div title="Reset to default" class="button square" id="default-save">
-                        <img src="../imgs/symbol_reset.png">
+                </div>
+                <div class="vertical-line"></div>
+        
+                <!-- Zoom -->
+                <div class="wrapper margin-row">
+                    <div class="wrapper wrapper-horizontal">
+                        <input type="text" class="input-with-image input-number" id="minZoom" placeholder="unknown">
+                        <label>Min Zoom</label>
+                    </div>
+                    <div class="wrapper wrapper-row">
+                        <input type="text" class="input-with-image input-number" id="maxZoom" placeholder="unknown">
+                        <label>Max Zoom</label>
+                    </div>
+                    <div class="wrapper wrapper-row">
+                        <input type="text" class="input-with-image input-number" id="stepZoom" placeholder="unknown">
+                        <label>Zoom Steps</label>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="wrapper wrapper-vertical full-width align-right">
-            <p><span class="label"><a href="https://www.tensorflow.org" target="_blank">Tensorflow</a>:</span> <span class="inline inline-true unrendered" id="tensorflow-installed">✅ Installed</span><span class="inline" id="tensorflow-installation"><span class="inline" id="tensorflow-download"><span class="inline inline-button no-select">Download package</span> or</span> <a href="https://www.tensorflow.org/install" target="_blank">install manually</a></span></p>
-        </div>
-
-        <div class="wrapper wrapper-horizontal centered margin-vertical">
-            <div title="Save changes" class="button large_button" id="save">
-                <img src="../imgs/symbol_save.png">
-                <label>Save</label>
+    
+            <div class="wrapper wrapper-vertical full-width">
+                <!-- Location Saves -->
+                <div class="wrapper wrapper-vertical margin-vertical full-width">
+                    <div class="wrapper wrapper-horizontal centered">
+                        <label class="label-left">Local VLT Folder</label>
+                        <input type="url" class="input-with-image input-url" id="save-path" placeholder="unknown">
+                    </div>
+                    <div class="wrapper wrapper-horizontal align-right">
+                        <div title="Select new savefolder" class="button large_button" id="select-save">
+                            <img src="../imgs/symbol_folder.png">
+                            <label>Select folder</label>
+                        </div>
+                        <div title="Reset to default" class="button square" id="default-save">
+                            <img src="../imgs/symbol_reset.png">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div title="Cancel without saving changes" class="button large_button" id="abort">
-                <img src="../imgs/symbol_x.png">
-                <label>Cancel</label>
+    
+            <p><span class="link" target="ml">Machine Learning Settings >></span></p>
+            
+            <div class="wrapper wrapper-horizontal centered margin-vertical">
+                <div title="Save changes" class="button large_button" id="save">
+                    <img src="../imgs/symbol_save.png">
+                    <label>Save</label>
+                </div>
+                <div title="Cancel without saving changes" class="button large_button" id="abort">
+                    <img src="../imgs/symbol_x.png">
+                    <label>Cancel</label>
+                </div>
+            </div>
+        </div>
+        <div id="ml" class="wrapper-vertical fullsize hidden">
+            <p><span class="link" target="main"><< Back</span></p>
+            <header class="margin-vertical">Machine Learning (ML)</header>
+
+            <div id="ml-grid" class="grid">
+                <div class="grid-item">
+                    <label class="label"><a href="https://www.tensorflow.org" target="_blank">Tensorflow</a>:</label>
+                </div>
+                <div class="grid-item">
+                    <span class="inline inline-true unrendered" id="tensorflow-installed">✅ Installed</span><span class="inline" id="tensorflow-installation"><span class="inline" id="tensorflow-download"><span class="inline inline-button no-select">Download package</span> or</span> <a href="https://www.tensorflow.org/install" target="_blank">install manually</a></span>
+                </div>
+                <div class="grid-item">
+                    <label>Reload ML Models:</label>
+                </div>
+                <div class="grid-item">
+                    <div title="Force reloading of available machine learning models" id="ml-reload" class="button large_button">
+                        <img src="../imgs/symbol_reload.png">
+                        <label>Reload Data</label>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <label>Manage ML Models:</label>
+                </div>
+                <div class="grid-item">
+                    <select id="ml-models"></select>
+                    <div title="Download the selected model to your computer" id="ml-download" class="button large_button">
+                        <img src="../imgs/symbol_download.png">
+                        <label>Download</label>
+                    </div>
+                    <div title="Delete the selected model from your computer" id="ml-delete" class="button large_button">
+                        <img src="../imgs/symbol_bin.png">
+                        <label>Delete</label>
+                    </div>
+                </div>
             </div>
         </div>
 

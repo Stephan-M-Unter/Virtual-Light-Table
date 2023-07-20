@@ -72,7 +72,7 @@ const calibrationProps = {
 
 const settingsProps = {
   width: 900,
-  height: 600,
+  height: 500,
   icon: './imgs/icons/png/logo.png',
   show: false,
   webPreferences: {

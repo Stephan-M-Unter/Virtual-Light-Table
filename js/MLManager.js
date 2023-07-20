@@ -32,7 +32,7 @@ class MLManager {
         this.checkForCapacities();
     };
 
-    checkForCapacities() {
+    checkForCapacities(reload=false, callback=null) {
         // first, check if the MLCapacities file exists
         fs.exists(this.MLCapacitiesPath, (exists) => {
             if (exists) {
@@ -43,12 +43,12 @@ class MLManager {
                         const now = Date.now();
                         const timeDiff = now - lastModified;
                         const timeDiffDays = timeDiff / (1000 * 60 * 60 * 24);
-                        if (timeDiffDays > 30) {
+                        if (timeDiffDays > 30 || reload) {
                             // if it is older than 30 days, download the capacities
-                            this.downloadCapacities();
+                            this.downloadCapacities(callback);
                         } else {
                             // if it is not older than 30 days, load the capacities
-                            this.loadCapacities();
+                            this.loadCapacities(callback);
                         }
                     } else {
                         LOGGER.err('ML MANAGER', err);
@@ -56,24 +56,24 @@ class MLManager {
                 });
             } else {
                 // if it does not exist, download the capacities
-                this.downloadCapacities();
+                this.downloadCapacities(callback);
             }
         });
     }
     
-    downloadCapacities() {
+    downloadCapacities(callback) {
         const MLCapacitiesPath = "https://huggingface.co/S-Unter/VLT/resolve/main/MLcapacities.json";
         const filestream = fs.createWriteStream(this.MLCapacitiesPath);
         const request = https.get(MLCapacitiesPath, {headers: {'Authorization': `Bearer ${this.accessToken}`}}, (response) => {
             response.pipe(filestream);
             filestream.on('finish', () => {
                 filestream.close();
-                this.loadCapacities();
+                this.loadCapacities(callback);
             });
         });
     }
 
-    loadCapacities() {
+    loadCapacities(callback) {
         fs.exists(this.MLCapacitiesPath, (exists) => {
             if (exists) {
                 fs.readFile(this.MLCapacitiesPath, (err, data) => {
@@ -95,6 +95,7 @@ class MLManager {
                         LOGGER.log('ML MANAGER', this.capacities);
                         LOGGER.log('ML MANAGER', 'ML model list loaded:');
                         LOGGER.log('ML MANAGER', this.models);
+                        if (callback) callback();
                         
                     } else {
                         LOGGER.err('ML MANAGER', err);
@@ -182,14 +183,15 @@ class MLManager {
         return this.models[modelID].localPath;
     }
 
-    deleteModel(modelID) {
+    deleteModel(modelID, callback) {
         // check if the model with modelID exists
         if (this.checkForModel(modelID)) {
             // delete the folder
-            fs.rmdirSync(this.getModelPath(modelID), {recursive: true});
+            fs.rmSync(this.getModelPath(modelID), {recursive: true});
             // delete the model from the list
-            delete this.models[modelID];
+            this.models[modelID].localPath = null;
             LOGGER.log('ML MANAGER', `Model (ID: ${modelID}) deleted.`);
+            if (callback) callback(false);
         }
     }
 

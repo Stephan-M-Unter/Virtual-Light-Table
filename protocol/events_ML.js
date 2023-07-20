@@ -150,6 +150,31 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         };
         send(event.sender, 'model-availability', responseData);
     });
+
+    ipcMain.on('server-reload-ml', (event) => {
+        LOGGER.receive('SERVER', 'server-reload-ml');
+
+        const callback = () => {
+          const code = '';
+          const requiredCapacities = [];
+          const models = get('mlManager').getModelsByCode(code, requiredCapacities);
+          send(event.sender, 'ml-models', models);
+        };
+
+        get('mlManager').checkForCapacities(true, callback);
+
+    });
+
+    ipcMain.on('server-delete-model', (event, modelID) => {
+      LOGGER.receive('SERVER', 'server-delete-model', modelID);
+      get('mlManager').deleteModel(modelID, (modelDeleted) => {
+        const responseData = {
+          modelID: modelID,
+          modelAvailability: modelDeleted,
+        };
+        send(event.sender, 'model-availability', responseData);
+      });
+    });
 }
   
 module.exports = { registerEventHandlersML };
