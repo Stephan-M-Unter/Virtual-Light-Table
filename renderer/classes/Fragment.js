@@ -418,9 +418,13 @@ class Fragment {
         }
       }
 
-      if (this.framework.graphicFilters/* && url.indexOf('_mirror.') == -1*/) {
-        const dot = url.lastIndexOf(".");
-        url = url.substring(0, dot) + "_filtered" + url.substring(dot, url.length);
+      if (this.framework.graphicFilters) {
+        // if graphic filters are active, load the filtered version of the image
+        // the image will be in subfolder "graphicFilters" and with file extension ".png"
+      
+        const directory = path.dirname(url);
+        const filename = path.basename(url, path.extname(url));
+        url = path.join(directory, 'graphicFilters', `${filename}.png`);
       }
       console.log("LOADING URL", url);
 

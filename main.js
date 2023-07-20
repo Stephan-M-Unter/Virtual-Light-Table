@@ -103,7 +103,6 @@ function get(key) {
     'devMode': devMode,
     'dialog': dialog,
     'exportWindow': exportWindow,
-    'filterImages': filterImages, // TODO
     'loadWindow': loadWindow,
     'startWindow': startWindow,
     'imageManager': imageManager,
@@ -389,7 +388,20 @@ function preprocess_loading_fragments(data) {
           else if ('url' in fragment.verso && fragment.verso.url) urls.push(fragment.verso.url);
         }
       }
-      filterImages(data['tableID'], urls);
+
+      const filters = tableManager.getGraphicFilters(data.tableID);
+      const callback = () => {
+        const response = {
+          tableID: tableID,
+          tableData: tableManager.getTable(tableID),
+        };
+        sendMessage(mainWindow, 'client-load-model', response);
+        activeTables.view = tableID;
+      };
+
+      imageManager.applyGraphicalFilters(filters, urls, callback);
+
+
     } else {
       sendMessage(mainWindow, 'client-load-model', data);
       activeTables.view = data['tableID'];
@@ -685,29 +697,6 @@ function preprocess_fragment(data) {
   python.on('close', function(code) {
     LOGGER.log('SERVER', `Python script finished (code ${code}), restarting...`);
     preprocess_fragment(data);
-  });
-}
-
-
-function filterImages(tableID, urls) {
-  const filterData = {
-    'tableID': tableID,
-    'urls': urls,
-    'filters': tableManager.getGraphicFilters(tableID),
-  };
-  const jsonPath = path.join(CONFIG.VLT_FOLDER, 'temp', 'filters.json');
-  const jsonContent = JSON.stringify(filterData);
-  fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-
-  const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'filter_images.py'), CONFIG.VLT_FOLDER, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  python.on('close', function(code) {
-    LOGGER.log('SERVER', `Python script finished graphical filtering with code ${code}.`)
-    const response = {
-      tableID: tableID,
-      tableData: tableManager.getTable(tableID),
-    };
-    sendMessage(mainWindow, 'client-load-model', response);
-    activeTables.view = tableID;
   });
 }
 

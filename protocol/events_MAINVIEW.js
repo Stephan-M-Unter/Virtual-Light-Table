@@ -228,10 +228,22 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
       }
   });
 
-  ipcMain.on('server-graphics-filter', function(event, data) {
-    LOGGER.receive('SERVER', 'server-graphics-filter');
+  ipcMain.on('server-graphics-filter-from-client', function(event, data) {
+    LOGGER.receive('SERVER', 'server-graphics-filter-from-client');
     get('tableManager').setGraphicFilters(data['tableID'], data.filters);
-    get('filterImages')(data.tableID, data.urls);
+
+    const urls = data.urls;
+    const filters = get('tableManager').getGraphicFilters(data.tableID);
+    const callback = () => {
+      const response = {
+        tableID: data.tableID,
+        tableData: get('tableManager').getTable(data.tableID),
+      };
+      send(event.sender, 'client-load-model', response);
+      get('activeTables').view = data.tableID;
+    };
+
+    get('imageManager').applyGraphicalFilters(filters, urls, callback);
   });
 
   ipcMain.on('server-reset-graphics-filter', function(event, tableID) {

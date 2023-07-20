@@ -1,6 +1,7 @@
 'use strict';
 
 const {ipcRenderer} = require('electron');
+const path = require('path');
 const LOGGER = require('../statics/LOGGER');
 
 let recto;
@@ -61,7 +62,7 @@ function resizeCanvas() {
     verso.update();
 }
 
-function loadObjects(imageMode='rgb') {
+function loadObjects(imageMode='rgb', display=true) {
     /*
     Create a new createjs loadingqueue and load all images as given per url_view in the objects list.
     We insert the image urls together with the corresponding object id in the queue.
@@ -88,23 +89,28 @@ function loadObjects(imageMode='rgb') {
         queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'verso', 'src': url_verso});
     }
     queue.on('fileload', displayImage);
-    queue.on('complete', function() {
-        recto.removeAllChildren();
-        verso.removeAllChildren();
-        if (imageMode === 'rgb') {
-            recto.addChild(recto_rgb);
-            verso.addChild(verso_rgb);
-        } else if (imageMode === 'filters') {
-            recto.addChild(recto_filters);
-            verso.addChild(verso_filters);
-        } else if (imageMode === 'facsimile') {
-            recto.addChild(recto_facsimile);
-            verso.addChild(verso_facsimile);
+    queue.on('fileerror', (event) => {
+        console.log('File not found.');
+    });
+    queue.on('complete', () => {
+        if (display) {
+            recto.removeAllChildren();
+            verso.removeAllChildren();
+            if (imageMode === 'rgb') {
+                recto.addChild(recto_rgb);
+                verso.addChild(verso_rgb);
+            } else if (imageMode === 'filters') {
+                recto.addChild(recto_filters);
+                verso.addChild(verso_filters);
+            } else if (imageMode === 'facsimile') {
+                recto.addChild(recto_facsimile);
+                verso.addChild(verso_facsimile);
+            }
+            recto.addChild(recto_scale);
+            verso.addChild(verso_scale);
+            centerStages();
+            updateDownloadSize();
         }
-        recto.addChild(recto_scale);
-        verso.addChild(verso_scale);
-        centerStages();
-        updateDownloadSize();
     });
     
 }
@@ -390,20 +396,42 @@ function getURLs() {
 
 function requestFilters() {
     const filters = {
-        'brightness': $('#graphics-brightness').val(),
-        'contrast': $('#graphics-contrast').val(),
         'invertR': $('.flip-button.R').hasClass('inverted'),
         'invertG': $('.flip-button.G').hasClass('inverted'),
         'invertB': $('.flip-button.B').hasClass('inverted'),
+        'blackwhite': $('#blackwhite').hasClass('inverted'),
     };
 
-    const urls = getURLs();
+    $('.graphics-slider').each(function() {
+        const key = $(this).attr('data');
+        const value = $(this).val();
+        filters[key] = value;
+    });
+
+    const urls = [];
+    for (const fragment_id in objects) {
+        const fragment = objects[fragment_id];
+        for (const side of [fragment['recto'], fragment['verso']]) {
+            const url = side.url.rgb;
+            if (url) {
+                urls.push(url);
+            }
+        }
+    }
+
     const data = {
         urls: urls,
         filters: filters,
     }
 
-    send('server-graphics-filter-export', data);
+    send('server-graphics-filter-from-export', data);
+}
+
+function resetFilters() {
+    $('.flip-button').removeClass('inverted');
+    $('#blackwhite').removeClass('inverted');
+    $('.graphics-slider').val(1);
+    requestFilters();
 }
 
 function switchDisplay(imageMode) {
@@ -649,8 +677,8 @@ $('#jpg-color').on('mouseover', JPGPreview);
 $('#jpg-color').on('mouseout', JPGPreview);
 $('#colorpicker').on('input', JPGPreview);
 
-$('#brightness').on('input', requestFilters);
-$('#contrast').on('input', requestFilters);
+$('.graphics-slider').on('change', requestFilters);
+$('#graphics-reset').click(resetFilters);
 $('.flip-button').click(function() {
     $(this).toggleClass('inverted');
     requestFilters();
@@ -680,6 +708,7 @@ $('#threshold-red').on('input', updateThresholdSliders);
 $('#anti-aliasing').on('input', updateThresholdSliders);
 $('#papyrus-outline').on('input', updateThresholdSliders);
 $('#download-model').click(downloadModel);
+$(window).on('resize', centerStages);
 
 
 ipcRenderer.on('active-table', (event, data) => {
@@ -698,11 +727,29 @@ ipcRenderer.on('active-table', (event, data) => {
     */
    for (const fragment_id in data['fragments']) {
     const fragment = data['fragments'][fragment_id];
+
+    const url_recto = fragment['recto']['url_view'];
+    const url_verso = fragment['verso']['url_view'];
+
+    let url_recto_filters = null;
+    let url_verso_filters = null;
+
+    if (url_recto) {
+        const dirname_recto = path.dirname(url_recto);
+        const filename_recto = path.basename(url_recto, path.extname(url_recto));
+        url_recto_filters = path.join(dirname_recto, 'graphicFilters', `${filename_recto}.png`);
+    }
+    if (url_verso) {
+        const dirname_verso = path.dirname(url_verso);
+        const filename_verso = path.basename(url_verso, path.extname(url_verso));
+        url_verso_filters = path.join(dirname_verso, 'graphicFilters', `${filename_verso}.png`);
+    }
+
     const fragmentData = {
         'recto': {
             'url': {
-                'rgb': fragment['recto']['url_view'],
-                'filters': null,
+                'rgb': url_recto,
+                'filters': url_recto_filters,
                 'facsimile': null,
             },
             'x': fragment['baseX'],
@@ -712,8 +759,8 @@ ipcRenderer.on('active-table', (event, data) => {
         },
         'verso': {
             'url': {
-                'rgb': fragment['verso']['url_view'],
-                'filters': null,
+                'rgb': url_verso,
+                'filters': url_verso_filters,
                 'facsimile': null,
             },
             'x': -fragment['baseX'],
@@ -726,6 +773,7 @@ ipcRenderer.on('active-table', (event, data) => {
    }
 
    loadObjects();
+   loadObjects('filters', false);
 });
 
 ipcRenderer.on('tensorflow-checked', (event, tensorflowAvailable) => {
@@ -845,4 +893,9 @@ ipcRenderer.on('model-availability', (event, data) => {
         option.text('❌ ' + option.text());
     }
     $('#select-facsimile-model').trigger('change');
+});
+
+ipcRenderer.on('export-graphics-filtered', () => {
+    LOGGER.receive('EXPORT', 'export-graphics-filtered');
+    loadObjects('filters');
 });

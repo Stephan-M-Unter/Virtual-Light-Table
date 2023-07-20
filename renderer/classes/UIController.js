@@ -537,7 +537,7 @@ class UIController {
       filters: filters,
     }
    
-    this.sendToServer('server-graphics-filter', data);
+    this.sendToServer('server-graphics-filter-from-client', data);
   }
 
   /**
