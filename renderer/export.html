@@ -36,31 +36,41 @@
                     <!-- Mode Options -->
                     <div id="mode-options-filters" class="flex-vert mode-options hidden">
                         
-                        <div class="flex-hor graphics-filter">
-                            <label>Brightness</label>
-                            <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider">
+                        <div class="flex-hor">
+                            <div class="flex-vert flex-centered">
+                                <div class="flex-hor graphics-filter">
+                                    <label>Brightness</label>
+                                    <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider">
+                                </div>
+                                <div class="flex-hor graphics-filter">
+                                    <label>Contrast</label>
+                                    <input type="range" id="contrast" min="-4" max="5" value="1" step="0.1" data="contrast" class="graphics-slider">
+                                </div>
+                                <div class="flex-hor graphics-filter">
+                                    <label>Saturation</label>
+                                    <input type="range" id="saturation" min="0" max="1" value="1" step="0.1" data="saturation" class="graphics-slider">
+                                </div>
+                                <div class="flex-hor graphics-filter">
+                                    <label>Sharpness</label>
+                                    <input type="range" id="sharpness" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider">
+                                </div>
+                            </div>
+                            <div class="flex-vert flex-centered">
+                                <label>Colour Inversion</label>
+                                <div class="flip-buttons no-select">
+                                    <div class="flip-button R" data="R">R</div>
+                                    <div class="flip-button G" data="G">G</div>
+                                    <div class="flip-button B" data="B">B</div>
+                                </div>
+                                <div class="flip-button button sidebar_wide BW" id="blackwhite" data="BW">Black & White</div>
+                                <div class="button large_button" id="graphics-reset">
+                                    <img src="../imgs/symbol_reset.png" alt="Reset">
+                                    <label>Reset</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex-hor graphics-filter">
-                            <label>Contrast</label>
-                            <input type="range" id="contrast" min="-4" max="5" value="1" step="0.1" data="contrast" class="graphics-slider">
-                        </div>
-                        <div class="flex-hor graphics-filter">
-                            <label>Saturation</label>
-                            <input type="range" id="saturation" min="0" max="1" value="1" step="0.1" data="saturation" class="graphics-slider">
-                        </div>
-                        <div class="flex-hor graphics-filter">
-                            <label>Sharpness</label>
-                            <input type="range" id="sharpness" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider">
-                        </div>
+                        
     
-                        <label>Colour Inversion</label>
-                        <div class="flip-buttons no-select">
-                            <div class="flip-button R" data="R">R</div>
-                            <div class="flip-button G" data="G">G</div>
-                            <div class="flip-button B" data="B">B</div>
-                        </div>
-                        <div class="flip-button button sidebar_wide BW" id="blackwhite" data="BW">Black & White</div>
-                        <div class="button" id="graphics-reset">Reset</div>
                     </div>
 
                     <div id="mode-options-facsimile" class="flex-vert mode-options  hidden">
@@ -134,8 +144,14 @@
                 
                 <div class="flex-vert">
                     <!-- Export Tools -->
-                    <div id="rotate-layout" class="button">Rotate Layout</div>
-                    <div id="scale" class="button">Show/Hide Scale</div>
+                    <div id="rotate-layout" class="button large_button">
+                        <img src="../imgs/symbol_rotate.png" alt="Rotate Layout">
+                        <label>Rotate Layout</label>
+                    </div>
+                    <div id="scale" class="button large_button">
+                        <img src="../imgs/symbol_scale.png">
+                        <label>Show/Hide Scale</label>
+                    </div>
                     <!-- Crop Export Area - preserved for later stage of development -->
                     <!--
                     <div class="button">Crop</div>
@@ -159,8 +175,13 @@
                         <input id="download-size" type="range" min="1" max="10" value="1">
                         <div id="download-size-value"></div>
                     </div>
-                    <div id="download" class="button">Download</div>
-                    <div id="close" class="button">Close</div>
+                    <div id="download" class="button large_button">
+                        <img src="../imgs/symbol_download.png" alt="Download">
+                        <label>Download</label>
+                    </div>
+                    <div id="close" class="button large_button">
+                        <label>Close</label>
+                    </div>
                 </div>
             </div>
         </div>

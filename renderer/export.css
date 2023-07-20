@@ -158,3 +158,51 @@ body {
 #mode-buttons {
     max-width: 300px;
 }
+
+.flex-hor,
+.flex-hor *,
+.flex-vert,
+.flex-vert * {
+    transition: .2s all;
+}
+
+
+input[type='range'] {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 200px; /* Full-width */
+    height: 5px; /* Specified height */
+    background: #eee; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+input[type='range']:hover {
+    opacity: 1;
+}
+
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 12px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: var(--cb_orange); /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 2px;
+}
+
+label {
+    font-variant: small-caps;
+    position: relative;
+    display: inline-block;
+    padding: 0px 10px;
+}
+
+.flex-centered {
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    justify-items: center;
+}
