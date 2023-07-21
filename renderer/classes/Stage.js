@@ -987,7 +987,6 @@ class Stage {
    */
   setSelection(savedSelection) {
     if (savedSelection) {
-      console.log(savedSelection);
       savedSelection.forEach((fragmentID) => {
         if (fragmentID in this.objectList) {
           this.selectedList[fragmentID] = this.objectList[fragmentID];

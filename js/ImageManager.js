@@ -208,26 +208,6 @@ class ImageManager {
     }
   }
 
-  
-
-
-  /* CURRENTLY NOT USED
-
-  requestImage(url){
-    https.get('', (resp) => {
-      resp.setEncoding('base64');
-      let body = 'data:' + resp.headers['content-type'] + ';base64,';
-      resp.on('data', (data) => { body += data});
-      resp.on('end', () => {
-        return body;
-        //return res.json({result: body, status: 'success'});
-      });
-    }).on('error', (e) => {
-      console.log(`Got error: ${e.message}`);
-    });
-  }
-  */
-
   /**
    * 
    * @param {*} filters JS object containing the active filter settings for the currently selected table.

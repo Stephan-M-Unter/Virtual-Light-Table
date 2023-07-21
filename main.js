@@ -15,8 +15,6 @@
 // Loading Requirements
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
-const fs = require('fs-extra');
-const https = require('follow-redirects').https;
 const request = require('request');
 const process = require('process');
 const opener = require('opener');

@@ -373,7 +373,6 @@ class MLManager {
                 let hasAllCapacities = true;
 
                 for (const capacity of requiredCapacities) {
-                    console.log(capacity);
                     if (!modelCapacities.includes(capacity)) {
                         hasAllCapacities = false;
                         break;

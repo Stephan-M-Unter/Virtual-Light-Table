@@ -923,13 +923,13 @@ class UIController {
    */
   toggleDevMode() {
     this.devMode = !this.devMode;
-    if (this.devMode) console.log('Dev_Mode activated. Deactivate with [CTRL+ALT+D].');
-    else console.log('Dev_Mode deactivated.');
+    if (this.devMode) LOGGER.log('MAIN VIEW', 'Dev_Mode activated. Deactivate with [CTRL+ALT+D].');
+    else LOGGER.log('MAIN VIEW', 'Dev_Mode deactivated.');
   }
 
   inspect(id) {
     if (id.indexOf('f_') != -1) {
-      console.log(this.stage.getFragment(id));
+      LOGGER.log('MAIN VIEW', this.stage.getFragment(id));
     }
   }
 
@@ -1151,7 +1151,6 @@ class UIController {
   }
 
   startPinning(event) {
-    console.log("startPinning");
     this.pinningMode = true;
     this.closeAnnotationPopup(event);
     this.annotationPopup.newPin();

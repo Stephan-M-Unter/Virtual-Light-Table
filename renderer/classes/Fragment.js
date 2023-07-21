@@ -2,6 +2,7 @@
 
 const {getAllTags} = require('exif-js');
 const {Scaler} = require('../../statics/SCALER');
+const LOGGER = require('./statics/LOGGER');
 
 /**
  * TODO
@@ -14,7 +15,7 @@ class Fragment {
      * @param {*} eventData
      */
   constructor(controller, id, eventData) {
-    if (controller.isDevMode()) console.log('New Fragment:', eventData);
+    if (controller.isDevMode()) LOGGER.log('FRAGMENT', 'New Fragment:', eventData);
 
     // control and framework elements
     this.controller = controller;
@@ -407,7 +408,6 @@ class Fragment {
             url = url.substring(0,dot) + '_mirror' + url.substring(dot,url.length);
             url = url.replace('_frag', '');
             this.verso.url_view = url;
-            console.log("LOADING URL", url);
           } else {
 
           }
@@ -426,8 +426,6 @@ class Fragment {
         const filename = path.basename(url, path.extname(url));
         url = path.join(directory, 'graphicFilters', `${filename}.png`);
       }
-      console.log("LOADING URL", url);
-
       loadqueue.loadFile(url);
       loadqueue.load();
     

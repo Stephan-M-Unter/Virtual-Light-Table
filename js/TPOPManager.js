@@ -729,7 +729,6 @@ class TPOPManager extends ContentManagerInterface {
   }
 
   prepareIDsForUpload(tpopIDList, tableID, callback) {
-    console.log(callback);
     // read all necessary basic infos per TPOP ID
     const basicFragmentInfos = this.getBasicInfo(tpopIDList);
     // recursively iterate over all TPOP urls and replace them with real URL

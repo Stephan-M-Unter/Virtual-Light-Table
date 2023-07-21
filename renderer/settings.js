@@ -10,7 +10,6 @@ $(document).ready(function() {
 });
 
 function loadData(config) {
-    console.log('Loading config:', config);
     if ('ppi' in config && config.ppi) {
         const ppi = Math.round(config.ppi * 100) / 100;
         $('#ppi').html(ppi);

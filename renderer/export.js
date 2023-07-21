@@ -88,7 +88,7 @@ function loadObjects(imageMode='rgb', display=true) {
     }
     queue.on('fileload', displayImage);
     queue.on('fileerror', (event) => {
-        console.log('File not found.');
+        LOGGER.err('EXPORT', 'File not found.');
     });
     queue.on('complete', () => {
         if (display) {

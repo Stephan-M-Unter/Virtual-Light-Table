@@ -742,7 +742,7 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-get-all', (event, data) => {
     LOGGER.receive('client-get-all', data);
-    console.log(data);
+    LOGGER.log('MAIN VIEW', data);
   });
 
   ipcRenderer.on('client-file-saved', (event, saveData) => {

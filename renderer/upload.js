@@ -386,14 +386,14 @@ function readExifPPI(image, sidename) {
       const exifs = EXIF.getAllTags(image);
       if (exifs.XResolution) {
         const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-        $('#'+sidename+'_ppi').val(ppi);
+        $(`#${sidename}_ppi`).val(ppi);
         checkRequiredFields();
       } else {
-        console.log(`Input image (${sidename}) has no EXIF data.`);
+        LOGGER.log('UPLOAD', `Input image (${sidename}) has no EXIF data.`);
       }
     });
   } catch {
-    console.log(`Input image (${sidename}) has no EXIF data.`);
+    LOGGER.log('UPLOAD', `Input image (${sidename}) has no EXIF data.`);
   }
 }
 
