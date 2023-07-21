@@ -2,7 +2,7 @@
 
 const {getAllTags} = require('exif-js');
 const {Scaler} = require('../../statics/SCALER');
-const LOGGER = require('./statics/LOGGER');
+const LOGGER = require('../../statics/LOGGER');
 
 /**
  * TODO
