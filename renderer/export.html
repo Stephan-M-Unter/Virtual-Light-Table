@@ -27,17 +27,17 @@
             <div id="bottombar" class="flex-hor">
                 <div id="mode-buttons" class="flex-vert">
                     <!-- Mode Selection -->
-                    <div class="mode button active" mode="rgb">Standard</div>
+                    <div class="mode button active" mode="rgb">Standard (RGB/Color)</div>
                     <div class="mode button" mode="filters">Graphical Filters</div>
                     <div class="mode button" requirement="tensorflow" mode="facsimile">Facsimile</div>
                 </div>
                 
-                <div class="flex-vert">
+                <div id="mode-options" class="flex-vert">
                     <!-- Mode Options -->
                     <div id="mode-options-filters" class="flex-vert mode-options hidden">
                         
-                        <div class="flex-hor">
-                            <div class="flex-vert flex-centered">
+                        <div class="flex-hor gap-5">
+                            <div class="flex-vert flex-centered mode-option-panel">
                                 <div class="flex-hor graphics-filter">
                                     <label>Brightness</label>
                                     <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider">
@@ -55,14 +55,14 @@
                                     <input type="range" id="sharpness" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider">
                                 </div>
                             </div>
-                            <div class="flex-vert flex-centered">
+                            <div class="flex-vert flex-centered mode-option-panel">
                                 <label>Colour Inversion</label>
                                 <div class="flip-buttons no-select">
                                     <div class="flip-button R" data="R">R</div>
                                     <div class="flip-button G" data="G">G</div>
                                     <div class="flip-button B" data="B">B</div>
                                 </div>
-                                <div class="flip-button button sidebar_wide BW" id="blackwhite" data="BW">Black & White</div>
+                                <div class="button large_button BW" id="blackwhite" data="BW">Black & White</div>
                                 <div class="button large_button" id="graphics-reset">
                                     <img src="../imgs/symbol_reset.png" alt="Reset">
                                     <label>Reset</label>
@@ -72,51 +72,54 @@
                         
     
                     </div>
+                    
+                    <div class="flex-hor">
 
-                    <div id="mode-options-facsimile" class="flex-vert mode-options  hidden">
-                        <select id="select-facsimile-model"></select>
-                        <div id="download-model" class="button">Download Model</div>
-                        <div id="facsimilate" class="button">
-                            <div class="progress-bar"></div>
-                            <span class="progress-text">Compute Facsimile (takes some time)</span>
-                        </div>
-        
-                        <div id="black-wrapper" class="flex-hor">
-                            <label>Threshold Black Ink</label>
-                            <input type="range" id="threshold-black" min="0" max="100" value="20">
-                            <div id="threshold-black-value">0.20</div>
-                        </div>
-
-                        <div id="red-wrapper" class="flex-hor">
-                        	<label>Threshold Red Ink</label>
-                            <input type="range" id="threshold-red" min="0" max="100" value="20">
-                            <div id="threshold-red-value">0.20</div>
-                        </div>
-
-                        <div id="papyrus-outline-wrapper" class="flex-hor">
-                            <label>Show Papyrus Outline</label>
+                        <div id="mode-options-facsimile" class="flex-vert mode-options hidden mode-option-panel">
+                            <select id="select-facsimile-model"></select>
+                            <div id="download-model" class="button">Download Model</div>
+                            <div id="facsimilate" class="button">
+                                <div class="progress-bar"></div>
+                                <span class="progress-text">Compute Facsimile (takes some time)</span>
+                            </div>
+                            
+                            <div id="black-wrapper" class="flex-hor">
+                                <label>Threshold Black Ink</label>
+                                <input type="range" id="threshold-black" min="0" max="100" value="20">
+                                <div id="threshold-black-value">0.20</div>
+                            </div>
+                            
+                            <div id="red-wrapper" class="flex-hor">
+                                <label>Threshold Red Ink</label>
+                                <input type="range" id="threshold-red" min="0" max="100" value="20">
+                                <div id="threshold-red-value">0.20</div>
+                            </div>
+                            
+                            <div id="papyrus-outline-wrapper" class="flex-hor">
+                                <label>Show Papyrus Outline</label>
                             <input type="range" id="papyrus-outline" min="0" max="10" value="5">
                             <div id="papyrus-outline-value">5</div>
                         </div>
-
+                        
                         <div id="anti-aliasing-wrapper" class="flex-hor">
                             <label>Anti-Aliasing</label>
                             <input type="range" id="anti-aliasing" min="0" max="100" value="0">
                             <div id="anti-aliasing-value">0</div>
                         </div>
-
+                        
                         <div id="threshold" class="button disabled">
                             <div class="progress-bar"></div>
                             <span class="progress-text">Computation of Facsimile is Needed First</span>
                         </div>
                         <!-- Functionality will be added at a later stage of development -->
                         <!--
-                        <div class="button">Remove Papyrus</div>
-                        <div class="button">Remove Black Ink</div>
-                        <div class="button">Remove Red Ink</div>
-                        <div class="button">Restore</div>
+                            <div class="button">Remove Papyrus</div>
+                            <div class="button">Remove Black Ink</div>
+                            <div class="button">Remove Red Ink</div>
+                            <div class="button">Restore</div>
                         -->
                     </div>
+                </div>
                     
                 </div>
                 
@@ -128,28 +131,32 @@
                 </div>
                 -->
                 
-                <div class="flex-vert">
+                <div id="controls" class="flex-vert">
                     <!-- Export Tools -->
-                    <div id="rotate-layout" class="button large_button">
-                        <img src="../imgs/symbol_rotate.png" alt="Rotate Layout">
-                        <label>Rotate Layout</label>
-                    </div>
-                    <div id="scale" class="button large_button">
-                        <img src="../imgs/symbol_scale.png">
-                        <label>Show/Hide Scale</label>
+                    <div class="flex-hor">
+                        <div id="rotate-layout" class="button large_button">
+                            <img src="../imgs/symbol_rotate.png" alt="Rotate Layout">
+                            <label>Rotate Layout</label>
+                        </div>
+                        <div id="scale" class="button large_button">
+                            <img src="../imgs/symbol_scale.png">
+                            <label>Show/Hide Scale</label>
+                        </div>
                     </div>
                     <!-- Crop Export Area - preserved for later stage of development -->
                     <!--
                     <div class="button">Crop</div>
                     <div class="button">Reset</div>
                     -->
-                    <div class="flex-hor">
-                        <div id='jpg-button' class="format button square">JPG</div>
-                        <div id="jpg-color">
-                            <input id="colorpicker" type="color">
-                            <label class="no-select">Select JPG Color</label>
+                    <div class="flex-hor flex-centered gap-5">
+                        <div class="flex-hor flex-centered flex-grow-0">
+                            <div id='jpg-button' class="format button square">JPG</div>
+                            <div id="jpg-color">
+                                <input id="colorpicker" type="color">
+                                <label class="no-select">Select JPG Color</label>
+                            </div>
                         </div>
-                        <div id="png-button" class="format button square active-format">PNG</div>
+                        <div id="png-button" class="format button square active-format ">PNG</div>
                         <div id="tiff-button" class="format button square">TIFF</div>
                         <!-- JSON download - preserved for later stage of development -->
                         <!--
@@ -161,12 +168,14 @@
                         <input id="download-size" type="range" min="1" max="10" value="1">
                         <div id="download-size-value"></div>
                     </div>
-                    <div id="download" class="button large_button">
-                        <img src="../imgs/symbol_download.png" alt="Download">
-                        <label>Download</label>
-                    </div>
-                    <div id="close" class="button large_button">
-                        <label>Close</label>
+                    <div class="flex-hor">
+                        <div id="download" class="button large_button">
+                            <img src="../imgs/symbol_download.png" alt="Download">
+                            <label>Download</label>
+                        </div>
+                        <div id="close" class="button large_button">
+                            <label>Close</label>
+                        </div>
                     </div>
                 </div>
             </div>

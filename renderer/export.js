@@ -612,7 +612,7 @@ function updateDownloadSize() {
     const outputWidth = Math.floor(baseWidth * magFactor / scaleFactor);
     const outputHeight = Math.floor(baseHeight * magFactor / scaleFactor);
 
-    $('#download-size-value').text(`factor x${magFactor} (${outputWidth} x ${outputHeight} px)`);
+    $('#download-size-value').text(`x${magFactor} (${outputWidth} x ${outputHeight} px)`);
 }
 
 function downloadModel() {

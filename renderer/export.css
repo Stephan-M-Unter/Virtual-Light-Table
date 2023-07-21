@@ -62,6 +62,20 @@ body {
     border-left: 2px solid black;
 }
 
+.flex-centered {
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    justify-items: center;
+}
+
+.flex-start {
+    align-content: flex-start;
+    justify-content: flex-start;
+    align-items: flex-start;
+    justify-items: flex-start;
+}
+
 .wrapper-canvas label {
     position: absolute;
     top: 15px;
@@ -157,6 +171,37 @@ body {
 
 #mode-buttons {
     max-width: 300px;
+    background-color: var(--cb_red);
+    flex-grow: 0;
+}
+
+#mode-options {
+    background-color: #ffa876;
+    border-right: 1px solid #777;
+    flex-grow: 1;
+}
+
+.mode.button {
+    padding: 3px;
+    border-radius: 0;
+}
+
+.mode.button.active {
+    background-color: #ffa876;
+}
+
+#controls {
+    background-color: var(--cb_red);
+    flex-grow: 0;
+    padding: 0px 10px;
+}
+
+.gap-5 {
+    gap: 5px;
+}
+
+.flex-grow-0 {
+    flex-grow: 0;
 }
 
 .flex-hor,
@@ -205,4 +250,9 @@ label {
     justify-content: center;
     align-items: center;
     justify-items: center;
+}
+
+.mode-option-panel {
+    flex-grow: 0;
+    padding: 5px 20px;
 }
