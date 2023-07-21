@@ -74,27 +74,13 @@
                     </div>
 
                     <div id="mode-options-facsimile" class="flex-vert mode-options  hidden">
-                        <select id="select-facsimile-model">
-                            <!--
-                                <option value="0">Model 1</option>
-                                <option value="1">Model 2</option>
-                                <option value="2">Model 3</option>
-                            -->
-                        </select>
+                        <select id="select-facsimile-model"></select>
                         <div id="download-model" class="button">Download Model</div>
                         <div id="facsimilate" class="button">
                             <div class="progress-bar"></div>
-                            <span class="progress-text">Compute Facsimile</span>
+                            <span class="progress-text">Compute Facsimile (takes some time)</span>
                         </div>
         
-                        <!-- useless? 
-                            <div id="papyrus-wrapper" class="flex-hor">
-                                <label>Threshold Papyrus</label>
-                                <input type="range" id="threshold-papyrus" min="0" max="100" value="50">
-                                <div id="threshold-papyrus-value">0.50</div>
-                            </div>
-                        -->
-
                         <div id="black-wrapper" class="flex-hor">
                             <label>Threshold Black Ink</label>
                             <input type="range" id="threshold-black" min="0" max="100" value="20">
@@ -119,9 +105,9 @@
                             <div id="anti-aliasing-value">0</div>
                         </div>
 
-                        <div id="threshold" class="button">
+                        <div id="threshold" class="button disabled">
                             <div class="progress-bar"></div>
-                            <span class="progress-text">Compute Threshold</span>
+                            <span class="progress-text">Computation of Facsimile is Needed First</span>
                         </div>
                         <!-- Functionality will be added at a later stage of development -->
                         <!--

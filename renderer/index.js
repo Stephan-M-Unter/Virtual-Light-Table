@@ -595,7 +595,9 @@ $(document).ready(function() {
         controller.sendToServer('server-test');
       } else if (event.keyCode == 69) {
         // Ctrl + E -> Export
-        controller.sendToServer('server-open-export');
+        if (!($('#export_table').hasClass('disabled'))) {
+          controller.openExport();
+        }
       }
     } else {
       if (event.keyCode == 46) {

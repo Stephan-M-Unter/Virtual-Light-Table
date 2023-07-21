@@ -342,6 +342,18 @@ class MLManager {
         });
     }
 
+    checkForSegmentations(urls) {
+        for (const url of urls) {
+            const filename = path.basename(url, path.extname(url));
+            const segmentationName = `${filename}_segmentation.npy`;
+            const segmentationPath = path.join(this.folderMLresults, segmentationName);
+            if (!fs.existsSync(segmentationPath)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Return all models where the code is contained in the modelID. Return per model
      * an object including the modelID, the model name, and the model size.

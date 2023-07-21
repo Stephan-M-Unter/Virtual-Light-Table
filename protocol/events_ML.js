@@ -179,6 +179,12 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         send(event.sender, 'model-availability', responseData);
       });
     });
+
+    ipcMain.on('server-check-for-segmentations', (event, urls) => {
+      LOGGER.receive('SERVER', 'server-check-for-segmentations', urls);
+      const segmentationsAvailable = get('mlManager').checkForSegmentations(urls);
+      send(event.sender, 'segmentations-checked', segmentationsAvailable);
+    });
 }
   
 module.exports = { registerEventHandlersML };
