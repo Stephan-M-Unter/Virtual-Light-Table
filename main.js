@@ -180,10 +180,11 @@ function main() {
   });
 
   startWindow.once('ready-to-show', () => {
-    startUp();
-    setTimeout(() => {
-      createMainView();
-    }, 2000);
+    startUp(() => {
+      setTimeout(() => {
+        createMainView();
+      }, 2000);
+    });
   });
 }
 
@@ -192,7 +193,7 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-async function startUp() {
+async function startUp(callback) {
   LOGGER.log('STARTUP', 'Removing Legacy Files...');
   sendMessage(startWindow, 'startup-status', 'Removing Legacy Files...');
   CSC.removeLegacies();
@@ -202,12 +203,13 @@ async function startUp() {
     await check_requirements();
     LOGGER.log('STARTUP', 'Installing Managers...');
     sendMessage(startWindow, 'startup-status', 'Installing Managers...');
-    await createManagers();
+    createManagers();
     LOGGER.log('STARTUP', 'Registering EventHandlers...');
     sendMessage(startWindow, 'startup-status', 'Registering EventHandlers...');
     registerEventHandlers();
     LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
     sendMessage(startWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+    callback();
   } catch (error) {
     LOGGER.log('SERVER', 'Quitting Application.');
     app.quit();
@@ -289,6 +291,7 @@ function createMainView() {
         app_is_quitting = true; // needed to prevent double check
         LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
         saveManager.removeAutosaveFiles();
+        mlManager.clearFiles();
         app.quit();
       }
     }
@@ -620,9 +623,6 @@ function preprocess_fragment(data) {
   // at least one side must still be to be processed at this point, otherwise the data
   // would already have been sent to the main window
 
-  console.log(data.recto.auto);
-  console.log(data.verso.auto);
-
   if (!rectoProcessed) {
     // we are processing the recto side
     if ('url' in data.recto) {
@@ -746,44 +746,3 @@ function uploadLocalImage(filepath) {
     sendMessage(uploadWindow, 'upload-receive-image', filepath);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ##############################################################
-#################################################################
-#################################################################
-#################################################################
-#################################################################
-###
-###                    MESSAGES (SEND/RECEIVE)
-###
-#################################################################
-#################################################################
-#################################################################
-#################################################################
-############################################################## */
-
-
-ipcMain.on('server-delete-model', (event, modelID) => {
-  LOGGER.receive('SERVER', 'server-delete-model', modelID);
-  // TODO delete model
-  sendMessage(event.sender, 'upload-model-deleted', modelID);
-});
-
-ipcMain.on('server-delete-masks', (event) => {
-  LOGGER.receive('SERVER', 'server-delete-masks');
-  // TODO delete masks
-});

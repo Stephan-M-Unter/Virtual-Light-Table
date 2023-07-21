@@ -401,7 +401,10 @@ class MLManager {
         return null;
     }
 
-    cleanResults() {}
+    clearFiles() {
+        fs.rmSync(this.folderMLresults, {recursive: true});
+        fs.mkdirSync(this.folderMLresults);
+    }
 
 }
 
