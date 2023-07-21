@@ -13,6 +13,12 @@
 /* Font definitions */
 * {
     font-family: "Segoe UI", "Advent Pro SemiBold", sans-serif;
+    -webkit-user-select: none;  
+    -moz-user-select: none;    
+    -ms-user-select: none;      
+    user-select: none;
+    user-drag: none;
+    -webkit-user-drag: none;
 }
 
 .no-select {
