@@ -7,12 +7,35 @@ body {
 }
 
 .main-text-area {
-    max-width: 50%;
+    max-width: 30%;
     margin: 20px auto;
-    padding: 20px;
+    padding: 50px;
     background-color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
     border: 1px solid #ccc;
+    position: relative;
+}
+
+.home {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.issue {
+    font-style: italic;
+}
+
+.solution {
+    font-weight: bold;
+}
+
+.sublogo {
+    position: relative;
+    float: right;
+    max-width: 200px;
 }
