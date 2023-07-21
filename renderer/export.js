@@ -538,7 +538,11 @@ function requestThreshold() {
             filename = filename.split('.')[0];
             // add _segmentation.npy
             filename = filename + '_segmentation.npy';
-            inputData.push(filename);
+            const threshold_entry = {
+                'image_path': url,
+                'segmentation_file': filename,
+            };
+            inputData.push(threshold_entry);
         }
     }
 
@@ -577,16 +581,22 @@ function updateThresholdSliders() {
 }
 
 function displayThresholdImages() {
-    const folder = "C:\\Users\\unter\\AppData\\Roaming\\Virtual Light Table\\ML\\results";
-
+    
     for (const fragment_id in objects) {
         const fragment = objects[fragment_id];
         const recto_url = fragment['recto']['url']['rgb'];
         const verso_url = fragment['verso']['url']['rgb'];
-        const recto_filename = recto_url.split('/').pop().split('\\').pop().split('.')[0];
-        const verso_filename = verso_url.split('/').pop().split('\\').pop().split('.')[0];
-        objects[fragment_id]['recto']['url']['facsimile'] = `${folder}\\${recto_filename}_threshold.png`;
-        objects[fragment_id]['verso']['url']['facsimile'] = `${folder}\\${verso_filename}_threshold.png`;
+
+        const recto_dirname = path.dirname(recto_url);
+        const verso_dirname = path.dirname(verso_url);
+        const recto_filename = path.basename(recto_url, path.extname(recto_url));
+        const verso_filename = path.basename(verso_url, path.extname(verso_url));
+
+        const recto_threshold_url = path.join(recto_dirname, 'facsimiles', `${recto_filename}.png`);
+        const verso_threshold_url = path.join(verso_dirname, 'facsimiles', `${verso_filename}.png`);
+        
+        objects[fragment_id]['recto']['url']['facsimile'] = recto_threshold_url;
+        objects[fragment_id]['verso']['url']['facsimile'] = verso_threshold_url;
     }
 
     loadObjects('facsimile');

@@ -57,7 +57,11 @@ function registerEventHandlersML(ipcMain, send, get, set) {
             const image_path = entry['image_path'];
             const basename = path.basename(image_path, path.extname(image_path));
             const segmentation_filename = `${basename}_segmentation.npy`;
-            inputData_threshold.push(segmentation_filename);
+            const threshold_entry = {
+              'image_path': image_path,
+              'segmentation_file': segmentation_filename,
+            };
+            inputData_threshold.push(threshold_entry);
           }
           const callback_threshold = function() {
             send(event.sender, 'thresholded-images');

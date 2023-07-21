@@ -91,10 +91,6 @@ class MLManager {
                             }
                         }
                         
-                        LOGGER.log('ML MANAGER', 'ML Capacities loaded:');
-                        LOGGER.log('ML MANAGER', this.capacities);
-                        LOGGER.log('ML MANAGER', 'ML model list loaded:');
-                        LOGGER.log('ML MANAGER', this.models);
                         if (callback) callback();
                         
                     } else {
@@ -281,11 +277,12 @@ class MLManager {
         if (inputData.length == 0) {
             callback_after_all(true);
         } else {
-            const path_segmentation = path.join(this.folderMLresults, inputData[0]);
-            const path_output_file = path_segmentation.replace('_segmentation.npy', '_threshold.png');
+            const image_path = inputData[0]['image_path'];
+            const segmentation_file = inputData[0]['segmentation_file'];
+            const path_segmentation = path.join(this.folderMLresults, segmentation_file);
 
             const controlJSON = JSON.stringify({
-                'path_output_file': path_output_file,
+                'path_image_file': image_path,
                 'path_segmentation': path_segmentation,
                 'thresholds': thresholds,
                 'colors': colors,

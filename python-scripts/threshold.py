@@ -62,7 +62,7 @@ The control JSON is a json file created by the calling application. It contains 
 path_control_json = sys.argv[1]
 control_json = json.load(open(path_control_json, 'r'))
 
-path_output_file = control_json['path_output_file']
+path_image_file = control_json['path_image_file']
 path_segmentation = control_json['path_segmentation']
 thresholds = control_json['thresholds']
 colors = control_json['colors']
@@ -120,7 +120,16 @@ if outline > 0:
         cv2.drawContours(thresholded_image, [contour], -1, (0, 0, 0, 255), outline)
 
 # save the thresholded image
-Image.fromarray(thresholded_image).save(path_output_file)
+image_filename = os.path.basename(path_image_file)
+image_filename = image_filename[:image_filename.rfind('.')]
+image_directory = os.path.dirname(path_image_file)
+
+output_directory = os.path.join(image_directory, 'facsimiles')
+os.makedirs(output_directory, exist_ok=True)
+
+output_file = os.path.join(output_directory, f'{image_filename}.png')
+
+Image.fromarray(thresholded_image).save(output_file)
 
 # exit the script
 sys.exit(0)
