@@ -372,8 +372,6 @@ class MLManager {
                 const modelCapacities = model.outputLabels;
                 let hasAllCapacities = true;
 
-                console.log(modelCapacities);
-
                 for (const capacity of requiredCapacities) {
                     console.log(capacity);
                     if (!modelCapacities.includes(capacity)) {
@@ -381,8 +379,6 @@ class MLManager {
                         break;
                     }
                 }
-
-                console.log(hasAllCapacities);
 
                 if (!hasAllCapacities) {
                     continue;
