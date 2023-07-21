@@ -108,6 +108,10 @@ class UIController {
     this.sendToServer('server-open-upload', this.getActiveTable());
   }
 
+  openExport() {
+    this.sendToServer('server-open-export');
+  }
+
   /**
    * TODO
    * @param {Boolean} isQuicksave
@@ -639,6 +643,12 @@ class UIController {
     let graphicFilters = null;
     if ('graphicFilters' in data.tableData) graphicFilters = data.tableData.graphicFilters;
     this.sidebar.updateGraphicFilters(graphicFilters);
+
+    if (Object.keys(data.tableData.fragments).length > 0) {
+      this.sidebar.enableExport(true);
+    } else {
+      this.sidebar.enableExport(false);
+    }
   }
 
   /**
