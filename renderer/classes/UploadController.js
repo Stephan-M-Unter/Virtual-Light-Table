@@ -7,6 +7,9 @@ class UploadController {
     constructor(canvas_id_recto, canvas_id_verso) {
         this.recto = new UploadCanvas(this, canvas_id_recto);
         this.verso = new UploadCanvas(this, canvas_id_verso);
+
+        this.cursorMode = 'move';
+        this.maskMode = 'no_mask';
     }
 
     sideHasContent(side) {
@@ -88,6 +91,31 @@ class UploadController {
         }
     }
 
+    setCursorMode(mode) {
+        const validModes = ['move', 'rotate', 'add_node', 'remove_node'];
+        if (validModes.includes(mode)) {
+            this.cursorMode = mode;
+        }
+    }
+
+    setMaskMode(mode) {
+        const validMaskModes = ['no_mask', 'boundingbox', 'polygon', 'automatic'];
+        if (validMaskModes.includes(mode)) {
+            console.log(`Setting mask mode to ${mode}`);
+            this.maskMode = mode;
+            this.recto.draw();
+            this.verso.draw();
+        }
+    }
+
+    getMaskMode() {
+        return this.maskMode;
+    }
+
+    getCursorMode() {
+        return this.cursorMode;
+    }
+
     zoom(zoomDirection) {
         const zoomStepSize = 0.05;
         const zoomRectoPossible = this.recto.isZoomPossible(zoomDirection, zoomStepSize);
@@ -99,7 +127,18 @@ class UploadController {
         this.update();
     }
 
-    swap() {}
+    swap() {
+        const content_recto = this.recto.getContent();
+        const content_verso = this.verso.getContent();
+
+        this.recto.deleteContent();
+        this.verso.deleteContent();
+
+        this.recto.setContent(content_verso);
+        this.verso.setContent(content_recto);
+
+        this.update();
+    }
 
     draw(side) {
         if (side === 'recto') {
@@ -111,6 +150,51 @@ class UploadController {
         else {
             this.recto.draw();
             this.verso.draw();
+        }
+    }
+
+    handleMouseDown(event, cursorMode, side) {
+        if (side === 'recto') {
+            this.recto.handleMouseDown(event, cursorMode);
+        }
+        else if (side === 'verso') {
+            this.verso.handleMouseDown(event, cursorMode);
+        }
+        else {
+            this.recto.handleMouseDown(event, cursorMode);
+            this.verso.handleMouseDown(event, cursorMode);
+        }
+    }
+    handleMouseUp(event, cursorMode, side) {
+        if (side === 'recto') {
+            this.recto.handleMouseUp(event, cursorMode);
+        }
+        else if (side === 'verso') {
+            this.verso.handleMouseUp(event, cursorMode);
+        }
+        else {
+            this.recto.handleMouseUp(event, cursorMode);
+            this.verso.handleMouseUp(event, cursorMode);
+        }
+    }
+    handlePressMove(event, cursorMode, side) {
+        if (side === 'recto') {
+            this.recto.handlePressMove(event, cursorMode);
+        }
+        else if (side === 'verso') {
+            this.verso.handlePressMove(event, cursorMode);
+        }
+        else {
+            this.recto.handlePressMove(event, cursorMode);
+            this.verso.handlePressMove(event, cursorMode);
+        }
+    }
+
+    mirrorBox(source_id, box_polygons) {
+        if (source_id.includes('recto')) {
+            this.verso.mirrorBox(box_polygons);
+        } else {
+            this.recto.mirrorBox(box_polygons);
         }
     }
 

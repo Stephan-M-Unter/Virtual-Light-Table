@@ -150,6 +150,18 @@ canvas {
     height: 100%;
 }
 
+canvas.move {
+    cursor: move;
+}
+
+canvas.rotate {
+    cursor: url('../imgs/symbol_rotate.png'), auto;
+}
+
+canvas.pointer {
+    cursor: pointer !important;
+}
+
 canvas.active {
     background-color: white;
 }

@@ -79,13 +79,13 @@
                     <div class="label canvas_title">Recto</div>
                 </div>
                 <div class="wrapper" id="general_button_region">
-                    <div title="Activate move mode for images" class="button square active_mode" id="move" mode="move">
+                    <div title="MOVE images" class="button square active_mode" id="move" mode="move">
                         <img draggable="false" src="../imgs/symbol_move.png" mode="move">
                     </div>
                     <div title="Swap images for Recto and Verso" class="button square" id="swap">
                         <img draggable="false" src="../imgs/symbol_switch.png">
                     </div>
-                    <div title="Activate rotation mode for images" class="button square" id="rotate" mode="rotate">
+                    <div title="ROTATE images" class="button square" id="rotate" mode="rotate">
                         <img draggable="false" src="../imgs/symbol_rotate.png" mode="rotate">
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                         </div>
                         <div class="list_item boundingbox" id="mask_boundingbox" mask_mode="boundingbox">
                             <img draggable="false" src="../imgs/symbol_crop.png" class="">
-                            <div class="list_item_label label">Bounding Box</div>
+                            <div class="list_item_label label">Box</div>
                         </div>
                         <div class="list_item polygon" id="mask_polygon" mask_mode="polygon">
                             <img draggable="false" src="../imgs/symbol_cut.png" class="">
@@ -164,16 +164,16 @@
                         </div>
                     </div>
                     <div class="mask_controls polygon">
-                        <div title="Add new polygon nodes (toggle)" id="mask_control_polygon_add" class="mask_control_button button square">
+                        <div title="Add new polygon nodes (toggle)" id="add_polygon_nodes" mode="add_node" class="mask_control_button button square">
                             <img src="../imgs/symbol_cut.png" class="square_button_img"/>
                         </div>
-                        <div title="Remove polygon nodes (toggle)" id="mask_control_polygon_remove" class="mask_control_button button square">
+                        <div title="Remove polygon nodes (toggle)" id="remove_polygon_nodes" mode="remove_node" class="mask_control_button button square">
                             <img src="../imgs/symbol_erase.png"/>
                         </div>
-                        <div title="Undo last polygon node" id="mask_control_polygon_undo" class="mask_control_button button square">
+                        <div title="Undo last polygon node" id="undo_polygon_node" class="mask_control_button button square">
                             <img src="../imgs/symbol_undo.png"/>
                         </div>
-                        <div title="Remove all polygon nodes" id="mask_control_polygon_clear" class="mask_control_button button square">
+                        <div title="Remove all polygon nodes" id="clear_polygon" class="mask_control_button button square">
                             <img src="../imgs/symbol_new_table.png"/>
                         </div>
                     </div>

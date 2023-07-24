@@ -11,6 +11,11 @@ class UploadCanvas {
 
         this.clearProp();
         this.stage.enableMouseOver();
+
+        this.mouse = {
+            x: null,
+            y: null,
+        };
     }
 
     clearProp() {
@@ -73,9 +78,14 @@ class UploadCanvas {
         const width = this.canvas.innerWidth();
         const height = this.canvas.innerHeight();
         for (const image of this.prop.displayed) {
-            image.x = width / 2;
-            image.y = height / 2;
+            if (image.zoomable) {
+                image.x = width / 2;
+                image.y = height / 2;
+            }
         }
+        this.prop.x = width / 2;
+        this.prop.y = height / 2;
+        this.draw();
     }
 
     isZoomPossible(direction, stepSize) {
@@ -89,14 +99,15 @@ class UploadCanvas {
     }
 
     zoom(direction, stepSize) {
-        console.log(direction, stepSize);
         if (this.prop.filepath === null) {
             return true;
         }
         this.prop.scale += (direction * stepSize);
         for (const image of this.prop.displayed) {
-            image.scaleX = this.prop.scale;
-            image.scaleY = this.prop.scale;
+            if (image.zoomable) {
+                image.scaleX = this.prop.scale;
+                image.scaleY = this.prop.scale;
+            }
         }
     }
 
@@ -109,10 +120,21 @@ class UploadCanvas {
         this.prop.displayed = [];
 
         if (this.prop.filepath === null) {
+            this.canvas.removeClass('active');
             this.update();
             return false;
         }
 
+        this.__drawImages();
+        if (this.prop.image !== null) {
+            this.__drawMask();
+        }
+
+        this.__addDisplayedToStage();
+        this.update();  
+    }
+
+    __drawImages() {
         const imageLoaded = (this.prop.image !== null);
         if (!imageLoaded) {
             this.__createImage();
@@ -125,9 +147,210 @@ class UploadCanvas {
             this.prop.displayed.push(this.prop.shadow);
             this.prop.displayed.push(this.prop.image);
         }
+    }
 
-        this.__addDisplayedToStage();
-        this.update();  
+    __drawMask() {
+        if (this.prop.maskGroup === null) {
+            this.prop.maskGroup = new createjs.Container();
+            this.prop.maskGroup.name = 'maskGroup';
+        }
+        this.prop.maskGroup.removeAllChildren();
+        const maskMode = this.controller.getMaskMode();
+        if (maskMode === 'boundingbox') {
+            this.__drawBox();
+            this.prop.displayed.push(this.prop.maskGroup);
+        }
+        else if (maskMode === 'polygon') {
+            this.__drawPolygon();
+        }
+        else if (maskMode === 'automatic') {
+
+        }
+        else {
+            this.prop.image.mask = null;
+        }
+    }
+
+    __drawBox() {
+        if (this.prop.maskBox.length === 0) {
+            this.__createEmptyBox();
+        }
+        
+        const box = this.__createPolygon(this.prop.maskBox);
+        this.prop.image.mask = box;
+
+        const b1 = this.__createVertex(this.prop.maskBox[0]);
+        const b2 = this.__createVertex(this.prop.maskBox[1]);
+        const b3 = this.__createVertex(this.prop.maskBox[2]);
+        const b4 = this.__createVertex(this.prop.maskBox[3]);
+
+        b1.name = 'nw';
+        b2.name = 'ne';
+        b3.name = 'se';
+        b4.name = 'sw';
+
+        b1.on('pressmove', (event) => {
+            this.__boxResize(event);
+        });
+        b2.on('pressmove', (event) => {
+            this.__boxResize(event);
+        });
+        b3.on('pressmove', (event) => {
+            this.__boxResize(event);
+        });
+        b4.on('pressmove', (event) => {
+            this.__boxResize(event);
+        });
+
+        this.prop.maskGroup.addChild(box, b1, b2, b3, b4);
+    }
+
+    __createEmptyBox() {
+        const canvasWidth = this.stage.canvas.width;
+        const canvasHeight = this.stage.canvas.height;
+        const left = canvasWidth * 0.25;
+        const top = canvasHeight * 0.25;
+        const right = canvasWidth * 0.75;
+        const bottom = canvasHeight * 0.75;
+
+        this.prop.maskBox.push([left, top]);
+        this.prop.maskBox.push([right, top]);
+        this.prop.maskBox.push([right, bottom]);
+        this.prop.maskBox.push([left, bottom]);
+
+        this.controller.mirrorBox(this.canvas_id, this.prop.maskBox);
+    }
+
+    mirrorBox(box_polygons) {
+        // box_polygons is a list of 4 points
+        // each point is a list of 2 values (x, y)
+        // the points are ordered clockwise
+        // before using these polygon points, they need to be
+        // mirrored along the y-axis
+
+        const canvasWidth = this.stage.canvas.width;
+
+        let box = [];
+        for (const point of box_polygons) {
+            const x = canvasWidth - point[0];
+            const y = point[1];
+            box.push([x, y]);
+        }
+
+        // invert order of vertices
+        box = [box[1], box[0], box[3], box[2]];
+
+        this.prop.maskBox = box;
+        this.draw();
+    }
+
+    __createPolygon(vertices) {
+        if (vertices.length < 3) {
+            return;
+        }
+        const polygon = new createjs.Shape();
+        const p0 = vertices[0];
+        polygon.graphics.beginStroke('black')
+            .moveTo(p0[0], p0[1]);
+        for (const point of vertices) {
+            polygon.graphics.lineTo(point[0], point[1]);
+        }
+        polygon.graphics.closePath();
+        return polygon;
+    }
+
+    __createVertex(vertex_coordinates) {
+        const size = 10;
+        const x = vertex_coordinates[0] - (size / 2);
+        const y = vertex_coordinates[1] - (size / 2);
+        const vertex = new createjs.Shape();
+        vertex.graphics.setStrokeStyle(1).beginStroke('green');
+        vertex.graphics.beginFill('lightgreen');
+        vertex.graphics.drawRect(x, y, size, size);
+
+        vertex.on('mouseover', (event) => {
+            this.__vertexMouseIn(event);
+            this.update();
+        });
+        vertex.on('mouseout', (event) => {
+            this.__vertexMouseOut(event);
+            this.update();
+        });
+
+        return vertex;
+    }
+
+    __boxResize(event) {
+        let mouseX = event.stageX;
+        const mouseY = event.stageY;
+
+        const compass = event.target.name;
+
+        let left = this.prop.maskBox[0][0];
+        let top = this.prop.maskBox[0][1];
+        let right = this.prop.maskBox[2][0];
+        let bottom = this.prop.maskBox[2][1];
+
+        if (compass == 'nw') {
+            left = Math.min(mouseX, right);
+            top = Math.min(mouseY, bottom);
+        } else if (compass == 'sw') {
+            left = Math.min(mouseX, right);
+            bottom = Math.max(top, mouseY);
+        } else if (compass == 'se') {
+            right = Math.max(mouseX, left);
+            bottom = Math.max(mouseY, top);
+        } else if (compass == 'ne') {
+            right = Math.max(mouseX, left);
+            top = Math.min(mouseY, bottom);
+        }
+
+        this.prop.maskBox = [];
+        this.prop.maskBox.push([left, top]);
+        this.prop.maskBox.push([right, top]);
+        this.prop.maskBox.push([right, bottom]);
+        this.prop.maskBox.push([left, bottom]);
+
+        this.draw();
+        this.controller.mirrorBox(this.canvas_id, this.prop.maskBox);
+    }
+
+    __vertexMouseIn(event) {
+        const c = event.target.graphics.command;
+        event.target.graphics.clear();
+        event.target.graphics.beginFill('green');
+        if ('radius' in c) {
+            // circle, necessary for last vertex set in polygon mode
+            event.target.graphics.drawCircle(c.x, c.y, c.radius);
+        } else {
+            event.target.graphics.drawRect(c.x, c.y, c.w, c.h);
+        }
+        this.canvas.addClass('pointer');
+    }
+    
+    __vertexMouseOut(event) {
+        const c = event.target.graphics.command;
+        event.target.graphics.clear();
+        event.target.graphics.beginFill('lightgreen');
+        event.target.graphics.setStrokeStyle(1).beginStroke('green');
+        if ('radius' in c) {
+            // circle, necessary for last vertex set in polygon mode
+          event.target.graphics.drawCircle(c.x, c.y, c.radius);
+        } else {
+          event.target.graphics.drawRect(c.x, c.y, c.w, c.h);
+        }
+        this.canvas.removeClass('pointer');
+    }
+
+
+    __drawPolygon() {
+        this.prop.image.mask = null;
+
+        if (this.prop.maskPolygon.length === 0) {
+            return;
+        }
+        const polygon = this.__createPolygon(this.prop.maskPolygon);
+        this.prop.image.mask = polygon;
     }
 
     __addDisplayedToStage() {
@@ -158,6 +381,12 @@ class UploadCanvas {
             this.prop.image.name = 'image';
             this.prop.background_image.name = 'background_image';
 
+            this.prop.image.zoomable = true;
+            this.prop.background_image.zoomable = true;
+
+            this.__registerEvents(this.prop.image);
+            this.__registerEvents(this.prop.background_image);
+
             // if x or y is not set, set it to the center of the canvas
             if (this.prop.x === null) {
                 this.prop.x = this.stage.canvas.width / 2;
@@ -168,6 +397,18 @@ class UploadCanvas {
 
             this.draw();
         };
+    }
+
+    __registerEvents(bitmap) {
+        bitmap.on('mousedown', (event) => {
+            this.handleMouseDown(event);
+        });
+        bitmap.on('pressup', (event) => {
+            this.handleMouseUp(event);
+        });
+        bitmap.on('pressmove', (event) => {
+            this.handlePressMove(event);
+        });
     }
 
     __readEXIF(image) {
@@ -238,6 +479,49 @@ class UploadCanvas {
     deleteContent() {
         this.clearProp();
         this.draw();
+    }
+
+    getContent() {
+        return this.prop;
+    }
+
+    setContent(canvasContent) {
+        this.prop = canvasContent;
+        this.draw();
+    }
+
+    handleMouseDown(event) {
+        const pageX = event.pageX;
+        const pageY = event.pageY;
+        const stageX = pageX - this.canvas.offset().left;
+        const stageY = pageY - this.canvas.offset().top;
+        this.mouse.x = stageX;
+        this.mouse.y = stageY;
+    }
+    handleMouseUp() {
+        this.mouse.x = null;
+        this.mouse.y = null;
+    }
+    handlePressMove(event) {
+        const dx = event.stageX - this.mouse.x;
+        const dy = event.stageY - this.mouse.y;
+        const cursorMode = this.controller.getCursorMode();
+        if (cursorMode === 'move') {
+            this.prop.x += dx;
+            this.prop.y += dy;
+        }
+        else if (cursorMode === 'rotate') {
+            const radsOld = Math.atan2(this.mouse.y - this.prop.y, this.mouse.x - this.prop.x);
+            const radsNew = Math.atan2(event.stageY - this.prop.y, event.stageX - this.prop.x);
+            const rads = radsNew - radsOld;
+            const deltaAngle = rads * (180 / Math.PI);
+            this.rotateImage(deltaAngle);
+            this.mouse.x = event.stageX;
+            this.mouse.y = event.stageY;
+        }
+        this.draw();
+        this.mouse.x = event.stageX;
+        this.mouse.y = event.stageY;
     }
 
 }

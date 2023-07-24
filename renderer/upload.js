@@ -7,7 +7,6 @@ const Dialogs = require('dialogs');
 
 const controller = new UploadController('recto_canvas', 'verso_canvas');
 
-let cursorMode = 'move';
 let canvasLock = null;
 
 
@@ -122,9 +121,13 @@ function measurePPI(event) {};
 function setCursorMode(event) {
     const mode = $(event.target).attr('mode');
     console.log(`Setting cursor mode to ${mode}`);
-    cursorMode = mode;
+    controller.setCursorMode(mode);
     $('.active_mode').removeClass('active_mode');
     $(`#${mode}`).addClass('active_mode');
+    $('#recto_canvas').removeClass('move rotate add_node remove_node');
+    $('#verso_canvas').removeClass('move rotate add_node remove_node');
+    $('#recto_canvas').addClass(mode);
+    $('#verso_canvas').addClass(mode);
 };
 
 function swapImages(event) {
@@ -151,6 +154,16 @@ function loadNewImage(filepath) {
     checkFields();
     updateGUI();
 }
+
+function handleMouseDown(event) {
+    const side = $(event.target).attr('id').split('_')[0];
+    controller.handleMouseDown(event, side);
+}
+
+function handleMouseUp(event) {
+    controller.handleMouseUp(event);
+}
+
 
 function updateGUI() {
     const recto_has_content = controller.sideHasContent('recto');
@@ -190,6 +203,31 @@ function updateGUI() {
 
 function scaleImages() {};
 
+function toggleMaskList(event) {
+    const list = $('.list');
+    if (list.hasClass('open')) {
+        // close mask selection list and activate selected mask mode
+        list.removeClass('open');
+        let listItem = $(event.target);
+        if (!listItem.hasClass('list_item')) {
+            listItem = listItem.parent();
+        }
+        const maskMode = listItem.attr('mask_mode');
+        $('.selected').removeClass('selected');
+        $('.list_item.'+maskMode).addClass('selected');
+        $('.mask_controls.'+maskMode).addClass('selected');
+        $('.mask_explanation.'+maskMode).addClass('selected');
+        controller.setMaskMode(maskMode);
+        checkFields();
+    } else {
+        // open mask selection list
+        list.addClass('open');
+    }
+};
+
+function undoPolygonNode() {}
+function clearPolygonMask() {}
+
 /* ------------------------------ */
 /*           EVENTS               */
 /* ------------------------------ */
@@ -206,10 +244,20 @@ $('.rotate_90').click(rotateImage90);
 $('.center').click(centerImage);
 $('.measure').click(measurePPI);
 $('.input_ppi').on('input', scaleImages);
+$('.list_item').click(toggleMaskList);
 
 $('#move').click(setCursorMode);
 $('#swap').click(swapImages);
 $('#rotate').click(setCursorMode);
+$('#add_polygon_nodes').click(setCursorMode);
+$('#remove_polygon_nodes').click(setCursorMode);
+$('#undo_polygon_node').click(undoPolygonNode);
+$('#clear_polygon').click(clearPolygonMask);
+
+$('#recto_canvas').on('mousedown', handleMouseDown);
+$('#verso_canvas').on('mousedown', handleMouseDown);
+$(window).on('mouseup', handleMouseUp);
+$(window).on('mouseup', handleMouseUp);
 
 
 
@@ -241,6 +289,7 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
 
 ipcRenderer.on('upload-fragment', (event, data) => {
     LOGGER.receive('UPLOAD', 'upload-fragment', data);
+
 });
 
 
