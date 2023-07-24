@@ -37,33 +37,29 @@
                     <div id="mode-options-filters" class="flex-vert mode-options hidden">
                         
                         <div class="flex-hor gap-5">
-                            <div class="flex-vert flex-centered mode-option-panel">
-                                <div class="flex-hor graphics-filter">
-                                    <label>Brightness</label>
-                                    <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider">
-                                </div>
-                                <div class="flex-hor graphics-filter">
-                                    <label>Contrast</label>
-                                    <input type="range" id="contrast" min="-4" max="5" value="1" step="0.1" data="contrast" class="graphics-slider">
-                                </div>
-                                <div class="flex-hor graphics-filter">
-                                    <label>Saturation</label>
-                                    <input type="range" id="saturation" min="0" max="1" value="1" step="0.1" data="saturation" class="graphics-slider">
-                                </div>
-                                <div class="flex-hor graphics-filter">
-                                    <label>Sharpness</label>
-                                    <input type="range" id="sharpness" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider">
-                                </div>
+                            <div class="grid mode-option-panel">
+                                <label>Brightness</label>
+                                <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" data="brightness" class="graphics-slider">
+                                <label>Contrast</label>
+                                <input type="range" id="contrast" min="-4" max="5" value="1" step="0.1" data="contrast" class="graphics-slider">
+                                <label>Saturation</label>
+                                <input type="range" id="saturation" min="0" max="1" value="1" step="0.1" data="saturation" class="graphics-slider">
+                                <label>Sharpness</label>
+                                <input type="range" id="sharpness" min="0" max="2" value="1" step="0.1" data="sharpness" class="graphics-slider">
                             </div>
                             <div class="flex-vert flex-centered mode-option-panel">
-                                <label>Colour Inversion</label>
-                                <div class="flip-buttons no-select">
-                                    <div class="flip-button R" data="R">R</div>
-                                    <div class="flip-button G" data="G">G</div>
-                                    <div class="flip-button B" data="B">B</div>
+                                <div class="flex-hor flex-centered">
+                                    <div class="flex-vert gap-5 flex-centered">
+                                        <label class="full-width align-center">Colour Inversion</label>
+                                        <div class="flip-buttons no-select">
+                                            <div class="flip-button R" data="R" title="Invert RED channel">R</div>
+                                            <div class="flip-button G" data="G" title="Invert GREEN channel">G</div>
+                                            <div class="flip-button B" data="B" title="Invert BLUE channel">B</div>
+                                            <div class="button large_button BW" id="blackwhite" data="BW" title="Black & White">B&W</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="button large_button BW" id="blackwhite" data="BW">Black & White</div>
-                                <div class="button large_button" id="graphics-reset">
+                                <div class="button large_button" id="graphics-reset" title="Reset to Normal">
                                     <img src="../imgs/symbol_reset.png" alt="Reset">
                                     <label>Reset</label>
                                 </div>
@@ -73,54 +69,43 @@
     
                     </div>
                     
-                    <div class="flex-hor">
+                    <div id="mode-options-facsimile" class="flex-hor hidden mode-options">
 
-                        <div id="mode-options-facsimile" class="flex-vert mode-options hidden mode-option-panel">
+                        <div  class="flex-vert mode-option-panel flex-centered">
                             <select id="select-facsimile-model"></select>
                             <div id="download-model" class="button">Download Model</div>
                             <div id="facsimilate" class="button">
                                 <div class="progress-bar"></div>
-                                <span class="progress-text">Compute Facsimile (takes some time)</span>
+                                <span class="progress-text">Compute Facsimile (may take some time)</span>
                             </div>
-                            
-                            <div id="black-wrapper" class="flex-hor">
+                        </div>
+
+
+                        <div class="flex-vert mode-option-panel">
+                            <div class="grid-3">
                                 <label>Threshold Black Ink</label>
                                 <input type="range" id="threshold-black" min="0" max="100" value="20">
                                 <div id="threshold-black-value">0.20</div>
-                            </div>
-                            
-                            <div id="red-wrapper" class="flex-hor">
+
                                 <label>Threshold Red Ink</label>
                                 <input type="range" id="threshold-red" min="0" max="100" value="20">
                                 <div id="threshold-red-value">0.20</div>
+
+                                <label>Papyrus Stroke Width</label>
+                                <input type="range" id="papyrus-outline" min="0" max="10" value="5">
+                                <div id="papyrus-outline-value">5</div>
+
+                                <label>Anti-Aliasing</label>
+                                <input type="range" id="anti-aliasing" min="0" max="100" value="0">
+                                <div id="anti-aliasing-value">0</div>
                             </div>
-                            
-                            <div id="papyrus-outline-wrapper" class="flex-hor">
-                                <label>Show Papyrus Outline</label>
-                            <input type="range" id="papyrus-outline" min="0" max="10" value="5">
-                            <div id="papyrus-outline-value">5</div>
+
+                            <div id="threshold" class="button disabled">
+                                <div class="progress-bar"></div>
+                                <span class="progress-text">Computation of Facsimile is Needed First</span>
+                            </div>
                         </div>
-                        
-                        <div id="anti-aliasing-wrapper" class="flex-hor">
-                            <label>Anti-Aliasing</label>
-                            <input type="range" id="anti-aliasing" min="0" max="100" value="0">
-                            <div id="anti-aliasing-value">0</div>
-                        </div>
-                        
-                        <div id="threshold" class="button disabled">
-                            <div class="progress-bar"></div>
-                            <span class="progress-text">Computation of Facsimile is Needed First</span>
-                        </div>
-                        <!-- Functionality will be added at a later stage of development -->
-                        <!--
-                            <div class="button">Remove Papyrus</div>
-                            <div class="button">Remove Black Ink</div>
-                            <div class="button">Remove Red Ink</div>
-                            <div class="button">Restore</div>
-                        -->
                     </div>
-                </div>
-                    
                 </div>
                 
                 <!-- Annotation Tools - preserved for a later stage of development -->
@@ -135,8 +120,8 @@
                     <!-- Export Tools -->
                     <div class="flex-hor">
                         <div id="rotate-layout" class="button large_button">
-                            <img src="../imgs/symbol_rotate.png" alt="Rotate Layout">
-                            <label>Rotate Layout</label>
+                            <img src="../imgs/symbol_rotate.png" alt="Change Layout">
+                            <label>Change Layout</label>
                         </div>
                         <div id="scale" class="button large_button">
                             <img src="../imgs/symbol_scale.png">

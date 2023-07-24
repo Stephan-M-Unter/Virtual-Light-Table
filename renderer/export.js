@@ -699,6 +699,11 @@ $('.flip-button').click(function() {
     $(this).toggleClass('inverted');
     requestFilters();
 });
+$('#blackwhite').click(function() {
+    console.log('BW');
+    $(this).toggleClass('inverted');
+    requestFilters();
+})
 
 $('#select-facsimile-model').on('change', function() {
     const modelID = $(this).val();
@@ -883,7 +888,7 @@ ipcRenderer.on('thresholded-images', (event) => {
     displayThresholdImages();
     $('#threshold').removeClass('disabled');
     $('#threshold .progress-text').text('Apply Settings (faster)');
-    $('#facsimilate .progress-text').text('Re-compute Facsimile (takes some time)');
+    $('#facsimilate .progress-text').text('Re-compute Facsimile (may take some time)');
 });
 
 ipcRenderer.on('facsimile-progress', (event, ratio) => {
@@ -896,7 +901,7 @@ ipcRenderer.on('facsimile-progress', (event, ratio) => {
     if (ratio === 1) {
         setTimeout(() => {
             progressBar.css('width', '0%');
-            progressText.text('Re-compute Facsimile (takes some time)');
+            progressText.text('Re-compute Facsimile (may take some time)');
         }, 2000);
     }
 });
