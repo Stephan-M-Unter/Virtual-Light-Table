@@ -402,16 +402,16 @@ function createImage(sidename, center) {
  * @param {*} sidename
  */
 function handleMouseDown(event, sidename) {
-  const side = getSide(sidename);
+  // const side = getSide(sidename);
   if (actionMode == 'scale' && sidename == scaleMode) {
     doScaling(event.stageX, event.stageY);
   } else if (actionMode == 'polygon') {
     addPolygonNode([event.stageX, event.stageY], sidename);
   }
-  mousestart.x = event.stageX;
-  mousestart.y = event.stageY;
-  mousestart.offsetX = event.stageX - side.content.x;
-  mousestart.offsetY = event.stageY - side.content.y;
+  // mousestart.x = event.stageX;
+  // mousestart.y = event.stageY;
+  // mousestart.offsetX = event.stageX - side.content.x;
+  // mousestart.offsetY = event.stageY - side.content.y;
 }
 
 /**
@@ -984,92 +984,92 @@ function drawMasks(reload) {
 // }
 
 /**
- *
- */
-function mirrorPoints(pointArray) {
-  const canvasWidth = recto.stage.canvas.width;
-  const result = [];
-  pointArray.forEach((point) => {
-    result.push([canvasWidth-point[0], point[1]]);
-  });
-  result.reverse();
-  return result;
-}
+//  *
+//  */
+// function mirrorPoints(pointArray) {
+//   const canvasWidth = recto.stage.canvas.width;
+//   const result = [];
+//   pointArray.forEach((point) => {
+//     result.push([canvasWidth-point[0], point[1]]);
+//   });
+//   result.reverse();
+//   return result;
+// }
 
 /**
  *
  */
-function drawPolygonMask() {
+// function drawPolygonMask() {
   // RECTO
-  if (recto.content.img) {
-    const polygonRecto = createPolygon(recto.mask.polygon);
-    recto.content.img.mask = polygonRecto;
-    recto.mask.group.removeAllChildren();
-    recto.mask.group.addChild(polygonRecto);
-    recto.mask.polygon.forEach((point, index) => {
-      let vertex;
-      if (index == recto.mask.polygon.length - 1) {
-        vertex = createVertex(point, true);
-      } else {
-        vertex = createVertex(point);
-      }
-      vertex.on('pressmove', (event) => {
-        moveVertex(event, 'recto', index);
-      });
-      vertex.on('click', () => {
-        if (actionMode == 'polygon_remove') {
-          removePolygonNode(index);
-        }
-      });
-      recto.mask.group.addChild(vertex);
-    });
-    recto.stage.update();
-  }
+  // if (recto.content.img) {
+    // const polygonRecto = createPolygon(recto.mask.polygon);
+    // recto.content.img.mask = polygonRecto;
+    // recto.mask.group.removeAllChildren();
+    // recto.mask.group.addChild(polygonRecto);
+    // recto.mask.polygon.forEach((point, index) => {
+      // let vertex;
+      // if (index == recto.mask.polygon.length - 1) {
+        // vertex = createVertex(point, true);
+      // } else {
+        // vertex = createVertex(point);
+      // }
+      // vertex.on('pressmove', (event) => {
+        // moveVertex(event, 'recto', index);
+      // });
+      // vertex.on('click', () => {
+        // if (actionMode == 'polygon_remove') {
+          // removePolygonNode(index);
+        // }
+      // });
+      // recto.mask.group.addChild(vertex);
+    // });
+    // // recto.stage.update();
+  // }
 
   // VERSO
-  if (verso.content.img) {
-    const polygonVerso = createPolygon(verso.mask.polygon);
-    verso.content.img.mask = polygonVerso;
-    verso.mask.group.removeAllChildren();
-    verso.mask.group.addChild(polygonVerso);
-    verso.mask.polygon.forEach((point, index) => {
-      let vertex;
-      if (index == 0) {
-        vertex = createVertex(point, true);
-      } else {
-        vertex = createVertex(point);
-      }
-      vertex.on('pressmove', (event) => {
-        moveVertex(event, 'verso', verso.mask.polygon.length-index-1);
-      });
-      vertex.on('click', () => {
-        if (actionMode == 'polygon_remove') {
-          removePolygonNode(verso.mask.polygon.length-index-1);
-        }
-      });
-      verso.mask.group.addChild(vertex);
-    });
-    verso.stage.update();
-  }
-}
+  // if (verso.content.img) {
+    // const polygonVerso = createPolygon(verso.mask.polygon);
+    // verso.content.img.mask = polygonVerso;
+    // verso.mask.group.removeAllChildren();
+    // verso.mask.group.addChild(polygonVerso);
+    // verso.mask.polygon.forEach((point, index) => {
+      // let vertex;
+      // if (index == 0) {
+        // vertex = createVertex(point, true);
+      // } else {
+        // vertex = createVertex(point);
+      // }
+      // vertex.on('pressmove', (event) => {
+        // moveVertex(event, 'verso', verso.mask.polygon.length-index-1);
+      // });
+      // vertex.on('click', () => {
+        // if (actionMode == 'polygon_remove') {
+          // removePolygonNode(verso.mask.polygon.length-index-1);
+        // }
+      // });
+      // verso.mask.group.addChild(vertex);
+    // });
+//     // verso.stage.update();
+//   // }
+// // }
 
-/**
- *
- * @param {*} event
- * @param {*} sidename
- * @param {*} index
- */
-function moveVertex(event, sidename, index) {
-  let mouseX = event.stageX;
-  if (sidename == 'verso') {
-    mouseX = recto.stage.canvas.width - mouseX;
-  }
-  const mouseY = event.stageY;
+// /**
+//  *
+//  * @param {*} event
+//  * @param {*} sidename
+//  * @param {*} index
+//  */
+// function moveVertex(event, sidename, index) {
+//   let mouseX = event.stageX;
+//   if (sidename == 'verso') {
+//     mouseX = recto.stage.canvas.width - mouseX;
+//   }
+//   const mouseY = event.stageY;
 
-  recto.mask.polygon[index] = [mouseX, mouseY];
-  updateVersoMask();
-  drawMasks();
-}
+//   recto.mask.polygon[index] = [mouseX, mouseY];
+//   updateVersoMask();
+//   drawMasks();
+// }
 
 /**
  *

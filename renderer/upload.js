@@ -124,8 +124,8 @@ function setCursorMode(event) {
     controller.setCursorMode(mode);
     $('.active_mode').removeClass('active_mode');
     $(`#${mode}`).addClass('active_mode');
-    $('#recto_canvas').removeClass('move rotate add_node remove_node');
-    $('#verso_canvas').removeClass('move rotate add_node remove_node');
+    $('#recto_canvas').removeClass('move rotate add_polygon_node remove_polygon_node');
+    $('#verso_canvas').removeClass('move rotate add_polygon_node remove_polygon_node');
     $('#recto_canvas').addClass(mode);
     $('#verso_canvas').addClass(mode);
 };
@@ -225,8 +225,15 @@ function toggleMaskList(event) {
     }
 };
 
-function undoPolygonNode() {}
-function clearPolygonMask() {}
+function resetBox() {
+    controller.resetBox();
+}
+function undoPolygonNode() {
+    controller.undoPolygonNode();
+}
+function clearPolygonMask() {
+    controller.clearPolygonMask();
+}
 
 /* ------------------------------ */
 /*           EVENTS               */
@@ -249,8 +256,9 @@ $('.list_item').click(toggleMaskList);
 $('#move').click(setCursorMode);
 $('#swap').click(swapImages);
 $('#rotate').click(setCursorMode);
-$('#add_polygon_nodes').click(setCursorMode);
-$('#remove_polygon_nodes').click(setCursorMode);
+$('#reset_box').click(resetBox);
+$('#add_polygon_node').click(setCursorMode);
+$('#remove_polygon_node').click(setCursorMode);
 $('#undo_polygon_node').click(undoPolygonNode);
 $('#clear_polygon').click(clearPolygonMask);
 

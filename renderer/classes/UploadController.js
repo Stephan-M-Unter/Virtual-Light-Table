@@ -92,7 +92,7 @@ class UploadController {
     }
 
     setCursorMode(mode) {
-        const validModes = ['move', 'rotate', 'add_node', 'remove_node'];
+        const validModes = ['move', 'rotate', 'add_polygon_node', 'remove_polygon_node'];
         if (validModes.includes(mode)) {
             this.cursorMode = mode;
         }
@@ -153,18 +153,19 @@ class UploadController {
         }
     }
 
-    handleMouseDown(event, cursorMode, side) {
+    handleMouseDown(event, side) {
         if (side === 'recto') {
-            this.recto.handleMouseDown(event, cursorMode);
+            this.recto.handleMouseDown(event);
         }
         else if (side === 'verso') {
-            this.verso.handleMouseDown(event, cursorMode);
+            this.verso.handleMouseDown(event);
         }
         else {
-            this.recto.handleMouseDown(event, cursorMode);
-            this.verso.handleMouseDown(event, cursorMode);
+            this.recto.handleMouseDown(event);
+            this.verso.handleMouseDown(event);
         }
     }
+
     handleMouseUp(event, cursorMode, side) {
         if (side === 'recto') {
             this.recto.handleMouseUp(event, cursorMode);
@@ -177,6 +178,7 @@ class UploadController {
             this.verso.handleMouseUp(event, cursorMode);
         }
     }
+
     handlePressMove(event, cursorMode, side) {
         if (side === 'recto') {
             this.recto.handlePressMove(event, cursorMode);
@@ -196,6 +198,30 @@ class UploadController {
         } else {
             this.recto.mirrorBox(box_polygons);
         }
+    }
+    
+    mirrorPolygon(source_id, polygon) {
+        if (source_id.includes('recto')) {
+            this.verso.mirrorPolygon(polygon);
+        } else {
+            this.recto.mirrorPolygon(polygon);
+        }
+    }
+
+    resetBox() {
+        this.recto.resetBox();
+    }
+
+    clearPolygonMask() {
+        this.recto.clearPolygon();
+        this.verso.clearPolygon();
+    }
+
+    undoPolygonNode() {
+        this.recto.undoPolygonNode();
+        // we only do this on the recto; the result will
+        // be mirrored to the verso! If we did it on both,
+        // we would be caught in a loop.
     }
 
 }

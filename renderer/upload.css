@@ -143,11 +143,26 @@ body {
     position: relative;
 }
 
+#recto_canvas {
+    border-right: 2px solid black;
+}
+
+#verso_canvas {
+    border-left: 2px solid black;
+}
+
 canvas {
     background-color: rgb(54, 54, 54);
-    box-shadow: inset 2px 2px 3px black, inset -2px -2px 3px #333333;
     width: 100%;
     height: 100%;
+    z-index: 0;
+    transition: box-shadow 0.2s;
+    border: 4px solid black;
+}
+
+canvas:hover {
+    box-shadow: 5px 5px 20px black, inset 0px 0px 10px white;
+    z-index: 5;
 }
 
 canvas.move {
@@ -160,6 +175,14 @@ canvas.rotate {
 
 canvas.pointer {
     cursor: pointer !important;
+}
+
+canvas.add_polygon_node {
+    cursor: url('../imgs/symbol_cut_cursor.png'), auto;
+}
+
+canvas.remove_polygon_node {
+    cursor: url('../imgs/symbol_erase_cursor.png'), auto;
 }
 
 canvas.active {

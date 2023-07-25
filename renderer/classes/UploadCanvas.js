@@ -158,7 +158,6 @@ class UploadCanvas {
         const maskMode = this.controller.getMaskMode();
         if (maskMode === 'boundingbox') {
             this.__drawBox();
-            this.prop.displayed.push(this.prop.maskGroup);
         }
         else if (maskMode === 'polygon') {
             this.__drawPolygon();
@@ -203,6 +202,7 @@ class UploadCanvas {
         });
 
         this.prop.maskGroup.addChild(box, b1, b2, b3, b4);
+        this.prop.displayed.push(this.prop.maskGroup);
     }
 
     __createEmptyBox() {
@@ -219,6 +219,12 @@ class UploadCanvas {
         this.prop.maskBox.push([left, bottom]);
 
         this.controller.mirrorBox(this.canvas_id, this.prop.maskBox);
+    }
+
+    resetBox() {
+        this.prop.maskBox = [];
+        this.__createEmptyBox();
+        this.draw();
     }
 
     mirrorBox(box_polygons) {
@@ -259,14 +265,18 @@ class UploadCanvas {
         return polygon;
     }
 
-    __createVertex(vertex_coordinates) {
+    __createVertex(vertex_coordinates, circle=false) {
         const size = 10;
         const x = vertex_coordinates[0] - (size / 2);
         const y = vertex_coordinates[1] - (size / 2);
         const vertex = new createjs.Shape();
         vertex.graphics.setStrokeStyle(1).beginStroke('green');
         vertex.graphics.beginFill('lightgreen');
-        vertex.graphics.drawRect(x, y, size, size);
+        if (circle) {
+            vertex.graphics.drawCircle(x+(size/2), y+(size/2), size / 2);
+        } else {
+            vertex.graphics.drawRect(x, y, size, size);
+        }
 
         vertex.on('mouseover', (event) => {
             this.__vertexMouseIn(event);
@@ -342,7 +352,6 @@ class UploadCanvas {
         this.canvas.removeClass('pointer');
     }
 
-
     __drawPolygon() {
         this.prop.image.mask = null;
 
@@ -351,6 +360,78 @@ class UploadCanvas {
         }
         const polygon = this.__createPolygon(this.prop.maskPolygon);
         this.prop.image.mask = polygon;
+
+        const polygonShape = this.__createPolygon(this.prop.maskPolygon);
+
+        this.prop.maskGroup.addChild(polygonShape);
+        
+        // create a vertex for every point
+        // the last point is supposed to be a circle
+        for (let i = 0; i < this.prop.maskPolygon.length; i++) {
+            const point = this.prop.maskPolygon[i];
+            const isCircle = (i === this.prop.maskPolygon.length - 1);
+            const vertex = this.__createVertex(point, isCircle);
+            vertex.name = i;
+
+            vertex.on('mousedown', (event) => {
+                event.stopPropagation();
+                if (this.controller.getCursorMode() === 'remove_polygon_node') {
+                    this.__removePolygonNode(vertex.name);
+                }
+            });
+            vertex.on('pressmove', (event) => {
+                event.stopPropagation();
+                this.prop.maskPolygon[vertex.name] = [event.stageX, event.stageY];
+                controller.mirrorPolygon(this.canvas_id, this.prop.maskPolygon);
+                this.draw();
+            });
+
+            this.prop.maskGroup.addChild(vertex);
+        }
+            
+        this.prop.displayed.push(this.prop.maskGroup);
+    }
+
+    __addPolygonNode(x, y) {
+        if (isNaN(x) || isNaN(y)) {
+            return;
+        }
+        this.prop.maskPolygon.push([x, y]);
+        const polygonPoints = [];
+        for (const point of this.prop.maskPolygon) {
+            polygonPoints.push(point);
+        }
+        this.controller.mirrorPolygon(this.canvas_id, polygonPoints);
+        this.draw();
+    }
+
+    __removePolygonNode(id) {
+        this.prop.maskPolygon.splice(id, 1);
+        this.controller.mirrorPolygon(this.canvas_id, this.prop.maskPolygon);
+        this.draw();
+    }
+
+    undoPolygonNode() {
+        this.prop.maskPolygon.pop();
+        this.controller.mirrorPolygon(this.canvas_id, this.prop.maskPolygon);
+        this.draw();
+    }
+
+    clearPolygon() {
+        this.prop.maskPolygon = [];
+        this.draw();
+    }
+
+    mirrorPolygon(polygon) {
+        this.prop.maskPolygon = [];
+
+        for (const point of polygon) {
+            const x = this.stage.canvas.width - point[0];
+            const y = point[1];
+            this.prop.maskPolygon.push([x, y]);
+        }
+
+        this.draw();
     }
 
     __addDisplayedToStage() {
@@ -472,8 +553,12 @@ class UploadCanvas {
             .endFill();
         this.prop.shadow.alpha = 0.8;
 
-        this.prop.shadow.on('mousedown', (event) => {});
-        this.prop.shadow.on('pressmove', (event) => {});
+        this.prop.shadow.on('mousedown', (event) => {
+            this.handleMouseDown(event);
+        });
+        this.prop.shadow.on('pressmove', (event) => {
+            this.handlePressMove(event);
+        });
     }
 
     deleteContent() {
@@ -491,12 +576,19 @@ class UploadCanvas {
     }
 
     handleMouseDown(event) {
+        console.log($(event.target));
         const pageX = event.pageX;
         const pageY = event.pageY;
         const stageX = pageX - this.canvas.offset().left;
         const stageY = pageY - this.canvas.offset().top;
         this.mouse.x = stageX;
         this.mouse.y = stageY;
+
+        const cursorMode = this.controller.getCursorMode();
+
+        if (cursorMode === 'add_polygon_node') {
+            this.__addPolygonNode(stageX, stageY);
+        }
     }
     handleMouseUp() {
         this.mouse.x = null;
