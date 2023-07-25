@@ -201,7 +201,11 @@ function updateGUI() {
     }
 }
 
-function scaleImages() {};
+function scaleImages() {
+    const ppi_recto = $('#recto_ppi').val();
+    const ppi_verso = $('#verso_ppi').val();
+    controller.scaleImages(ppi_recto, ppi_verso);
+};
 
 function toggleMaskList(event) {
     const list = $('.list');

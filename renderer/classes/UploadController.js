@@ -224,6 +224,10 @@ class UploadController {
         // we would be caught in a loop.
     }
 
+    scaleImages(ppi_recto, ppi_verso) {
+        this.recto.scaleImage(ppi_recto);
+        this.verso.scaleImage(ppi_verso);
+    }
 }
 
 module.exports.UploadController = UploadController;

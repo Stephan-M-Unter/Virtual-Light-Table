@@ -28,6 +28,7 @@ class UploadCanvas {
             x: null,
             y: null,
             scale: null,
+            ppi: 96,
             cursor: null,
             is_www: false,
             maskGroup: null,
@@ -125,6 +126,8 @@ class UploadCanvas {
             return false;
         }
 
+        this.canvas.addClass('active');
+
         this.__drawImages();
         if (this.prop.image !== null) {
             this.__drawMask();
@@ -155,6 +158,7 @@ class UploadCanvas {
             this.prop.maskGroup.name = 'maskGroup';
         }
         this.prop.maskGroup.removeAllChildren();
+        this.prop.image.mask = null;
         const maskMode = this.controller.getMaskMode();
         if (maskMode === 'boundingbox') {
             this.__drawBox();
@@ -525,8 +529,9 @@ class UploadCanvas {
 
         // set the scale
         if (this.prop.scale !== null) {
-            this.prop.image.scale = this.prop.scale;
-            this.prop.background_image.scale = this.prop.scale;
+            const imageScale = (96/this.prop.ppi) * this.prop.scale;
+            this.prop.image.scale = imageScale;
+            this.prop.background_image.scale = imageScale;
         } else {
             const scaleToFit = this.__getScaleToFit();
             this.prop.scale = scaleToFit;
@@ -616,6 +621,14 @@ class UploadCanvas {
         this.mouse.y = event.stageY;
     }
 
+    scaleImage(ppi) {
+        if (isNaN(ppi)) {
+            return;
+        }
+        
+        this.prop.ppi = ppi;
+        this.draw();
+    }
 }
 
 module.exports.UploadCanvas = UploadCanvas;
