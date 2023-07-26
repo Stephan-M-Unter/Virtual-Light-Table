@@ -385,6 +385,10 @@ class UploadCanvas {
             });
             vertex.on('pressmove', (event) => {
                 event.stopPropagation();
+                const cursorMode = this.controller.getCursorMode();
+                if (['add_polygon_node', 'remove_polygon_node'].includes(cursorMode)) {
+                    return;
+                }
                 this.prop.maskPolygon[vertex.name] = [event.stageX, event.stageY];
                 controller.mirrorPolygon(this.canvas_id, this.prop.maskPolygon);
                 this.draw();
@@ -581,7 +585,6 @@ class UploadCanvas {
     }
 
     handleMouseDown(event) {
-        console.log($(event.target));
         const pageX = event.pageX;
         const pageY = event.pageY;
         const stageX = pageX - this.canvas.offset().left;

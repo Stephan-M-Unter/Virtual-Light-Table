@@ -92,7 +92,7 @@ class UploadController {
     }
 
     setCursorMode(mode) {
-        const validModes = ['move', 'rotate', 'add_polygon_node', 'remove_polygon_node'];
+        const validModes = ['move', 'rotate', 'add_polygon_node', 'remove_polygon_node', 'none'];
         if (validModes.includes(mode)) {
             this.cursorMode = mode;
         }
@@ -224,9 +224,17 @@ class UploadController {
         // we would be caught in a loop.
     }
 
-    scaleImages(ppi_recto, ppi_verso) {
-        this.recto.scaleImage(ppi_recto);
-        this.verso.scaleImage(ppi_verso);
+    scaleImages(ppi, side) {
+        if (side === 'recto') {
+            this.recto.scaleImage(ppi);
+        }
+        else if (side === 'verso') {
+            this.verso.scaleImage(ppi);
+        }
+        else {
+            this.recto.scaleImage(ppi);
+            this.verso.scaleImage(ppi);
+        }
     }
 }
 

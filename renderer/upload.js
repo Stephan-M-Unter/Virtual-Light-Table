@@ -8,6 +8,7 @@ const Dialogs = require('dialogs');
 const controller = new UploadController('recto_canvas', 'verso_canvas');
 
 let canvasLock = null;
+let lastGeneralCursorMode = "move"; // last mode applicable to all maskModes, needed in case of mask switch (see setMaskMode())
 
 
 $(document).ready(function () {
@@ -119,15 +120,31 @@ function centerImage(event) {
 function measurePPI(event) {};
 
 function setCursorMode(event) {
-    const mode = $(event.target).attr('mode');
-    console.log(`Setting cursor mode to ${mode}`);
-    controller.setCursorMode(mode);
+    let mode = $(event.target).attr('mode');
+    const alreadyActive = $(`#${mode}`).hasClass('active_mode');
+
     $('.active_mode').removeClass('active_mode');
-    $(`#${mode}`).addClass('active_mode');
     $('#recto_canvas').removeClass('move rotate add_polygon_node remove_polygon_node');
     $('#verso_canvas').removeClass('move rotate add_polygon_node remove_polygon_node');
+    
+    if (alreadyActive) {
+        // mode is already active, so we deactivate it and set the
+        // cursorMode to "none"
+        mode = 'none';
+    }
+    
+    console.log(`Setting cursor mode to ${mode}`);
+    $('.active_mode').removeClass('active_mode');
     $('#recto_canvas').addClass(mode);
     $('#verso_canvas').addClass(mode);
+    $(`#${mode}`).addClass('active_mode');
+    controller.setCursorMode(mode);
+
+    if (['move', 'rotate', 'none'].includes(mode)) {
+        lastGeneralCursorMode = mode;
+    }
+
+
 };
 
 function swapImages(event) {
@@ -163,7 +180,6 @@ function handleMouseDown(event) {
 function handleMouseUp(event) {
     controller.handleMouseUp(event);
 }
-
 
 function updateGUI() {
     const recto_has_content = controller.sideHasContent('recto');
@@ -201,10 +217,10 @@ function updateGUI() {
     }
 }
 
-function scaleImages() {
-    const ppi_recto = $('#recto_ppi').val();
-    const ppi_verso = $('#verso_ppi').val();
-    controller.scaleImages(ppi_recto, ppi_verso);
+function scaleImages(event) {
+    const side = $(event.target).attr('canvas');
+    const ppi = $(`#${side}_ppi`).val();
+    controller.scaleImages(ppi, side);
 };
 
 function toggleMaskList(event) {
@@ -217,17 +233,24 @@ function toggleMaskList(event) {
             listItem = listItem.parent();
         }
         const maskMode = listItem.attr('mask_mode');
-        $('.selected').removeClass('selected');
-        $('.list_item.'+maskMode).addClass('selected');
-        $('.mask_controls.'+maskMode).addClass('selected');
-        $('.mask_explanation.'+maskMode).addClass('selected');
-        controller.setMaskMode(maskMode);
-        checkFields();
+        setMaskMode(maskMode);
+        if (maskMode !== 'polygon') {
+            $(`#${lastGeneralCursorMode}`).click();
+        }
     } else {
         // open mask selection list
         list.addClass('open');
     }
 };
+
+function setMaskMode(maskMode) {
+    $('.selected').removeClass('selected');
+    $('.list_item.'+maskMode).addClass('selected');
+    $('.mask_controls.'+maskMode).addClass('selected');
+    $('.mask_explanation.'+maskMode).addClass('selected');
+    controller.setMaskMode(maskMode);
+    checkFields();
+}
 
 function resetBox() {
     controller.resetBox();

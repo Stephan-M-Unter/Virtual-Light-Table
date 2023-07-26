@@ -173,9 +173,13 @@ canvas.rotate {
     cursor: url('../imgs/symbol_rotate.png'), auto;
 }
 
-canvas.pointer {
-    cursor: pointer !important;
+canvas.move.pointer,
+canvas.rotate.pointer,
+canvas.none.pointer
+{
+    cursor: pointer;
 }
+
 
 canvas.add_polygon_node {
     cursor: url('../imgs/symbol_cut_cursor.png'), auto;
