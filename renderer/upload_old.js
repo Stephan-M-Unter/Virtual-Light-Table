@@ -187,7 +187,7 @@ function createImage(sidename, center) {}}
   // }
   // newImage.onload = function() {
     // extract PPI from EXIF if possible
-    readExifPPI(newImage, sidename);
+    // readExifPPI(newImage, sidename);
 
     // create new Bitmap objects
     // const image = new createjs.Bitmap(newImage);
@@ -220,26 +220,6 @@ function createImage(sidename, center) {}}
     // draw(sidename, center);
   // };
 // }
-
-
-/**
- *
- * @param {*} event
- * @param {*} sidename
- */
-function handleMouseDown(event, sidename) {
-  // const side = getSide(sidename);
-  if (actionMode == 'scale' && sidename == scaleMode) {
-    doScaling(event.stageX, event.stageY);
-  } else if (actionMode == 'polygon') {
-    addPolygonNode([event.stageX, event.stageY], sidename);
-  }
-  // mousestart.x = event.stageX;
-  // mousestart.y = event.stageY;
-  // mousestart.offsetX = event.stageX - side.content.x;
-  // mousestart.offsetY = event.stageY - side.content.y;
-}
-
 
 
 
@@ -555,6 +535,45 @@ $('#mask_control_automatic_cut').click(() => {
   LOGGER.send('UPLOAD', 'server-cut-automatic-masks', data);
   ipcRenderer.send('server-cut-automatic-masks', data);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
