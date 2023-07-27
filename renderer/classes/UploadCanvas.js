@@ -46,6 +46,7 @@ class UploadCanvas {
             autoCuts: {},
             activeMask: null,
             activeCut: null,
+            activeModelID: null,
             maskMode: 'no_mask',
             displayed: [],
         }
@@ -498,6 +499,7 @@ class UploadCanvas {
             }
 
             this.draw();
+            this.notify();
         };
     }
 
@@ -519,9 +521,7 @@ class UploadCanvas {
               const exifs = EXIF.getAllTags(image);
               if (exifs.XResolution) {
                 const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-                console.log(`PPI: ${ppi}`);
-                // $('#'+sidename+'_ppi').val(ppi);
-                // checkRequiredFields();
+                this.prop.ppi = ppi;
               } else {
                 console.log(`Input image (${this.canvas_id}) has no EXIF data.`);
               }
@@ -640,10 +640,6 @@ class UploadCanvas {
         return this.ppi1 !== null;
     }
 
-    isActive() {
-        return this.prop.filepath !== null;
-    }
-
     handleMouseDown(event) {
         const pageX = event.pageX;
         const pageY = event.pageY;
@@ -720,6 +716,74 @@ class UploadCanvas {
 
     setBrushSize(size) {
         this.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,size)
+    }
+
+    unpackData(data) {
+        this.clearProp();
+
+        this.prop.filepath = data.url;
+        this.prop.is_www = data.www;
+        if ('ppi' in data) {
+            this.prop.ppi = data.ppi;
+        }
+
+        if ('upload' in data) {
+            this.prop.x = data.upload.x;
+            this.prop.y = data.upload.y;
+            this.prop.rotation = data.rotation;
+            this.prop.maskBox = data.upload.box;
+            this.prop.maskPolygon = data.upload.polygon;
+            this.prop.scale = data.upload.scale;
+        }
+        this.draw();
+    }
+
+    __canvasToImage(image, pointArray) {
+        const result = [];
+        if (pointArray.length > 0) {
+            pointArray.forEach((p) => {
+            const imagePoint = image.globalToLocal(p[0], p[1]);
+            result.push(imagePoint);
+            });
+        }
+        return result;
+    }
+
+    getData() {
+        if (!this.hasContent()) {
+            return {};
+        }
+
+        const data = {
+            'rotation': this.prop.rotation,
+            'url': this.prop.filepath,
+            'ppi': this.prop.ppi,
+            'cx': this.prop.x,
+            'cy': this.prop.y, 
+            'box': this.__canvasToImage(this.prop.image, this.prop.maskBox),
+            'polygon': this.__canvasToImage(this.prop.image, this.prop.maskPolygon),
+            'auto': {
+                'modelID': null,
+                'cut': null,
+                'mask': null,
+            },
+            'www': this.prop.is_www,
+            'upload': {
+                'box': this.prop.maskBox,
+                'polygon': this.prop.maskPolygon,
+                'x': this.prop.x,
+                'y': this.prop.y,
+                'scale': this.prop.scale,
+            },
+        };
+
+        if (this.controller.getMaskMode() === 'automatic_cut') {
+            data.auto.modelID = this.prop.activeModelID;
+            data.auto.cut = this.prop.autoCutPaths[this.prop.activeModelID];
+            data.auto.mask = this.prop.autoMaskPaths[this.prop.activeModelID];
+        }
+
+        return data;
     }
 
 }

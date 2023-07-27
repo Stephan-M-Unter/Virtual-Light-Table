@@ -13,7 +13,7 @@ class UploadController {
         this.maskMode = 'no_mask';
     }
 
-    sideHasContent(side) {
+    hasContent(side) {
         if (side === 'recto') {
             return this.recto.hasContent();
         }
@@ -265,6 +265,36 @@ class UploadController {
             this.recto.handleMouseMove(event);
             this.verso.handleMouseMove(event);
         }
+    }
+
+    unpackData(data) {
+        if ('recto' in data) {
+            if ('edit' in data && data.edit === true) {
+                data.recto.edit = true;
+            }
+            this.recto.unpackData(data.recto);
+        }
+        if ('verso' in data) {
+            if ('edit' in data && data.edit === true) {
+                data.verso.edit = true;
+            }
+            this.verso.unpackData(data.verso);
+        }
+        this.notifyRenderer();
+    }
+
+    getData() {
+        const dataRecto = this.recto.getData();
+        const dataVerso = this.verso.getData();
+
+        const data = {
+            'recto': dataRecto,
+            'verso': dataVerso,
+            'maskMode': this.maskMode,
+            'showRecto': this.recto.hasContent(),
+        }
+
+        return data;
     }
 
 }

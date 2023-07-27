@@ -11,6 +11,8 @@ const controller = new UploadController('recto_canvas', 'verso_canvas', notify);
 let canvasLock = null;
 let tensorflow_available = null;
 let dragCounter = 0; // neccessary event counter for file drag&drop
+let tpop = null;
+let editData;
 let lastGeneralCursorMode = "move"; // last mode applicable to all maskModes, needed in case of mask switch (see setMaskMode())
 
 $(document).ready(function () {
@@ -31,7 +33,9 @@ function notify() {
 }
 
 function checkActiveCanvases() {
-    if (controller.recto.isActive()) {
+    $('.choose_tpop').addClass('unrendered');
+
+    if (controller.hasContent('recto')) {
         $('#recto_canvas').addClass('active');
         $('#recto_upload_wrapper').addClass('unrendered');
         $('#recto_button_region').removeClass('hidden');
@@ -40,9 +44,12 @@ function checkActiveCanvases() {
         $('#recto_canvas').removeClass('active');
         $('#recto_upload_wrapper').removeClass('unrendered');
         $('#recto_button_region').addClass('hidden');
+        if (tpop !== null) {
+            $('#recto_canvas_region').find('.choose_tpop').removeClass('unrendered');
+        }
     }
 
-    if (controller.verso.isActive()) {
+    if (controller.hasContent('verso')) {
         $('#verso_canvas').addClass('active');
         $('#verso_upload_wrapper').addClass('unrendered');
         $('#verso_button_region').removeClass('hidden');
@@ -51,6 +58,15 @@ function checkActiveCanvases() {
         $('#verso_canvas').removeClass('active');
         $('#verso_upload_wrapper').removeClass('unrendered');
         $('#verso_button_region').addClass('hidden');
+        if (tpop !== null) {
+            $('#verso_canvas_region').find('.choose_tpop').removeClass('unrendered');
+        }
+    }
+
+    if (controller.hasContent('recto') || controller.hasContent('verso')) {
+        $('#button_region').removeClass('hidden');
+    } else {
+        $('#button_region').addClass('hidden');
     }
 }
 
@@ -87,7 +103,7 @@ function checkFields() {
 }
 
 function checkPPIField(side) {
-    if (!controller.sideHasContent(side)) {
+    if (!controller.hasContent(side)) {
         // No image on this side, no need to check
         return true;
     }
@@ -96,7 +112,7 @@ function checkPPIField(side) {
     let valid = true;
     ppi.removeClass('missing');
     
-    if (controller.sideHasContent(side)) {
+    if (controller.hasContent(side)) {
         valid = !(ppi.val() === null || isNaN(ppi.val()) || ppi.val() === '');
     }
     if (!valid) {
@@ -185,12 +201,11 @@ function measurePPI(event) {
     }
 };
 
-function setCursorMode(mode) {
+function setCursorMode(mode) {  
     $('.active_mode').removeClass('active_mode');
     $('#recto_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure');
     $('#verso_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure');
 
-    console.log(`Setting cursor mode to ${mode}`);
     $('.active_mode').removeClass('active_mode');
 
     if (mode === 'measure_recto') {
@@ -259,8 +274,8 @@ function handleMouseUp(event) {
 }
 
 function updateGUI() {
-    const recto_has_content = controller.sideHasContent('recto');
-    const verso_has_content = controller.sideHasContent('verso');
+    const recto_has_content = controller.hasContent('recto');
+    const verso_has_content = controller.hasContent('verso');
 
     if (recto_has_content) {
         $('#recto_button_region').removeClass('hidden');
@@ -403,12 +418,28 @@ function selectModel(event) {
         $('#compute-mask').addClass('unrendered');
     }
 }
+
 function uploadData() {
     const buttonDisabled = $('#upload_button').hasClass('disabled');
     if (buttonDisabled) {
         return;
     }
+
+    const data = controller.getData();
+    data.name = $('#objectname').val();
+    if (editData) {
+        data.id = editData.id;
+        data.x = editData.x;
+        data.y = editData.y;
+        data.baseX = editData.baseX;
+        data.baseY = editData.baseY;
+        data.rotation = editData.rotation;
+        if ('urlTPOP' in editData) data.urlTPOP = editData.urlTPOP;
+        if ('tpop' in editData) data.tpop = editData.tpop;
+      }
+    send('server-upload-ready', data);
 }
+
 function updateMaskOpacity(event) {}
 
 function updateBrushSize(event) {
@@ -416,8 +447,29 @@ function updateBrushSize(event) {
     controller.setBrushSize(size);
 }
 
-function requestTPOPAlternatives() {}
-function selectTPOPAlternative(event) {}
+function requestTPOPAlternatives(event) {
+    const side = $(event.target).attr('canvas');
+    const request = {
+        'tpop': tpop,
+        'side': side,
+    };
+    canvasLock = side;
+    send('server-select-other-tpops', request);
+}
+
+function selectTPOPAlternative(event) {
+    if (!($('#tpop-button-select').hasClass('disabled'))) {
+        const url = $('.tpop-image.selected').find('img').attr('src');
+        const sidename = $('#tpop-side').html();
+        controller.setProperty(sidename, 'filepath', url);
+        controller.draw(sidename);
+        $('#tpop-button-select').addClass('disabled');
+        $('.tpop-image.selected').removeClass('selected');
+        $('#tpop-select-overlay').addClass('unrendered');
+        $('#tpop-side').html('');
+        notify();
+    }
+}
 
 function closeTPOPAlternatives() {
     $('#tpop-select-overlay').addClass('unrendered');
@@ -430,11 +482,11 @@ function handleDragEnter(event) {
     event.preventDefault();
     event.stopPropagation();
     dragCounter += 1;
-    if (!controller.recto.isActive()) {
+    if (!controller.hasContent('recto')) {
       $('#recto_canvas_region .overlay-drop').css('display', 'flex');
       $('#recto_upload_wrapper').addClass('unrendered');
     }
-    if (!controller.verso.isActive()) {
+    if (!controller.hasContent('verso')) {
         $('#verso_canvas_region .overlay-drop').css('display', 'flex');
         $('#verso_upload_wrapper').addClass('unrendered');
     }
@@ -489,6 +541,32 @@ function handleMouseMove(event) {
     controller.handleMouseMove(event, side)
 }
 
+function unpackData(data) {
+    $('#upload_button').find('.large_button_label').html('Update object');
+    controller.unpackData(data);
+}
+
+function openTPOPoverlay(data) {
+    $('#tpop-side').html(canvasLock);
+    canvasLock = null;
+    $('#tpop-image-list').empty();
+    for (const imageURL of data) {
+        const wrapper = document.createElement('div');
+        wrapper.setAttribute('class', 'tpop-image');
+        const tpopImage = document.createElement('img');
+        tpopImage.setAttribute('src', imageURL);
+        wrapper.append(tpopImage);
+        $('#tpop-image-list').append(wrapper);
+
+        wrapper.addEventListener('click', function(event) {
+            $('.tpop-image.selected').removeClass('selected');
+            $(wrapper).addClass('selected');
+            $('#tpop-select').removeClass('disabled');
+        });
+    }
+    $('#tpop-select-overlay').removeClass('unrendered');
+}
+
 /* ------------------------------ */
 /*           EVENTS               */
 /* ------------------------------ */
@@ -518,8 +596,8 @@ $('#undo_polygon_node').click(undoPolygonNode);
 $('#clear_polygon').click(clearPolygonMask);
 $('#open-settings').click(openSettings);
 $('#upload_button').click(uploadData);
-$('#tpop_choose').click(requestTPOPAlternatives);
-$('#tpop_select').click(selectTPOPAlternative);
+$('#tpop-choose').click(requestTPOPAlternatives);
+$('#tpop-select').click(selectTPOPAlternative);
 $('#tpop-close').click(closeTPOPAlternatives);
 $('#model-download').click(downloadModel);
 $('#compute-mask').click(computeMask);
@@ -564,12 +642,21 @@ ipcRenderer.on('upload-receive-image', (event, filepath) => {
 /* upload-fragment */
 ipcRenderer.on('upload-fragment', (event, data) => {
     LOGGER.receive('UPLOAD', 'upload-fragment', data);
+    if ('tpop' in data) {
+        tpop = data['tpop'];
+    }
+    unpackData(data);
 
+    $('#objectname').val(data.name);
+    if ('maskMode' in data && data.maskMode) setMaskMode(data.maskMode);
+    if ('id' in data && data.id) editData = data;
+    if ('urlTPOP' in data) editData = data;
 });
 
 /* upload-tpop-images */
 ipcRenderer.on('upload-tpop-images', (event, data) => {
     LOGGER.receive('UPLOAD', 'upload-tpop-images', data);
+    openTPOPoverlay(data);
 });
 
 /* model-availability */
@@ -607,6 +694,7 @@ ipcRenderer.on('upload-images-cut', (event, data) => {
 /* upload-mask-edited */
 ipcRenderer.on('upload-mask-edited', (event) => {
     LOGGER.receive('UPLOAD', 'upload-mask-edited');
+    controller.draw();
 });
 
 /* ml-models */
