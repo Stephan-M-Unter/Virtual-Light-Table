@@ -4,9 +4,10 @@ const { UploadCanvas } = require('./UploadCanvas');
 
 class UploadController {
 
-    constructor(canvas_id_recto, canvas_id_verso) {
+    constructor(canvas_id_recto, canvas_id_verso, notifyRenderer) {
         this.recto = new UploadCanvas(this, canvas_id_recto);
         this.verso = new UploadCanvas(this, canvas_id_verso);
+        this.notifyRenderer = notifyRenderer;
 
         this.cursorMode = 'move';
         this.maskMode = 'no_mask';
@@ -91,8 +92,17 @@ class UploadController {
         }
     }
 
+    getProperty(side, key) {
+        if (side === 'recto') {
+            return this.recto.getProperty(key);
+        }
+        else if (side === 'verso') {
+            return this.verso.getProperty(key);
+        }
+    }
+
     setCursorMode(mode) {
-        const validModes = ['move', 'rotate', 'add_polygon_node', 'remove_polygon_node', 'none'];
+        const validModes = ['move', 'rotate', 'add_polygon_node', 'remove_polygon_node', 'none', 'measure_recto', 'measure_verso'];
         if (validModes.includes(mode)) {
             this.cursorMode = mode;
         }
@@ -120,7 +130,8 @@ class UploadController {
         const zoomStepSize = 0.05;
         const zoomRectoPossible = this.recto.isZoomPossible(zoomDirection, zoomStepSize);
         const zoomVersoPossible = this.verso.isZoomPossible(zoomDirection, zoomStepSize);
-        if (zoomRectoPossible && zoomVersoPossible) {
+        const notMeasuring = (!(this.recto.isMeasuring()) && !(this.verso.isMeasuring()));
+        if (zoomRectoPossible && zoomVersoPossible && notMeasuring) {
             this.recto.zoom(zoomDirection, zoomStepSize);
             this.verso.zoom(zoomDirection, zoomStepSize);
         };
@@ -138,6 +149,7 @@ class UploadController {
         this.verso.setContent(content_recto);
 
         this.update();
+        this.notifyRenderer();
     }
 
     draw(side) {
@@ -236,6 +248,12 @@ class UploadController {
             this.verso.scaleImage(ppi);
         }
     }
+
+    setBrushSize(size) {
+        this.recto.setBrushSize(size);
+        this.verso.setBrushSize(size);
+    }
+
 }
 
 module.exports.UploadController = UploadController;

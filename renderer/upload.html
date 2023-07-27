@@ -69,8 +69,8 @@
                     <div title="Recenter Image" class="button square center" canvas="recto">
                         <img draggable="false" src="../imgs/symbol_center.png" canvas="recto">
                     </div>
-                    <div title="Measure PPI - Specify the distance of 1cm in the image" class="button square measure" canvas="recto">
-                        <img draggable="false" src="../imgs/symbol_measure_cursor.png" canvas="recto">
+                    <div title="Measure PPI - Specify the distance of 1cm in the image" class="button square measure" id="measure_recto" mode="measure_recto" canvas="recto">
+                        <img draggable="false" src="../imgs/symbol_measure_cursor.png" canvas="recto" mode="measure_recto">
                     </div>
                     <div class="ppi_wrapper">
                         <input type="text" class="input_ppi missing" id="recto_ppi" canvas="recto">
@@ -95,8 +95,8 @@
                         <input type="text" class="input_ppi missing" id="verso_ppi" canvas="verso">
                         <div class="label label_ppi">ppi</div>
                     </div>
-                    <div title="Measure PPI - Specify the distance of 1cm in the image" class="button square measure" canvas="verso">
-                        <img draggable="false" src="../imgs/symbol_measure_cursor.png" canvas="verso">
+                    <div title="Measure PPI - Specify the distance of 1cm in the image" class="button square measure" id="measure_verso" mode="measure_verso" canvas="verso">
+                        <img draggable="false" src="../imgs/symbol_measure_cursor.png" canvas="verso" mode="measure_verso">
                     </div>
                     <div title="Recenter Image" class="button square center" canvas="verso">
                         <img draggable="false" src="../imgs/symbol_center.png" canvas="verso">
@@ -187,9 +187,13 @@
                                 <!-- <option value="model_id_b">U-Net_MultiClass (218.23 MB)</option> -->
                                 <!-- <option value="model_id_c">VisionTransformer_MultiClass (158.34 MB)</option> -->
                             </select>
-                            <div class="button large_button" id="mask_selection_automatic_button" mode="download">
+                            <div class="button large_button" id="model-download" mode="download">
                                 <img src="../imgs/symbol_download.png"/>
                                 <label>Download Model</label>
+                            </div>
+                            <div class="button large_button" id="compute-mask" mode="compute">
+                                <img src="../imgs/symbol_gear.png"/>
+                                <label>Compute Mask</label>
                             </div>
                             <!-- <div class="button mask_control_button square unrendered" id="mask_selection_delete_model"> -->
                             <!-- <div class="button mask_control_button square" id="mask_selection_delete_model">

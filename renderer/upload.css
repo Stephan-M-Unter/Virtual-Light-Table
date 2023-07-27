@@ -165,17 +165,21 @@ canvas:hover {
     z-index: 5;
 }
 
-canvas.move {
+canvas.active.move {
     cursor: move;
 }
 
-canvas.rotate {
+canvas.active.rotate {
     cursor: url('../imgs/symbol_rotate.png'), auto;
 }
 
-canvas.move.pointer,
-canvas.rotate.pointer,
-canvas.none.pointer
+canvas.active.measure {
+    cursor: url('../imgs/symbol_measure_cursor.png'), auto;
+}
+
+canvas.active.move.pointer,
+canvas.active.rotate.pointer,
+canvas.active.none.pointer
 {
     cursor: pointer;
 }

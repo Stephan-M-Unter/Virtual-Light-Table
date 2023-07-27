@@ -8,6 +8,11 @@ class UploadCanvas {
         this.stage = new createjs.Stage(canvas_id);
         this.canvas = $('#' + canvas_id);
         this.canvas_id = canvas_id;
+        this.side = canvas_id.split('_')[0];
+        
+        this.cursor = new createjs.Shape(new createjs.Graphics().beginStroke('black').drawCircle(0,0,50));
+        this.ppi1 = null;
+        this.ppi2 = null;
 
         this.clearProp();
         this.stage.enableMouseOver();
@@ -27,9 +32,8 @@ class UploadCanvas {
             rotation: 0,
             x: null,
             y: null,
-            scale: null,
-            ppi: 96,
-            cursor: null,
+            scale: 1,
+            ppi: null,
             is_www: false,
             maskGroup: null,
             maskBox: [],
@@ -106,11 +110,12 @@ class UploadCanvas {
         this.prop.scale += (direction * stepSize);
         for (const image of this.prop.displayed) {
             if (image.zoomable) {
-                image.scaleX = this.prop.scale;
-                image.scaleY = this.prop.scale;
+                const ppi = this.prop.ppi || 96;
+                image.scaleX = (96/ppi) * this.prop.scale;
+                image.scaleY = (96/ppi) * this.prop.scale;
             }
         }
-    }
+    } 
 
     hasContent() {
         return this.prop.filepath !== null;
@@ -533,12 +538,13 @@ class UploadCanvas {
 
         // set the scale
         if (this.prop.scale !== null) {
-            const imageScale = (96/this.prop.ppi) * this.prop.scale;
+            const ppi = this.prop.ppi ||96;
+            const imageScale = (96/ppi) * this.prop.scale;
             this.prop.image.scale = imageScale;
             this.prop.background_image.scale = imageScale;
         } else {
             const scaleToFit = this.__getScaleToFit();
-            this.prop.scale = scaleToFit;
+            // this.prop.scale = scaleToFit;
             this.prop.image.scale = scaleToFit;
             this.prop.background_image.scale = scaleToFit;
         }
@@ -581,7 +587,43 @@ class UploadCanvas {
 
     setContent(canvasContent) {
         this.prop = canvasContent;
+        this.prop.image = null;
         this.draw();
+    }
+
+    __measure_ppi(x, y) {
+        if (this.ppi1 === null) {
+            this.ppi1 = [x, y];
+        }
+        else if (this.ppi2 === null) {
+            this.ppi2 = [x, y];
+
+            const ppi = this.__computePPI(this.ppi1, this.ppi2);
+            this.ppi1 = null;
+            this.ppi2 = null;
+
+            this.scaleImage(ppi);
+            this.controller.notifyRenderer();
+        }
+    }
+
+    __computePPI() {
+        if (this.ppi1 === null || this.ppi2 === null) {
+            return;
+        }
+        const dx = Math.abs(this.ppi1[0] - this.ppi2[0]);
+        const dy = Math.abs(this.ppi1[1] - this.ppi2[1]);
+        const z = Math.sqrt((dx*dx) + (dy*dy));
+        const ppi = (z*2.54)/this.prop.image.scale;
+        return ppi;
+    }
+
+    isMeasuring() {
+        return this.ppi1 !== null;
+    }
+
+    isActive() {
+        return this.prop.filepath !== null;
     }
 
     handleMouseDown(event) {
@@ -594,8 +636,13 @@ class UploadCanvas {
 
         const cursorMode = this.controller.getCursorMode();
 
+        const targetIsCanvas = event.target instanceof HTMLCanvasElement;
+
         if (cursorMode === 'add_polygon_node') {
             this.__addPolygonNode(stageX, stageY);
+        }
+        else if (['measure_recto', 'measure_verso'].includes(cursorMode) && targetIsCanvas) {
+            this.__measure_ppi(stageX, stageY);
         }
     }
     handleMouseUp() {
@@ -623,6 +670,9 @@ class UploadCanvas {
         this.mouse.x = event.stageX;
         this.mouse.y = event.stageY;
     }
+    handleMouseMove(event) {
+
+    }
 
     scaleImage(ppi) {
         if (isNaN(ppi)) {
@@ -632,6 +682,11 @@ class UploadCanvas {
         this.prop.ppi = ppi;
         this.draw();
     }
+
+    setBrushSize(size) {
+        this.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,size)
+    }
+
 }
 
 module.exports.UploadCanvas = UploadCanvas;

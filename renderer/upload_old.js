@@ -289,28 +289,6 @@ function createImage(sidename, center) {}}
   // };
 // }
 
-/**
- * Reading PPI resolution from EXIF data if available. If so, the result will be added
- * to the input field connected to the given side (recto/verso).
- * @param {Image} image
- * @param {'recto'|'verso'} sidename
- */
-// function readExifPPI(image, sidename) {
-  // try {
-    // EXIF.getData(image, function() {
-      // const exifs = EXIF.getAllTags(image);
-      // if (exifs.XResolution) {
-        // const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
-        // $('#'+sidename+'_ppi').val(ppi);
-        // checkRequiredFields();
-      // } else {
-        // console.log(`Input image (${sidename}) has no EXIF data.`);
-      // }
-    // });
-  // } catch {
-    // console.log(`Input image (${sidename}) has no EXIF data.`);
-  // }
-// }
 
 /**
  *
@@ -943,43 +921,9 @@ function loadData(data) {
   activateMaskMode(maskMode);
   drawMasks();
 }
-}
-function activateMaskMode(mode) {
-  if (maskMode == 'polygon' && mode != 'polygon') {
-    endAddPolygonNodes();
-  }
-  // $('.selected').removeClass('selected');
-  // maskMode = mode;
-  // $('.list_item.'+maskMode).addClass('selected');
-  // $('.mask_controls.'+makskMode).addClass('selected');
-  // $('.mask_explanation.'+maskMode).addClass('selected');
-  // checkGUI();
-  drawMasks();
-}
+
 
 /* Buttons */
-
-$('.measure').on('click', (event) => {
-  const target = $(event.target).attr('canvas');
-  const button = $(event.target).parent();
-  $('canvas').removeClass('scale');
-
-  if (button.hasClass('active')) {
-    // (this) scale mode was active, deactivate
-    endScaling();
-  } else {
-    // (this) scale mode was inactive, activate it
-    button.addClass('active');
-    $('#'+target+'_canvas').addClass('scale');
-    startScaling(target);
-  }
-});
-
-$('#upload_button').click(() => {
-  if (!$('#upload_button').hasClass('disabled')) {
-    uploadData();
-  }
-});
 
 $('#mask_control_opacity_slider').on('change input', (event) => {
   const sliderValue = $('#mask_control_opacity_slider').val();
@@ -990,12 +934,6 @@ $('#mask_control_opacity_slider').on('change input', (event) => {
       side.mask.auto.mask.alpha = sliderValue / 100;
     }
     side.stage.update();
-  }
-});
-
-$('#mask_control_brush_slider').on('change input', (event) => {
-  for (const side of [recto, verso]) {
-    side.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,$('#mask_control_brush_slider').val())
   }
 });
 
@@ -1022,9 +960,6 @@ $('#tpop-button-select').click(function() {
     $('#tpop-select-overlay').addClass('unrendered');
     $('#tpop-side').html('');
   }
-});
-$('#tpop-button-close').click(function() {
-  $('#tpop-select-overlay').addClass('unrendered');
 });
 
 
@@ -1192,10 +1127,6 @@ $('#mask_control_automatic_cut').click(() => {
   ipcRenderer.send('server-cut-automatic-masks', data);
 });
 
-$('#open-settings').click(function() {
-  LOGGER.send('UPLOAD', 'server-open-settings');
-  ipcRenderer.send('server-open-settings');
-});
 
 let drags = 0;
 
@@ -1251,15 +1182,6 @@ $('.overlay-drop').on('drop', (e) => {
   ipcRenderer.send('server-upload-image-given-filepath', pathArr[0]);
 });
 
-/* Input Fields */
-
-// $('.input_ppi').on('input', (event) => {
-  // checkRequiredFields();
-  // scaleImages();
-// });
-
-
-/* List */
 
 
 /* IP-COMMUNICATION */
@@ -1342,32 +1264,6 @@ ipcRenderer.on('upload-model-deleted', (event, modelID) => {
   updateAutomaticModelSelectionButtons();
 });
 
-ipcRenderer.on('tensorflow-checked', (event, tensorflowCheck) => {
-  LOGGER.receive('UPLOAD', 'tensorflow-checked', tensorflowCheck);
-  if (tensorflowCheck == true) {
-    tensorflow = true;
-    $('#mask_control_automatic_selection_panel').removeClass('unrendered');
-    drawAutoMask();
-    const request = {
-      'code': 'SEG',
-      'requiredCapacities': ['papyrus'],
-    }
-    LOGGER.send('UPLOAD', 'server-get-ml-models', request);
-    ipcRenderer.send('server-get-ml-models', request);
-  } else {
-    $('#mask_control_tensorflow_panel').removeClass('unrendered');
-  }
-});
-
-ipcRenderer.on('tensorflow-installed', (event, tensorflowInstalled) => {
-  LOGGER.receive('UPLOAD', 'tensorflow-installed', tensorflowInstalled);
-  if (tensorflowInstalled) {
-    $('#mask_control_tensorflow_panel').addClass('unrendered');
-    $('#mask_control_automatic_selection_panel').removeClass('unrendered');
-    tensorflow = true;
-  }
-})
-
 ipcRenderer.on('upload-masks-computed', (event, data) => {
   LOGGER.receive('UPLOAD', 'upload-masks-computed', data);
 
@@ -1415,27 +1311,4 @@ ipcRenderer.on('upload-images-cut', (event, data) => {
 ipcRenderer.on('upload-mask-edited', (event) => {
   LOGGER.receive('UPLOAD', 'upload-mask-edited');
   drawMasks(true);
-});
-
-ipcRenderer.on('ml-models', (event, models) => {
-  LOGGER.receive('UPLOAD', 'ml-models');
-  // for every entry in models, add a new option to #mask_automatic_model
-  for (const model of models) {
-    const modelID = model['modelID'];
-    const size = model['size'];
-    let text = `${model['name']} (${size})`;
-
-    if (model['localPath']) {
-      text = '✅ ' + text;
-    } else if (model['unreachable']) {
-      text = '❌ ' + text;
-    }
-
-    const option = $('<option>', {
-      value: modelID,
-      text: text,
-    });
-    $('#mask_automatic_model').append(option);
-  }
-  $('#mask_automatic_model').trigger('change');
 });
