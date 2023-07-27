@@ -172,6 +172,17 @@ function centerImage(event) {
 
 function measurePPI(event) {
     handleCursorModeChange(event);
+    if (controller.getCursorMode() === 'measure_recto') {
+        $('#recto_canvas').on('mousemove', handleMouseMove);
+    } else {
+        $('#recto_canvas').off('mousemove', handleMouseMove);
+    }
+
+    if (controller.getCursorMode() === 'measure_verso') {
+        $('#verso_canvas').on('mousemove', handleMouseMove);
+    } else {
+        $('#verso_canvas').off('mousemove', handleMouseMove);
+    }
 };
 
 function setCursorMode(mode) {
@@ -301,7 +312,7 @@ function toggleMaskList(event) {
         const maskMode = listItem.attr('mask_mode');
         setMaskMode(maskMode);
         if (maskMode !== 'polygon') {
-            $(`#${lastGeneralCursorMode}`).click();
+            setCursorMode(lastGeneralCursorMode);
         }
     } else {
         // open mask selection list
@@ -330,9 +341,11 @@ function setMaskMode(maskMode) {
 function resetBox() {
     controller.resetBox();
 }
+
 function undoPolygonNode() {
     controller.undoPolygonNode();
 }
+
 function clearPolygonMask() {
     controller.clearPolygonMask();
 }
@@ -426,6 +439,7 @@ function handleDragEnter(event) {
         $('#verso_upload_wrapper').addClass('unrendered');
     }
 }
+
 function handleDragLeave(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -438,9 +452,11 @@ function handleDragLeave(event) {
         $('#verso_upload_wrapper').removeClass('unrendered');
     }
 }
+
 function handleDragOver(event) {
     event.preventDefault();
 }
+
 function handleDrop(e) {
     e.preventDefault();
     dragCounter = 0;
@@ -463,6 +479,14 @@ function handleDrop(e) {
         
         send('server-upload-image-given-filepath', pathArr[0]);
     }
+}
+
+function handleMouseMove(event) {
+    let side = null;
+    if ($(event.target).attr('id').includes('canvas')) {
+        side = $(event.target).attr('id').split('_')[0];
+    }
+    controller.handleMouseMove(event, side)
 }
 
 /* ------------------------------ */
@@ -511,9 +535,6 @@ $(window).on('dragenter', handleDragEnter);
 $(window).on('dragleave', handleDragLeave);
 $(window).on('dragover', handleDragOver);
 $(window).on('drop', handleDrop);
-
-
-
 
 
 /* ------------------------------ */

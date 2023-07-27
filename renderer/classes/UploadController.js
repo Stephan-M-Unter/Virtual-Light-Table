@@ -254,6 +254,19 @@ class UploadController {
         this.verso.setBrushSize(size);
     }
 
+    handleMouseMove(event, side) {
+        if (side === 'recto') {
+            this.recto.handleMouseMove(event);
+        }
+        else if (side === 'verso') {
+            this.verso.handleMouseMove(event);
+        }
+        else {
+            this.recto.handleMouseMove(event);
+            this.verso.handleMouseMove(event);
+        }
+    }
+
 }
 
 module.exports.UploadController = UploadController;

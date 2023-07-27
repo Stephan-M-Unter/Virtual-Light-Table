@@ -13,6 +13,8 @@ class UploadCanvas {
         this.cursor = new createjs.Shape(new createjs.Graphics().beginStroke('black').drawCircle(0,0,50));
         this.ppi1 = null;
         this.ppi2 = null;
+        this.scaleGroup = null;
+        this.scaleLine = null;
 
         this.clearProp();
         this.stage.enableMouseOver();
@@ -136,6 +138,10 @@ class UploadCanvas {
         this.__drawImages();
         if (this.prop.image !== null) {
             this.__drawMask();
+        }
+
+        if (this.scaleGroup !== null) {
+            this.prop.displayed.push(this.scaleGroup);
         }
 
         this.__addDisplayedToStage();
@@ -274,15 +280,17 @@ class UploadCanvas {
         return polygon;
     }
 
-    __createVertex(vertex_coordinates, circle=false) {
+    __createVertex(vertex_coordinates, circle=false, color=null) {
+        const fillColor = color || 'lightgreen';
+        const outlineColor = color || 'green';
+
         const size = 10;
         const x = vertex_coordinates[0] - (size / 2);
         const y = vertex_coordinates[1] - (size / 2);
         const vertex = new createjs.Shape();
-        vertex.graphics.setStrokeStyle(1).beginStroke('green');
-        vertex.graphics.beginFill('lightgreen');
+        vertex.graphics.setStrokeStyle(1).beginStroke(outlineColor).beginFill(fillColor);
         if (circle) {
-            vertex.graphics.drawCircle(x+(size/2), y+(size/2), size / 2);
+            vertex.graphics.drawCircle(x, y, size / 2);
         } else {
             vertex.graphics.drawRect(x, y, size, size);
         }
@@ -593,9 +601,19 @@ class UploadCanvas {
 
     __measure_ppi(x, y) {
         if (this.ppi1 === null) {
+            this.scaleGroup = new createjs.Container();
+            this.scaleGroup.name = 'scaleGroup';
+            const p1 = this.__createVertex([x, y], true);
+            this.scaleGroup.addChild(p1);
+            this.scaleLine = new createjs.Shape();
+            this.__drawScaleLine(x, y);
+            this.scaleGroup.addChild(this.scaleLine);
             this.ppi1 = [x, y];
+            this.draw();
         }
         else if (this.ppi2 === null) {
+            this.scaleGroup = null;
+            this.scaleLine = null;
             this.ppi2 = [x, y];
 
             const ppi = this.__computePPI(this.ppi1, this.ppi2);
@@ -645,10 +663,12 @@ class UploadCanvas {
             this.__measure_ppi(stageX, stageY);
         }
     }
+    
     handleMouseUp() {
         this.mouse.x = null;
         this.mouse.y = null;
     }
+    
     handlePressMove(event) {
         const dx = event.stageX - this.mouse.x;
         const dy = event.stageY - this.mouse.y;
@@ -670,8 +690,23 @@ class UploadCanvas {
         this.mouse.x = event.stageX;
         this.mouse.y = event.stageY;
     }
+    
     handleMouseMove(event) {
+        const x = event.pageX - this.canvas.offset().left;
+        const y = event.pageY - this.canvas.offset().top;
 
+        this.__drawScaleLine(x, y);
+        this.draw();
+    }
+    
+    __drawScaleLine(x, y) {
+        if (this.ppi1 === null) {
+            return;
+        }
+        this.scaleLine.graphics.clear();
+        this.scaleLine.graphics.setStrokeStyle(2).beginStroke('lightgreen')
+            .moveTo(this.ppi1[0]-5, this.ppi1[1]-5)
+            .lineTo(x-5, y-5);
     }
 
     scaleImage(ppi) {
