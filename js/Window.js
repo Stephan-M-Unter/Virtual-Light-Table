@@ -110,6 +110,8 @@ const updateProps = {
   height: 800,
   icon: './imgs/icons/png/logo.png',
   show: false,
+  frame: false,
+  resizable: false,
   webPreferences: {
     nodeIntegration: true,
     contextIsolation: false,

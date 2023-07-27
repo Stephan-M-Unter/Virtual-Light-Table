@@ -11,10 +11,11 @@ html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background-color: rgb(255, 252, 210);
 }
 
 body {
-    border: 8px solid black;
+    border: 8px solid rgb(255, 220, 24);
     height: calc(100% - 20px);
     width: calc(100% - 10px);
     padding: 10px;
@@ -34,6 +35,12 @@ body {
     justify-content: center;
     align-items: center;
     align-content: center;
+}
+
+.align-center {
+    align-items: center;
+    align-content: center;
+    text-align: center;
 }
 
 .grid {
