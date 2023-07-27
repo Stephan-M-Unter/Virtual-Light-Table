@@ -116,6 +116,12 @@ input[type="text"] {
     width: 100px;
 }
 
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    vertical-align: bottom;
+}
+
 input.error {
     background-color: red;
 }

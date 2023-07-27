@@ -2,11 +2,11 @@ const { ipcRenderer } = require("electron");
 const LOGGER = require('../statics/LOGGER');
 
 $(document).ready(function() {
+    $('#save-path').attr('readonly', true);
     const request = {
         'code': '',
         'requiredCapacities': [],
     }
-    ipcRenderer.send('server-get-ml-models', request);
 });
 
 function loadData(config) {
@@ -26,6 +26,9 @@ function loadData(config) {
     if ('stepZoom' in config && config.stepZoom) {
         $('#stepZoom').val(config.stepZoom);
     }
+    if (!('ignoreUpdates') in config || !config.ignoreUpdates) {
+        $('#check-for-updates').prop('checked', true);
+    }
 }
 
 function saveData() {
@@ -35,6 +38,7 @@ function saveData() {
         'maxZoom': $('#maxZoom').val(),
         'stepZoom': $('#stepZoom').val(),
         'vltFolder': $('#save-path').val(),
+        'ignoreUpdates': !$('#check-for-updates').is(':checked'),
     };
     if (verifyZoomValues()) {
         ipcRenderer.send('server-save-config', config);
@@ -204,12 +208,6 @@ $('#ml-models').change(function() {
 $('#ml-download').click(downloadModel);
 $('#ml-delete').click(deleteModel);
 
-
-$(document).ready(function() {
-    $('#save-path').attr('readonly', true);
-    LOGGER.send('SETTINGS', 'server-settings-opened');
-    ipcRenderer.send('server-settings-opened');
-});
 
 ipcRenderer.on('settings-data', (event, settingsData) => {
     LOGGER.receive('settings-data', settingsData);

@@ -3,12 +3,14 @@
 const fs = require('fs-extra');
 const LOGGER = require("../statics/LOGGER");
 const {CONFIG} = require("../statics/CONFIG");
+const https = require('follow-redirects').https;
 
 class ConfigManager {
 
-    constructor(vltConfigFilePath) {
+    constructor(vltConfigFilePath, version) {
         this.vltConfigFilePath = vltConfigFilePath;
         this.config = null;
+        this.version = version;
         this.registeredManagers = [];
         this.initialise();
     }
@@ -142,6 +144,54 @@ class ConfigManager {
         }
     }
 
+    checkForUpdates() {
+        return new Promise((resolve, reject) => {
+            if (this.config.ignoreUpdates) {
+                resolve(false);
+            }
+            const accessKey = "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";
+            const updatePath = "https://huggingface.co/S-Unter/VLT/resolve/main/VLT.json";
+            const request = https.get(updatePath, {headers: {'Authorization': `Bearer ${accessKey}`}}, (response) => {
+                let data = '';
+                response.on('data', (chunk) => {
+                    data += chunk;
+                });
+
+                response.on('end', () => {
+                    try {
+
+                        const versionData = JSON.parse(data);
+                        const version = versionData.version;
+                        const mainVersion = version.split(".")[0];
+                        const subVersion = version.split(".")[1];
+                        
+                        const currentMainVersion = this.version.split(".")[0];
+                        const currentSubVersion = this.version.split(".")[1];
+                        
+                        const updateAvailable = (mainVersion > currentMainVersion) || (mainVersion == currentMainVersion && subVersion > currentSubVersion);
+                        versionData.updateAvailable = updateAvailable;
+                        versionData.currentVersion = this.version;
+                        resolve(versionData);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+
+                response.on('error', (error) => {
+                    reject(error);
+                });
+            });
+
+            request.on('error', (error) => {
+                reject(error);
+            });
+        });
+    }
+
+    ignoreUpdates() {
+        this.config.ignoreUpdates = true;
+        this.save();
+    }
 }
 
 module.exports = ConfigManager;

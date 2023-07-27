@@ -1,6 +1,7 @@
 const LOGGER = require('../statics/LOGGER');
 const Window = require('../js/Window');
 const path = require('path');
+const {shell} = require('electron');
 
 function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
     ipcMain.on('server-close-table', (event, tableID) => {
@@ -256,6 +257,23 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
       tableData: get('tableManager').getTable(tableID),
     }
     send(event.sender, 'client-load-model', response);
+  });
+
+  ipcMain.on('server-close-update', () => {
+    LOGGER.receive('SERVER', 'server-close-update');
+    get('updateWindow').close();
+  });
+
+  ipcMain.on('server-open-update-page', () => {
+    LOGGER.receive('SERVER', 'server-open-update-page');
+    // open a new browser window leading to https://stephan-m-unter.github.io/VLT-electron/index.html
+  
+    shell.openExternal('https://stephan-m-unter.github.io/VLT-electron/index.html');
+  });
+
+  ipcMain.on('server-ignore-updates', () => {
+    LOGGER.receive('SERVER', 'server-ignore-updates');
+    get('configManager').ignoreUpdates();
   });
 }
   

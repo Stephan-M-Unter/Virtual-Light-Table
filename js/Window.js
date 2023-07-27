@@ -72,7 +72,7 @@ const calibrationProps = {
 
 const settingsProps = {
   width: 900,
-  height: 500,
+  height: 600,
   icon: './imgs/icons/png/logo.png',
   show: false,
   webPreferences: {
@@ -105,6 +105,17 @@ const exportProps = {
   },
 }
 
+const updateProps = {
+  width: 600,
+  height: 800,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+}
+
 const propsPresets = {
   'main': mainProps,
   'tpop': tpopProps,
@@ -114,6 +125,7 @@ const propsPresets = {
   'load': loadProps,
   'start': startProps,
   'export': exportProps,
+  'update': updateProps,
 }
 
 /**

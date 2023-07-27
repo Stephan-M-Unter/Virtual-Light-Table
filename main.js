@@ -40,7 +40,7 @@ let tpopEnabled = true;
 if (process.argv.includes('--dev')) {
   devMode = true;
 }
-const version = 'v0.5';
+const version = '0.5';
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 LOGGER.start(path.join(appDataPath, 'Virtual Light Table'), version);
@@ -71,6 +71,7 @@ let calibrationWindow;
 let settingsWindow;
 let tpopWindow;
 let exportWindow;
+let updateWindow;
 
 const color = {
   success: 'rgba(0,255,0,0.6)',
@@ -120,6 +121,7 @@ function get(key) {
     'tpopEnabled': tpopEnabled,
     'tpopManager': tpopManager,
     'tpopWindow': tpopWindow,
+    'updateWindow': updateWindow,
     'uploadLocalImage': uploadLocalImage,
     'uploadTpopImages': uploadTpopImages,
     'uploadWindow': uploadWindow,
@@ -154,6 +156,8 @@ function set(key, value) {
     tpopEnabled = value;
   } else if (key === 'tpopWindow') {
     tpopWindow = value;
+  } else if (key == 'updateWindow') {
+    updateWindow = value;
   } else if (key === 'uploadWindow') {
     uploadWindow = value;
   } else if (key === 'online') {
@@ -205,6 +209,40 @@ async function startUp(callback) {
     LOGGER.log('STARTUP', 'Registering EventHandlers...');
     sendMessage(startWindow, 'startup-status', 'Registering EventHandlers...');
     registerEventHandlers();
+    LOGGER.log('STARTUP', 'Checking for updated versions...');
+    sendMessage(startWindow, 'startup-status', 'Checking for updated versions...');
+    await configManager.checkForUpdates()
+      .then((versionData) => {
+          console.log(versionData);
+          if (versionData.updateAvailable) {
+            updateWindow = new Window({
+              file: './renderer/update.html',
+              type: 'update',
+              devMode: devMode,
+            });
+            updateWindow.setAlwaysOnTop(true);
+            updateWindow.webContents.setWindowOpenHandler(({url}) => {
+              return {
+              action: 'allow',
+              overrideBrowserWindowOptions: {
+                  frame: true,
+                  width: 1500,
+                  height: 2000,
+              }
+              };
+          });
+            updateWindow.webContents.on('did-finish-load', () => {
+                updateWindow.show();
+                sendMessage(updateWindow, 'update-available', versionData);
+            });
+            updateWindow.on('close', () => {
+              updateWindow = null;
+            });
+          }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
     LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
     sendMessage(startWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
     callback();
@@ -215,7 +253,7 @@ async function startUp(callback) {
 }
 
 function createManagers() {
-  configManager = new ConfigManager(vltConfigFile);
+  configManager = new ConfigManager(vltConfigFile, version);
   saveManager = new SaveManager();
   mlManager = new MLManager();
 
