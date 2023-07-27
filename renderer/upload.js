@@ -4,11 +4,13 @@ const {ipcRenderer} = require('electron');
 const { UploadController } = require('./classes/UploadController.js');
 const LOGGER = require('../statics/LOGGER');
 const Dialogs = require('dialogs');
+const { external } = require('jszip');
 
 const controller = new UploadController('recto_canvas', 'verso_canvas', notify);
 
 let canvasLock = null;
 let tensorflow_available = null;
+let dragCounter = 0; // neccessary event counter for file drag&drop
 let lastGeneralCursorMode = "move"; // last mode applicable to all maskModes, needed in case of mask switch (see setMaskMode())
 
 $(document).ready(function () {
@@ -411,6 +413,58 @@ function closeTPOPAlternatives() {
 function downloadModel(event) {}
 function computeMask(event) {}
 
+function handleDragEnter(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragCounter += 1;
+    if (!controller.recto.isActive()) {
+      $('#recto_canvas_region .overlay-drop').css('display', 'flex');
+      $('#recto_upload_wrapper').addClass('unrendered');
+    }
+    if (!controller.verso.isActive()) {
+        $('#verso_canvas_region .overlay-drop').css('display', 'flex');
+        $('#verso_upload_wrapper').addClass('unrendered');
+    }
+}
+function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragCounter -= 1;
+    if (dragCounter <= 0) {
+        dragCounter = 0;
+        $('#recto_canvas_region .overlay-drop').css('display', 'none');
+        $('#verso_canvas_region .overlay-drop').css('display', 'none');
+        $('#recto_upload_wrapper').removeClass('unrendered');
+        $('#verso_upload_wrapper').removeClass('unrendered');
+    }
+}
+function handleDragOver(event) {
+    event.preventDefault();
+}
+function handleDrop(e) {
+    e.preventDefault();
+    dragCounter = 0;
+    $('#recto_canvas_region .overlay-drop').css('display', 'none');
+    $('#verso_canvas_region .overlay-drop').css('display', 'none');
+    $('#recto_upload_wrapper').removeClass('unrendered');
+    $('#verso_upload_wrapper').removeClass('unrendered');
+
+    if ($(e.target).hasClass('drop') && canvasLock === null) {
+        e.stopPropagation();
+        canvasLock = $(e.target).attr('canvas')
+        if (!canvasLock) {
+            // if the canvasLock is not yet set, try with the parent element
+            canvasLock = $(e.target).parent().attr('canvas')
+        }
+        let pathArr = [];
+        for (const f of event.dataTransfer.files) {
+          pathArr.push(f.path);
+        }
+        
+        send('server-upload-image-given-filepath', pathArr[0]);
+    }
+}
+
 /* ------------------------------ */
 /*           EVENTS               */
 /* ------------------------------ */
@@ -428,6 +482,7 @@ $('.center').click(centerImage);
 $('.measure').click(measurePPI);
 $('.input_ppi').on('input', scaleImages);
 $('.list_item').click(toggleMaskList);
+$('.overlay-drop').on('drop', handleDrop);
 
 $('#move').click(handleCursorModeChange);
 $('#swap').click(swapImages);
@@ -452,6 +507,10 @@ $('#recto_canvas').on('mousedown', handleMouseDown);
 $('#verso_canvas').on('mousedown', handleMouseDown);
 $(window).on('mouseup', handleMouseUp);
 $(window).on('mouseup', handleMouseUp);
+$(window).on('dragenter', handleDragEnter);
+$(window).on('dragleave', handleDragLeave);
+$(window).on('dragover', handleDragOver);
+$(window).on('drop', handleDrop);
 
 
 
