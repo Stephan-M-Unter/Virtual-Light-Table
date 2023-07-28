@@ -203,31 +203,31 @@
                         <div id="mask_control_panel_automatic" class="mask_controls automatic automatic_cut unrendered wrapper-row">
                             <div class="wrapper-col" id="wrapper-brush">
                                 <div class="wrapper-row">
-                                    <div id="mask_control_automatic_draw" class="mask_control_button button square">
-                                        <img src="../imgs/symbol_brush.png"/>
+                                    <div id="auto-draw" class="mask_control_button button square" mode="auto-draw">
+                                        <img draggable="false" src="../imgs/symbol_brush.png" mode="auto-draw"/>
                                     </div>
-                                    <div id="mask_control_automatic_erase" class="mask_control_button button square">
-                                        <img src="../imgs/symbol_erase.png"/>
+                                    <div id="auto-erase" class="mask_control_button button square" mode="auto-erase">
+                                        <img draggable="false" src="../imgs/symbol_erase.png" mode="auto-erase"/>
                                     </div>
                                 </div>
                                 <div class="wrapper-row">
-                                    <img class="small_image" src="../imgs/symbol_size.png"/>
-                                    <input type="range" min="1" max="100" value="50" id="mask_control_brush_slider">
+                                    <img draggable="false" class="small_image" src="../imgs/symbol_size.png"/>
+                                    <input class="no-select" type="range" min="1" max="100" value="50" id="mask_control_brush_slider">
                                 </div>
                             </div>
                             <div class="wrapper-row" id="wrapper-light">
-                                <input type="range" min="0" max="100" value="70" id="mask_control_opacity_slider">
+                                <input class="no-select" type="range" min="0" max="100" value="70" id="mask_control_opacity_slider">
                                 <div class="wrapper-col" id="wrapper-light-symbols">
-                                    <img class="small_image" src="../imgs/symbol_bright.png"/>
-                                    <img class="small_image" src="../imgs/symbol_dark.png"/>
+                                    <img draggable="false" class="small_image" src="../imgs/symbol_bright.png"/>
+                                    <img draggable="false" class="small_image" src="../imgs/symbol_dark.png"/>
                                 </div>
                             </div>
                             <div class="wrapper-row">
-                                <div id="mask_control_automatic_cut" class="mask_control_button button large_button_flexible">
+                                <div id="auto-cut" class="mask_control_button button large_button_flexible disabled">
                                     <img src="../imgs/symbol_cut.png"/>
                                     <label>Cut</label>
                                 </div>
-                                <div id="mask_control_automatic_delete" class="mask_control_button button square">
+                                <div id="auto-delete" class="mask_control_button button square">
                                     <img src="../imgs/symbol_bin.png"/>
                                 </div>
                             </div>

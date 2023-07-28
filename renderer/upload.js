@@ -6,7 +6,7 @@ const LOGGER = require('../statics/LOGGER');
 const Dialogs = require('dialogs');
 const { external } = require('jszip');
 
-const controller = new UploadController('recto_canvas', 'verso_canvas', notify);
+const controller = new UploadController('recto_canvas', 'verso_canvas', notify, sendMaskChange);
 
 let canvasLock = null;
 let tensorflow_available = null;
@@ -30,7 +30,23 @@ function notify() {
     checkMeasuring();
     gatherPPI();
     checkFields();
+    checkMasksComplete();
     updateGUI();
+}
+
+function sendMaskChange(side, maskURL, changeURL) {
+    const activeModelID = $('#mask_automatic_model').val();
+    const add = controller.getCursorMode() === 'auto-draw';
+
+    const data = {
+        modelID: activeModelID,
+        canvas: side,
+        maskURL: maskURL,
+        change: changeURL,
+        add: add,
+    };
+    
+    send('server-edit-auto-mask', data);
 }
 
 function checkActiveCanvases() {
@@ -72,15 +88,17 @@ function checkActiveCanvases() {
 }
 
 function gatherPPI() {
-    let recto_ppi = controller.getProperty('recto', 'ppi');
-    if ((!isNaN(recto_ppi)) && (recto_ppi !== null) && (recto_ppi !== '')) {
+    let recto_ppi = parseFloat(controller.getProperty('recto', 'ppi')) || '';
+    if (!(isNaN(recto_ppi)) && (recto_ppi !== null) && (recto_ppi !== '')) {
         recto_ppi = recto_ppi.toFixed(2);
     }
     $('#recto_ppi').val(recto_ppi);
 
-    let verso_ppi = controller.getProperty('verso', 'ppi');
-    if ((!isNaN(verso_ppi)) && (verso_ppi !== null) && (verso_ppi !== '')) {
-        verso_ppi = verso_ppi.toFixed(2);
+    let verso_ppi = parseFloat(controller.getProperty('verso', 'ppi')) || '';
+    if (!(isNaN(verso_ppi)) && (verso_ppi !== null) && (verso_ppi !== '')) {
+        if (!(Number.isInteger(verso_ppi))) {
+            verso_ppi = verso_ppi.toFixed(2);
+        }
     }
     $('#verso_ppi').val(verso_ppi);
 }
@@ -202,10 +220,22 @@ function measurePPI(event) {
     }
 };
 
+function brush(event) {
+    handleCursorModeChange(event);
+    console.log(`CursorMode currently: ${controller.getCursorMode()}`);
+    if (controller.getCursorMode() === 'auto-draw' || controller.getCursorMode() === 'auto-erase') {
+        $('#recto_canvas').on('mousemove', handleMouseMove);
+    }
+    else {
+        $('#recto_canvas').off('mousemove', handleMouseMove);
+    }
+}
+
 function setCursorMode(mode) {  
+    console.log('setCursorMode', mode);
     $('.active_mode').removeClass('active_mode');
-    $('#recto_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure');
-    $('#verso_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure');
+    $('#recto_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure auto_draw auto_erase');
+    $('#verso_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure auto_draw auto_erase');
 
     $('.active_mode').removeClass('active_mode');
 
@@ -405,15 +435,13 @@ function openSettings() {
 }
 
 function selectModel(event) {
-    console.log("'HIIIIIIIIII");
     const modelID = $(event.target).val();
     const modelName = $(event.target).find(':selected').text();
-
-    console.log(modelID, modelName);
 
     if (modelName.includes('✅')) {
         $('#model-download').addClass('unrendered');
         $('#compute-mask').removeClass('unrendered');
+        controller.setModel(modelID);
     } else {
         $('#model-download').removeClass('unrendered');
         $('#compute-mask').addClass('unrendered');
@@ -441,7 +469,10 @@ function uploadData() {
     send('server-upload-ready', data);
 }
 
-function updateMaskOpacity(event) {}
+function updateMaskOpacity(event) {
+    const opacity = $('#mask_control_opacity_slider').val() / 100;
+    controller.setMaskOpacity(opacity);
+}
 
 function updateBrushSize(event) {
     const size = $('#mask_control_brush_slider').val();
@@ -477,7 +508,72 @@ function closeTPOPAlternatives() {
 }
 
 function downloadModel(event) {}
-function computeMask(event) {}
+
+function computeMask(event) {
+    checkFields();
+
+    let missingRectoPPI = false;
+    if (controller.hasContent('recto') && ($('#recto_ppi').hasClass('missing'))) missingRectoPPI = true;
+    let missingVersoPPI = false;
+    if (controller.hasContent('verso') && ($('#verso_ppi').hasClass('missing'))) missingVersoPPI = true;
+
+    if (!missingRectoPPI && !missingVersoPPI) {
+        const modelID = $('#mask_automatic_model').val();
+    //   modelsDownloaded[modelID] = 'processing';
+    //   updateAutomaticModelSelectionButtons();
+        const data = {
+            modelID: modelID,
+            pathImage1: controller.getProperty('recto', 'filepath'),
+            pathImage2: controller.getProperty('verso', 'filepath'),
+            ppi1: controller.getProperty('recto', 'ppi'),
+            ppi2: controller.getProperty('verso', 'ppi')
+        };
+        send('server-compute-automatic-masks', data);
+
+        const button = $('#compute-mask');
+        const buttonLabel = $('#compute-mask label');
+        const buttonImage = $('#compute-mask img');
+        buttonLabel.html('Loading...');
+        buttonImage.attr('src', '../imgs/symbol_gear.png');
+        button.addClass('loading');
+    }
+}
+
+function masksComputed(data) {
+    const button = $('#compute-mask');
+    const buttonLabel = $('#compute-mask label');
+    const buttonImage = $('#compute-mask img');
+    button.removeClass('loading');
+    if (data == null) {
+        /* some error happened, most likely with the execution of the script */
+        buttonLabel.html('ERROR!');
+        buttonImage.attr('src', '../imgs/symbol_exit.png');
+    } else {
+        // modelsDownloaded[data.modelID] = true;
+        // updateAutomaticModelSelectionButtons();
+        $('#mask_control_panel_automatic').removeClass('unrendered');
+        controller.setMask('recto', data.pathMask1);
+        controller.setMask('verso', data.pathMask2);
+        controller.draw();
+
+        buttonLabel.html('Compute Mask(s)');
+        buttonImage.attr('src', '../imgs/symbol_ml.png');
+    }
+    notify();
+}
+
+function checkMasksComplete() {
+    const modelID = $('#mask_automatic_model').val();
+    const rectoMask = !(controller.hasContent('recto')) || controller.getAutoMask('recto', modelID) != null;
+    const versoMask = !(controller.hasContent('verso')) || controller.getAutoMask('verso', modelID) != null;
+    if (rectoMask && versoMask) {
+        console.log('all okay');
+        $('#auto-cut').removeClass('disabled');
+    } else {
+        console.log('not okay');
+        $('#auto-cut').addClass('disabled');
+    }
+}
 
 function handleDragEnter(event) {
     event.preventDefault();
@@ -572,6 +668,63 @@ function resizeCanvases() {
     controller.resize();
 }
 
+function checkRequiredAutoFields() {
+    checkFields();
+    if ($('#recto_ppi').hasClass('missing') && controller.hasContent('recto')) {
+        $('#recto_ppi').addClass('missing_pulse');
+        $('#compute-mask').addClass('missing_pulse');
+    }
+    if ($('#verso_ppi').hasClass('missing') && controller.hasContent('verso')) {
+        $('#verso_ppi').addClass('missing_pulse');
+        $('#compute-mask').addClass('missing_pulse');
+    }
+}
+
+function endCheckRequiredAutoFields() {
+    $('#recto_ppi').removeClass('missing_pulse');
+    $('#verso_ppi').removeClass('missing_pulse');
+    $('#compute-mask').removeClass('missing_pulse');
+}
+
+function autoCut() {
+    const buttonDisabled = $('#auto-cut').hasClass('disabled');
+    if (buttonDisabled) {
+        return;
+    }
+
+    $('#mask_control_automatic_cut').addClass('loading');
+    const modelID = $('#mask_automatic_model').find(":selected").val();
+
+    const pathImage1 = controller.getProperty('recto', 'filepath');
+    const pathImage2 = controller.getProperty('verso', 'filepath');
+
+    const pathMask1 = controller.getAutoMask('recto', modelID);
+    const pathMask2 = controller.getAutoMask('verso', modelID);
+
+    const data = {
+        'modelID': modelID,
+        'image1': pathImage1,
+        'mask1': pathMask1,
+        'image2': pathImage2,
+        'mask2': pathMask2,
+    }
+
+    send('server-cut-automatic-masks', data);
+}
+
+function cutsComputed(data) {
+    $('#mask_control_automatic_cut').removeClass('loading');
+    if (data) {
+        controller.setCut('recto', data.cut1);
+        controller.setCut('verso', data.cut2);
+    }
+}
+
+function autoDelete() {
+    const modelID = $('#mask_automatic_model').find(":selected").val();
+    controller.autoDeleteCut(modelID);
+}
+
 /* ------------------------------ */
 /*           EVENTS               */
 /* ------------------------------ */
@@ -606,9 +759,15 @@ $('#tpop-select').click(selectTPOPAlternative);
 $('#tpop-close').click(closeTPOPAlternatives);
 $('#model-download').click(downloadModel);
 $('#compute-mask').click(computeMask);
+$('#compute-mask').on('mouseover', checkRequiredAutoFields);
+$('#compute-mask').on('mouseout', endCheckRequiredAutoFields);
 $('#mask_automatic_model').on('change', selectModel);
 $('#mask_control_opacity_slider').on('change input', updateMaskOpacity);
 $('#mask_control_brush_slider').on('change input', updateBrushSize);
+$('#auto-draw').click(brush);
+$('#auto-erase').click(brush);
+$('#auto-cut').click(autoCut);
+$('#auto-delete').click(autoDelete);
 
 $('#recto_canvas').on('mousedown', handleMouseDown);
 $('#verso_canvas').on('mousedown', handleMouseDown);
@@ -690,16 +849,20 @@ ipcRenderer.on('tensorflow-installed', (event, tensorflow_installed) => {
 /* upload-masks-computed */
 ipcRenderer.on('upload-masks-computed', (event, data) => {
     LOGGER.receive('UPLOAD', 'upload-masks-computed', data);
+    masksComputed(data);
 });
 
 /* upload-images-cut */
 ipcRenderer.on('upload-images-cut', (event, data) => {
     LOGGER.receive('UPLOAD', 'upload-images-cut', data);
+    cutsComputed(data);
 });
 
 /* upload-mask-edited */
 ipcRenderer.on('upload-mask-edited', (event) => {
     LOGGER.receive('UPLOAD', 'upload-mask-edited');
+    const modelID = $('#mask_automatic_model').find(":selected").val();
+    controller.removeAutoMask(modelID);
     controller.draw();
 });
 

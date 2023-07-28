@@ -4,10 +4,11 @@ const { UploadCanvas } = require('./UploadCanvas');
 
 class UploadController {
 
-    constructor(canvas_id_recto, canvas_id_verso, notifyRenderer) {
+    constructor(canvas_id_recto, canvas_id_verso, notifyRenderer, sendMaskChange) {
         this.recto = new UploadCanvas(this, canvas_id_recto);
         this.verso = new UploadCanvas(this, canvas_id_verso);
         this.notifyRenderer = notifyRenderer;
+        this.sendMaskChange = sendMaskChange;
 
         this.cursorMode = 'move';
         this.maskMode = 'no_mask';
@@ -102,10 +103,7 @@ class UploadController {
     }
 
     setCursorMode(mode) {
-        const validModes = ['move', 'rotate', 'add_polygon_node', 'remove_polygon_node', 'none', 'measure_recto', 'measure_verso'];
-        if (validModes.includes(mode)) {
-            this.cursorMode = mode;
-        }
+        this.cursorMode = mode;
     }
 
     setMaskMode(mode) {
@@ -297,6 +295,68 @@ class UploadController {
         return data;
     }
 
+    setModel(modelID) {
+        this.recto.setModel(modelID);
+        this.verso.setModel(modelID);
+    }
+
+    setMask(side, path) {
+        if (side === 'recto') {
+            this.recto.setMask(path);
+        }
+        else if (side === 'verso') {
+            this.verso.setMask(path);
+        }
+    }
+
+    getAutoMask(side, modelID) {
+        if (side === 'recto') {
+            return this.recto.getAutoMask(modelID);
+        }
+        else if (side === 'verso') {
+            return this.verso.getAutoMask(modelID);
+        }
+    }
+
+    setCut(side, path) {
+        if (side === 'recto') {
+            this.recto.setCut(path);
+        }
+        else if (side === 'verso') {
+            this.verso.setCut(path);
+        }
+    }
+
+    setMaskOpacity(opacity) {
+        this.recto.setMaskOpacity(opacity);
+        this.verso.setMaskOpacity(opacity);
+    }
+
+    autoDeleteCut(modelID) {
+        this.recto.autoDeleteCut(modelID);
+        this.verso.autoDeleteCut(modelID);
+    }
+
+    isBrushing() {
+        return this.cursorMode === 'auto-draw' || this.cursorMode === 'auto-erase';
+    }
+
+    getBrushColor() {
+        if (this.cursorMode === 'auto-draw') {
+            return 'green';
+        }
+        else if (this.cursorMode === 'auto-erase') {
+            return 'red';
+        }
+        else {
+            return null;
+        }
+    }
+
+    removeAutoMask(modelID) {
+        this.recto.removeAutoMask(modelID);
+        this.verso.removeAutoMask(modelID);
+    }
 }
 
 module.exports.UploadController = UploadController;

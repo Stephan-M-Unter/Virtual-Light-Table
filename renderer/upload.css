@@ -23,7 +23,10 @@
     to { border-width: 5px; }
 }
 
-.missing_pulse {
+#compute-mask.missing_pulse,
+input.missing_pulse,
+.missing_pulse
+{
     border: 1px solid red;
     animation-name: missing_pulsate;
     animation-iteration-count: infinite;

@@ -11,10 +11,14 @@ class UploadCanvas {
         this.side = canvas_id.split('_')[0];
         
         this.cursor = new createjs.Shape(new createjs.Graphics().beginStroke('black').drawCircle(0,0,50));
+        this.brushing = false;
         this.ppi1 = null;
         this.ppi2 = null;
         this.scaleGroup = null;
         this.scaleLine = null;
+        this.borderSize = 4;
+
+        this.brushSize = 50;
 
         this.clearProp();
         this.stage.enableMouseOver();
@@ -35,6 +39,7 @@ class UploadCanvas {
             x: null,
             y: null,
             scale: 1,
+            maskOpacity: 0.7,
             ppi: null,
             is_www: false,
             maskGroup: null,
@@ -47,7 +52,7 @@ class UploadCanvas {
             activeMask: null,
             activeCut: null,
             activeModelID: null,
-            maskMode: 'no_mask',
+            manualDrawing: null,
             displayed: [],
         }
     }
@@ -119,6 +124,7 @@ class UploadCanvas {
                 image.scaleY = (96/ppi) * this.prop.scale;
             }
         }
+        this.draw();
     } 
 
     hasContent() {
@@ -144,6 +150,10 @@ class UploadCanvas {
 
         if (this.scaleGroup !== null) {
             this.prop.displayed.push(this.scaleGroup);
+        }
+
+        if (this.controller.isBrushing()) {
+            this.prop.displayed.push(this.cursor);
         }
 
         this.__addDisplayedToStage();
@@ -173,18 +183,98 @@ class UploadCanvas {
         this.prop.maskGroup.removeAllChildren();
         this.prop.image.mask = null;
         const maskMode = this.controller.getMaskMode();
+
         if (maskMode === 'boundingbox') {
             this.__drawBox();
+            this.prop.displayed.push(this.prop.maskGroup);
         }
+
         else if (maskMode === 'polygon') {
             this.__drawPolygon();
+            this.prop.displayed.push(this.prop.maskGroup);
         }
-        else if (maskMode === 'automatic') {
 
+        else if (maskMode === 'automatic') {
+            const hasMask = this.prop.autoMaskPaths.hasOwnProperty(this.prop.activeModelID);
+            const hasCut = this.prop.autoCutPaths.hasOwnProperty(this.prop.activeModelID);
+            if (hasCut) {
+                this.__drawAutoCut();
+            }
+            else if (hasMask) {
+                this.__drawAutoMask();
+                this.prop.displayed.push(this.prop.maskGroup);
+            }
         }
         else {
             this.prop.image.mask = null;
         }
+    }
+
+    __drawAutoCut() {
+        if (!(this.prop.autoCutPaths.hasOwnProperty(this.prop.activeModelID))) {
+            return;
+        }
+
+        if (this.prop.autoCuts.hasOwnProperty(this.prop.activeModelID)) {
+            this.prop.displayed = [];
+            const cut = this.prop.autoCuts[this.prop.activeModelID];
+            cut.regX = cut.image.width / 2;
+            cut.regY = cut.image.height / 2;
+            cut.x = this.canvas.width() / 2;
+            cut.y = this.canvas.height() / 2;
+            cut.scale = this.prop.image.scale;
+            this.prop.displayed.push(this.prop.shadow);
+            this.prop.displayed.push(cut);
+        } else {
+            const cut = new Image();
+            const cutPath = this.prop.autoCutPaths[this.prop.activeModelID];
+            cut.src = `${cutPath}?_=${Date.now()}`;
+            cut.onload = () => {
+                const bitmap = new createjs.Bitmap(cut);
+                bitmap.name = `Automatic Cut (${this.prop.activeModelID})`;
+                this.prop.autoCuts[this.prop.activeModelID] = bitmap;
+                this.draw();
+            };
+        }
+    }
+
+    __drawAutoMask() {
+        if (!(this.prop.autoMaskPaths.hasOwnProperty(this.prop.activeModelID))) {
+            return;
+        }
+
+        if (this.prop.autoMasks.hasOwnProperty(this.prop.activeModelID)) {
+            // the mask has already been loaded
+            const mask = this.prop.autoMasks[this.prop.activeModelID];
+            mask.x = this.prop.x;
+            mask.y = this.prop.y;
+            mask.regX = this.prop.image.regX;
+            mask.regY = this.prop.image.regY;
+            mask.rotation = this.prop.image.rotation;
+            mask.scale = this.prop.image.scale;
+            mask.alpha = this.prop.maskOpacity;
+            this.prop.maskGroup.addChild(mask);
+
+            if (this.prop.manualDrawing !== null) {
+                this.prop.maskGroup.addChild(this.prop.manualDrawing);
+            }
+        } else {
+            // we still need to load the image into a Bitmap
+            const mask = new Image();
+            const maskPath = this.prop.autoMaskPaths[this.prop.activeModelID];
+            mask.src = `${maskPath}?_=${+new Date()}`;
+            mask.onload = () => {
+                const bitmap = new createjs.Bitmap(mask);
+                bitmap.name = `Automatic Mask (${this.prop.activeModelID})`;
+                this.prop.autoMasks[this.prop.activeModelID] = bitmap;
+                this.draw();
+            };
+        }
+    }
+
+    setMaskOpacity(opacity) {
+        this.prop.maskOpacity = opacity;
+        this.draw();
     }
 
     __drawBox() {
@@ -219,7 +309,6 @@ class UploadCanvas {
         });
 
         this.prop.maskGroup.addChild(box, b1, b2, b3, b4);
-        this.prop.displayed.push(this.prop.maskGroup);
     }
 
     __createEmptyBox() {
@@ -268,9 +357,9 @@ class UploadCanvas {
     }
 
     __createPolygon(vertices) {
-        if (vertices.length < 3) {
-            return;
-        }
+        // if (vertices.length < 3) {
+            // return;
+        // }
         const polygon = new createjs.Shape();
         const p0 = vertices[0];
         polygon.graphics.beginStroke('black')
@@ -411,8 +500,6 @@ class UploadCanvas {
 
             this.prop.maskGroup.addChild(vertex);
         }
-            
-        this.prop.displayed.push(this.prop.maskGroup);
     }
 
     __addPolygonNode(x, y) {
@@ -644,8 +731,8 @@ class UploadCanvas {
     handleMouseDown(event) {
         const pageX = event.pageX;
         const pageY = event.pageY;
-        const stageX = pageX - this.canvas.offset().left;
-        const stageY = pageY - this.canvas.offset().top;
+        const stageX = pageX - this.canvas.offset().left - this.borderSize;
+        const stageY = pageY - this.canvas.offset().top - this.borderSize;
         this.mouse.x = stageX;
         this.mouse.y = stageY;
 
@@ -658,12 +745,46 @@ class UploadCanvas {
         }
         else if (['measure_recto', 'measure_verso'].includes(cursorMode) && targetIsCanvas) {
             this.__measure_ppi(stageX, stageY);
+        } else if (this.controller.isBrushing()) {
+            const manualDrawing = new createjs.Shape();
+            manualDrawing.name = "manualBrushDrawing";
+            manualDrawing.alpha = 0.5;
+            const color = this.controller.getBrushColor();
+
+            manualDrawing.graphics
+                .clear()
+                .ss(this.brushsize * 2, 'round', 'round')
+                .s(color)
+                .mt(stageX, stageY)
+                .lt(stageX+0.1, stageY+0.1);
+
+            this.prop.manualDrawing = manualDrawing;
+            this.brushing = true;
         }
     }
     
     handleMouseUp() {
+        if (this.brushing) {
+            this.__endBrushing();   
+        }
+        this.brushing = false;
         this.mouse.x = null;
         this.mouse.y = null;
+    }
+
+    __endBrushing() {
+        this.prop.manualDrawing.graphics.endStroke();
+
+        const side = this.side;
+        const maskURL = this.prop.autoMaskPaths[this.prop.activeModelID];
+
+        const bounds = this.prop.image.getTransformedBounds();
+        this.prop.manualDrawing.cache(bounds.x, bounds.y, bounds.width, bounds.height, this.prop.image.scale);
+        const changeURL = this.prop.manualDrawing.cacheCanvas.toDataURL();
+
+        this.controller.sendMaskChange(side, maskURL, changeURL);
+
+        this.prop.manualDrawing = null;
     }
     
     handlePressMove(event) {
@@ -689,11 +810,26 @@ class UploadCanvas {
     }
     
     handleMouseMove(event) {
-        const x = event.pageX - this.canvas.offset().left;
-        const y = event.pageY - this.canvas.offset().top;
+        const x = event.pageX - this.canvas.offset().left - this.borderSize;
+        const y = event.pageY - this.canvas.offset().top - this.borderSize;
 
         this.__drawScaleLine(x, y);
+        this.__moveBrush(x, y);
         this.draw();
+    }
+
+    __moveBrush(x, y) {
+        if (this.brushing) {
+            const color = this.controller.getBrushColor();
+            this.prop.manualDrawing.graphics
+                .ss(this.brushSize * 2, 'round', 'round')
+                .s(color)
+                .mt(this.cursor.x, this.cursor.y)
+                .lt(x, y);
+        }
+
+        this.cursor.x = x;
+        this.cursor.y = y;
     }
     
     __drawScaleLine(x, y) {
@@ -702,8 +838,8 @@ class UploadCanvas {
         }
         this.scaleLine.graphics.clear();
         this.scaleLine.graphics.setStrokeStyle(2).beginStroke('lightgreen')
-            .moveTo(this.ppi1[0]-5, this.ppi1[1]-5)
-            .lineTo(x-5, y-5);
+            .moveTo(this.ppi1[0], this.ppi1[1])
+            .lineTo(x, y);
     }
 
     scaleImage(ppi) {
@@ -717,6 +853,7 @@ class UploadCanvas {
 
     setBrushSize(size) {
         this.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,size)
+        this.brushSize = size;
     }
 
     unpackData(data) {
@@ -787,6 +924,45 @@ class UploadCanvas {
         return data;
     }
 
+    setModel(modelID) {
+        this.prop.activeModelID = modelID;
+        this.draw();
+    }
+
+    setMask(maskPath) {
+        this.prop.autoMaskPaths[this.prop.activeModelID] = maskPath;
+        this.draw();
+    }
+
+    getAutoMask(modelID) {
+        if (this.prop.autoMaskPaths.hasOwnProperty(modelID)) {
+            return this.prop.autoMaskPaths[modelID];
+        }
+        return null;
+    }
+
+    setCut(cutPath) {
+        if (cutPath !== null) {
+            this.prop.autoCutPaths[this.prop.activeModelID] = cutPath;
+            this.draw();
+        }
+    }
+
+    autoDeleteCut(modelID) {
+        if (this.prop.autoCutPaths.hasOwnProperty(modelID)) {
+            delete this.prop.autoCutPaths[modelID];
+        }
+        if (this.prop.autoCuts.hasOwnProperty(modelID)) {
+            delete this.prop.autoCuts[modelID];
+        }
+        this.draw();
+    }
+
+    removeAutoMask(modelID) {
+        if (this.prop.autoMasks.hasOwnProperty(modelID)) {
+            delete this.prop.autoMasks[modelID];
+        }
+    }
 }
 
 module.exports.UploadCanvas = UploadCanvas;
