@@ -55,6 +55,7 @@ class UploadCanvas {
     resize() {
         this.stage.canvas.width = this.canvas.width();
         this.stage.canvas.height = this.canvas.height();
+        this.update();
     }
 
     update() {
@@ -291,7 +292,7 @@ class UploadCanvas {
         const vertex = new createjs.Shape();
         vertex.graphics.setStrokeStyle(1).beginStroke(outlineColor).beginFill(fillColor);
         if (circle) {
-            vertex.graphics.drawCircle(x, y, size / 2);
+            vertex.graphics.drawCircle(vertex_coordinates[0], vertex_coordinates[1], size / 2);
         } else {
             vertex.graphics.drawRect(x, y, size, size);
         }
@@ -499,7 +500,7 @@ class UploadCanvas {
             }
 
             this.draw();
-            this.notify();
+            this.controller.notifyRenderer();
         };
     }
 
@@ -523,11 +524,11 @@ class UploadCanvas {
                 const ppi = exifs.XResolution.numerator/exifs.XResolution.denominator;
                 this.prop.ppi = ppi;
               } else {
-                console.log(`Input image (${this.canvas_id}) has no EXIF data.`);
+                // console.log(`Input image (${this.canvas_id}) has no EXIF data.`);
               }
             });
           } catch {
-            console.log(`Input image (${this.canvas_id}) has no EXIF data.`);
+            // console.log(`Input image (${this.canvas_id}) has no EXIF data.`);
           }
     }
 

@@ -30,6 +30,7 @@ function notify() {
     checkMeasuring();
     gatherPPI();
     checkFields();
+    updateGUI();
 }
 
 function checkActiveCanvases() {
@@ -567,6 +568,10 @@ function openTPOPoverlay(data) {
     $('#tpop-select-overlay').removeClass('unrendered');
 }
 
+function resizeCanvases() {
+    controller.resize();
+}
+
 /* ------------------------------ */
 /*           EVENTS               */
 /* ------------------------------ */
@@ -613,6 +618,7 @@ $(window).on('dragenter', handleDragEnter);
 $(window).on('dragleave', handleDragLeave);
 $(window).on('dragover', handleDragOver);
 $(window).on('drop', handleDrop);
+$(window).on('resize', resizeCanvases);
 
 
 /* ------------------------------ */
