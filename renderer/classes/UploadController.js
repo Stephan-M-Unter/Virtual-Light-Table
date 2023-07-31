@@ -357,6 +357,24 @@ class UploadController {
         this.recto.removeAutoMask(modelID);
         this.verso.removeAutoMask(modelID);
     }
+
+    handleMouseOut(event, side) {
+        if (side === 'recto') {
+            this.recto.handleMouseOut(event);
+        }
+        else if (side === 'verso') {
+            this.verso.handleMouseOut(event);
+        }
+    }
+
+    handleMouseEnter(event, side) {
+        if (side === 'recto') {
+            this.recto.handleMouseEnter(event);
+        }
+        else if (side === 'verso') {
+            this.verso.handleMouseEnter(event);
+        }
+    }
 }
 
 module.exports.UploadController = UploadController;

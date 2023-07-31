@@ -225,6 +225,7 @@ function brush(event) {
     console.log(`CursorMode currently: ${controller.getCursorMode()}`);
     if (controller.getCursorMode() === 'auto-draw' || controller.getCursorMode() === 'auto-erase') {
         $('#recto_canvas').on('mousemove', handleMouseMove);
+        $('#verso_canvas').on('mousemove', handleMouseMove);
     }
     else {
         $('#recto_canvas').off('mousemove', handleMouseMove);
@@ -410,6 +411,7 @@ function displayMLTools() {
 }
 
 function loadMLModels(models) {
+    $('#mask_automatic_model').empty();
     for (const model of models) {
         const modelID = model['modelID'];
         const size = model['size'];
@@ -466,6 +468,8 @@ function uploadData() {
         if ('urlTPOP' in editData) data.urlTPOP = editData.urlTPOP;
         if ('tpop' in editData) data.tpop = editData.tpop;
       }
+
+    console.log(data);
     send('server-upload-ready', data);
 }
 
@@ -638,6 +642,20 @@ function handleMouseMove(event) {
     controller.handleMouseMove(event, side)
 }
 
+function handleMouseOut(event) {
+    if ($(event.target).attr('id').includes('canvas')) {
+        const side = $(event.target).attr('id').split('_')[0];
+        controller.handleMouseOut(event, side);
+    }
+}
+
+function handleMouseEnter(event) {
+    if ($(event.target).attr('id').includes('canvas')) {
+        const side = $(event.target).attr('id').split('_')[0];
+        controller.handleMouseEnter(event, side);
+    }
+}
+
 function unpackData(data) {
     $('#upload_button').find('.large_button_label').html('Update object');
     controller.unpackData(data);
@@ -769,8 +787,9 @@ $('#auto-erase').click(brush);
 $('#auto-cut').click(autoCut);
 $('#auto-delete').click(autoDelete);
 
-$('#recto_canvas').on('mousedown', handleMouseDown);
-$('#verso_canvas').on('mousedown', handleMouseDown);
+$('canvas').on('mousedown', handleMouseDown);
+$('canvas').on('mouseout', handleMouseOut);
+$('canvas').on('mouseenter', handleMouseEnter);
 $(window).on('mouseup', handleMouseUp);
 $(window).on('mouseup', handleMouseUp);
 $(window).on('dragenter', handleDragEnter);

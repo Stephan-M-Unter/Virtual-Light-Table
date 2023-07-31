@@ -10,15 +10,15 @@ class UploadCanvas {
         this.canvas_id = canvas_id;
         this.side = canvas_id.split('_')[0];
         
-        this.cursor = new createjs.Shape(new createjs.Graphics().beginStroke('black').drawCircle(0,0,50));
         this.brushing = false;
         this.ppi1 = null;
         this.ppi2 = null;
         this.scaleGroup = null;
         this.scaleLine = null;
         this.borderSize = 4;
-
+        
         this.brushSize = 50;
+        this.cursor = new createjs.Shape(new createjs.Graphics().beginStroke('black').drawCircle(0,0,this.brushSize));
 
         this.clearProp();
         this.stage.enableMouseOver();
@@ -813,6 +813,8 @@ class UploadCanvas {
         const x = event.pageX - this.canvas.offset().left - this.borderSize;
         const y = event.pageY - this.canvas.offset().top - this.borderSize;
 
+        console.log(x, y);
+
         this.__drawScaleLine(x, y);
         this.__moveBrush(x, y);
         this.draw();
@@ -915,7 +917,7 @@ class UploadCanvas {
             },
         };
 
-        if (this.controller.getMaskMode() === 'automatic_cut') {
+        if (this.controller.getMaskMode() === 'automatic') {
             data.auto.modelID = this.prop.activeModelID;
             data.auto.cut = this.prop.autoCutPaths[this.prop.activeModelID];
             data.auto.mask = this.prop.autoMaskPaths[this.prop.activeModelID];
@@ -962,6 +964,16 @@ class UploadCanvas {
         if (this.prop.autoMasks.hasOwnProperty(modelID)) {
             delete this.prop.autoMasks[modelID];
         }
+    }
+
+    handleMouseOut(event) {
+        this.cursor.graphics.clear();
+        this.draw();
+    }
+
+    handleMouseEnter(event) {
+        this.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,this.brushSize)
+        this.draw();
     }
 }
 

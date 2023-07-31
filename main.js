@@ -668,7 +668,7 @@ function preprocess_fragment(data) {
     } else {
       python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
-  } else if (data.maskMode == 'automatic_cut') {
+  } else if (data.maskMode == 'automatic') {
     if (mirror) {
       python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), autoCutURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
     }
