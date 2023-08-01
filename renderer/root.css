@@ -31,8 +31,12 @@
     -webkit-user-drag: none;
 }
 
-.unrendered, .hidden {
+.unrendered {
     display: none !important;
+}
+
+.hidden {
+    visibility: hidden !important;
 }
 
 .development {
