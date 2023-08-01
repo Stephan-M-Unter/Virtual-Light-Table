@@ -94,7 +94,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
     
     ipcMain.on('server-cut-automatic-masks', (event, data) => {
         LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
-        get('mlManager').registerImages(data.modelID, data.image1, data.mask1, data.image2, data.mask2, function(responseData) {
+        get('mlManager').registerImages(data.modelID, data.image1, data.mask1, data.ppi1, data.image2, data.mask2, data.ppi2, function(responseData) {
         send(event.sender, 'upload-images-cut', responseData);
         });
     });

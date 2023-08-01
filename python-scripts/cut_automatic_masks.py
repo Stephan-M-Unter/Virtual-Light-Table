@@ -10,25 +10,31 @@ from urllib import request
 # [3] model ID
 # [4] path: image1
 # [5] path: mask1
-# [6] path: image2
-# [7] path: mask2
+# [6] ppi1
+# [7] path: image2
+# [8] path: mask2
+# [9] ppi2
 
+print('cut_automatic_masks.py - Input[0]: script')
 path_output_folder = sys.argv[1]
-output_filename = sys.argv[2]
-model_ID = sys.argv[3]
-path_image1 = sys.argv[4]
-path_mask1 = sys.argv[5]
-path_image2 = sys.argv[6]
-path_mask2 = sys.argv[7]
-
-print(f'cut_automatic_masks.py - Input[0]: script')
 print(f'cut_automatic_masks.py - Input[1] (path output file): {path_output_folder}')
+output_filename = sys.argv[2]
 print(f'cut_automatic_masks.py - Input[2] (output filename): {output_filename}')
+model_ID = sys.argv[3]
 print(f'cut_automatic_masks.py - Input[3] (model ID): {model_ID}')
+path_image1 = sys.argv[4]
 print(f'cut_automatic_masks.py - Input[4] (path_image1): {path_image1}')
+path_mask1 = sys.argv[5]
 print(f'cut_automatic_masks.py - Input[5] (path_mask1): {path_mask1}')
-print(f'cut_automatic_masks.py - Input[6] (path_image2): {path_image2}')
-print(f'cut_automatic_masks.py - Input[7] (path_mask2): {path_mask2}')
+ppi1 = float(sys.argv[6])
+print(f'cut_automatic_masks.py - Input[6] (ppi1): {ppi1}')
+path_image2 = sys.argv[7]
+print(f'cut_automatic_masks.py - Input[7] (path_image2): {path_image2}')
+path_mask2 = sys.argv[8]
+print(f'cut_automatic_masks.py - Input[8] (path_mask2): {path_mask2}')
+ppi2 = float(sys.argv[9])
+print(f'cut_automatic_masks.py - Input[9] (ppi2): {ppi2}')
+
 
 target_path1 = None
 target_path2 = None
@@ -126,11 +132,20 @@ def cutBB(mask, targetSize):
     cutFull.paste(mask, (x, y))
     return cutFull
 
-def getRotation(mask1, mask2):
+def getRotation(mask1, mask2, ppi1, ppi2):
     mask1 = np.array(mask1)[:,:,3]
     mask2 = np.array(mask2)[:,:,3]
     mask1 = Image.fromarray(mask1)
     mask2 = Image.fromarray(mask2)
+
+    # compare resolutions and scale to the lower one
+    if ppi1 > ppi2:
+        ratio = ppi2 / ppi1
+        mask1 = mask1.resize((int(mask1.size[0]*ratio), int(mask1.size[1]*ratio)))
+    elif ppi2 > ppi1:
+        ratio = ppi1 / ppi2
+        mask2 = mask2.resize((int(mask2.size[0]*ratio), int(mask2.size[1]*ratio)))
+
     w = max(mask1.size[0], mask2.size[0])
     h = max(mask2.size[1], mask2.size[1])
     targetSize = max(w, h)
@@ -168,11 +183,11 @@ def getRotation(mask1, mask2):
 
     return 360 - maxOverlapDegree2
 
-def register(image1, image2):
+def register(image1, image2, ppi1, ppi2):
     if image1 is None or image2 is None:
         return image1, image2
     
-    rotation = getRotation(image1, image2)
+    rotation = getRotation(image1, image2, ppi1, ppi2)
     image2 = image2.rotate(rotation, expand=1)
     image2 = image2.crop(getMBR(image2))
 
@@ -180,7 +195,7 @@ def register(image1, image2):
 
 cut1 = cut_image(path_image1, path_mask1)
 cut2 = cut_image(path_image2, path_mask2)
-cut1, cut2 = register(cut1, cut2)
+cut1, cut2 = register(cut1, cut2, ppi1, ppi2)
 
 if cut1 is not None:
     image1_name = os.path.basename(path_image1)

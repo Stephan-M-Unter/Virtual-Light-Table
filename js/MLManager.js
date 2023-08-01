@@ -311,7 +311,7 @@ class MLManager {
         }
     }
     
-    registerImages(modelID, image1, mask1, image2, mask2, callback) {
+    registerImages(modelID, image1, mask1, ppi1, image2, mask2, ppi2, callback) {
         const resultFileFolder = path.join(this.folderML, 'results');
         const resultFileName = 'cut_results.json';
 
@@ -322,8 +322,10 @@ class MLManager {
             modelID,
             image1,
             mask1,
+            ppi1,
             image2,
             mask2,
+            ppi2,
         ],
         {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
 

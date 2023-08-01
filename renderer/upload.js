@@ -719,12 +719,17 @@ function autoCut() {
     const pathMask1 = controller.getAutoMask('recto', modelID);
     const pathMask2 = controller.getAutoMask('verso', modelID);
 
+    const ppiRecto = controller.getProperty('recto', 'ppi');
+    const ppiVerso = controller.getProperty('verso', 'ppi');
+
     const data = {
         'modelID': modelID,
         'image1': pathImage1,
         'mask1': pathMask1,
+        'ppi1': ppiRecto,
         'image2': pathImage2,
         'mask2': pathMask2,
+        'ppi2': ppiVerso,
     }
 
     send('server-cut-automatic-masks', data);
