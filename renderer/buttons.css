@@ -192,6 +192,11 @@
     border-radius: 3px;
 }
 
+.flip-button:hover {
+    border: none;
+    box-shadow: 3px 3px 4px black;
+}
+
 .flip-button.R {
     /* background-color: rgb(238, 76, 76); */
     /* transition from dark red to silver to light red, from the bottom left to the top right */

@@ -528,7 +528,6 @@ class AnnotationPopup {
 
     newPin() {
         const aID = this.annotationInEdit || 'new';
-        console.log("newPin", aID);
         if (this.oldPin == null) this.oldPin = this.annotations[aID].pin;
         else if (this.annotations[aID].pin) this.removePin(aID);
         if (this.oldPin) this.oldPin.hide(); 

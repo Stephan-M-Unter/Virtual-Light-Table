@@ -15,8 +15,6 @@
 // Loading Requirements
 const {app, ipcMain, dialog, shell} = require('electron');
 const path = require('path');
-const fs = require('fs-extra');
-const https = require('follow-redirects').https;
 const request = require('request');
 const process = require('process');
 const opener = require('opener');
@@ -42,7 +40,7 @@ let tpopEnabled = true;
 if (process.argv.includes('--dev')) {
   devMode = true;
 }
-const version = 'v0.5';
+const version = '0.5';
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 LOGGER.start(path.join(appDataPath, 'Virtual Light Table'), version);
@@ -73,6 +71,7 @@ let calibrationWindow;
 let settingsWindow;
 let tpopWindow;
 let exportWindow;
+let updateWindow;
 
 const color = {
   success: 'rgba(0,255,0,0.6)',
@@ -103,7 +102,6 @@ function get(key) {
     'devMode': devMode,
     'dialog': dialog,
     'exportWindow': exportWindow,
-    'filterImages': filterImages, // TODO
     'loadWindow': loadWindow,
     'startWindow': startWindow,
     'imageManager': imageManager,
@@ -123,6 +121,7 @@ function get(key) {
     'tpopEnabled': tpopEnabled,
     'tpopManager': tpopManager,
     'tpopWindow': tpopWindow,
+    'updateWindow': updateWindow,
     'uploadLocalImage': uploadLocalImage,
     'uploadTpopImages': uploadTpopImages,
     'uploadWindow': uploadWindow,
@@ -157,6 +156,8 @@ function set(key, value) {
     tpopEnabled = value;
   } else if (key === 'tpopWindow') {
     tpopWindow = value;
+  } else if (key == 'updateWindow') {
+    updateWindow = value;
   } else if (key === 'uploadWindow') {
     uploadWindow = value;
   } else if (key === 'online') {
@@ -181,10 +182,11 @@ function main() {
   });
 
   startWindow.once('ready-to-show', () => {
-    startUp();
-    setTimeout(() => {
-      createMainView();
-    }, 2000);
+    startUp(() => {
+      setTimeout(() => {
+        createMainView();
+      }, 2000);
+    });
   });
 }
 
@@ -193,7 +195,7 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-async function startUp() {
+async function startUp(callback) {
   LOGGER.log('STARTUP', 'Removing Legacy Files...');
   sendMessage(startWindow, 'startup-status', 'Removing Legacy Files...');
   CSC.removeLegacies();
@@ -203,12 +205,47 @@ async function startUp() {
     await check_requirements();
     LOGGER.log('STARTUP', 'Installing Managers...');
     sendMessage(startWindow, 'startup-status', 'Installing Managers...');
-    await createManagers();
+    createManagers();
     LOGGER.log('STARTUP', 'Registering EventHandlers...');
     sendMessage(startWindow, 'startup-status', 'Registering EventHandlers...');
     registerEventHandlers();
+    LOGGER.log('STARTUP', 'Checking for updated versions...');
+    sendMessage(startWindow, 'startup-status', 'Checking for updated versions...');
+    await configManager.checkForUpdates()
+      .then((versionData) => {
+          console.log(versionData);
+          if (versionData.updateAvailable) {
+            updateWindow = new Window({
+              file: './renderer/update.html',
+              type: 'update',
+              devMode: devMode,
+            });
+            updateWindow.setAlwaysOnTop(true);
+            updateWindow.webContents.setWindowOpenHandler(({url}) => {
+              return {
+              action: 'allow',
+              overrideBrowserWindowOptions: {
+                  frame: true,
+                  width: 1500,
+                  height: 2000,
+              }
+              };
+          });
+            updateWindow.webContents.on('did-finish-load', () => {
+                updateWindow.show();
+                sendMessage(updateWindow, 'update-available', versionData);
+            });
+            updateWindow.on('close', () => {
+              updateWindow = null;
+            });
+          }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
     LOGGER.log('STARTUP', 'Preparation Finished, Ready to Go!');
     sendMessage(startWindow, 'startup-status', 'Preparation Finished, Ready to Go!');
+    callback();
   } catch (error) {
     LOGGER.log('SERVER', 'Quitting Application.');
     app.quit();
@@ -216,7 +253,7 @@ async function startUp() {
 }
 
 function createManagers() {
-  configManager = new ConfigManager(vltConfigFile);
+  configManager = new ConfigManager(vltConfigFile, version);
   saveManager = new SaveManager();
   mlManager = new MLManager();
 
@@ -290,6 +327,7 @@ function createMainView() {
         app_is_quitting = true; // needed to prevent double check
         LOGGER.log('SERVER', 'Quitting Virtual Light Table...');
         saveManager.removeAutosaveFiles();
+        mlManager.clearFiles();
         app.quit();
       }
     }
@@ -389,7 +427,20 @@ function preprocess_loading_fragments(data) {
           else if ('url' in fragment.verso && fragment.verso.url) urls.push(fragment.verso.url);
         }
       }
-      filterImages(data['tableID'], urls);
+
+      const filters = tableManager.getGraphicFilters(data.tableID);
+      const callback = () => {
+        const response = {
+          tableID: tableID,
+          tableData: tableManager.getTable(tableID),
+        };
+        sendMessage(mainWindow, 'client-load-model', response);
+        activeTables.view = tableID;
+      };
+
+      imageManager.applyGraphicalFilters(filters, urls, callback);
+
+
     } else {
       sendMessage(mainWindow, 'client-load-model', data);
       activeTables.view = data['tableID'];
@@ -608,9 +659,6 @@ function preprocess_fragment(data) {
   // at least one side must still be to be processed at this point, otherwise the data
   // would already have been sent to the main window
 
-  console.log(data.recto.auto);
-  console.log(data.verso.auto);
-
   if (!rectoProcessed) {
     // we are processing the recto side
     if ('url' in data.recto) {
@@ -688,29 +736,6 @@ function preprocess_fragment(data) {
   });
 }
 
-
-function filterImages(tableID, urls) {
-  const filterData = {
-    'tableID': tableID,
-    'urls': urls,
-    'filters': tableManager.getGraphicFilters(tableID),
-  };
-  const jsonPath = path.join(CONFIG.VLT_FOLDER, 'temp', 'filters.json');
-  const jsonContent = JSON.stringify(filterData);
-  fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-
-  const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'filter_images.py'), CONFIG.VLT_FOLDER, jsonPath], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  python.on('close', function(code) {
-    LOGGER.log('SERVER', `Python script finished graphical filtering with code ${code}.`)
-    const response = {
-      tableID: tableID,
-      tableData: tableManager.getTable(tableID),
-    };
-    sendMessage(mainWindow, 'client-load-model', response);
-    activeTables.view = tableID;
-  });
-}
-
 function resolveUrls(urlList, callback) {
   let workFound = false;
   let url;
@@ -757,44 +782,3 @@ function uploadLocalImage(filepath) {
     sendMessage(uploadWindow, 'upload-receive-image', filepath);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ##############################################################
-#################################################################
-#################################################################
-#################################################################
-#################################################################
-###
-###                    MESSAGES (SEND/RECEIVE)
-###
-#################################################################
-#################################################################
-#################################################################
-#################################################################
-############################################################## */
-
-
-ipcMain.on('server-delete-model', (event, modelID) => {
-  LOGGER.receive('SERVER', 'server-delete-model', modelID);
-  // TODO delete model
-  sendMessage(event.sender, 'upload-model-deleted', modelID);
-});
-
-ipcMain.on('server-delete-masks', (event) => {
-  LOGGER.receive('SERVER', 'server-delete-masks');
-  // TODO delete masks
-});

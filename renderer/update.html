@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>UPDATE AVAILABLE | Virtual Light Table</title>
+        <link rel="stylesheet" type="text/css" href="update.css"/>
+        <script src="../js/libs/jquery-3.6.0.min.js"></script>
+        <script>window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js');</script>
+    </head>
+    <body>
+        <div class="flex-vert fullsize">
+            <h1>UPDATE AVAILABLE</h1>
+            <h3 class="align-center">A new version for the VLT is available. Do you want to visit the download webpage?</h3>
+            <div class="grid">
+                <div>Current Version:</div>
+                <div id="current-version"></div>
+                <div>Latest Version:</div>
+                <div id="latest-version"></div>
+            </div>
+            <div id="changes" class="flex-grow"></div>
+            <div class="flex-hor">
+                <div class="button" id="update">Open Update Page</div>
+                <div class="button" id="cancel">Cancel</div>
+                <div class="button" id="ignore">Dont Ask Again</div>
+            </div>
+        </div>
+        <script src="update.js"></script>
+    </body>
+</html>

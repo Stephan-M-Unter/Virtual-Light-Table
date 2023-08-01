@@ -1,0 +1,50 @@
+* {
+    -webkit-user-select: none;  
+    -moz-user-select: none;    
+    -ms-user-select: none;      
+    user-select: none;
+    user-drag: none;
+    -webkit-user-drag: none;
+}
+
+body {
+    background-color: #f1f1f1;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    line-height: 1.6em;
+    margin: 0;
+}
+
+.main-text-area {
+    max-width: 30%;
+    margin: 20px auto;
+    padding: 50px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #ccc;
+    position: relative;
+}
+
+.home {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.issue {
+    font-style: italic;
+}
+
+.solution {
+    font-weight: bold;
+}
+
+.sublogo {
+    position: relative;
+    float: right;
+    max-width: 200px;
+}

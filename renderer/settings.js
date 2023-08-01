@@ -1,8 +1,15 @@
 const { ipcRenderer } = require("electron");
 const LOGGER = require('../statics/LOGGER');
 
+$(document).ready(function() {
+    $('#save-path').attr('readonly', true);
+    const request = {
+        'code': '',
+        'requiredCapacities': [],
+    }
+});
+
 function loadData(config) {
-    console.log('Loading config:', config);
     if ('ppi' in config && config.ppi) {
         const ppi = Math.round(config.ppi * 100) / 100;
         $('#ppi').html(ppi);
@@ -19,6 +26,9 @@ function loadData(config) {
     if ('stepZoom' in config && config.stepZoom) {
         $('#stepZoom').val(config.stepZoom);
     }
+    if (!('ignoreUpdates') in config || !config.ignoreUpdates) {
+        $('#check-for-updates').prop('checked', true);
+    }
 }
 
 function saveData() {
@@ -28,6 +38,7 @@ function saveData() {
         'maxZoom': $('#maxZoom').val(),
         'stepZoom': $('#stepZoom').val(),
         'vltFolder': $('#save-path').val(),
+        'ignoreUpdates': !$('#check-for-updates').is(':checked'),
     };
     if (verifyZoomValues()) {
         ipcRenderer.send('server-save-config', config);
@@ -83,6 +94,73 @@ function verifyZoomValues() {
     }
 }
 
+function movePanel(event) {
+    const order = ['main', 'ml'];
+
+    const currentName = $('.on-display').attr('id');
+    const targetName = $(event.target).attr('target');
+
+    const target = $(`#${targetName}`);
+    const current = $(`#${currentName}`);
+
+    const moveToLeft = order.indexOf(targetName) > order.indexOf(currentName);
+
+    if (moveToLeft) {
+        target.css('left', '100%');
+        target.removeClass('hidden');
+        current.stop().animate({left: '-100%'}, 500, function() {
+            current.addClass('hidden');
+        });
+        target.stop().animate({left: '0%'}, 500);
+    } else {
+        target.css('left', '-100%');
+        target.removeClass('hidden');
+        current.stop().animate({left: '100%'}, 500, function() {
+            current.addClass('hidden');
+        });
+        target.stop().animate({left: '0%'}, 500);
+    }
+    current.removeClass('on-display');
+    target.addClass('on-display');
+
+}
+
+function loadModels(models) {
+    $('#ml-models').empty();
+    for (const model of models) {
+        const modelID = model['modelID'];
+        let name = model['name'];
+        const downloaded = model['localPath'] != null;
+        const size = model['size'];
+
+        name = `${name} (${size})`;
+
+        // create option elements per model
+        const option = $('<option></option>');
+        option.attr('value', modelID);
+        if (downloaded) {
+            name = '✅ ' + name;
+        } else if (model.unreachable) {
+            name = '❌ ' + name;
+        }
+        option.html(name);
+        $('#ml-models').append(option);
+    }
+    $('#ml-models').trigger('change');
+}
+
+function downloadModel() {
+    const modelID = $('#ml-models').val();
+    const buttonImage = $('#ml-download img');
+    buttonImage.attr('src', '../imgs/VLT_small.gif');
+    ipcRenderer.send('server-download-model', modelID);
+}
+
+function deleteModel() {
+    const modelID = $('#ml-models').val();
+    ipcRenderer.send('server-delete-model', modelID);
+}
+
 
 $('#abort').click(function() {
     ipcRenderer.send('server-close-settings');
@@ -111,13 +189,25 @@ $('#default-save').click(function() {
 $('#tensorflow-download').click(function() {
     ipcRenderer.send('server-install-tensorflow');
 });
-
-
-$(document).ready(function() {
-    $('#save-path').attr('readonly', true);
-    LOGGER.send('SETTINGS', 'server-settings-opened');
-    ipcRenderer.send('server-settings-opened');
+$('.link').click(movePanel);
+$('#ml-reload').click(function() {
+    ipcRenderer.send('server-reload-ml');
 });
+$('#ml-models').change(function() {
+    const modelName = $('#ml-models option:selected').text();
+    if (modelName.includes('✅')) {
+        $('#ml-delete').removeClass('unrendered');
+        if (!(modelName.includes('❌'))) {
+            $('#ml-download').addClass('unrendered');
+        }
+    } else {
+        $('#ml-download').removeClass('unrendered');
+        $('#ml-delete').addClass('unrendered');
+    }
+});
+$('#ml-download').click(downloadModel);
+$('#ml-delete').click(deleteModel);
+
 
 ipcRenderer.on('settings-data', (event, settingsData) => {
     LOGGER.receive('settings-data', settingsData);
@@ -129,8 +219,31 @@ ipcRenderer.on('tensorflow-installed', (event, result) => {
     if (result) {
         $('#tensorflow-installation').addClass('unrendered');
         $('#tensorflow-installed').removeClass('unrendered');
+        $('#ml-settings').removeClass('unrendered');
     } else {
         $('#tensorflow-installation').removeClass('unrendered');
         $('#tensorflow-installed').addClass('unrendered');
+        $('#ml-settings').addClass('unrendered');
+    }
+});
+
+ipcRenderer.on('ml-models', (event, models) => {
+    LOGGER.receive('ml-models', models);
+    loadModels(models);
+});
+
+ipcRenderer.on('model-availability', (event, responseData) => {
+    LOGGER.receive('model-availability', responseData);
+    const modelOption = $(`#ml-models option[value="${responseData.modelID}"]`);
+    const buttonImage = $('#ml-download img');
+    buttonImage.attr('src', '../imgs/symbol_download.png');
+    if (responseData.modelAvailability) {
+        modelOption.html('✅ ' + modelOption.html());
+        $('#ml-delete').removeClass('unrendered');
+        $('#ml-download').addClass('unrendered');
+    } else {
+        modelOption.html(modelOption.html().replace('✅ ', ''));
+        $('#ml-delete').addClass('unrendered');
+        $('#ml-download').removeClass('unrendered');
     }
 });

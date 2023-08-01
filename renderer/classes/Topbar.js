@@ -166,7 +166,7 @@ class Topbar {
     }
     $('#'+tableID).find('.table_header').removeClass('empty');
     $('#'+tableID).find('.table_screenshot').removeClass('empty');
-    $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading-small.gif');
+    $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/VLT_small.gif');
   }
   
   stopLoading(tableID) {
@@ -198,7 +198,7 @@ class Topbar {
       if (tableData.emptyTable) {
         $('#'+tableID).find('.table_screenshot>img').attr('src', tableData.screenshot);
       } else {
-        $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/loading-small.gif');
+        $('#'+tableID).find('.table_screenshot>img').attr('src', '../imgs/VLT_small.gif');
       }
       this.screenshots[tableID] = tableData.screenshot;
     } else {

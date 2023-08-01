@@ -3,6 +3,7 @@
 const {Fragment} = require('./Fragment');
 const {Scaler} = require('../../statics/SCALER');
 const {Util} = require('./Util');
+const path = require('path');
 
 /**
  * This class represents the stage/canvas of the Virtual Light Table. It holds references to the elements
@@ -701,9 +702,14 @@ class Stage {
           }
         }
 
-        if (this.graphicFilters/* && url.indexOf('_mirror.') == -1*/) {
-          const dot = url.lastIndexOf('.');
-          url = url.substring(0, dot) + "_filtered.png";
+        if (this.graphicFilters) {
+          // if graphic filters are enabled, the url is changed to the filtered version
+          // the filtered version is in the subfolder "graphicFilters" and has the file
+          // extension ".png"
+
+          const directory = path.dirname(url);
+          const filename = path.basename(url, path.extname(url));
+          url = path.join(directory, 'graphicFilters', `${filename}.png`);
         }
 
         this.loadqueue.loadManifest([{
@@ -981,7 +987,6 @@ class Stage {
    */
   setSelection(savedSelection) {
     if (savedSelection) {
-      console.log(savedSelection);
       savedSelection.forEach((fragmentID) => {
         if (fragmentID in this.objectList) {
           this.selectedList[fragmentID] = this.objectList[fragmentID];

@@ -155,14 +155,9 @@ $(document).ready(function() {
 
   // Export Buttons - toggle display of additional export buttons
   $('#export_table').click(function() {
-    controller.sendToServer('server-open-export');
-    // if ($('#export_detail_wrapper').hasClass('expanded')) {
-    //   $('#export_table').removeClass('button_active');
-    //   $('#export_detail_wrapper').removeClass('expanded');
-    // } else {
-    //   $('#export_table').addClass('button_active');
-    //   $('#export_detail_wrapper').addClass('expanded');
-    // }
+    if (!$('#export_table').hasClass('disabled')) {
+      controller.openExport();
+    }
   });
   $('#jpg_snap').click(function() {
     controller.exportCanvas('jpg', false, false);
@@ -600,7 +595,9 @@ $(document).ready(function() {
         controller.sendToServer('server-test');
       } else if (event.keyCode == 69) {
         // Ctrl + E -> Export
-        controller.sendToServer('server-open-export');
+        if (!($('#export_table').hasClass('disabled'))) {
+          controller.openExport();
+        }
       }
     } else {
       if (event.keyCode == 46) {
@@ -745,7 +742,7 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-get-all', (event, data) => {
     LOGGER.receive('client-get-all', data);
-    console.log(data);
+    LOGGER.log('MAIN VIEW', data);
   });
 
   ipcRenderer.on('client-file-saved', (event, saveData) => {

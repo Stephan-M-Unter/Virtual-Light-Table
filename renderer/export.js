@@ -1,6 +1,7 @@
 'use strict';
 
 const {ipcRenderer} = require('electron');
+const path = require('path');
 const LOGGER = require('../statics/LOGGER');
 
 let recto;
@@ -28,8 +29,6 @@ let objects = {};
 $(document).ready(function(){
     recto = new createjs.Stage('canvas-recto');
     verso = new createjs.Stage('canvas-verso');
-
-
 
     recto.addChild(recto_rgb, recto_filters, recto_facsimile);
     verso.addChild(verso_rgb, verso_filters, verso_facsimile);
@@ -61,7 +60,7 @@ function resizeCanvas() {
     verso.update();
 }
 
-function loadObjects(imageMode='rgb') {
+function loadObjects(imageMode='rgb', display=true) {
     /*
     Create a new createjs loadingqueue and load all images as given per url_view in the objects list.
     We insert the image urls together with the corresponding object id in the queue.
@@ -80,31 +79,36 @@ function loadObjects(imageMode='rgb') {
     }
 
     const queue = new createjs.LoadQueue();
-    for (const fragment_id in objects) {
-        const fragment = objects[fragment_id];
-        const url_recto = fragment['recto']['url'][imageMode];
-        const url_verso = fragment['verso']['url'][imageMode];
-        queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'recto', 'src': url_recto});
-        queue.loadFile({'id': fragment_id, 'imageMode': imageMode, 'side': 'verso', 'src': url_verso});
+    for (const object_id in objects) {
+        const object = objects[object_id];
+        const url_recto = object['recto']['url'][imageMode];
+        const url_verso = object['verso']['url'][imageMode];
+        queue.loadFile({'id': object_id, 'imageMode': imageMode, 'side': 'recto', 'src': url_recto});
+        queue.loadFile({'id': object_id, 'imageMode': imageMode, 'side': 'verso', 'src': url_verso});
     }
     queue.on('fileload', displayImage);
-    queue.on('complete', function() {
-        recto.removeAllChildren();
-        verso.removeAllChildren();
-        if (imageMode === 'rgb') {
-            recto.addChild(recto_rgb);
-            verso.addChild(verso_rgb);
-        } else if (imageMode === 'filters') {
-            recto.addChild(recto_filters);
-            verso.addChild(verso_filters);
-        } else if (imageMode === 'facsimile') {
-            recto.addChild(recto_facsimile);
-            verso.addChild(verso_facsimile);
+    queue.on('fileerror', (event) => {
+        LOGGER.err('EXPORT', 'File not found.');
+    });
+    queue.on('complete', () => {
+        if (display) {
+            recto.removeAllChildren();
+            verso.removeAllChildren();
+            if (imageMode === 'rgb') {
+                recto.addChild(recto_rgb);
+                verso.addChild(verso_rgb);
+            } else if (imageMode === 'filters') {
+                recto.addChild(recto_filters);
+                verso.addChild(verso_filters);
+            } else if (imageMode === 'facsimile') {
+                recto.addChild(recto_facsimile);
+                verso.addChild(verso_facsimile);
+            }
+            recto.addChild(recto_scale);
+            verso.addChild(verso_scale);
+            centerStages();
+            updateDownloadSize();
         }
-        recto.addChild(recto_scale);
-        verso.addChild(verso_scale);
-        centerStages();
-        updateDownloadSize();
     });
     
 }
@@ -390,20 +394,42 @@ function getURLs() {
 
 function requestFilters() {
     const filters = {
-        'brightness': $('#graphics-brightness').val(),
-        'contrast': $('#graphics-contrast').val(),
         'invertR': $('.flip-button.R').hasClass('inverted'),
         'invertG': $('.flip-button.G').hasClass('inverted'),
         'invertB': $('.flip-button.B').hasClass('inverted'),
+        'blackwhite': $('#blackwhite').hasClass('inverted'),
     };
 
-    const urls = getURLs();
+    $('.graphics-slider').each(function() {
+        const key = $(this).attr('data');
+        const value = $(this).val();
+        filters[key] = value;
+    });
+
+    const urls = [];
+    for (const fragment_id in objects) {
+        const fragment = objects[fragment_id];
+        for (const side of [fragment['recto'], fragment['verso']]) {
+            const url = side.url.rgb;
+            if (url) {
+                urls.push(url);
+            }
+        }
+    }
+
     const data = {
         urls: urls,
         filters: filters,
     }
 
-    send('server-graphics-filter-export', data);
+    send('server-graphics-filter-from-export', data);
+}
+
+function resetFilters() {
+    $('.flip-button').removeClass('inverted');
+    $('#blackwhite').removeClass('inverted');
+    $('.graphics-slider').val(1);
+    requestFilters();
 }
 
 function switchDisplay(imageMode) {
@@ -499,32 +525,39 @@ function requestFacsimile() {
 }
 
 function requestThreshold() {
-    const inputData = [];
-    for (const fragment_id in objects) {
-        const fragment = objects[fragment_id];
-        for (const side of [fragment['recto'], fragment['verso']]) {
-            const url = side.url.rgb;
-            // get filename from url, regardless if delimiters are /, \ or \\
-            let filename = url.split('/').pop().split('\\').pop();
-            // remove file extension
-            filename = filename.split('.')[0];
-            // add _segmentation.npy
-            filename = filename + '_segmentation.npy';
-            inputData.push(filename);
+    if (!($('#threshold').hasClass('disabled'))) {
+
+        const inputData = [];
+        for (const fragment_id in objects) {
+            const fragment = objects[fragment_id];
+            for (const side of [fragment['recto'], fragment['verso']]) {
+                const url = side.url.rgb;
+                // get filename from url, regardless if delimiters are /, \ or \\
+                let filename = url.split('/').pop().split('\\').pop();
+                // remove file extension
+                filename = filename.split('.')[0];
+                // add _segmentation.npy
+                filename = filename + '_segmentation.npy';
+                const threshold_entry = {
+                    'image_path': url,
+                    'segmentation_file': filename,
+                };
+                inputData.push(threshold_entry);
+            }
         }
+        
+        const requestData = {
+            'inputData': inputData,
+            'thresholds': getThresholds(),
+            'colors': getColors(),
+        }
+        
+        LOGGER.send('EXPORT', 'server-threshold-images', requestData);
+        send('server-threshold-images', requestData);
+        
+        const progressText = $('#threshold .progress-text');
+        progressText.text('0%');
     }
-
-    const requestData = {
-        'inputData': inputData,
-        'thresholds': getThresholds(),
-        'colors': getColors(),
-    }
-
-    LOGGER.send('EXPORT', 'server-threshold-images', requestData);
-    send('server-threshold-images', requestData);
-
-    const progressText = $('#threshold .progress-text');
-    progressText.text('0%');
 }
 
 function updateThresholdSliders() {
@@ -549,16 +582,22 @@ function updateThresholdSliders() {
 }
 
 function displayThresholdImages() {
-    const folder = "C:\\Users\\unter\\AppData\\Roaming\\Virtual Light Table\\ML\\results";
-
-    for (const fragment_id in objects) {
-        const fragment = objects[fragment_id];
+    
+    for (const object_id in objects) {
+        const fragment = objects[object_id];
         const recto_url = fragment['recto']['url']['rgb'];
         const verso_url = fragment['verso']['url']['rgb'];
-        const recto_filename = recto_url.split('/').pop().split('\\').pop().split('.')[0];
-        const verso_filename = verso_url.split('/').pop().split('\\').pop().split('.')[0];
-        objects[fragment_id]['recto']['url']['facsimile'] = `${folder}\\${recto_filename}_threshold.png`;
-        objects[fragment_id]['verso']['url']['facsimile'] = `${folder}\\${verso_filename}_threshold.png`;
+
+        const recto_dirname = path.dirname(recto_url);
+        const verso_dirname = path.dirname(verso_url);
+        const recto_filename = path.basename(recto_url, path.extname(recto_url));
+        const verso_filename = path.basename(verso_url, path.extname(verso_url));
+
+        const recto_threshold_url = path.join(recto_dirname, 'facsimiles', `${recto_filename}.png`);
+        const verso_threshold_url = path.join(verso_dirname, 'facsimiles', `${verso_filename}.png`);
+        
+        objects[object_id]['recto']['url']['facsimile'] = recto_threshold_url;
+        objects[object_id]['verso']['url']['facsimile'] = verso_threshold_url;
     }
 
     loadObjects('facsimile');
@@ -573,7 +612,7 @@ function updateDownloadSize() {
     const outputWidth = Math.floor(baseWidth * magFactor / scaleFactor);
     const outputHeight = Math.floor(baseHeight * magFactor / scaleFactor);
 
-    $('#download-size-value').text(`factor x${magFactor} (${outputWidth} x ${outputHeight} px)`);
+    $('#download-size-value').text(`x${magFactor} (${outputWidth} x ${outputHeight} px)`);
 }
 
 function downloadModel() {
@@ -583,13 +622,18 @@ function downloadModel() {
     send('server-download-model', modelID);
 }
 
+function checkForSegmentations() {
+    const urls = [];
+    for (const object_id in objects) {
+        const fragment = objects[object_id];
+        const recto_url = fragment['recto']['url']['rgb'];
+        const verso_url = fragment['verso']['url']['rgb'];
+        urls.push(recto_url);
+        urls.push(verso_url);
+    }
 
-
-
-
-
-
-
+    ipcRenderer.send('server-check-for-segmentations', urls);
+}
 
 
 
@@ -649,12 +693,17 @@ $('#jpg-color').on('mouseover', JPGPreview);
 $('#jpg-color').on('mouseout', JPGPreview);
 $('#colorpicker').on('input', JPGPreview);
 
-$('#brightness').on('input', requestFilters);
-$('#contrast').on('input', requestFilters);
+$('.graphics-slider').on('change', requestFilters);
+$('#graphics-reset').click(resetFilters);
 $('.flip-button').click(function() {
     $(this).toggleClass('inverted');
     requestFilters();
 });
+$('#blackwhite').click(function() {
+    console.log('BW');
+    $(this).toggleClass('inverted');
+    requestFilters();
+})
 
 $('#select-facsimile-model').on('change', function() {
     const modelID = $(this).val();
@@ -680,6 +729,21 @@ $('#threshold-red').on('input', updateThresholdSliders);
 $('#anti-aliasing').on('input', updateThresholdSliders);
 $('#papyrus-outline').on('input', updateThresholdSliders);
 $('#download-model').click(downloadModel);
+$(window).on('resize', centerStages);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ipcRenderer.on('active-table', (event, data) => {
@@ -696,36 +760,56 @@ ipcRenderer.on('active-table', (event, data) => {
     - image ppi
     - (the id of the object)
     */
-   for (const fragment_id in data['fragments']) {
-    const fragment = data['fragments'][fragment_id];
-    const fragmentData = {
+   for (const object_id in data['fragments']) {
+    const object = data['fragments'][object_id];
+
+    const url_recto = object['recto']['url_view'];
+    const url_verso = object['verso']['url_view'];
+
+    let url_recto_filters = null;
+    let url_verso_filters = null;
+
+    if (url_recto) {
+        const dirname_recto = path.dirname(url_recto);
+        const filename_recto = path.basename(url_recto, path.extname(url_recto));
+        url_recto_filters = path.join(dirname_recto, 'graphicFilters', `${filename_recto}.png`);
+    }
+    if (url_verso) {
+        const dirname_verso = path.dirname(url_verso);
+        const filename_verso = path.basename(url_verso, path.extname(url_verso));
+        url_verso_filters = path.join(dirname_verso, 'graphicFilters', `${filename_verso}.png`);
+    }
+
+    const objectData = {
         'recto': {
             'url': {
-                'rgb': fragment['recto']['url_view'],
-                'filters': null,
+                'rgb': url_recto,
+                'filters': url_recto_filters,
                 'facsimile': null,
             },
-            'x': fragment['baseX'],
-            'y': fragment['baseY'],
-            'ppi': fragment['recto']['ppi'],
-            'rotation': fragment['rotation'] + fragment['recto']['rotation'],
+            'x': object['baseX'],
+            'y': object['baseY'],
+            'ppi': object['recto']['ppi'],
+            'rotation': object['rotation'] + object['recto']['rotation'],
         },
         'verso': {
             'url': {
-                'rgb': fragment['verso']['url_view'],
-                'filters': null,
+                'rgb': url_verso,
+                'filters': url_verso_filters,
                 'facsimile': null,
             },
-            'x': -fragment['baseX'],
-            'y': fragment['baseY'],
-            'ppi': fragment['verso']['ppi'],
-            'rotation': -fragment['rotation'] + fragment['verso']['rotation'],
+            'x': -object['baseX'],
+            'y': object['baseY'],
+            'ppi': object['verso']['ppi'],
+            'rotation': -object['rotation'] + object['verso']['rotation'],
         },
     }
-    objects[fragment_id] = fragmentData;
+    objects[object_id] = objectData;
    }
 
    loadObjects();
+   loadObjects('filters', false);
+   checkForSegmentations();
 });
 
 ipcRenderer.on('tensorflow-checked', (event, tensorflowAvailable) => {
@@ -802,6 +886,9 @@ ipcRenderer.on('ml-model-details', (event, model) => {
 ipcRenderer.on('thresholded-images', (event) => {
     LOGGER.receive('EXPORT', 'thresholded-images');
     displayThresholdImages();
+    $('#threshold').removeClass('disabled');
+    $('#threshold .progress-text').text('Apply Settings (faster)');
+    $('#facsimilate .progress-text').text('Re-compute Facsimile (may take some time)');
 });
 
 ipcRenderer.on('facsimile-progress', (event, ratio) => {
@@ -814,7 +901,7 @@ ipcRenderer.on('facsimile-progress', (event, ratio) => {
     if (ratio === 1) {
         setTimeout(() => {
             progressBar.css('width', '0%');
-            progressText.text('Facsimilate');
+            progressText.text('Re-compute Facsimile (may take some time)');
         }, 2000);
     }
 });
@@ -829,7 +916,7 @@ ipcRenderer.on('threshold-progress', (event, ratio) => {
     if (ratio === 1) {
         setTimeout(() => {
             progressBar.css('width', '0%');
-            progressText.text('Compute Treshold');
+            progressText.text('Apply Settings (faster)');
         }, 2000);
     }
 });
@@ -845,4 +932,20 @@ ipcRenderer.on('model-availability', (event, data) => {
         option.text('❌ ' + option.text());
     }
     $('#select-facsimile-model').trigger('change');
+});
+
+ipcRenderer.on('export-graphics-filtered', () => {
+    LOGGER.receive('EXPORT', 'export-graphics-filtered');
+    loadObjects('filters');
+});
+
+ipcRenderer.on('segmentations-checked', (event, segmentationsAvailable) => {
+    LOGGER.receive('EXPORT', 'segmentations-checked', segmentationsAvailable);
+    if (segmentationsAvailable) {
+        $('#threshold').removeClass('disabled');
+        $('#threshold .progress-text').text('Apply Settings (faster)');
+        $('#facsimilate .progress-text').text('Re-compute Facsimile (takes some time)');
+    } else {
+        $('#threshold').addClass('disabled');
+    }
 });

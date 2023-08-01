@@ -67,8 +67,18 @@ for url in urls:
 
         image = Image.fromarray(image)
 
+    # derive filename without file extension
     filename = os.path.basename(url)
-    dot = filename.rfind(".")
-    filename = filename[:dot]+'_filtered.png'
-    filepath = os.path.join(vlt_folder, filename)
+    filename = filename[:filename.rfind(".")]
+
+    # derive the directory of the image
+    directory = os.path.dirname(url)
+
+    # make sure that a "graphicFilters" subfolder exists
+    os.makedirs(os.path.join(directory, 'graphicFilters'), exist_ok=True)
+
+    # define the target path
+    filepath = os.path.join(directory, 'graphicFilters', f'{filename}.png')
+
+    # save the image
     image.save(filepath)

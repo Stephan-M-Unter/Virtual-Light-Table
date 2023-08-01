@@ -7,8 +7,11 @@ body {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    margin: 8px;
-    height: calc(100vh - 16px);
+    padding: 8px;
+    margin: 0;
+    height: 100vh;
+    box-sizing: border-box;
+    border: 3px solid black;
 }
 
 header {
@@ -47,6 +50,7 @@ canvas {
     padding: 5px 20px;
     text-align: justify;
     background-color: white;
+    border: 2px solid #bbb;
 }
 
 .relation {

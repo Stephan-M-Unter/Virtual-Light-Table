@@ -105,6 +105,19 @@ const exportProps = {
   },
 }
 
+const updateProps = {
+  width: 600,
+  height: 800,
+  icon: './imgs/icons/png/logo.png',
+  show: false,
+  frame: false,
+  resizable: false,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
+  },
+}
+
 const propsPresets = {
   'main': mainProps,
   'tpop': tpopProps,
@@ -114,6 +127,7 @@ const propsPresets = {
   'load': loadProps,
   'start': startProps,
   'export': exportProps,
+  'update': updateProps,
 }
 
 /**

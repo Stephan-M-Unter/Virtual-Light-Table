@@ -17,6 +17,7 @@ class MLManager {
 
         // define ML subfolders
         this.folderML = path.join(CONFIG.VLT_FOLDER, 'ML');
+        this.MLCapacitiesPath = path.join(this.folderML, 'MLcapacities.json');
         this.folderMLmodels = path.join(this.folderML, 'models');
         this.folderMLresults = path.join(this.folderML, 'results');
 
@@ -28,17 +29,54 @@ class MLManager {
         this.capacities = [];
         this.models = {};
 
-        this.checkCapacities();
+        this.checkForCapacities();
     };
 
-    checkCapacities() {
-        // TODO Hardcoded Address
-        // should instead be some URL where the most current version could be downloaded
-        const MLCapacitiesPath = "./MLcapacities.json"
-
-        fs.exists(MLCapacitiesPath, (exists) => {
+    checkForCapacities(reload=false, callback=null) {
+        // first, check if the MLCapacities file exists
+        fs.exists(this.MLCapacitiesPath, (exists) => {
             if (exists) {
-                fs.readFile(MLCapacitiesPath, (err, data) => {
+                // if it exists, check if it is up to date
+                fs.stat(this.MLCapacitiesPath, (err, stats) => {
+                    if (!err) {
+                        const lastModified = stats.mtimeMs;
+                        const now = Date.now();
+                        const timeDiff = now - lastModified;
+                        const timeDiffDays = timeDiff / (1000 * 60 * 60 * 24);
+                        if (timeDiffDays > 30 || reload) {
+                            // if it is older than 30 days, download the capacities
+                            this.downloadCapacities(callback);
+                        } else {
+                            // if it is not older than 30 days, load the capacities
+                            this.loadCapacities(callback);
+                        }
+                    } else {
+                        LOGGER.err('ML MANAGER', err);
+                    }
+                });
+            } else {
+                // if it does not exist, download the capacities
+                this.downloadCapacities(callback);
+            }
+        });
+    }
+    
+    downloadCapacities(callback) {
+        const MLCapacitiesPath = "https://huggingface.co/S-Unter/VLT/resolve/main/MLcapacities.json";
+        const filestream = fs.createWriteStream(this.MLCapacitiesPath);
+        const request = https.get(MLCapacitiesPath, {headers: {'Authorization': `Bearer ${this.accessToken}`}}, (response) => {
+            response.pipe(filestream);
+            filestream.on('finish', () => {
+                filestream.close();
+                this.loadCapacities(callback);
+            });
+        });
+    }
+
+    loadCapacities(callback) {
+        fs.exists(this.MLCapacitiesPath, (exists) => {
+            if (exists) {
+                fs.readFile(this.MLCapacitiesPath, (err, data) => {
                     if (!err) {
                         const MLCapacities = JSON.parse(data);
                         
@@ -53,10 +91,7 @@ class MLManager {
                             }
                         }
                         
-                        LOGGER.log('ML MANAGER', 'ML Capacities loaded:');
-                        LOGGER.log('ML MANAGER', this.capacities);
-                        LOGGER.log('ML MANAGER', 'ML model list loaded:');
-                        LOGGER.log('ML MANAGER', this.models);
+                        if (callback) callback();
                         
                     } else {
                         LOGGER.err('ML MANAGER', err);
@@ -144,14 +179,15 @@ class MLManager {
         return this.models[modelID].localPath;
     }
 
-    deleteModel(modelID) {
+    deleteModel(modelID, callback) {
         // check if the model with modelID exists
         if (this.checkForModel(modelID)) {
             // delete the folder
-            fs.rmdirSync(this.getModelPath(modelID), {recursive: true});
+            fs.rmSync(this.getModelPath(modelID), {recursive: true});
             // delete the model from the list
-            delete this.models[modelID];
+            this.models[modelID].localPath = null;
             LOGGER.log('ML MANAGER', `Model (ID: ${modelID}) deleted.`);
+            if (callback) callback(false);
         }
     }
 
@@ -241,11 +277,12 @@ class MLManager {
         if (inputData.length == 0) {
             callback_after_all(true);
         } else {
-            const path_segmentation = path.join(this.folderMLresults, inputData[0]);
-            const path_output_file = path_segmentation.replace('_segmentation.npy', '_threshold.png');
+            const image_path = inputData[0]['image_path'];
+            const segmentation_file = inputData[0]['segmentation_file'];
+            const path_segmentation = path.join(this.folderMLresults, segmentation_file);
 
             const controlJSON = JSON.stringify({
-                'path_output_file': path_output_file,
+                'path_image_file': image_path,
                 'path_segmentation': path_segmentation,
                 'thresholds': thresholds,
                 'colors': colors,
@@ -305,6 +342,18 @@ class MLManager {
         });
     }
 
+    checkForSegmentations(urls) {
+        for (const url of urls) {
+            const filename = path.basename(url, path.extname(url));
+            const segmentationName = `${filename}_segmentation.npy`;
+            const segmentationPath = path.join(this.folderMLresults, segmentationName);
+            if (!fs.existsSync(segmentationPath)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Return all models where the code is contained in the modelID. Return per model
      * an object including the modelID, the model name, and the model size.
@@ -323,17 +372,12 @@ class MLManager {
                 const modelCapacities = model.outputLabels;
                 let hasAllCapacities = true;
 
-                console.log(modelCapacities);
-
                 for (const capacity of requiredCapacities) {
-                    console.log(capacity);
                     if (!modelCapacities.includes(capacity)) {
                         hasAllCapacities = false;
                         break;
                     }
                 }
-
-                console.log(hasAllCapacities);
 
                 if (!hasAllCapacities) {
                     continue;
@@ -352,7 +396,10 @@ class MLManager {
         return null;
     }
 
-    cleanResults() {}
+    clearFiles() {
+        fs.rmSync(this.folderMLresults, {recursive: true});
+        fs.mkdirSync(this.folderMLresults);
+    }
 
 }
 

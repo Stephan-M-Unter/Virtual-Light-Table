@@ -108,6 +108,10 @@ class UIController {
     this.sendToServer('server-open-upload', this.getActiveTable());
   }
 
+  openExport() {
+    this.sendToServer('server-open-export');
+  }
+
   /**
    * TODO
    * @param {Boolean} isQuicksave
@@ -537,7 +541,7 @@ class UIController {
       filters: filters,
     }
    
-    this.sendToServer('server-graphics-filter', data);
+    this.sendToServer('server-graphics-filter-from-client', data);
   }
 
   /**
@@ -639,6 +643,12 @@ class UIController {
     let graphicFilters = null;
     if ('graphicFilters' in data.tableData) graphicFilters = data.tableData.graphicFilters;
     this.sidebar.updateGraphicFilters(graphicFilters);
+
+    if (Object.keys(data.tableData.fragments).length > 0) {
+      this.sidebar.enableExport(true);
+    } else {
+      this.sidebar.enableExport(false);
+    }
   }
 
   /**
@@ -913,13 +923,13 @@ class UIController {
    */
   toggleDevMode() {
     this.devMode = !this.devMode;
-    if (this.devMode) console.log('Dev_Mode activated. Deactivate with [CTRL+ALT+D].');
-    else console.log('Dev_Mode deactivated.');
+    if (this.devMode) LOGGER.log('MAIN VIEW', 'Dev_Mode activated. Deactivate with [CTRL+ALT+D].');
+    else LOGGER.log('MAIN VIEW', 'Dev_Mode deactivated.');
   }
 
   inspect(id) {
     if (id.indexOf('f_') != -1) {
-      console.log(this.stage.getFragment(id));
+      LOGGER.log('MAIN VIEW', this.stage.getFragment(id));
     }
   }
 
@@ -1141,7 +1151,6 @@ class UIController {
   }
 
   startPinning(event) {
-    console.log("startPinning");
     this.pinningMode = true;
     this.closeAnnotationPopup(event);
     this.annotationPopup.newPin();

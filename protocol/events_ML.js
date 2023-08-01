@@ -57,7 +57,11 @@ function registerEventHandlersML(ipcMain, send, get, set) {
             const image_path = entry['image_path'];
             const basename = path.basename(image_path, path.extname(image_path));
             const segmentation_filename = `${basename}_segmentation.npy`;
-            inputData_threshold.push(segmentation_filename);
+            const threshold_entry = {
+              'image_path': image_path,
+              'segmentation_file': segmentation_filename,
+            };
+            inputData_threshold.push(threshold_entry);
           }
           const callback_threshold = function() {
             send(event.sender, 'thresholded-images');
@@ -149,6 +153,37 @@ function registerEventHandlersML(ipcMain, send, get, set) {
           modelAvailability: modelAvailable,
         };
         send(event.sender, 'model-availability', responseData);
+    });
+
+    ipcMain.on('server-reload-ml', (event) => {
+        LOGGER.receive('SERVER', 'server-reload-ml');
+
+        const callback = () => {
+          const code = '';
+          const requiredCapacities = [];
+          const models = get('mlManager').getModelsByCode(code, requiredCapacities);
+          send(event.sender, 'ml-models', models);
+        };
+
+        get('mlManager').checkForCapacities(true, callback);
+
+    });
+
+    ipcMain.on('server-delete-model', (event, modelID) => {
+      LOGGER.receive('SERVER', 'server-delete-model', modelID);
+      get('mlManager').deleteModel(modelID, (modelDeleted) => {
+        const responseData = {
+          modelID: modelID,
+          modelAvailability: modelDeleted,
+        };
+        send(event.sender, 'model-availability', responseData);
+      });
+    });
+
+    ipcMain.on('server-check-for-segmentations', (event, urls) => {
+      LOGGER.receive('SERVER', 'server-check-for-segmentations', urls);
+      const segmentationsAvailable = get('mlManager').checkForSegmentations(urls);
+      send(event.sender, 'segmentations-checked', segmentationsAvailable);
     });
 }
   

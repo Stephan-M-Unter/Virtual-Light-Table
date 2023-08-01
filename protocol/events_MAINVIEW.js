@@ -1,6 +1,7 @@
 const LOGGER = require('../statics/LOGGER');
 const Window = require('../js/Window');
 const path = require('path');
+const {shell} = require('electron');
 
 function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
     ipcMain.on('server-close-table', (event, tableID) => {
@@ -55,7 +56,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
         const isUndone = get('tableManager').undoStep(tableID);
         if (isUndone) {
           // undo step was successful
-          const tableData = tableManager.getTable(tableID);
+          const tableData = get('tableManager').getTable(tableID);
           tableData['undo'] = true;
           // TODO evtl. zusammenfassen???
           send(event.sender, 'client-redo-model', tableData);
@@ -228,10 +229,22 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
       }
   });
 
-  ipcMain.on('server-graphics-filter', function(event, data) {
-    LOGGER.receive('SERVER', 'server-graphics-filter');
+  ipcMain.on('server-graphics-filter-from-client', function(event, data) {
+    LOGGER.receive('SERVER', 'server-graphics-filter-from-client');
     get('tableManager').setGraphicFilters(data['tableID'], data.filters);
-    get('filterImages')(data.tableID, data.urls);
+
+    const urls = data.urls;
+    const filters = get('tableManager').getGraphicFilters(data.tableID);
+    const callback = () => {
+      const response = {
+        tableID: data.tableID,
+        tableData: get('tableManager').getTable(data.tableID),
+      };
+      send(event.sender, 'client-load-model', response);
+      get('activeTables').view = data.tableID;
+    };
+
+    get('imageManager').applyGraphicalFilters(filters, urls, callback);
   });
 
   ipcMain.on('server-reset-graphics-filter', function(event, tableID) {
@@ -244,6 +257,23 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
       tableData: get('tableManager').getTable(tableID),
     }
     send(event.sender, 'client-load-model', response);
+  });
+
+  ipcMain.on('server-close-update', () => {
+    LOGGER.receive('SERVER', 'server-close-update');
+    get('updateWindow').close();
+  });
+
+  ipcMain.on('server-open-update-page', () => {
+    LOGGER.receive('SERVER', 'server-open-update-page');
+    // open a new browser window leading to https://stephan-m-unter.github.io/VLT-electron/index.html
+  
+    shell.openExternal('https://stephan-m-unter.github.io/VLT-electron/index.html');
+  });
+
+  ipcMain.on('server-ignore-updates', () => {
+    LOGGER.receive('SERVER', 'server-ignore-updates');
+    get('configManager').ignoreUpdates();
   });
 }
   

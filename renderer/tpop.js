@@ -1014,7 +1014,7 @@ $('#ml-reset').click(function() {
 
 $('#reload-json').click(() => {
   if (!requesting) {
-    $('#reload-json img').attr('src', '../imgs/loading-small.gif');
+    $('#reload-json img').attr('src', '../imgs/VLT_small.gif');
     requesting = true;
     LOGGER.send('TPOP', 'server-reload-json');
     ipcRenderer.send('server-reload-json');
@@ -1105,7 +1105,7 @@ ipcRenderer.on('tpop-json-failed', () => {
   LOGGER.receive('TPOP', 'tpop-json-failed');
   // TODO show error message
   // show options to close or retry
-  console.log('json failed');
+  LOGGER.err('TPOP', 'json failed');
 });
 
 ipcRenderer.on('tpop-details', (event, details) => {

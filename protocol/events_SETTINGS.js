@@ -29,9 +29,18 @@ function registerEventHandlersSETTINGS(ipcMain, send, get, set) {
           };
         });
         settingsWindow.removeMenu();
+        settingsWindow.setAlwaysOnTop(true);
         settingsWindow.once('ready-to-show', () => {
           settingsWindow.show();
         })
+        settingsWindow.webContents.on('did-finish-load', () => {
+          send(settingsWindow, 'settings-data', get('configManager').getConfig());
+          get('mlManager').checkForTensorflow(function(tensorflowAvailable) {
+              send(settingsWindow, 'tensorflow-installed', tensorflowAvailable);
+          });
+          const MLmodels = get('mlManager').getModelsByCode('', []);
+          send(settingsWindow, 'ml-models', MLmodels);
+        });
         settingsWindow.on('close', function() {
           set('settingsWindow', null);
         });

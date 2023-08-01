@@ -513,6 +513,14 @@ class Sidebar {
     $('#clear-measures').addClass('hidden');
   }
 
+  enableExport(hasObjects) {
+    if (hasObjects) {
+      $('#export_table').removeClass('disabled');
+    } else {
+      $('#export_table').addClass('disabled');
+    }
+  }
+
   /**
    * TODO
    * @param {*} measurements
