@@ -131,6 +131,10 @@ class UploadCanvas {
         return this.prop.filepath !== null;
     }
 
+    hasAutoCut() {
+        return this.prop.autoCutPaths.hasOwnProperty(this.prop.activeModelID);
+    }
+
     draw() {
         this.stage.removeAllChildren();
         this.prop.displayed = [];
@@ -157,7 +161,8 @@ class UploadCanvas {
         }
 
         this.__addDisplayedToStage();
-        this.update();  
+        this.update();
+        this.controller.notifyRenderer();
     }
 
     __drawImages() {

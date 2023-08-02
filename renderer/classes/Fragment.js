@@ -73,6 +73,7 @@ class Fragment {
       
       this.recto.box = data.recto.box;
       this.recto.polygon = data.recto.polygon;
+      this.recto.auto = data.recto.auto;
       
       this.recto.upload = data.recto.upload;
       this.recto.www = data.recto.www;
@@ -126,6 +127,7 @@ class Fragment {
       
       this.verso.box = data.verso.box;
       this.verso.polygon = data.verso.polygon;
+      this.verso.auto = data.verso.auto;
       
       this.verso.upload = data.verso.upload;
       this.verso.www = data.verso.www;
@@ -571,6 +573,7 @@ class Fragment {
       dataRecto.ppi = this.recto.ppi;
       dataRecto.box = this.recto.box;
       dataRecto.polygon = this.recto.polygon;
+      dataRecto.auto = this.recto.auto;
 
       dataRecto.upload = this.recto.upload;
       dataRecto.www = this.recto.www;
@@ -588,6 +591,7 @@ class Fragment {
       dataVerso.ppi = this.verso.ppi;
       dataVerso.box = this.verso.box;
       dataVerso.polygon = this.verso.polygon;
+      dataVerso.auto = this.verso.auto;
 
       dataVerso.upload = this.verso.upload;
       dataVerso.www = this.verso.www;

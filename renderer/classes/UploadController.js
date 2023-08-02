@@ -23,6 +23,15 @@ class UploadController {
         }
     }
 
+    hasAutoCut(side) {
+        if (side === 'recto') {
+            return this.recto.hasAutoCut();
+        }
+        else if (side === 'verso') {
+            return this.verso.hasAutoCut();
+        }
+    }
+
     resize() {
         this.recto.resize();
         this.verso.resize();

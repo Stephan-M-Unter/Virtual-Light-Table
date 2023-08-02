@@ -90,7 +90,9 @@ function checkActiveCanvases() {
 function gatherPPI() {
     let recto_ppi = parseFloat(controller.getProperty('recto', 'ppi')) || '';
     if (!(isNaN(recto_ppi)) && (recto_ppi !== null) && (recto_ppi !== '')) {
-        recto_ppi = recto_ppi.toFixed(2);
+        if (!(Number.isInteger(recto_ppi))) {
+            recto_ppi = recto_ppi.toFixed(2);
+        }
     }
     $('#recto_ppi').val(recto_ppi);
 
@@ -114,6 +116,17 @@ function checkFields() {
     valid = checkPPIField('recto') && valid;
     valid = checkPPIField('verso') && valid;
     valid = checkObjectName() && valid;
+
+    const maskMode = controller.getMaskMode();
+    const rectoHasImage = controller.hasContent('recto');
+    const rectoHasCut = controller.hasAutoCut('recto');
+    const versoHasImage = controller.hasContent('verso');
+    const versoHasCut = controller.hasAutoCut('verso');
+    const rectoAutoReady = !rectoHasImage || (rectoHasImage && rectoHasCut);
+    const versoAutoReady = !versoHasImage || (versoHasImage && versoHasCut);
+
+    const autoReady = (maskMode !== 'automatic') || (rectoAutoReady && versoAutoReady);
+    valid = autoReady && valid;
 
     $('#upload_button').addClass('disabled');
     if (valid) {

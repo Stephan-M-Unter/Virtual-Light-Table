@@ -20,6 +20,7 @@ const process = require('process');
 const opener = require('opener');
 const {spawn} = require('child_process');
 const CSC = require('./statics/CRIME_SCENE_CLEANER')
+const fs = require('fs-extra');
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -472,8 +473,9 @@ function preprocess_loading_fragments(data) {
   let boxPoints;
   let polygonPoints;
   let filename;
+  let ppi;
   let mirror = false;
-
+  
   // in the following, we first check if the first side has to be processed; if so,
   // the corresponding python script will be called, and as this is an async process,
   // we need to call the process_fragment method again once this extraction is done.
@@ -481,79 +483,171 @@ function preprocess_loading_fragments(data) {
   // we wait for the python script to be finished before re-calling the method. In the third
   // and final run both sides should be processed and therefore the data can be sent to the
   // main window.
-
+  
   // at least one side must still be to be processed at this point, otherwise the data
   // would already have been sent to the main window
+  if (fragment.maskMode === 'automatic') {
+        const resultFileFolder = mlManager.getResultFolder();
+        const resultFileName = 'cut_results.json';
 
-  if (!rectoProcessed) {
-    // we are processing the recto side
-    if ('recto' in fragment && 'url' in fragment.recto) {
-      // recto data available
-      imageURL = fragment.recto.url;
-      boxPoints = fragment.recto.box;
-      polygonPoints = fragment.recto.polygon;
-    } else {
-      // no recto data available, thus we use the verso data and
-      // set the mirror flag to true
-      data.recto = {};
-      mirror = true;
-      imageURL = fragment.verso.url;
-      boxPoints = fragment.verso.box;
-      polygonPoints = fragment.verso.polygon;
-      data.recto.ppi = fragment.verso.ppi;
-    }
+        let modelID;
+        let rectoURL = null;
+        let rectoMask = null;
+        let rectoPPI = null;
+        let versoURL = null;
+        let versoMask = null;
+        let versoPPI = null;
+
+        if ('recto' in fragment && 'auto' in fragment.recto) {
+          modelID = fragment.recto.auto.modelID;
+          rectoURL = fragment.recto.url;
+          rectoMask = fragment.recto.auto.mask;
+          rectoPPI = fragment.recto.ppi;
+        }
+        if ('verso' in fragment && 'auto' in fragment.verso) {
+          modelID = fragment.verso.auto.modelID;
+          versoURL = fragment.verso.url;
+          versoMask = fragment.verso.auto.mask;
+          versoPPI = fragment.verso.ppi;
+        }
+
+        python = spawn(CONFIG.PYTHON_CMD, [
+          path.join(CONFIG.PYTHON_FOLDER, 'cut_automatic_masks.py'),
+          resultFileFolder,
+          resultFileName,
+          modelID,
+          rectoURL,
+          rectoMask,
+          rectoPPI,
+          versoURL,
+          versoMask,
+          versoPPI,
+        ],
+        {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+
+        python.on('close', (code) => {
+          LOGGER.log('SERVER', `Automatic Cutting Result: code ${code}.`);
+          // fragment.processed = true;
+          fs.remove(path.join(resultFileFolder, resultFileName));
+          let rectoName = null;
+          let versoName = null;
+          if (rectoMask !== null) {
+            rectoName = path.basename(fragment.recto.auto.mask).split('_segmentation')[0];
+            rectoName = `${rectoName}_cut_${fragment.recto.auto.modelID}.png`;
+            rectoName = path.join(resultFileFolder, rectoName);
+            fragment.recto.url_view = rectoName;
+          }
+          if (versoMask !== null) {
+            versoName = path.basename(fragment.verso.auto.mask).split('_segmentation')[0];
+            versoName = `${versoName}_cut_${fragment.verso.auto.modelID}.png`;
+            versoName = path.join(resultFileFolder, versoName);
+            fragment.verso.url_view = versoName;
+          }
+
+          if (rectoMask === null) {
+            python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), versoName, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+            
+            python.on('close', (code) => {
+              rectoName = path.basename(versoName).split('.')[0]+'_mirror.png'
+              rectoName = path.join(CONFIG.TEMP_FOLDER, 'imgs', rectoName);
+              fragment.recto.url_view = rectoName;
+              data.tableData.fragments[fragmentKey] = fragment;
+              preprocess_loading_fragments(data);
+            });
+          }
+          else if (versoMask === null) {
+            python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), rectoName, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+            
+            python.on('close', (code) => {
+              versoName = path.basename(rectoName).split('.')[0]+'_mirror.png'
+              versoName = path.join(CONFIG.TEMP_FOLDER, 'imgs', versoName);
+              fragment.verso.url_view = versoName;
+              data.tableData.fragments[fragmentKey] = fragment;
+              preprocess_loading_fragments(data);
+            });  
+          }
+          else {
+            data.tableData.fragments[fragmentKey] = fragment;
+            preprocess_loading_fragments(data);
+          }
+        });
+
   } else {
-    // we are processing the verso side
-    if ('verso' in fragment && 'url' in fragment.verso) {
-      // verso data available
-      imageURL = fragment.verso.url;
-      boxPoints = fragment.verso.box;
-      polygonPoints = fragment.verso.polygon;
-    } else {
-      // no verso data available, thus we use the recto data and
-      // set the mirror flag to true
-      data.verso = {};
-      mirror = true;
-      imageURL = fragment.recto.url;
-      boxPoints = fragment.recto.box;
-      polygonPoints = fragment.recto.polygon;
-      data.verso.ppi = fragment.recto.ppi;
-    }
-  }
 
-  if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror.png';
-  else filename = path.basename(imageURL).split('.')[0]+'_frag.png';
-
-  if (fragment.maskMode == 'no_mask') {
-    if (mirror) {
-      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-    }
-    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  } else if (fragment.maskMode == 'boundingbox') {
-    if (mirror) {
-      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-    }
-    else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-  } else if (fragment.maskMode == 'polygon') {
-    if (mirror) {
-      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    if (!rectoProcessed) {
+      // we are processing the recto side
+      if ('recto' in fragment && 'url' in fragment.recto) {
+        // recto data available
+        imageURL = fragment.recto.url;
+        boxPoints = fragment.recto.box;
+        polygonPoints = fragment.recto.polygon;
+        autoModelID = fragment.recto.auto.modelID;
+        autoMaskPath = fragment.recto.auto.mask;
+        ppi = fragment.recto.ppi;
+      } else {
+        // no recto data available, thus we use the verso data and
+        // set the mirror flag to true
+        data.recto = {};
+        mirror = true;
+        imageURL = fragment.verso.url;
+        boxPoints = fragment.verso.box;
+        polygonPoints = fragment.verso.polygon;
+        data.recto.ppi = fragment.verso.ppi;
+      }
     } else {
-      python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      // we are processing the verso side
+      if ('verso' in fragment && 'url' in fragment.verso) {
+        // verso data available
+        imageURL = fragment.verso.url;
+        boxPoints = fragment.verso.box;
+        polygonPoints = fragment.verso.polygon;
+        autoModelID = fragment.verso.auto.modelID;
+        autoMaskPath = fragment.verso.auto.mask;
+        ppi = fragment.verso.ppi;
+      } else {
+        // no verso data available, thus we use the recto data and
+        // set the mirror flag to true
+        data.verso = {};
+        mirror = true;
+        imageURL = fragment.recto.url;
+        boxPoints = fragment.recto.box;
+        polygonPoints = fragment.recto.polygon;
+        data.verso.ppi = fragment.recto.ppi;
+      }
     }
-  } else if (fragment.maskMode == 'automatic') {
-    // TODO
-  }
-  const newURL = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
-  if (!rectoProcessed) {
-    fragment.recto.url_view = newURL;
-  } else {
-    fragment.verso.url_view = newURL;
-  }
-  python.on('close', function(code) {
-    LOGGER.log('SERVER', `Python script finished (code ${code}), restarting...`);
-    data.tableData.fragments[fragmentKey] = fragment;
-    preprocess_loading_fragments(data);
+
+    if (mirror) filename = path.basename(imageURL).split('.')[0]+'_mirror.png';
+    else filename = path.basename(imageURL).split('.')[0]+'_frag.png';
+    
+    if (fragment.maskMode == 'no_mask') {
+      if (mirror) {
+        python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      }
+      else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, "no_mask", CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    } else if (fragment.maskMode == 'boundingbox') {
+      if (mirror) {
+        python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      }
+      else python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(boxPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+    } else if (fragment.maskMode == 'polygon') {
+      if (mirror) {
+        python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'mirror_cut.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      } else {
+        python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'cut_image.py'), imageURL, JSON.stringify(polygonPoints), CONFIG.VLT_FOLDER], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+      }
+    const newURL = path.join(CONFIG.TEMP_FOLDER, 'imgs', filename);
+    if (!rectoProcessed) {
+      fragment.recto.url_view = newURL;
+    } else {
+      fragment.verso.url_view = newURL;
+    }
+    python.on('close', function(code) {
+      LOGGER.log('SERVER', `Python script finished (code ${code}), restarting...`);
+      data.tableData.fragments[fragmentKey] = fragment;
+      preprocess_loading_fragments(data);
   });
+    }
+  }
 }
 
 async function checkPythonVersion(pythonCommand) {

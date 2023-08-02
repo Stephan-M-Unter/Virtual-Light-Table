@@ -713,6 +713,7 @@ $(document).ready(function() {
 
   ipcRenderer.on('client-add-upload', (event, data) => {
     LOGGER.receive('client-add-upload', data);
+    console.log(data);
     controller.stopLoading();
     controller.addFragment(data);
   });

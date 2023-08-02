@@ -403,6 +403,36 @@ class MLManager {
         fs.mkdirSync(this.folderMLresults);
     }
 
+    loadAutoMasks(data) {
+        console.log('##############################');
+        console.log(data);
+        if (!(data.hasOwnProperty('autoMasks'))) {
+            return data;
+        }
+        data.autoMasks.forEach((entry) => {
+            const filename = entry['filename'];
+            const targetPath = path.join(this.folderMLresults, filename);
+            const dataURL = entry['data'];
+            const base64Data = dataURL.replace(/^data:image\/\w+;base64,/, '');
+            const binaryData = Buffer.from(base64Data, 'base64');
+    
+            fs.writeFileSync(targetPath, binaryData);
+        });
+
+        for (const id in data.fragments) {
+            if ('recto' in data.fragments[id] && data.fragments[id].recto.auto.mask !== null) {
+                data.fragments[id].recto.auto.mask = path.join(this.folderMLresults, data.fragments[id].recto.auto.mask);
+            }
+            if ('verso' in data.fragments[id] && data.fragments[id].verso.auto.mask !== null) {
+                data.fragments[id].verso.auto.mask = path.join(this.folderMLresults, data.fragments[id].verso.auto.mask);
+            }
+        }
+        return data;
+    }
+
+    getResultFolder() {
+        return this.folderMLresults;
+    }
 }
 
 module.exports = MLManager;

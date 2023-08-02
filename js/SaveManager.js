@@ -21,6 +21,7 @@ const JSZip = require('jszip');
 const yauzl = require('yauzl');
 const LOGGER = require('../statics/LOGGER');
 const {CONFIG} = require('../statics/CONFIG');
+const mime = require('mime-types');
 
 /**
  * TODO
@@ -100,7 +101,7 @@ class SaveManager {
    * @return {String}
    *    String with the filepath of the just saved file.
    */
-  saveTable(tableData, filepath) {
+  saveTable(tableData, filepath, insert_images=false) {
     const imagepath = path.dirname(filepath) + '/imgs';
     if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 
@@ -170,17 +171,62 @@ class SaveManager {
     }
 
     let content = this.convertToRelativePaths(filepath, tableData);
+    const view_urls = [];
+    const autoMasks = [];
 
     for (const key of Object.keys(content.fragments)) {
       if ('recto' in content.fragments[key] && 'url_view' in content.fragments[key].recto) {
+        view_urls.push(content.fragments[key].recto.url_view);
         delete content.fragments[key].recto.url_view;
       }
       if ('verso' in content.fragments[key] && 'url_view' in content.fragments[key].verso) {
+        view_urls.push(content.fragments[key].verso.url_view);
         delete content.fragments[key].verso.url_view;
       }
+
+
+      const maskMode = content.fragments[key].maskMode;
+      if (maskMode === 'automatic') {
+        if ('recto' in content.fragments[key]) {
+
+          const rectoMaskPath = content.fragments[key].recto.auto.mask;
+          if (rectoMaskPath !== null) {
+            const rectoMask = this.convertImageToDataURL(content.fragments[key].recto.auto.mask);
+            const rectoFilename = path.basename(content.fragments[key].recto.auto.mask);
+            autoMasks.push({
+              filename: rectoFilename,
+              data: rectoMask,
+            });
+            content.fragments[key].recto.auto.mask = rectoFilename;
+            content.fragments[key].recto.auto.cut = null;
+          }
+        }
+        
+        if ('verso' in content.fragments[key]) {
+
+          const versoMaskPath = content.fragments[key].verso.auto.mask;
+          if (versoMaskPath !== null) {
+            const versoMask = this.convertImageToDataURL(content.fragments[key].verso.auto.mask);
+            const versoFilename = path.basename(content.fragments[key].verso.auto.mask);
+            autoMasks.push({
+              filename: versoFilename,
+              data: versoMask,
+            });
+            content.fragments[key].verso.auto.mask = versoFilename;
+            content.fragments[key].verso.auto.cut = null;
+          }
+        }
+      }
+    }
+
+    content['autoMasks'] = autoMasks;
+
+    if (insert_images) {
+      const view_images = this.convertImagesToDataURLs(view_urls);
+      content['view_images'] = view_images;
     }
     
-    content = JSON.stringify(content);
+    content = JSON.stringify(content, null, 4);
     fs.writeFileSync(filepath, content, 'utf-8');
     LOGGER.log('SAVE MANAGER', '[SaveManager] Saved table configuration to ' + filepath);
     return filepath;
@@ -336,12 +382,48 @@ class SaveManager {
    * @param {*} data
    */
   saveSavefile(filepath, data) {
+    const view_urls = [];
     for (const key in data.tableData.fragments) {
+      if (('url_view' in data.tableData.fragments[key].recto) && (data.tableData.fragments[key].recto.url_view)) {
+        view_urls.push(data.tableData.fragments[key].recto.url_view);
+      }
       delete data.tableData.fragments[key].recto.url_view;
+      if (('url_view' in data.tableData.fragments[key].verso) && (data.tableData.fragments[key].verso.url_view)) {
+        view_urls.push(data.tableData.fragments[key].verso.url_view);
+      }
       delete data.tableData.fragments[key].verso.url_view;
     }
-    const json = JSON.stringify(data);
+
+    const images = this.convertImagesToDataURLs(view_urls);
+    data['images_view'] = images;
+
+
+    const json = JSON.stringify(data, null, 4);
+
     fs.writeFileSync(filepath, json);
+  }
+
+  convertImagesToDataURLs(filepaths) {
+    const images = [];
+    for (const filepath of filepaths) {
+      if ((filepath === null) || (!fs.existsSync(filepath))) {
+        continue;
+      }
+      const dataURL = this.convertImageToDataURL(filepath);
+      images.push(dataURL);
+    }
+    return images;
+  }
+
+  convertImageToDataURL(filepath) {
+    if (filepath === null) {
+      return;
+    }
+    const image = fs.readFileSync(filepath);
+    const data = image.toString('base64');
+    const mimeType = mime.lookup(filepath);
+    const dataURL = 'data:' + mimeType + ';base64,' + data;
+    return dataURL;
   }
 
   /**

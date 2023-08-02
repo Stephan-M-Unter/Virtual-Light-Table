@@ -26,13 +26,19 @@ path_image1 = sys.argv[4]
 print(f'cut_automatic_masks.py - Input[4] (path_image1): {path_image1}')
 path_mask1 = sys.argv[5]
 print(f'cut_automatic_masks.py - Input[5] (path_mask1): {path_mask1}')
-ppi1 = float(sys.argv[6])
+try:
+    ppi1 = float(sys.argv[6])
+except ValueError:
+    ppi1 = None
 print(f'cut_automatic_masks.py - Input[6] (ppi1): {ppi1}')
 path_image2 = sys.argv[7]
 print(f'cut_automatic_masks.py - Input[7] (path_image2): {path_image2}')
 path_mask2 = sys.argv[8]
 print(f'cut_automatic_masks.py - Input[8] (path_mask2): {path_mask2}')
-ppi2 = float(sys.argv[9])
+try:
+    ppi2 = float(sys.argv[9])
+except ValueError:
+    ppi2 = None
 print(f'cut_automatic_masks.py - Input[9] (ppi2): {ppi2}')
 
 

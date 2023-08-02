@@ -5,6 +5,7 @@ const Window = require('../js/Window');
 const {shell} = require('electron');
 
 function registerEventHandlersLOAD(ipcMain, send, get, set) {
+    /* server-open-load */  
     ipcMain.on('server-open-load', (event, tableID) => {
       LOGGER.receive('SERVER', 'server-open-load');
     
@@ -30,20 +31,26 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
       }
     });
 
+    /* server-ask-load-folders */
     ipcMain.on('server-ask-load-folders', (event) => {
         LOGGER.receive('SERVER', 'server-ask-load-folders');
         send(event.sender, 'load-set-default-folder', CONFIG.SAVES_FOLDER);
         send(event.sender, 'load-receive-folder', get('saveManager').getCurrentFolder());
     });
 
+    /*  server-load-file */
     ipcMain.on('server-load-file', (event, filename) => {
         LOGGER.receive('SERVER', 'server-load-file', filename);
+        // determine the active table
         let tableID = get('activeTables').loading;
-        send(get('mainWindow'), 'client-start-loading', tableID);
         get('activeTables').loading = null;
+
+        // close load window and start loading animation
+        send(get('mainWindow'), 'client-start-loading', tableID);
         get('loadWindow').close();
+        
         filename = path.join(get('saveManager').getCurrentFolder(), filename);
-        const file = get('saveManager').loadSaveFile(filename, tableID);
+        let file = get('saveManager').loadSaveFile(filename, tableID);
       
         if (!get('activeTables').view) {
           tableID = get('tableManager').createNewTable();
@@ -51,6 +58,8 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
         } else if (get('tableManager').hasFragments(get('activeTables').view)) {
           tableID = get('tableManager').createNewTable();
         }
+
+        file = get('mlManager').loadAutoMasks(file);
       
         get('tableManager').loadFile(tableID, file);
         const data = {
@@ -59,10 +68,12 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
         };
         data.tableData['loading'] = true;
         data.tableData['filename'] = filename;
+
       
         get('preprocess_loading_fragments')(data);
     });
 
+    /* server-list-savefiles */
     ipcMain.on('server-list-savefiles', (event, folder) => {
       LOGGER.receive('SERVER', 'server-list-savefiles');
     
@@ -77,19 +88,19 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
       send(event.sender, 'load-receive-saves', savefiles);
     });
     
-    // <- server-get-saves-folder
+    /* server-get-saves-folder */
     ipcMain.on('server-get-saves-folder', (event) => {
       LOGGER.receive('SERVER', 'server-get-saves-folder');
         send(event.sender, 'load-receive-folder', CONFIG.SAVES_FOLDER);
     });
 
-    // server-export-file
+    /* server-export-file */
     ipcMain.on('server-export-file', (event, filename) => {
       LOGGER.receive('SERVER', 'server-export-file');
       get('saveManager').exportFile(filename);
     });
 
-    // server-delete-file
+    /* server-delete-file */
     ipcMain.on('server-delete-file', (event, filename) => {
       LOGGER.receive('SERVER', 'server-delete-file');
       const deleted = get('saveManager').deleteFile(filename);
@@ -100,6 +111,7 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
       }
     });
 
+    /* server-import-file */
     ipcMain.on('server-import-file', (event) => {
       LOGGER.receive('SERVER', 'server-import-file');
       get('saveManager').importFile(() => {
@@ -108,6 +120,7 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
       });
     });
 
+    /* server-open-load-folder */
     ipcMain.on('server-open-load-folder', (event) => {
       LOGGER.receive('SERVER', 'server-open-load-folder');
       const folder = get('saveManager').getCurrentFolder();
