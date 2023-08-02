@@ -24,7 +24,7 @@ class ConfigManager {
         }
     }
     save() {
-        const configJSON = JSON.stringify(this.config);
+        const configJSON = JSON.stringify(this.config, null, 4);
         fs.writeFileSync(this.vltConfigFilePath, configJSON, function(err) {
             if (err) {
                 LOGGER.err('CONFIG', 'Error while writing config file.');
@@ -43,6 +43,14 @@ class ConfigManager {
                 this.createFolders();
             } else {
                 this.config.vltFolder = CONFIG.VLT_FOLDER;
+            }
+
+            if (!(CONFIG.ACCESS_TOKEN) && this.config.access_token) {
+                CONFIG.set_access_token(this.config.access_token);
+            }
+            else if (CONFIG.ACCESS_TOKEN) {
+                this.config.access_token = CONFIG.ACCESS_TOKEN;
+                this.save();
             }
         } catch (err) {
             LOGGER.err('CONFIG', 'An error occurred while reading the config file.');
@@ -149,9 +157,8 @@ class ConfigManager {
             if (this.config.ignoreUpdates) {
                 resolve(false);
             }
-            const accessKey = "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";
-            const updatePath = "https://huggingface.co/S-Unter/VLT/resolve/main/VLT.json";
-            const request = https.get(updatePath, {headers: {'Authorization': `Bearer ${accessKey}`}}, (response) => {
+            const updatePath = "https://stephan-m-unter.github.io/VLT-electron/VLT.json";
+            const request = https.get(updatePath, (response) => {
                 let data = '';
                 response.on('data', (chunk) => {
                     data += chunk;
@@ -159,12 +166,12 @@ class ConfigManager {
 
                 response.on('end', () => {
                     try {
-
                         const versionData = JSON.parse(data);
+                        
                         const version = versionData.version;
                         const mainVersion = version.split(".")[0];
                         const subVersion = version.split(".")[1];
-                        
+
                         const currentMainVersion = this.version.split(".")[0];
                         const currentSubVersion = this.version.split(".")[1];
                         

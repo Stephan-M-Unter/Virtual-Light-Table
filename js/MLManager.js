@@ -10,8 +10,6 @@ const https = require('follow-redirects').https;
 class MLManager {
 
     constructor() {
-        this.accessToken = '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'; // TODO: get access token from MLCapacities file, currently not possible
-
         this.tensorflowAvailable = null;
         this.checkForTensorflow();
 
@@ -64,7 +62,8 @@ class MLManager {
     downloadCapacities(callback) {
         const MLCapacitiesPath = "https://huggingface.co/S-Unter/VLT/resolve/main/MLcapacities.json";
         const filestream = fs.createWriteStream(this.MLCapacitiesPath);
-        const request = https.get(MLCapacitiesPath, {headers: {'Authorization': `Bearer ${this.accessToken}`}}, (response) => {
+        LOGGER.log('ML MANAGER', `Sending request for MLcapacities.json, access token: ${CONFIG.ACCESS_TOKEN}`);
+        const request = https.get(MLCapacitiesPath, {headers: {'Authorization': `Bearer ${CONFIG.ACCESS_TOKEN}`}}, (response) => {
             response.pipe(filestream);
             filestream.on('finish', () => {
                 filestream.close();
@@ -152,7 +151,8 @@ class MLManager {
             for (const requestPath of requestPaths) {
                 const filename = path.basename(requestPath);
                 const filestream = fs.createWriteStream(path.join(modelPath, filename));
-                const request = https.get(requestPath, {headers: {'Authorization': `Bearer ${this.accessToken}`}}, (response) => {
+                LOGGER.log('ML MANAGER', `Requesting model with ID ${modelID} with access token: ${CONFIG.ACCESS_TOKEN}.`);
+                const request = https.get(requestPath, {headers: {'Authorization': `Bearer ${CONFIG.ACCESS_TOKEN}`}}, (response) => {
                     response.pipe(filestream);
                     filestream.on('finish', () => {
                         filestream.close();

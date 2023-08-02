@@ -33,6 +33,7 @@ class CONFIG {
     static EXTERNAL_FOLDER;
     static PYTHON_CMD;
     static PYTHON_FOLDER;
+    static ACCESS_TOKEN;
 
     static set_vlt_folder(folder) {
         this.VLT_FOLDER = folder;
@@ -71,6 +72,11 @@ class CONFIG {
     static set_python_command(cmd) {
         this.PYTHON_CMD = cmd;
         LOGGER.log('CONFIG', `PYTHON_CMD changed to ${this.PYTHON_CMD}.`);
+    }
+
+    static set_access_token(token) {
+        this.ACCESS_TOKEN = token;
+        LOGGER.log('CONFIG', `ACCESS_TOKEN changed to ${this.ACCESS_TOKEN}.`);
     }
 }
 

@@ -21,6 +21,7 @@ const opener = require('opener');
 const {spawn} = require('child_process');
 const CSC = require('./statics/CRIME_SCENE_CLEANER')
 const fs = require('fs-extra');
+const https = require('follow-redirects').https;
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -203,6 +204,7 @@ async function startUp(callback) {
   LOGGER.log('STARTUP', 'Checking Python and Tensorflow...');
   sendMessage(startWindow, 'startup-status', 'Checking Python and Tensorflow...');
   try {
+    await get_access_token();
     await check_requirements();
     LOGGER.log('STARTUP', 'Installing Managers...');
     sendMessage(startWindow, 'startup-status', 'Installing Managers...');
@@ -214,7 +216,6 @@ async function startUp(callback) {
     sendMessage(startWindow, 'startup-status', 'Checking for updated versions...');
     await configManager.checkForUpdates()
       .then((versionData) => {
-          console.log(versionData);
           if (versionData.updateAvailable) {
             updateWindow = new Window({
               file: './renderer/update.html',
@@ -251,6 +252,30 @@ async function startUp(callback) {
     LOGGER.log('SERVER', 'Quitting Application.');
     app.quit();
   }
+}
+
+function get_access_token() {
+  return new Promise((resolve, reject) => {
+    const url = "https://stephan-m-unter.github.io/VLT-electron/VLT_access.json";
+    LOGGER.log('SERVER', 'Sending request for VLT_access.json');
+    const request = https.get(url, (response) => {
+      let data = '';
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+      response.on('end', () => {
+        try {
+          const accessData = JSON.parse(data);
+          const access_token = accessData.access_token;
+          LOGGER.log('SERVER', `Received Access Token: ${access_token}`);
+          CONFIG.set_access_token(access_token);
+          resolve();
+        } catch(error) {
+          reject(error);
+        }
+      });
+    });
+  });
 }
 
 function createManagers() {
