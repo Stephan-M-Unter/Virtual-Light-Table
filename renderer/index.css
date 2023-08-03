@@ -422,6 +422,7 @@ body {
     position: fixed;
     /* background-image: url("../imgs/cb_logo_back.png"); */
     background-image: url("../imgs/VLT_logo_square_background.png");
+    background-size: contain;
     /* filter: invert(30%); */
     background-repeat: no-repeat;
     background-position: center;
