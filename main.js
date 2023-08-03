@@ -561,12 +561,14 @@ function preprocess_loading_fragments(data) {
             rectoName = `${rectoName}_cut_${fragment.recto.auto.modelID}.png`;
             rectoName = path.join(resultFileFolder, rectoName);
             fragment.recto.url_view = rectoName;
+            fragment.recto.auto.cut = rectoName;
           }
           if (versoMask !== null) {
             versoName = path.basename(fragment.verso.auto.mask).split('_segmentation')[0];
             versoName = `${versoName}_cut_${fragment.verso.auto.modelID}.png`;
             versoName = path.join(resultFileFolder, versoName);
             fragment.verso.url_view = versoName;
+            fragment.verso.auto.cut = versoName;
           }
 
           if (rectoMask === null) {

@@ -135,6 +135,10 @@ class UploadCanvas {
         return this.prop.autoCutPaths.hasOwnProperty(this.prop.activeModelID);
     }
 
+    hasAutoMask() {
+        return this.prop.autoMaskPaths.hasOwnProperty(this.prop.activeModelID);
+    }
+
     draw() {
         this.stage.removeAllChildren();
         this.prop.displayed = [];
@@ -162,7 +166,7 @@ class UploadCanvas {
 
         this.__addDisplayedToStage();
         this.update();
-        this.controller.notifyRenderer();
+        // this.controller.notifyRenderer();
     }
 
     __drawImages() {
@@ -714,6 +718,7 @@ class UploadCanvas {
             this.ppi2 = null;
 
             this.scaleImage(ppi);
+            this.centerImage();
             this.controller.notifyRenderer();
         }
     }
@@ -818,8 +823,6 @@ class UploadCanvas {
         const x = event.pageX - this.canvas.offset().left - this.borderSize;
         const y = event.pageY - this.canvas.offset().top - this.borderSize;
 
-        console.log(x, y);
-
         this.__drawScaleLine(x, y);
         this.__moveBrush(x, y);
         this.draw();
@@ -872,6 +875,12 @@ class UploadCanvas {
             this.prop.ppi = data.ppi;
         }
 
+        if ('auto' in data) {
+            this.prop.activeModelID = data.auto.modelID;
+            this.prop.autoCutPaths[data.auto.modelID] = data.auto.cut;
+            this.prop.autoMaskPaths[data.auto.modelID] = data.auto.mask;
+        }
+
         if ('upload' in data) {
             this.prop.x = data.upload.x;
             this.prop.y = data.upload.y;
@@ -880,6 +889,7 @@ class UploadCanvas {
             this.prop.maskPolygon = data.upload.polygon;
             this.prop.scale = data.upload.scale;
         }
+        this.controller.notifyRenderer();
         this.draw();
     }
 
@@ -938,6 +948,7 @@ class UploadCanvas {
 
     setMask(maskPath) {
         this.prop.autoMaskPaths[this.prop.activeModelID] = maskPath;
+        this.autoDeleteCut(this.prop.activeModelID);
         this.draw();
     }
 
@@ -979,6 +990,10 @@ class UploadCanvas {
     handleMouseEnter(event) {
         this.cursor.graphics = new createjs.Graphics().beginStroke('black').drawCircle(0,0,this.brushSize)
         this.draw();
+    }
+
+    getAutoModelID() {
+        return this.prop.activeModelID;
     }
 }
 

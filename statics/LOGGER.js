@@ -19,7 +19,7 @@ class LOGGER {
         const logStderr = process.stderr;
 
         LOGGER.logfile = fs.createWriteStream(path.join(appPath, 'log.txt'), {flags: 'w'});
-        LOGGER.outputfile = fs.createWriteStream(path.join(appPath, 'out.txt'), {flags: 'w'});
+        LOGGER.outputfile = fs.createWriteStream(path.join(appPath, 'log_scripts.txt'), {flags: 'w'});
         
         console.log = function() {
             LOGGER.logfile.write(util.format.apply(null, arguments)+'\n');

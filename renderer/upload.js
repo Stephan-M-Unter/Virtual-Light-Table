@@ -246,7 +246,6 @@ function brush(event) {
 }
 
 function setCursorMode(mode) {  
-    console.log('setCursorMode', mode);
     $('.active_mode').removeClass('active_mode');
     $('#recto_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure auto_draw auto_erase');
     $('#verso_canvas').removeClass('move rotate add_polygon_node remove_polygon_node measure auto_draw auto_erase');
@@ -352,6 +351,20 @@ function updateGUI() {
         $('#load_region').addClass('unrendered');
         $('#mask_region').addClass('unrendered');
     }
+
+    const hasMask = controller.hasAutoMask();
+    const hasCut = controller.hasAutoCut();
+
+    if (hasMask) {
+        $('#mask_control_panel_automatic').removeClass('unrendered');
+    }
+    else {
+        $('#mask_control_panel_automatic').addClass('unrendered');
+    }
+
+
+
+
 }
 
 function scaleImages(event) {
@@ -442,6 +455,25 @@ function loadMLModels(models) {
         });
         $('#mask_automatic_model').append(option);
       }
+
+    const activeModelID = controller.getAutoModelID();
+    if (activeModelID !== null) {
+        // check if an option with the activeModelID exists
+        // if so, select it
+        // otherwise, add another entry with that modelID as id and UNKNOWN as text value
+        const option = $(`#mask_automatic_model option[value=${activeModelID}]`);
+        if (option.length > 0) {
+            option.attr('selected', true);
+        } else {
+            const option = $('<option>', {
+                value: activeModelID,
+                text: 'UNKNOWN MODEL',
+            });
+            $('#mask_automatic_model').append(option);
+            option.prop('selected', true);
+        }
+    }
+
     $('#mask_automatic_model').trigger('change');
 }
 
@@ -584,10 +616,8 @@ function checkMasksComplete() {
     const rectoMask = !(controller.hasContent('recto')) || controller.getAutoMask('recto', modelID) != null;
     const versoMask = !(controller.hasContent('verso')) || controller.getAutoMask('verso', modelID) != null;
     if (rectoMask && versoMask) {
-        console.log('all okay');
         $('#auto-cut').removeClass('disabled');
     } else {
-        console.log('not okay');
         $('#auto-cut').addClass('disabled');
     }
 }

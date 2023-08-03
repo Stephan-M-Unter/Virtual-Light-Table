@@ -30,6 +30,21 @@ class UploadController {
         else if (side === 'verso') {
             return this.verso.hasAutoCut();
         }
+        else {
+            return this.recto.hasAutoCut() || this.verso.hasAutoCut();
+        }
+    }
+
+    hasAutoMask(side) {
+        if (side === 'recto') {
+            return this.recto.hasAutoMask();
+        }
+        else if (side === 'verso') {
+            return this.verso.hasAutoMask();
+        }
+        else {
+            return this.recto.hasAutoMask() || this.verso.hasAutoMask();
+        }
     }
 
     resize() {
@@ -316,6 +331,7 @@ class UploadController {
         else if (side === 'verso') {
             this.verso.setMask(path);
         }
+        this.notifyRenderer();
     }
 
     getAutoMask(side, modelID) {
@@ -334,6 +350,7 @@ class UploadController {
         else if (side === 'verso') {
             this.verso.setCut(path);
         }
+        this.notifyRenderer();
     }
 
     setMaskOpacity(opacity) {
@@ -344,6 +361,7 @@ class UploadController {
     autoDeleteCut(modelID) {
         this.recto.autoDeleteCut(modelID);
         this.verso.autoDeleteCut(modelID);
+        this.notifyRenderer();
     }
 
     isBrushing() {
@@ -383,6 +401,10 @@ class UploadController {
         else if (side === 'verso') {
             this.verso.handleMouseEnter(event);
         }
+    }
+
+    getAutoModelID() {
+        return this.recto.getAutoModelID() || this.verso.getAutoModelID();
     }
 }
 
