@@ -27,6 +27,8 @@ class MLManager {
         this.capacities = [];
         this.models = {};
 
+        this.reloadCounter = 3;
+
         this.checkForCapacities();
     };
 
@@ -77,7 +79,20 @@ class MLManager {
             if (exists) {
                 fs.readFile(this.MLCapacitiesPath, (err, data) => {
                     if (!err) {
-                        const MLCapacities = JSON.parse(data);
+
+                        let MLCapacities = null;
+                        try {
+                            MLCapacities = JSON.parse(data);
+                        } catch (err) {
+                            this.reloadCounter--;
+                            if (this.reloadCounter > 0) {
+                                LOGGER.err('ML MANAGER', `Error parsing MLcapacities.json, reloading (${this.reloadCounter} tries left).`);
+                                this.downloadCapacities(callback);
+                            } else {
+                                LOGGER.err('ML MANAGER', err);
+                                return;
+                            }
+                        }
                         
                         this.capacities = Object.keys(MLCapacities);
                         

@@ -69,7 +69,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
         const isRedone = get('tableManager').redoStep(tableID);
         if (isRedone) {
           // redo step was successful
-          const tableData = tableManager.getTable(tableID);
+          const tableData = get('tableManager').getTable(tableID);
           tableData['undo'] = true;
           // TODO evtl. zusammenfassen???
           send(event.sender, 'client-redo-model', tableData);
