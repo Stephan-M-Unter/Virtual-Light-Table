@@ -62,7 +62,7 @@ class SaveManager {
     const filename = this.createFilename();
 
     // create save dialog
-    const filepath = dialog.showSaveDialogSync({
+    let filepath = dialog.showSaveDialogSync({
       title: 'Save Current Table Configuration',
       defaultPath: path.join(this.currentSaveFolder, filename),
       filters: [{
@@ -70,6 +70,12 @@ class SaveManager {
         extensions: ['vlt'],
       }],
     });
+
+    // if filepath does not end with .vlt, append the extension
+    if (filepath && !filepath.endsWith('.vlt')) {
+      filepath += '.vlt';
+    }
+
     this.tableFilepaths[tableID] = filepath;
     return this.saveTable(tableData, filepath);
   }
