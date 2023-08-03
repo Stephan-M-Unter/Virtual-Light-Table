@@ -3,6 +3,7 @@
 const fs = require('fs-extra');
 const LOGGER = require("../statics/LOGGER");
 const {CONFIG} = require("../statics/CONFIG");
+const path = require('path');
 const https = require('follow-redirects').https;
 
 class ConfigManager {
@@ -120,13 +121,15 @@ class ConfigManager {
         if (!fs.existsSync(CONFIG.SAVES_FOLDER)) {
             // creating VLT subfolder in appdata
             fs.mkdirSync(CONFIG.SAVES_FOLDER);
+            fs.mkdirSync(path.join(CONFIG.SAVES_FOLDER, 'imgs'));
             LOGGER.log('SERVER', 'Created new SAVES folder at ' + CONFIG.SAVES_FOLDER);
         }
         // check if TEMP subfolder exists
         if (!fs.existsSync(CONFIG.TEMP_FOLDER)) {
             // creating VLT subfolder in appdata
-            fs.mkdirSync(CONFIG.CONFIG.TEMP_FOLDER);
-            LOGGER.log('SERVER', 'Created new TEMP folder at ' + CONFIG.CONFIG.TEMP_FOLDER);
+            fs.mkdirSync(CONFIG.TEMP_FOLDER);
+            fs.mkdirSync(path.join(CONFIG.TEMP_FOLDER, 'imgs'));
+            LOGGER.log('SERVER', 'Created new TEMP folder at ' + CONFIG.TEMP_FOLDER);
         }
         // check if the "External Content" subfolder exists
         if (!fs.existsSync(CONFIG.EXTERNAL_FOLDER)) {
