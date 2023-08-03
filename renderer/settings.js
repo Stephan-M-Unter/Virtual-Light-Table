@@ -209,11 +209,13 @@ $('#ml-download').click(downloadModel);
 $('#ml-delete').click(deleteModel);
 
 
+/* settings-data */
 ipcRenderer.on('settings-data', (event, settingsData) => {
     LOGGER.receive('settings-data', settingsData);
     loadData(settingsData);
 });
 
+/* tensorflow-installed */
 ipcRenderer.on('tensorflow-installed', (event, result) => {
     LOGGER.receive('tensorflow-installed', result);
     if (result) {
@@ -227,11 +229,13 @@ ipcRenderer.on('tensorflow-installed', (event, result) => {
     }
 });
 
+/* ml-models */
 ipcRenderer.on('ml-models', (event, models) => {
     LOGGER.receive('ml-models', models);
     loadModels(models);
 });
 
+/* model-availability */
 ipcRenderer.on('model-availability', (event, responseData) => {
     LOGGER.receive('model-availability', responseData);
     const modelOption = $(`#ml-models option[value="${responseData.modelID}"]`);
