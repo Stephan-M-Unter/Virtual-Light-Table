@@ -23,6 +23,6 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "electron": "^21.3.0"
+    "electron": "^25.4.0"
   }
 }
