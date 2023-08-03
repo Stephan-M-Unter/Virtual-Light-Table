@@ -129,8 +129,10 @@ function updateSaveList(searchString) {
 $('#default_folder').click(selectDefaultFolder);
 
 $('#select_folder').click(function() {
-  LOGGER.send('LOAD WINDOW', 'server-get-saves-folder');
-  ipcRenderer.send('server-get-saves-folder');
+  // LOGGER.send('LOAD WINDOW', 'server-get-saves-folder');
+  // ipcRenderer.send('server-get-saves-folder');
+  LOGGER.send('LOAD WINDOW', 'server-select-folder');
+  ipcRenderer.send('server-select-save-folder');
 });
 
 $('#fragment_search').on('input', function() {

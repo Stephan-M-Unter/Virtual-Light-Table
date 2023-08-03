@@ -102,6 +102,7 @@ class SaveManager {
    *    String with the filepath of the just saved file.
    */
   saveTable(tableData, filepath, insert_images=false) {
+    if (typeof filepath !== 'string') return false;
     const imagepath = path.dirname(filepath) + '/imgs';
     if (!fs.existsSync(imagepath)) fs.mkdirSync(imagepath);
 

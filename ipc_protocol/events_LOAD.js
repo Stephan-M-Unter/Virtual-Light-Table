@@ -91,7 +91,16 @@ function registerEventHandlersLOAD(ipcMain, send, get, set) {
     /* server-get-saves-folder */
     ipcMain.on('server-get-saves-folder', (event) => {
       LOGGER.receive('SERVER', 'server-get-saves-folder');
-        send(event.sender, 'load-receive-folder', CONFIG.SAVES_FOLDER);
+      send(event.sender, 'load-receive-folder', CONFIG.SAVES_FOLDER);
+    });
+
+    /* server-select-save-folder */
+    ipcMain.on('server-select-save-folder', (event) => {
+      LOGGER.receive('SERVER', 'server-select-save-folder');
+      const folder = get('saveManager').selectFolder();
+      if (folder) {
+        send(event.sender, 'load-receive-folder', folder);
+      }
     });
 
     /* server-export-file */
