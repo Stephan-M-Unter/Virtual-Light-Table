@@ -175,6 +175,9 @@ class UIController {
       skipDoStep: skipDoStep,
     };
     if (!skipDoStep) this.setUnsavedState(this.activeTable, true);
+    if (Object.keys(this.stage.getFragmentList()).length === 0) {
+      this.sidebar.enableExport(false);
+    }
     this.sendToServer('server-save-to-model', data);
   }
 
@@ -373,6 +376,7 @@ class UIController {
     // second, rotate arrow down and expand clicked segment
     $('#fragment_list').find('.arrow').addClass('down');
     $('#fragment_list').addClass('expanded');
+    this.sidebar.enableExport(true);
   }
 
   /**
