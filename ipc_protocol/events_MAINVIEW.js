@@ -73,7 +73,7 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
           tableData['undo'] = true;
           // TODO evtl. zusammenfassen???
           send(event.sender, 'client-redo-model', tableData);
-          send(event.sender, 'client-redo-undo-update', tableManager.getRedoUndo(tableID));
+          send(event.sender, 'client-redo-undo-update', get('tableManager').getRedoUndo(tableID));
         }
     });
 
