@@ -20,9 +20,9 @@ class MLManager {
         this.folderMLresults = path.join(this.folderML, 'results');
 
         // create ML subfolders if needed
-        if (!fs.existsSync(this.folderML)) fs.mkdir(this.folderML);
-        if (!fs.existsSync(this.folderMLmodels)) fs.mkdir(this.folderMLmodels); 
-        if (!fs.existsSync(this.folderMLresults)) fs.mkdir(this.folderMLresults);
+        if (!fs.existsSync(this.folderML)) fs.mkdirSync(this.folderML);
+        if (!fs.existsSync(this.folderMLmodels)) fs.mkdirSync(this.folderMLmodels); 
+        if (!fs.existsSync(this.folderMLresults)) fs.mkdirSync(this.folderMLresults);
 
         this.capacities = [];
         this.models = {};
