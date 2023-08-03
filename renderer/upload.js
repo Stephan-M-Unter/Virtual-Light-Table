@@ -485,14 +485,15 @@ function selectModel(event) {
     const modelID = $(event.target).val();
     const modelName = $(event.target).find(':selected').text();
 
+    controller.setModel(modelID);
     if (modelName.includes('✅')) {
         $('#model-download').addClass('unrendered');
         $('#compute-mask').removeClass('unrendered');
-        controller.setModel(modelID);
     } else {
         $('#model-download').removeClass('unrendered');
         $('#compute-mask').addClass('unrendered');
     }
+    notify();
 }
 
 function uploadData() {
@@ -556,7 +557,14 @@ function closeTPOPAlternatives() {
     $('#tpop-select-overlay').addClass('unrendered');
 }
 
-function downloadModel(event) {}
+function downloadModel(event) {
+    const modelID = $('#mask_automatic_model').val();
+    const buttonImage = $('#model-download').find('img');
+    buttonImage.attr('src', '../imgs/loading.gif');
+    $('#model-download').addClass('loading');
+    $('#model-download').html('Downloading...');
+    send('server-download-model', modelID);
+}
 
 function computeMask(event) {
     checkFields();
@@ -791,6 +799,27 @@ function autoDelete() {
     controller.autoDeleteCut(modelID);
 }
 
+function updateModelAvailability(data) {
+    const modelID = data.modelID;
+    const availability = data.modelAvailability;
+    const modelOption = $('#mask_automatic_model option[value="' + modelID + '"]');
+    const buttonImage = $('#model-download').find('img');
+    buttonImage.attr('src', '../imgs/symbol_download.png');
+    $('#model-download').removeClass('loading');
+    $('#model-download').html('Download');
+    if (availability) {
+        modelOption.html('✅ ' + modelOption.html());
+        $('#model-download').addClass('unrendered');
+        $('#compute-mask').removeClass('unrendered');
+    } else {
+        modelOption.html(modelOption.html().replace('✅ ', ''));
+        $('#compute-mask').addClass('unrendered');
+        $('#model-download').removeClass('unrendered');
+    }
+    controller.setModel(modelID);
+    notify();
+}
+
 /* ------------------------------ */
 /*           EVENTS               */
 /* ------------------------------ */
@@ -894,6 +923,7 @@ ipcRenderer.on('upload-tpop-images', (event, data) => {
 /* model-availability */
 ipcRenderer.on('model-availability', (event, data) => {
     LOGGER.receive('UPLOAD', 'model-availability', data);
+    updateModelAvailability(data);
 });
 
 /* tensorflow-checked */
@@ -929,6 +959,7 @@ ipcRenderer.on('upload-images-cut', (event, data) => {
 ipcRenderer.on('upload-mask-edited', (event) => {
     LOGGER.receive('UPLOAD', 'upload-mask-edited');
     const modelID = $('#mask_automatic_model').find(":selected").val();
+    console.log(modelID);
     controller.removeAutoMask(modelID);
     controller.draw();
 });
