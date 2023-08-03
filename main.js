@@ -34,7 +34,7 @@ const {CONFIG} = require('./statics/CONFIG');
 const LOGGER = require('./statics/LOGGER');
 
 // EventHandlers
-const { registerAllEventHandlers, sendMessage } = require('./protocol/registerEvents');
+const { registerAllEventHandlers, sendMessage } = require('./ipc_protocol/registerEvents');
 
 // Settings
 let devMode = false;
@@ -42,7 +42,7 @@ let tpopEnabled = true;
 if (process.argv.includes('--dev')) {
   devMode = true;
 }
-const version = '0.5';
+const version = '1.0';
 const appPath = app.getAppPath();
 const appDataPath = app.getPath('appData');
 LOGGER.start(path.join(appDataPath, 'Virtual Light Table'), version);

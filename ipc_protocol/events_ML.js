@@ -5,12 +5,14 @@ const {spawn} = require('child_process');
 const {CONFIG} = require("../statics/CONFIG");
 
 function registerEventHandlersML(ipcMain, send, get, set) {
+    /* server-get-ml-model-details */
     ipcMain.on('server-get-ml-model-details', (event, modelID) => {
         LOGGER.receive('SERVER', 'server-get-ml-model-details', modelID);
         const model = get('mlManager').getModelDetails(modelID);
         send(event.sender, 'ml-model-details', model);
     });
 
+    /* server-threshold-images */
     ipcMain.on('server-threshold-images', (event, data) => {
         LOGGER.receive('SERVER', 'server-threshold-images', data);
         const inputData = data.inputData;
@@ -33,6 +35,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         get('mlManager').thresholdImages(inputData, thresholds, colors, callback_count, callback);
     });
 
+    /* server-facsimilate-images */
     ipcMain.on('server-facsimilate-images', (event, data) => {
         LOGGER.receive('SERVER', 'server-facsimilate-images', data);
         const inputData_facsimile = data.inputData;
@@ -73,6 +76,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         get('mlManager').facsimilateImages(inputData_facsimile, callback_count, callback_facsimile);
     });
 
+    /* server-get-ml-models */
     ipcMain.on('server-get-ml-models', (event, data) => {
         LOGGER.receive('SERVER', 'server-get-ml-models', data);
 
@@ -83,7 +87,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         send(event.sender, 'ml-models', models);
     });
 
-    
+    /* server-check-tensorflow */
     ipcMain.on('server-check-tensorflow', (event) => {
         LOGGER.receive('SERVER', 'server-check-tensorflow');
         get('mlManager').checkForTensorflow((tensorflowAvailable) => {
@@ -91,7 +95,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         });
     });
 
-    
+    /* server-cut-automatic-masks */
     ipcMain.on('server-cut-automatic-masks', (event, data) => {
         LOGGER.receive('SERVER', 'server-cut-automatic-masks', data);
         get('mlManager').registerImages(data.modelID, data.image1, data.mask1, data.ppi1, data.image2, data.mask2, data.ppi2, function(responseData) {
@@ -99,7 +103,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         });
     });
 
-    
+    /* server-install-tensorflow */
     ipcMain.on('server-install-tensorflow', (event) => {
         LOGGER.receive('SERVER', 'server-install-tensorflow');
         get('mlManager').installTensorflow(function(tensorflowInstalled) {
@@ -107,6 +111,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         });
     });
 
+    /* server-edit-auto-mask */
     ipcMain.on('server-edit-auto-mask', (event, data) => {
         LOGGER.receive('SERVER', 'server-edit-auto-mask', data);
       
@@ -126,6 +131,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         });
     });
 
+    /* server-compute-automatic-masks */
     ipcMain.on('server-compute-automatic-masks', (event, data) => {
         LOGGER.receive('SERVER', 'server-compute-automatic-masks', data);
         get('mlManager').segmentImages(data.modelID, data.pathImage1, data.pathImage2, data.ppi1, data.ppi2, function(responseData) {
@@ -133,6 +139,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         });
     });
 
+    /* server-download-model */
     ipcMain.on('server-download-model', (event, modelID) => {
         LOGGER.receive('SERVER', 'server-download-model', modelID);
         
@@ -145,6 +152,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         });
     });
 
+    /* server-check-model-availability */
     ipcMain.on('server-check-model-availability', (event, modelID) => {
         LOGGER.receive('SERVER', 'server-check-model-availability', modelID);
         let modelAvailable = get('mlManager').checkForModel(modelID);
@@ -155,6 +163,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         send(event.sender, 'model-availability', responseData);
     });
 
+    /* server-reload-ml */
     ipcMain.on('server-reload-ml', (event) => {
         LOGGER.receive('SERVER', 'server-reload-ml');
 
@@ -169,6 +178,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
 
     });
 
+    /* server-delete-model */
     ipcMain.on('server-delete-model', (event, modelID) => {
       LOGGER.receive('SERVER', 'server-delete-model', modelID);
       get('mlManager').deleteModel(modelID, (modelDeleted) => {
@@ -180,6 +190,7 @@ function registerEventHandlersML(ipcMain, send, get, set) {
       });
     });
 
+    /* server-check-for-segmentations */
     ipcMain.on('server-check-for-segmentations', (event, urls) => {
       LOGGER.receive('SERVER', 'server-check-for-segmentations', urls);
       const segmentationsAvailable = get('mlManager').checkForSegmentations(urls);
