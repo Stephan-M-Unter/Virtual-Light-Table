@@ -15,6 +15,11 @@ body {
     margin: 0;
 }
 
+#teaser {
+    width: 800px;
+    height: 500px;
+}
+
 .main-text-area {
     max-width: 30%;
     margin: 20px auto;
