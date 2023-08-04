@@ -94,7 +94,13 @@ class MLManager {
                             }
                         }
                         
-                        this.capacities = Object.keys(MLCapacities);
+                        try {
+                            this.capacities = Object.keys(MLCapacities);
+                        } catch (err) {
+                            LOGGER.err('ML MANAGER', err);
+                            fs.unlink(this.MLCapacitiesPath);
+                            return;
+                        }
                         
                         for (const capacity of Object.keys(MLCapacities)) {
                             for (const modelID of Object.keys(MLCapacities[capacity])) {
