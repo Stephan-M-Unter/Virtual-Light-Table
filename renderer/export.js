@@ -763,8 +763,34 @@ ipcRenderer.on('active-table', (event, data) => {
    for (const object_id in data['fragments']) {
     const object = data['fragments'][object_id];
 
-    const url_recto = object['recto']['url_view'];
-    const url_verso = object['verso']['url_view'];
+    let url_recto;
+    let url_verso;
+
+    if ('recto' in object && 'url_view' in object['recto']) {
+        url_recto = object['recto']['url_view'];
+    } else {
+        url_recto = object['verso']['url_view'].replace('_frag', '_mirror');
+        object['recto'] = {
+            'url_view': url_recto,
+            'x': -object['verso']['x'],
+            'y': object['verso']['y'],
+            'rotation': object['verso']['rotation'],
+            'ppi': object['verso']['ppi'],
+        }
+    }
+
+    if ('verso' in object && 'url_view' in object['verso']) {
+        url_verso = object['verso']['url_view'];
+    } else {
+        url_verso = object['recto']['url_view'].replace('_frag', '_mirror');
+        object['verso'] = {
+            'url_view': url_verso,
+            'x': -object['recto']['x'],
+            'y': object['recto']['y'],
+            'rotation': object['recto']['rotation'],
+            'ppi': object['recto']['ppi'],
+        }
+    }
 
     let url_recto_filters = null;
     let url_verso_filters = null;
