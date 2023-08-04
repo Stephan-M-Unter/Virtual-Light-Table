@@ -517,7 +517,8 @@ class Sidebar {
     if (hasObjects) {
       $('#export_table').removeClass('disabled');
     } else {
-      $('#export_table').addClass('disabled');
+      // temporarily removed for release, as this makes more problems than it should
+      // $('#export_table').addClass('disabled');
     }
   }
 
