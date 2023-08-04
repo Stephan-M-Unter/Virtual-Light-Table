@@ -1,0 +1,30 @@
+{
+    "segmentation": {
+        "SEG_01": {
+            "name": "[8.2] BiNet - multiclass - 400dpi",
+            "targetDPI": 400,
+            "runNumber": 8.2,
+            "requestPaths": [
+                "https://huggingface.co/S-Unter/SEG_01/resolve/main/model.h5",
+                "https://huggingface.co/S-Unter/SEG_01/resolve/main/VLT.py"
+            ],
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
+            "author": "Stephan M. Unter",
+            "lastChange": "07/06/2021",
+            "size": "519 MB"
+        },
+        "SEG_02": {
+            "name": "[4.2] BiNet - multiclass - 400dpi",
+            "targetDPI": 400,
+            "runNumber": 4.2,
+            "requestPaths": [
+                "https://huggingface.co/S-Unter/SEG_02/resolve/main/model.h5",
+                "https://huggingface.co/S-Unter/SEG_02/resolve/main/VLT.py"
+            ],
+            "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
+            "author": "Stephan M. Unter",
+            "lastChange": "04/06/2021",
+            "size": "519 MB"
+        }
+    }
+}

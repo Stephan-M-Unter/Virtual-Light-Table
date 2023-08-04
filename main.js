@@ -256,7 +256,7 @@ async function startUp(callback) {
 
 function get_access_token() {
   return new Promise((resolve, reject) => {
-    const url = "https://stephan-m-unter.github.io/VLT-electron/VLT_access.json";
+    const url = "https://stephan-m-unter.github.io/VLT-electron/resources/VLT_access.json";
     LOGGER.log('SERVER', 'Sending request for VLT_access.json');
     const request = https.get(url, (response) => {
       let data = '';
