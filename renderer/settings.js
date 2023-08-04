@@ -7,6 +7,7 @@ $(document).ready(function() {
         'code': '',
         'requiredCapacities': [],
     }
+    ipcRenderer.send('server-check-tensorflow');
 });
 
 function loadData(config) {
@@ -187,6 +188,8 @@ $('#default-save').click(function() {
     ipcRenderer.send('server-get-default', 'vltFolder');
 });
 $('#tensorflow-download').click(function() {
+    $('.tensorflow-no').addClass('unrendered');
+    $('.tensorflow-installing').removeClass('unrendered');
     ipcRenderer.send('server-install-tensorflow');
 });
 $('.link').click(movePanel);
@@ -219,13 +222,11 @@ ipcRenderer.on('settings-data', (event, settingsData) => {
 ipcRenderer.on('tensorflow-installed', (event, result) => {
     LOGGER.receive('tensorflow-installed', result);
     if (result) {
-        $('#tensorflow-installation').addClass('unrendered');
-        $('#tensorflow-installed').removeClass('unrendered');
-        $('#ml-settings').removeClass('unrendered');
+        $('.tensorflow-installing').addClass('unrendered');
+        $('.tensorflow-yes').removeClass('unrendered');
     } else {
-        $('#tensorflow-installation').removeClass('unrendered');
-        $('#tensorflow-installed').addClass('unrendered');
-        $('#ml-settings').addClass('unrendered');
+        $('.tensorflow-installing').addClass('unrendered');
+        $('.tensorflow-no').removeClass('unrendered');
     }
 });
 
@@ -249,5 +250,17 @@ ipcRenderer.on('model-availability', (event, responseData) => {
         modelOption.html(modelOption.html().replace('✅ ', ''));
         $('#ml-delete').addClass('unrendered');
         $('#ml-download').removeClass('unrendered');
+    }
+});
+
+/* tensorflow-checked */
+ipcRenderer.on('tensorflow-checked', (event, result) => {
+    LOGGER.receive('tensorflow-checked', result);
+    if (result) {
+        $('.tensorflow-no').addClass('unrendered');
+        $('.tensorflow-yes').removeClass('unrendered');
+    } else {
+        $('.tensorflow-yes').addClass('unrendered');
+        $('.tensorflow-no').removeClass('unrendered');
     }
 });

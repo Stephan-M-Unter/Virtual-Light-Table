@@ -8,7 +8,20 @@ import stat
 import subprocess
 import sys
 
+### TRY TO UPGRADE PIP ###
+try:
+    subprocess.check_call([sys.executable, '-m', 'pip3', 'install', '--user', '--upgrade', 'pip'])
+    print('Pip3 upgraded')
+except:
+    try:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', '--upgrade', 'pip'])
+        print('Pip upgraded')
+    except Exception as e:
+        print('Failure - could not upgrade pip!')
+        print(e)
 
+
+## IMPORT OR INSTALL NUMPY ###
 try:
     import numpy as np
     print("Python: Numpy available")
@@ -24,6 +37,7 @@ except:
             print('Failure - could not install Numpy!')
             print(e)
 
+### IMPORT OR INSTALL CV2 ###
 try:
     import cv2
     print("Python: CV2 available")
@@ -38,6 +52,8 @@ except:
         except Exception as e:
             print('Failure - could not install CV2!')
             print(e)
+
+### IMPORT OR INSTALL SCIKIT-IMAGE ###
 try:
     import skimage
     print("Python: Scikit-Image available")
@@ -53,6 +69,7 @@ except:
             print('Failure - could not install SciKit-Image!')
             print(e)
 
+### IMPORT OR INSTALL PIL ###
 try:
     import PIL
     print("Python: PIL available")
@@ -68,6 +85,7 @@ except:
             print('Failure - could not install Pillow')
             print(e)
 
+### MACOS-CERTIFICATES ###
 if platform == "darwin":
     try:
         STAT_0o775 = ( stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR

@@ -156,6 +156,32 @@ input.error {
     display: inline-block;
 }
 
+.inline-button {
+    /* align to baseline of text */
+    position: relative;
+    top: 8px;
+    padding: 3px;
+}
+
+.tensorflow-installing img {
+    display: inline-block;
+    max-height: 50px;
+    max-width: 50px;
+}
+
+.tensorflow-installing {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.warning {
+    font-variant: small-caps;
+    font-size: 1.1em;
+    color: var(--cb_darkred);
+}
+
 #save-path {
     background-image: url('../imgs/symbol_folder.png');
 }

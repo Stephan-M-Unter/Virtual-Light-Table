@@ -142,7 +142,7 @@ class MLManager {
     }
 
     installTensorflow(callback) {
-        const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_install.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+        const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_install.py')], {windowsHide: false, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
         python.on('close', (code) => {
             LOGGER.log('ML MANAGER', `tensorflow_install.py - result: code ${code}.`)
             this.tensorflowChecked = true;

@@ -87,21 +87,33 @@
                     <label class="label"><a href="https://www.tensorflow.org" target="_blank">Tensorflow</a>:</label>
                 </div>
                 <div class="grid-item">
-                    <span class="inline inline-true unrendered" id="tensorflow-installed">✅ Installed</span><span class="inline" id="tensorflow-installation"><span class="inline" id="tensorflow-download"><span class="inline inline-button no-select">Download package</span> or</span> <a href="https://www.tensorflow.org/install" target="_blank">install manually</a></span>
+                    <div class="tensorflow-no">
+                        <span class="inline" id="tensorflow-installation"><span class="inline" id="tensorflow-download"><span class="inline inline-button button no-select">Download package</span> or</span> <a href="https://www.tensorflow.org/install" target="_blank">install manually</a></span>
+                    </div>
+                    <div class="tensorflow-installing unrendered">
+                        <img src="../imgs/VLT_small.gif">
+                        <span class="warning">LOADING... please wait...</span>
+                    </div>
+                    <div class="tensorflow-yes unrendered">
+                        <span class="inline inline-true" id="tensorflow-installed">✅ Installed</span>
+                    </div>
+                    <div class="tensorflow-error unrendered">
+                        <span class="warning">❌ Error - could not install tensorflow on your computer. Please try a </span><a href="https://www.tensorflow.org/install" target="_blank">manual install</a><span class="warning">.</span>
+                    </div>
                 </div>
-                <div class="grid-item">
+                <div class="grid-item tensorflow-yes unrendered">
                     <label>Reload ML Models:</label>
                 </div>
-                <div class="grid-item">
+                <div class="grid-item tensorflow-yes unrendered">
                     <div title="Force reloading of available machine learning models" id="ml-reload" class="button large_button">
                         <img src="../imgs/symbol_reload.png">
                         <label>Reload Data</label>
                     </div>
                 </div>
-                <div class="grid-item">
+                <div class="grid-item tensorflow-yes unrendered">
                     <label>Manage ML Models:</label>
                 </div>
-                <div class="grid-item">
+                <div class="grid-item tensorflow-yes unrendered">
                     <select id="ml-models"></select>
                     <div title="Download the selected model to your computer" id="ml-download" class="button large_button">
                         <img src="../imgs/symbol_download.png">
