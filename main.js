@@ -454,14 +454,15 @@ function preprocess_loading_fragments(data) {
         }
       }
 
+      
       const filters = tableManager.getGraphicFilters(data.tableID);
       const callback = () => {
         const response = {
-          tableID: tableID,
-          tableData: tableManager.getTable(tableID),
+          tableID: data.tableID,
+          tableData: tableManager.getTable(data.tableID),
         };
         sendMessage(mainWindow, 'client-load-model', response);
-        activeTables.view = tableID;
+        activeTables.view = data.tableID;
       };
 
       imageManager.applyGraphicalFilters(filters, urls, callback);
