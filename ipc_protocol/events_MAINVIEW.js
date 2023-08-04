@@ -266,9 +266,9 @@ function registerEventHandlersMAINVIEW(ipcMain, send, get, set) {
 
   ipcMain.on('server-open-update-page', () => {
     LOGGER.receive('SERVER', 'server-open-update-page');
-    // open a new browser window leading to https://stephan-m-unter.github.io/VLT-electron/index.html
+    // open a new browser window leading to https://stephan-m-unter.github.io/Virtual-Light-Table/index.html
   
-    shell.openExternal('https://stephan-m-unter.github.io/VLT-electron/index.html');
+    shell.openExternal('https://stephan-m-unter.github.io/Virtual-Light-Table/index.html');
   });
 
   ipcMain.on('server-ignore-updates', () => {

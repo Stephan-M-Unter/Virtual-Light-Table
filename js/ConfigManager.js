@@ -160,7 +160,7 @@ class ConfigManager {
             if (this.config.ignoreUpdates) {
                 resolve(false);
             }
-            const updatePath = "https://stephan-m-unter.github.io/VLT-electron/resources/VLT.json";
+            const updatePath = "https://stephan-m-unter.github.io/Virtual-Light-Table/resources/VLT.json";
             const request = https.get(updatePath, (response) => {
                 let data = '';
                 response.on('data', (chunk) => {

@@ -62,7 +62,7 @@ class MLManager {
     }
     
     downloadCapacities(callback) {
-        const MLCapacitiesPath = "https://stephan-m-unter.github.io/VLT-electron/resources/MLcapacities.json";
+        const MLCapacitiesPath = "https://stephan-m-unter.github.io/Virtual-Light-Table/resources/MLcapacities.json";
         const filestream = fs.createWriteStream(this.MLCapacitiesPath);
         LOGGER.log('ML MANAGER', `Sending request for MLcapacities.json`);
         const request = https.get(MLCapacitiesPath, (response) => {
