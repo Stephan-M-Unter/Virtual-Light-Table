@@ -116,7 +116,8 @@ function registerEventHandlersML(ipcMain, send, get, set) {
         LOGGER.receive('SERVER', 'server-edit-auto-mask', data);
       
         const base64Data = data.change.replace(/^data:image\/png;base64,/, "");
-        const changeURL = "manual_mask_change.png";
+        const MLresultFolder = get('mlManager').getResultFolder();
+        const changeURL = path.join(MLresultFolder, "manual_mask_change.png");
         let changeMode = "remove";
         if (data.add) changeMode = "add";
       
