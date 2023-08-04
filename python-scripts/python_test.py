@@ -73,6 +73,17 @@ except:
 try:
     import PIL
     print("Python: PIL available")
+    try:
+        # upgrading PIL to the lastest version
+        subprocess.check_call([sys.executable, '-m', 'pip3', 'install', '--user', '--upgrade', 'Pillow'])
+        print('Package newly installed: Pillow (pip3)')
+    except:
+        try:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', '--upgrade', 'Pillow'])
+            print('Package newly installed: Pillow (pip)')
+        except Exception as e:
+            print('Failure - could not upgrade Pillow!')
+            print(e)
 except:
     try:
         subprocess.check_call([sys.executable, '-m', 'pip3', 'install', '--user', 'pillow'])
