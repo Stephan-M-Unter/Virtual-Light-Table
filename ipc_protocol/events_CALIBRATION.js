@@ -18,6 +18,7 @@ function registerEventHandlersCALIBRATION(ipcMain, send, get, set) {
           devMode: false,
         });
         calibrationWindow.removeMenu();
+        calibrationWindow.setAlwaysOnTop(true);
         calibrationWindow.once('ready-to-show', () => {
           calibrationWindow.show();
         });

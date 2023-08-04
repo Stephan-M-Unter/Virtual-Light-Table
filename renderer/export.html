@@ -34,7 +34,7 @@
                 
                 <div id="mode-options" class="flex-vert">
                     <!-- Mode Options -->
-                    <div id="mode-options-filters" class="flex-vert mode-options hidden">
+                    <div id="mode-options-filters" class="flex-vert mode-options unrendered">
                         
                         <div class="flex-hor gap-5">
                             <div class="grid mode-option-panel">
@@ -69,7 +69,7 @@
     
                     </div>
                     
-                    <div id="mode-options-facsimile" class="flex-hor hidden mode-options">
+                    <div id="mode-options-facsimile" class="flex-hor mode-options unrendered">
 
                         <div  class="flex-vert mode-option-panel flex-centered">
                             <select id="select-facsimile-model"></select>
@@ -81,7 +81,7 @@
                         </div>
 
 
-                        <div class="flex-vert mode-option-panel">
+                        <div id="facsimilate-settings" class="flex-vert mode-option-panel">
                             <div class="grid-3">
                                 <label>Threshold Black Ink</label>
                                 <input type="range" id="threshold-black" min="0" max="100" value="20">

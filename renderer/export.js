@@ -664,8 +664,8 @@ $('.mode.button').click(function() {
         $('.active').removeClass('active');
         $(this).addClass('active');
     
-        $('.mode-options').addClass('hidden');
-        $(`#mode-options-${targetMode}`).removeClass('hidden');
+        $('.mode-options').addClass('unrendered');
+        $(`#mode-options-${targetMode}`).removeClass('unrendered');
     
         switchDisplay(targetMode);
     }
@@ -710,11 +710,13 @@ $('#select-facsimile-model').on('change', function() {
     const modelName = $(this).find("option:selected").text();
 
     if (modelName.includes('✅')) {
-        $('#facsimilate').removeClass('hidden');
-        $('#download-model').addClass('hidden');
+        $('#facsimilate').removeClass('unrendered');
+        $('#download-model').addClass('unrendered');
+        $('#facsimilate-settings').removeClass('unrendered');
     } else {
-        $('#download-model').removeClass('hidden');
-        $('#facsimilate').addClass('hidden');
+        $('#download-model').removeClass('unrendered');
+        $('#facsimilate').addClass('unrendered');
+        $('#facsimilate-settings').addClass('unrendered');
     }
 
     LOGGER.send('EXPORT', 'server-get-ml-model-details', modelID)
@@ -745,7 +747,7 @@ $(window).on('resize', centerStages);
 
 
 
-
+/* active-table */
 ipcRenderer.on('active-table', (event, data) => {
     LOGGER.receive('EXPORT', 'active-table', data);
     
@@ -838,6 +840,7 @@ ipcRenderer.on('active-table', (event, data) => {
    checkForSegmentations();
 });
 
+/* tensorflow-checked */
 ipcRenderer.on('tensorflow-checked', (event, tensorflowAvailable) => {
     LOGGER.receive('EXPORT', 'tensorflow-checked', tensorflowAvailable);
     if (!tensorflowAvailable) {
@@ -854,6 +857,7 @@ ipcRenderer.on('tensorflow-checked', (event, tensorflowAvailable) => {
     }
 });
 
+/* ml-models */
 ipcRenderer.on('ml-models', (event, models) => {
     LOGGER.receive('EXPORT', 'ml-models', models);
     for (const model of models) {
@@ -877,6 +881,7 @@ ipcRenderer.on('ml-models', (event, models) => {
       $('#select-facsimile-model').trigger('change');
 });
 
+/* ml-model-details */
 ipcRenderer.on('ml-model-details', (event, model) => {
     LOGGER.receive('EXPORT', 'ml-model-details', model);
     const outputLabels = model['outputLabels'];
@@ -909,6 +914,7 @@ ipcRenderer.on('ml-model-details', (event, model) => {
     }
 });
 
+/* thresholded-images */
 ipcRenderer.on('thresholded-images', (event) => {
     LOGGER.receive('EXPORT', 'thresholded-images');
     displayThresholdImages();
@@ -917,6 +923,7 @@ ipcRenderer.on('thresholded-images', (event) => {
     $('#facsimilate .progress-text').text('Re-compute Facsimile (may take some time)');
 });
 
+/* facsimile-progress */
 ipcRenderer.on('facsimile-progress', (event, ratio) => {
     LOGGER.receive('EXPORT', 'facsimile-progress', ratio);
     const progressBar = $('#facsimilate .progress-bar');
@@ -932,6 +939,7 @@ ipcRenderer.on('facsimile-progress', (event, ratio) => {
     }
 });
 
+/* threshold-progress */
 ipcRenderer.on('threshold-progress', (event, ratio) => {
     LOGGER.receive('EXPORT', 'threshold-progress', ratio);
     const progressBar = $('#threshold .progress-bar');
@@ -947,6 +955,7 @@ ipcRenderer.on('threshold-progress', (event, ratio) => {
     }
 });
 
+/* model-availability */
 ipcRenderer.on('model-availability', (event, data) => {
     LOGGER.receive('EXPORT', 'model-availability', data);
     const modelID = data.modelID;
@@ -960,11 +969,13 @@ ipcRenderer.on('model-availability', (event, data) => {
     $('#select-facsimile-model').trigger('change');
 });
 
+/* export-graphics-filtered */
 ipcRenderer.on('export-graphics-filtered', () => {
     LOGGER.receive('EXPORT', 'export-graphics-filtered');
     loadObjects('filters');
 });
 
+/* segmentations-checked */
 ipcRenderer.on('segmentations-checked', (event, segmentationsAvailable) => {
     LOGGER.receive('EXPORT', 'segmentations-checked', segmentationsAvailable);
     if (segmentationsAvailable) {
