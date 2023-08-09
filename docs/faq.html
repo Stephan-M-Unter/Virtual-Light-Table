@@ -6,6 +6,10 @@
         <meta charset="utf-8">
         <title>FAQ | Virtual Light Table</title>
         <link rel="stylesheet" href="./style.css">
+        <script src="./src/jquery-3.6.0.min.js"></script>
+        <!-- <script> -->
+            <!-- window.$ = window.jQuery = require('../js/libs/jquery-3.6.0.min.js'); -->
+        <!-- </script> -->
 </head>
 <body>
     <div class="main-text-area">
@@ -17,10 +21,18 @@
         <h2>Frequently Asked Questions</h2>
 
         <h3>Measurements</h3>
-        <h4>My measured values don't correspond to the image?</h4>
-        <p class="issue">Issue: When conducting reconstructions and taking measurements, such as with the measurement tool or by reading numbers from a scale or ruler, you may encounter discrepancies between the measured distances and the image content. Even if a ruler is present in the image, measuring 1cm on it may yield different values on the VLT (Virtual Laboratory Toolkit). How is this possible?</p>
-        <p class="solution">Solution: To address this, ensure that you have the correct Pixels Per Inch (PPI) set for your image. If uncertain, edit the image (right-click and select "edit" or press O) and adjust the PPI. You can either manually enter the values if known, or use the ppi-measurement tool to automatically compute the resolution. Simply select the tool and choose two points in the image that are exactly 1cm apart from each other.</p>
-        <p class="explanation">Explanation: Many images contain internal EXIF data that stores information about their resolution. The VLT first attempts to read this data to streamline your work. However, the resolution of the recording device (e.g., camera or scanner) does not necessarily match the resolution of the depicted objects. To ensure accurate scaling of your objects, you need a ruler or scale as a reference for 1cm in the image. The mentioned ppi-measurement tool allows you to automatically compute the object's resolution, ensuring precise measurements.</p>
+
+        <div class="faq-item">
+            <div class="question">
+                <h4>My measured values don't correspond to the image?</h4>
+            </div>
+            <div class="answer">
+                <p class="issue">Issue: When conducting reconstructions and taking measurements, such as with the measurement tool or by reading numbers from a scale or ruler, you may encounter discrepancies between the measured distances and the image content. Even if a ruler is present in the image, measuring 1cm on it may yield different values on the VLT (Virtual Laboratory Toolkit). How is this possible?</p>
+                <p class="solution">Solution: To address this, ensure that you have the correct Pixels Per Inch (PPI) set for your image. If uncertain, edit the image (right-click and select "edit" or press O) and adjust the PPI. You can either manually enter the values if known, or use the ppi-measurement tool to automatically compute the resolution. Simply select the tool and choose two points in the image that are exactly 1cm apart from each other.</p>
+                <p class="explanation">Explanation: Many images contain internal EXIF data that stores information about their resolution. The VLT first attempts to read this data to streamline your work. However, the resolution of the recording device (e.g., camera or scanner) does not necessarily match the resolution of the depicted objects. To ensure accurate scaling of your objects, you need a ruler or scale as a reference for 1cm in the image. The mentioned ppi-measurement tool allows you to automatically compute the object's resolution, ensuring precise measurements.</p>
+            </div>
+        </div>
     </div>
+    <script src="./script.js"></script>
 </body>
 </html>

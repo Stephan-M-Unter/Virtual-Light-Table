@@ -20,8 +20,15 @@ body {
     height: 500px;
 }
 
+code {
+    background-color: #dfdfdf;
+    padding: 2px 5px;
+    border-radius: 2px;
+}
+
 .main-text-area {
-    max-width: 30%;
+    width: 50%;
+    min-width: 800px;
     margin: 20px auto;
     padding: 50px;
     background-color: white;
@@ -30,6 +37,10 @@ body {
     align-items: center;
     border: 1px solid #ccc;
     position: relative;
+}
+
+p {
+    text-align: justify;
 }
 
 .home {
@@ -52,4 +63,34 @@ body {
     position: relative;
     float: right;
     max-width: 200px;
+}
+
+.faq-item {
+    background-color: #f1f1f1;
+    padding: 2px 20px;
+}
+
+.answer {
+    overflow: hidden;
+    transition: all .3s;
+}
+
+.answer.collapsed {
+    height: 0;
+}
+
+#download-link {
+    font-size: 1.4em;
+    margin: 20px;
+    font-variant: small-caps;
+    background-color: #f1f1f1;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: black;
+}
+
+#download-link:hover {
+    background-color: #e1e1e1;
 }
