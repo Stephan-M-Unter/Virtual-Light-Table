@@ -49,6 +49,15 @@ p {
     left: 20px;
     padding: 10px;
     border: 1px solid #ccc;
+    text-decoration: none;
+}
+
+.home::after {
+    content: 'Home';
+}
+
+.home:hover {
+    background-color: #e1e1e1;
 }
 
 .issue {
@@ -73,10 +82,16 @@ p {
 .answer {
     overflow: hidden;
     transition: all .3s;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .answer.collapsed {
     height: 0;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 
 #download-link {
@@ -93,4 +108,79 @@ p {
 
 #download-link:hover {
     background-color: #e1e1e1;
+}
+
+#bug-list {
+    width: 100%;
+}
+
+.bug-shorts {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr 1fr 1fr;
+    grid-gap: 10px;
+    background-color: #f1f1f1;
+    width: 100%;
+}
+
+
+.bug-shorts:hover {
+    background-color: #e1e1e1;
+}
+
+.bug-shorts:hover .bug-cell {
+    background-color: #ffded4;
+}
+
+.bug-cell {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bug-description{
+    height: 0;
+    overflow: hidden;
+    transition: all .3s;
+    background-color: #f1f1f1;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: justify;
+}
+
+.bug-description.expanded {
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.registered::before {
+    content: 'Registered';
+}
+
+.wip::before {
+    content: 'Work in Progress';
+}
+
+.wip {
+    background-color: #fff2a5;
+}
+
+.solved {
+    background-color: #d4ffd4;
+}
+
+.solved::before {
+    content: 'Solved';
+}
+
+.aborted {
+    background-color: #ffded4;
+}
+
+.aborted::before {
+    content: 'Aborted';
 }
