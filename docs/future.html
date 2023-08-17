@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <title>Future Development | Virtual Light Table</title>
         <link rel="stylesheet" href="./style.css">
+        <link rel="shortcut icon" type="image/x-icon" href="./src/logo.ico">
         <script src="./src/jquery-3.6.0.min.js"></script>
     </head>
 
@@ -13,15 +14,64 @@
             <div class="home"></div>
             <img src="./src/VLT_logo_broad.png" class="sublogo">
             <h1>Future Development</h1>
+            <p>With the publication of the Virtual Light Table in its release version v1.0.0 on 10 August 2023, the development within the Crossing Boundaries project, in the context of which it was conceived and implemented, will end at the same time. However, this does not mean that the Virtual Light Table will not be further developed. So what can be expected for the future?</p>
             <h2>What's Coming Next?</h2>
-            <ul>
-                <li>Further integration of Machine Learning features</li>
-                <li>Annotation Tool for Generation of Digital Datasets, e.g. for Machine Learning Purposes</li>
-                <li>Hosted Service with Webpage Access (additional to Standalone)</li>
-                <li>Hosted ML Services</li>
-                <li></li>
-                <li></li>
-            </ul>
+
+            <p>Below you will find a list of concepts and ideas that are being considered for the further development of the Virtual Light Table. These are mainly major structural changes or far-reaching feature extensions that cannot be done from one day to the next. This list is therefore intended primarily as an indication of the direction in which the Virtual Light Table will be fundamentally developed. However, the mention of an item on this list does not indicate a potential release date. It is also not guaranteed that the features will (be able to) be implemented in this form.</p>
+
+            <div class="future-item">
+                <div class="future-item-title">Extension of the Virtual Light Table to Vector Graphics</div>
+                <div class="future-item-text">Already during the presentation of the Virtual Light Table at the International Egyptology Congress 2023 in Leiden, thankfully quite a number of audience members contacted us directly afterwards with ideas, questions and wishes. One wish that was frequently expressed to me is the extension of the VLT to vector-based graphics.
+                <br><br>
+                Currently, the VLT only works with bitmap graphics. Therefore, a possible solution could be to simply rasterize the vector graphics and convert them into a readable format this way.
+                <br><br>
+                Fortunately, EaselJS, which I use mostly for representing graphics on the VLT, seems to also offer support for SVG graphics (it is to be determined, however, to which extent). It should therefore be technically relatively easy to make this format usable for the VLT as well.
+                <br><br>
+                The challenges here lie on the one hand in the data input - is it possible to automatically extract SVG graphics from a PDF or the proprietary Adobe Illustrator format? Or does EaselJS already handle this "out of the box"? And what implications does the use of an SVG graphic have for the further program flow, for example with regard to zooming, masking, graphic filters, the calculation of distances and sizes, etc.?</div>
+            </div>
+
+            <div class="future-item">
+                <div class="future-item-title">Integration of Machine Learning Features for Ancient Egyptian Papyri</div>
+                <div class="future-item-text">As part of my <a href="http://web.philo.ulg.ac.be/x-bound/stephan-unter-research-project/" target="_blank">PhD dissertation</a>, I am developing and evaluating different machine learning approaches to establish relationships between the individual components of highly fragmented ancient Egyptian papyri. This includes the classification and computation of similarities based on different material and content aspects that a papyrus has to offer.
+                <br><br>
+                The results of this research will eventually also find their way into the Virtual Light Table. In the end, the user should be able to create a corpus of her own objects (or use an existing corpus), calculate the corresponding embeddings for these objects and create a sorting in this way. The user can then select individual objects and have the system automatically display which other fragments have the greatest similarities with regard to the aspects he or she has selected (e.g. colour, texture, handwriting, text).
+                <br><br>
+                It should also be possible to feed encoded ancient Egyptian texts (in Manual de Codage or Unicode) into the VLT and ask the machine for an assessment according to the text genre. It should also be possible to consult the machine about the potential content of blanks or the continuation of a broken line of text.
+                <br><br>
+                Disclaimer: As extraordinary as this all sounds, machine learning applications are not a modern form of magic but calculate probabilities and deductions based on the material available to them during training. The results of such a calculation can serve as an indication of what MAY be true. However, they do not produce absolute truths. Critical interpretation and scrutiny of the results by the trained eye therefore remains unavoidable.</div>
+            </div>
+
+            <div class="future-item">
+                <div class="future-item-title">WebVersion of the VLT</div>
+                <div class="future-item-text">At the moment the Virtual Light Table is designed as a standalone application. This has several reasons - besides the simplified development, I was also particularly interested in keeping the VLT usable even without active internet access. Using electronJS as a framework offered some distinct advantages. For example, electronJS provides its own version of a Chromium-based browser as a rendering engine, so there was no need to optimize the content for different browsers and different aging states.
+                <br><br>
+                However, there are definitely disadvantages to this. The exchange of research with colleagues is much easier, all data is collected on one server and only the access rights have to be changed. It therefore appears to be a sensible concept for the future to plan and implement the VLT as a web application in addition to its standalone application (which will continue to exist). Of course, special challenges lie here in the provision, financing and maintenance of the necessary infrastructure.</div>
+            </div>
+
+            <div class="future-item">
+                <div class="future-item-title">Machine Learning as a Service</div>
+                <div class="future-item-text">The way the Virtual Light Table currently works as a standalone application, all calculations take place on the user's local device. This includes, among other things, the (expensive) calculations for the machine learning operations.
+                <br><br>
+                Even though the machines are not trained in this case, but only used for inference, a whole series of calculations take place here, depending on the size and complexity of the model. The larger the input and the more individual calculation steps required, the longer it can take for a calculation to be completed. The speed of the underlying computer configuration also has a significant influence on this.
+                <br><br>
+                With the idea of turning the VLT into a web service comes the simultaneous idea of moving the machine learning operations to a server on the network. This can be done either within the framework of existing frameworks such as <a href="https://huggingface.co/" target="_blank">huggingface</a>. Or actually as a server of its own, which would also offer researchers the possibility to participate voluntarily (via opt-in) in the improvement of the models with their material.</div>
+            </div>
+
+            <div class="future-item">
+                <div class="future-item-title">Annotation Tools for the Generation of Digital Datasets</div>
+                <div class="future-item-text">Machine learning is an extremely data-hungry endeavor, depending on the application area. This is easily explained by the fact that it involves statistical methods that make deductions and predictions for new data points based on training data that has already been seen. So the more the machine sees and the more variance there is in the initial data, the better the mathematical model in the background on the basis of which the predictions are calculated.
+                <br><br>
+                Thus, the creation of annotated data sets is often one of the necessary, albeit time-consuming, components for building useful machine learning models. For example, if one wants to teach a machine to automatically segment not only papyri but also ostraca, this first requires precise information for a number of example images as to which pixels should belong to which pixel class (e.g., ostracon; ink; background) for the machine.
+                <br><br>
+                Comfortable tools already exist for the generation of such annotations. Nevertheless, the VLT should also receive corresponding tools in the long run. This will allow users to create their own datasets, to make them available for ML research or just to enhance their images with supplementary information and annotations.</div>
+            </div>
+
+
+            <br>
+            <h2>I Have Some Ideas What Should Come Next!</h2>
+
+            <p>Ideally, an application should be oriented to the needs and wishes of the users. In this respect, I am not only willing, but would also like as many users as possible to come to me with their ideas on how the Virtual Light Table could be made even more useful. The broader the idea, i.e., the larger the potential user group, the more useful it is likely to be for implementation. Suggestions and wishes can therefore always be <a href="./contact.html">sent to me</a>.</p>
+
         </div>
         <script src="./script.js"></script>
     </body>

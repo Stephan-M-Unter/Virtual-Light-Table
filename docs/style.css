@@ -214,3 +214,37 @@ p {
 .aborted::before {
     content: 'Aborted';
 }
+
+.future-item {
+    background-color: white;
+    border: 2px solid #ddd;
+    width: 90%;
+    padding: 10px;
+    margin: 10px;
+}
+
+.future-item:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+.future-item-title {
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 10px;
+}
+
+.future-item-text {
+    height: 0;
+    overflow: hidden;
+    transition: all .3s;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.future-item-text.expanded {
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: 1px solid #ddd;
+}

@@ -52,5 +52,10 @@ $(document).ready(() => {
     $('.home').click(() => {
         window.location.href = 'index.html';
     });
+
+    $('.future-item-title').click((event) => {
+        $('.expanded').removeClass('expanded');
+        $(event.target).next('.future-item-text').addClass('expanded');
+    });
 });
 
