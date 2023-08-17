@@ -114,9 +114,11 @@ p {
     width: 100%;
 }
 
-.bug-shorts {
+.bug-shorts,
+#bug-heads
+{
     display: grid;
-    grid-template-columns: 1fr 3fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 3fr 1fr 1fr;
     grid-gap: 10px;
     background-color: #f1f1f1;
     width: 100%;
@@ -140,6 +142,34 @@ p {
     align-items: center;
     justify-content: center;
 }
+
+.bug-head {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    background-color: rgb(211, 211, 211);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bug-head:hover {
+    background-color: #e1e1e1;
+    cursor: pointer;
+}
+
+.bug-head.sorted {
+    background-color: #4b4b4b;
+    color: white;
+}
+
+.bug-head.sorted.asc::after {
+    content: '▲';
+}
+
+.bug-head.sorted.desc::after {
+    content: '▼';
+}   
 
 .bug-description{
     height: 0;

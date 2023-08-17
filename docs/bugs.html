@@ -21,6 +21,13 @@
 
         <p>If you click on an item, you will get a more in-depth description of the problem.</p>
 
+        <div id="bug-heads">
+            <div class="bug-head" sort-type="bug-type">Type</div>
+            <div class="bug-head" sort-type="bug-title">Short Description</div>
+            <div class="bug-head" sort-type="bug-status">Status</div>
+            <div class="bug-head" sort-type="bug-entry-date">Entry Date</div>
+        </div>
+
         <div id="bug-list">
             <div class="bug-item">
                 <div class="bug-shorts">
@@ -28,7 +35,6 @@
                     <div class="bug-title bug-cell">Undo/Redo Disturbs Annotation Pins</div>
                     <div class="bug-status bug-cell registered"></div>
                     <div class="bug-entry-date bug-cell">2023-08-15</div>
-                    <div class="bug-done-date bug-cell">-</div>
                 </div>
                 <div class="bug-description">The undo/redo feature of the VLT casually interferes with the annotation pins on the main table. This will result in unexpected behaviour of the pins, like showing up on the wrong sides or showing up whilst you were hiding them in the first place.</div>
             </div>
@@ -38,7 +44,6 @@
                     <div class="bug-title bug-cell">Annotation Pins and Object Changes</div>
                     <div class="bug-status bug-cell registered"></div>
                     <div class="bug-entry-date bug-cell">2023-08-15</div>
-                    <div class="bug-done-date bug-cell">-</div>
                 </div>
                 <div class="bug-description">Annotation Pins are fixed to a specific location (x and y coordinate) on an object. However, if you change the object (e.g. by replacing the underlying image of a side, or by using a different masking technique), the reference values for the x and y coordinates change. Therefore, the pin will no longer be in the correct position.</br>It is unclear so far how to solve this issue. One way could be to simply delete all pins when changing an object. However, this would also include scientific remarks done in the past that could not be redone again. Detached pins could also cause a warning, prompting the user to re-position their pins before they can save the table. A third option might be to add the pins to the upload view, such that the user can rearrange the pins before finally editing the object.</div>
             </div>
@@ -48,7 +53,6 @@
                     <div class="bug-title bug-cell">Computational Time for Segmentation</div>
                     <div class="bug-status bug-cell registered"></div>
                     <div class="bug-entry-date bug-cell">2023-08-15</div>
-                    <div class="bug-done-date bug-cell">-</div>
                 </div>
                 <div class="bug-description">The automatic segmentation of images is a computationally expensive and thus time-consuming task. The larger the images (and the older the computer's configuration), the longer the inference for the machine learning process will take. However, maybe there are ways to speed up the process a bit without introducing even much more computational complexity. No matter how large the input image, the window size of the used machine learning model will remain the same. And one cannot change a lot in the size of the image, as the machine appears to be very dependent on the object's size resolution. However, this might lead to cases where many samples in the sliding window approach do not even contain an object, but rather a completely unicolored background. If such samples could be immediately detected and skipped, this would already mean some boost in time.</div>
             </div>
@@ -58,7 +62,6 @@
                     <div class="bug-title bug-cell">Segmentation Models for Lower Resolutions</div>
                     <div class="bug-status bug-cell registered"></div>
                     <div class="bug-entry-date bug-cell">2023-08-15</div>
-                    <div class="bug-done-date bug-cell">-</div>
                 </div>
                 <div class="bug-description">Machine learning models for the automatic segmentation of papyrus images are somewhat dependent on the resolution of the input image. Tests have shown that a model trained for images of 400ppi resolution significantly perform worse if the resolution of the input image deteriorates too much from that value. The development of resolution-independent networks for the semantic segmentation of images is an ongoing research. A way of mitigating this problem might be to provide different models for a range of input resolutions. New machines for resolutions of 50, 100 and 200ppi are in preparation.</div>
             </div>
@@ -68,7 +71,6 @@
                     <div class="bug-title bug-cell">Data Requests without Internet Connection</div>
                     <div class="bug-status bug-cell registered"></div>
                     <div class="bug-entry-date bug-cell">2023-08-15</div>
-                    <div class="bug-done-date bug-cell">-</div>
                 </div>
                 <div class="bug-description">During the start of the Virtual Light Table, the software requests for some files to check its capabilities, available models and new software versions. However, if there is no working internet connection, requests to the internet will automatically fail. This currently results in an exception error popup and it seems the VLT can no operate. However, the VLT is supposed to work offline as well, and should thus mask such problems and simply hide aspects that would require a working internet connection.</div>
             </div>
