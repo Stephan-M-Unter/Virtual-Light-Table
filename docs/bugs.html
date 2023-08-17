@@ -74,6 +74,27 @@
                 </div>
                 <div class="bug-description">During the start of the Virtual Light Table, the software requests for some files to check its capabilities, available models and new software versions. However, if there is no working internet connection, requests to the internet will automatically fail. This currently results in an exception error popup and it seems the VLT can no operate. However, the VLT is supposed to work offline as well, and should thus mask such problems and simply hide aspects that would require a working internet connection.</div>
             </div>
+            <div class="bug-item">
+                <div class="bug-shorts">
+                    <div class="bug-type bug-cell">⚡ Problem</div>
+                    <div class="bug-title bug-cell">Handling of Large Image Files</div>
+                    <div class="bug-status bug-cell registered"></div>
+                    <div class="bug-entry-date bug-cell">2023-08-17</div>
+                </div>
+                <div class="bug-description">The Virtual Light Table is a graphical application that works under the bonnet with web technology, more precisely with a chromium-based browser as the render engine. Even with commercial graphics editing programmes, problems can arise if the input data is unusually large. This can happen, for example, for high-resolution images of objects that may even have been stitched.
+                </br></br>
+                The canvas or the stage, which are used to display objects on the Virtual Light Table, are not necessarily designed for this. Problems may arise if the input files are too large.
+                </br></br>
+                I currently see three solutions for this:
+                </br>
+                <ul>
+                    <li>The user can independently ensure that the files have an appropriate size by reducing the image files before the input into the VLT.</li>
+                    <li>The VLT itself can be given a limit for the size of the image files. If an image is larger than appropriate, it is automatically reduced in size. Of course, this means that for a later export all position-related data must be scaled accordingly.</li>
+                    <li>For the presentation in the export view, where the highest possible quality of the source images is unavoidable, the use of IIIF could become interesting.</li>
+                </ul>
+                </br>
+                In addition, thought must also be given to whether and how saving and, above all, forwarding can function with large images.</div>
+            </div>
         </div>
 
         </br>
