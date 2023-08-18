@@ -50,6 +50,7 @@ p {
     padding: 10px;
     border: 1px solid #ccc;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .home::after {
@@ -122,6 +123,7 @@ p {
     grid-gap: 10px;
     background-color: #f1f1f1;
     width: 100%;
+    cursor: pointer;
 }
 
 
@@ -130,7 +132,7 @@ p {
 }
 
 .bug-shorts:hover .bug-cell {
-    background-color: #ffded4;
+    background-color: rgb(245, 133, 44);
 }
 
 .bug-cell {
@@ -247,4 +249,47 @@ p {
     padding-top: 10px;
     padding-bottom: 10px;
     border-top: 1px solid #ddd;
+}
+
+nav {
+    min-width: 300px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.nav-button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: black;
+    background-color: white;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.nav-button:hover {
+    background-color: rgb(245, 133, 44);
+}
+
+.nav-button.inactive {
+    background-color: #ccc;
+}
+
+a {
+    color: rgb(164, 4, 42);
+    white-space: nowrap;
+}
+
+a:hover {
+    background-color: #f1f1f1;
+}
+
+a.extern::after {
+    content: ' ⧉';
 }
