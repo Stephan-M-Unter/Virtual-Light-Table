@@ -887,6 +887,13 @@ $('html').keydown(function(event) {
     if ($('.selected').length > 0) {
       toggleSelected($('.selected').attr('id'));
     }
+  } else if (event.keyCode == 13) {
+    // Enter
+    const filterViewVisible = $('#filter-overlay').css('display') !== 'none';
+    const filterButtonDisabled = $('#filter-add-button').hasClass('disabled');
+    if (filterViewVisible && !filterButtonDisabled) {
+      $('#filter-add-button').click();
+    }
   }
 });
 
