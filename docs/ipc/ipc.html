@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>IPC-Documentation | Virtual Light Table</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="./ipc.css">
+        <link rel="shortcut icon" type="image/x-icon" href="../src/logo.ico">
+        <script src="../src/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+        <div class="ipc-head grid">
+            <div class="ipc-head cell" data-sort="receiver">Receiver</div>
+            <div class="ipc-head cell" data-sort="ipc-message">Message</div>
+            <div class="ipc-head cell" data-sort="sender">Potential Sender(s)</div>
+            <div class="ipc-head cell" data-sort="data">Data</div>
+            <div class="ipc-head cell" data-sort="action">Resulting Action</div>
+        </div>
+
+        <div id="ipc-entries">
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-quit-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_APP.js] Server quits application.</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-online-status</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_APP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">console</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_APP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-get-ml-model-details</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-threshold-images</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-facsimilate-images</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-get-ml-models</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-check-tensorflow</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-cut-automatic-masks</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-install-tensorflow</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-edit-auto-mask</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-compute-automatic-masks</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-download-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-check-model-availability</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-reload-ml</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-delete-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-check-for-segmentations</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_ML.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-close-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-gather-ppi</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-stage-loaded</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-undo-step</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-redo-step</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-clear-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-change-format</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-create-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-send-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-send-all</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-write-annotation</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-remove-annotation</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-local-drop</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-new-session</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-graphics-filter-from-client</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-reset-graphics-filter</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-close-update</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-update-page</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-ignore-updates</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events.MAINVIEW.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-upload</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_UPLOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-upload-ready</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_UPLOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-upload-image</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_UPLOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-upload-image-given-filepath</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_UPLOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-load</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-ask-load-folders</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-load-file</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-list-savefiles</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-get-saves-folder</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-select-save-folder</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-export-file</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-delete-file</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-import-file</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-load-folder</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_LOAD.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-save-screenshot</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SAVE.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-save-to-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SAVE.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-save-file</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SAVE.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-confirm-autosave</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SAVE.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-calibration</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_CALIBRATION.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-calibrate</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_CALIBRATION.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-export</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_EXPORT.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-close-export</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_EXPORT.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-get-active-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_EXPORT.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-grapics-filter-from-export</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_EXPORT.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-settings</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SETTINGS.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-close-settings</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SETTINGS.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-settings-opened</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SETTINGS.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-select-folder</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SETTINGS.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-save-config</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SETTINGS.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-get-default</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_SETTINGS.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-select_other-tpops</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-check-tpop-data</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-open-tpop</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-load-tpop-json</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-display-folders</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-load-tpop-fragments</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-reset-sorting</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-reload-json</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-close-tpop</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-tpop-position</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-tpop-basic-info</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-calculate-distances</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-tpop-details</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Server</div>
+                <div class="cell ipc-message">server-tpop-filter</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action">[events_TPOP.js]</div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-load-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-redo-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-add-upload</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-show-feedback</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-redo-undo-update</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-confirm-autosave</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-get-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-get-all</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-file-saved</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-inactive-model</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">calibration-set-ppi</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-set-zoom</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-start-loading</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-stop-loading</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Main View</div>
+                <div class="cell ipc-message">client-loading-progress</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Calibration View</div>
+                <div class="cell ipc-message">calibration-set-ppi</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">upload-receive-image</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">upload-fragment</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">upload-tpop-images</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">model-availability</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">tensorflow-checked</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">tensorflow-installed</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">upload-masks-computed</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">upload-images-cut</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">upload-mask-edited</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Upload View</div>
+                <div class="cell ipc-message">ml-models</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Update View</div>
+                <div class="cell ipc-message">update-available</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Settings View</div>
+                <div class="cell ipc-message">settings-date</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Settings View</div>
+                <div class="cell ipc-message">tensorflow-installed</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Settings View</div>
+                <div class="cell ipc-message">ml-models</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Settings View</div>
+                <div class="cell ipc-message">model-availability</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Settings View</div>
+                <div class="cell ipc-message">tensorflow-checked</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Start View</div>
+                <div class="cell ipc-message">startup-status</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-data-loaded</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-display-folders</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-calculation-done</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-basic-infos</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-position</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-filtered</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-details</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-json-failed</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-active-filters</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">TPOP View</div>
+                <div class="cell ipc-message">tpop-json-data</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Load View</div>
+                <div class="cell ipc-message">load-receive-saves</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Load View</div>
+                <div class="cell ipc-message">load-receive-folder</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Load View</div>
+                <div class="cell ipc-message">load-set-default-folder</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">tensorflow-checked</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">active-table</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">ml-models</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">ml-model-details</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">thresholded-images</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">facsimile-progress</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">threshold-progress</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">model-availability</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">export-graphics-filtered</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+            
+            <div class="ipc-entry grid">
+                <div class="cell receiver">Export View</div>
+                <div class="cell ipc-message">segmentations-checked</div>
+                <div class="cell sender"></div>
+                <div class="cell data">-</div>
+                <div class="cell action"></div>
+            </div>
+        </div>
+        
+        <script src="ipc.js"></script>
+    </body>
+</html>

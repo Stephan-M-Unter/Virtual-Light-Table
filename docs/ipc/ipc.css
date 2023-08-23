@@ -1,0 +1,58 @@
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    width: 100%;
+    cursor: pointer;
+}
+.cell {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer: cursor;
+}
+
+.ipc-head.cell {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    font-size: 16px;
+    color: #4b4b4b;
+    cursor: pointer;
+    -webkit-user-select: none; /* Chrome/Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+
+}
+
+.ipc-head.cell.desc,
+.ipc-head.cell.asc {
+    background-color: #4e4e4e;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+}
+
+.ipc-head.cell.desc::after {
+    content: '▼';
+    padding-left: 5px;
+}
+
+.ipc-head.cell.asc::after {
+    content: '▲';
+    padding-left: 5px;
+}
+
+.ipc-head {
+    position: sticky;
+    top: 0;
+}
+
+.ipc-message {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    color: #4b4b4b;
+    
+}
