@@ -293,3 +293,12 @@ a:hover {
 a.extern::after {
     content: ' ⧉';
 }
+
+#acknowledgments {
+    font-size: 0.8em;
+    width: 90%;
+    margin: 20px auto;
+    text-align: justify;
+    background-color: #f1f1f1;
+    padding: 20px;
+}
