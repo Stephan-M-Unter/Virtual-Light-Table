@@ -8,3 +8,4 @@ temp/*
 imgs/dev_test
 *.db
 test
+out/

@@ -1,17 +1,20 @@
 {
-  "name": "Virtual Light Table",
-  "version": "1.0",
+  "name": "VirtualLightTable",
+  "version": "1.1.0",
   "description": "Virtual Light Table (VLT)",
   "doc": "jsdoc -d doc main.js",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "test": "electron . --dev"
+    "start": "electron-forge start",
+    "test": "electron . --dev",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "author": "Stephan M. Unter",
   "license": "ISC",
   "dependencies": {
     "dialogs": "^2.0.1",
+    "electron-squirrel-startup": "^1.0.0",
     "exif-js": "^2.3.0",
     "follow-redirects": "^1.15.2",
     "fs-extra": "^11.1.1",
@@ -25,6 +28,15 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.4.1",
+    "@electron-forge/maker-deb": "^6.4.1",
+    "@electron-forge/maker-rpm": "^6.4.1",
+    "@electron-forge/maker-squirrel": "^6.4.1",
+    "@electron-forge/maker-zip": "^6.4.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.4.1",
     "electron": "^25.4.0"
+  },
+  "build": {
+    "asar": true
   }
 }
