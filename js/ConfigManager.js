@@ -174,11 +174,13 @@ class ConfigManager {
                         const version = versionData.version;
                         const mainVersion = version.split(".")[0];
                         const subVersion = version.split(".")[1];
+                        const subSubVersion = version.split(".")[2];
 
                         const currentMainVersion = this.version.split(".")[0];
                         const currentSubVersion = this.version.split(".")[1];
+                        const currentSubSubVersion = this.version.split(".")[2];
                         
-                        const updateAvailable = (mainVersion > currentMainVersion) || (mainVersion == currentMainVersion && subVersion > currentSubVersion);
+                        const updateAvailable = (mainVersion > currentMainVersion) || (mainVersion == currentMainVersion && subVersion > currentSubVersion) || (mainVersion == currentMainVersion && subVersion == currentSubVersion && subSubVersion > currentSubSubVersion);
                         versionData.updateAvailable = updateAvailable;
                         versionData.currentVersion = this.version;
                         resolve(versionData);
