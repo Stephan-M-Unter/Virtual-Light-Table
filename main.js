@@ -22,6 +22,7 @@ const {spawn} = require('child_process');
 const CSC = require('./statics/CRIME_SCENE_CLEANER')
 const fs = require('fs-extra');
 const https = require('follow-redirects').https;
+const {PythonShell} = require('python-shell');
 
 const Window = require('./js/Window');
 const TableManager = require('./js/TableManager');
@@ -279,13 +280,21 @@ function get_access_token() {
 }
 
 function createManagers() {
-  configManager = new ConfigManager(vltConfigFile, version);
-  saveManager = new SaveManager();
-  mlManager = new MLManager();
-
-  // external managers
-  tpopManager = new TPOPManager();
-  configManager.registerManager(tpopManager);
+  try {
+    configManager = new ConfigManager(vltConfigFile, version);
+    LOGGER.log('SERVER', 'ConfigManager created.');
+    saveManager = new SaveManager();
+    LOGGER.log('SERVER', 'SaveManager created.');
+    mlManager = new MLManager();
+    LOGGER.log('SERVER', 'MLManager created.');
+  
+    // external managers
+    tpopManager = new TPOPManager();
+    configManager.registerManager(tpopManager);
+    LOGGER.log('SERVER', 'TPOPManager created.');
+  } catch(error) {
+    console.log(error);
+  }
 }
 
 function registerEventHandlers() {
@@ -678,48 +687,55 @@ function preprocess_loading_fragments(data) {
   }
 }
 
-async function checkPythonVersion(pythonCommand) {
+async function checkPythonVersion() {
   return new Promise((resolve, reject) => {
-    const python = spawn(pythonCommand, [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], { detached: false });
-    python.stdout.pipe(process.stdout);
-    python.stderr.pipe(process.stderr);
+   
+    const script = path.join(CONFIG.PYTHON_FOLDER, 'python_test.py');
 
-    python.on('error', (error) => {
+    PythonShell.run(script, null).then(() => {
+      LOGGER.log('SERVER', 'Python Version OK');
+      CONFIG.set_python_command('python');
+      resolve();
+    }).catch((error) => {
+      LOGGER.log('SERVER', 'Python Version not OK');
+      console.log(error);
       reject(error);
     });
 
-    python.on('close', (code) => {
-      if (code == 0) {
+    // const python = spawn(pythonCommand, [path.join(CONFIG.PYTHON_FOLDER, 'python_test.py')], { detached: false });
+    // python.stdout.pipe(process.stdout);
+    // python.stderr.pipe(process.stderr);
 
-        LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
-        LOGGER.log('SERVER', `Setting python command to "${pythonCommand}"`);
-        CONFIG.set_python_command(pythonCommand);
-        resolve();
-      } else {
-        reject();
-      }
-    });
+    // python.on('error', (error) => {
+    //   reject(error);
+    // });
+
+    // python.on('close', (code) => {
+    //   if (code == 0) {
+
+    //     LOGGER.log('SERVER', `[PYTHON] closed with code ${code}`);
+    //     LOGGER.log('SERVER', `Setting python command to "${pythonCommand}"`);
+    //     CONFIG.set_python_command(pythonCommand);
+    //     resolve();
+    //   } else {
+    //     reject();
+    //   }
+    // });
   });
 }
 
 function check_requirements() {
   return new Promise(async (resolve, reject) => {
     try {
-      LOGGER.log('SERVER', 'Checking for PYTHON3...');
-      await checkPythonVersion('python3');
+      LOGGER.log('SERVER', 'Checking for PYTHON...');
+      await checkPythonVersion();
+      console.log('PYTHON OK');
       resolve();
     } catch (error) {
-      LOGGER.log('SERVER', `Command "python3" not found.`);
-      try {
-        LOGGER.log('SERVER', 'Checking for PYTHON...');
-        await checkPythonVersion('python');
-        resolve();
-      } catch (error) {
-        LOGGER.log('SERVER', `Command "python" not found. Python not installed on this system.`);
-        opener('https://www.python.org/downloads/', {}, () => {
-          reject(error);
-        });
-      }
+      LOGGER.log('SERVER', `Command "python" not found. Python not installed on this system.`);
+      opener('https://www.python.org/downloads/', {}, () => {
+        reject(error);
+      });
     }
   });
 }

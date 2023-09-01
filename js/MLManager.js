@@ -5,6 +5,7 @@ const path = require('path');
 const {spawn} = require('child_process');
 const LOGGER = require("../statics/LOGGER");
 const {CONFIG} = require('../statics/CONFIG');
+const {PythonShell} = require('python-shell');
 const https = require('follow-redirects').https;
 
 class MLManager {
@@ -12,21 +13,21 @@ class MLManager {
     constructor() {
         this.tensorflowAvailable = null;
         this.checkForTensorflow();
-
+        
         // define ML subfolders
         this.folderML = path.join(CONFIG.VLT_FOLDER, 'ML');
         this.MLCapacitiesPath = path.join(this.folderML, 'MLcapacities.json');
         this.folderMLmodels = path.join(this.folderML, 'models');
         this.folderMLresults = path.join(this.folderML, 'results');
-
+        
         // create ML subfolders if needed
         if (!fs.existsSync(this.folderML)) fs.mkdirSync(this.folderML);
         if (!fs.existsSync(this.folderMLmodels)) fs.mkdirSync(this.folderMLmodels); 
         if (!fs.existsSync(this.folderMLresults)) fs.mkdirSync(this.folderMLresults);
-
+        
         this.capacities = [];
         this.models = {};
-
+        
         this.reloadCounter = 3;
 
         this.checkForCapacities();
@@ -45,9 +46,11 @@ class MLManager {
                         const timeDiffDays = timeDiff / (1000 * 60 * 60 * 24);
                         if (timeDiffDays > 30 || reload) {
                             // if it is older than 30 days, download the capacities
+                            LOGGER.log('ML MANAGER', `MLcapacities.json is older than 30 days (${timeDiffDays} days) -> reloading.`);
                             this.downloadCapacities(callback);
                         } else {
                             // if it is not older than 30 days, load the capacities
+                            LOGGER.log('ML MANAGER', `MLcapacities.json is okay!`);
                             this.loadCapacities(callback);
                         }
                     } else {
@@ -56,6 +59,7 @@ class MLManager {
                 });
             } else {
                 // if it does not exist, download the capacities
+                LOGGER.log('ML MANAGER', `MLCapacitiesPath (${this.MLCapacitiesPath}) does not exist!`);
                 this.downloadCapacities(callback);
             }
         });
@@ -130,8 +134,19 @@ class MLManager {
     checkForTensorflow(callback) {
         if (this.tensorflowAvailable === null) {
             // check if tensorflow is available
-            const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
-            python.on('close', (code) => {
+            // const python = spawn(CONFIG.PYTHON_CMD, [path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_test.py')], {windowsHide: true, stdio: ['ignore', LOGGER.outputfile, LOGGER.outputfile]});
+            // python.on('close', (code) => {
+            //     LOGGER.log('ML MANAGER', `tensorflow_test.py - result: code ${code}.`);
+            //     this.tensorflowChecked = true;
+            //     this.tensorflowAvailable = (code == 0);
+            //     LOGGER.log('ML MANAGER', `tensorflowAvailable: ${this.tensorflowAvailable}`);
+            //     if (callback) callback(this.tensorflowAvailable);
+            //     else return this.tensorflowAvailable;
+            // });
+
+            const script = path.join(CONFIG.PYTHON_FOLDER, 'tensorflow_test.py');
+            const pyshell = new PythonShell(script);
+            pyshell.end((err, code, signal) => {
                 LOGGER.log('ML MANAGER', `tensorflow_test.py - result: code ${code}.`);
                 this.tensorflowChecked = true;
                 this.tensorflowAvailable = (code == 0);
@@ -139,6 +154,7 @@ class MLManager {
                 if (callback) callback(this.tensorflowAvailable);
                 else return this.tensorflowAvailable;
             });
+
         } else {
             // tensorflow already checked
             // return result
