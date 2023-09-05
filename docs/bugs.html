@@ -100,10 +100,13 @@
                 <div class="bug-shorts">
                     <div class="bug-type bug-cell">🐞Bug</div>
                     <div class="bug-title bug-cell">MacOS and Python</div>
-                    <div class="bug-status bug-cell registered"></div>
+                    <div class="bug-status bug-cell solved"></div>
                     <div class="bug-entry-date bug-cell">2023-08-30</div>
                 </div>
-                <div class="bug-description">There seems to be a problem with the VLT on MacOS (at least some systems) recognising an installed and working python distribution. Usually, when the VLT does not recognise a working python environment (i.e. it cannot call a python script using the commands <code>python</code> or <code>python3</code>) it automatically closes and opens the python download webpage. This is intentional, as the VLT cannot work without python. Surprisingly, it seems this can even occur IF there is a working python distribution installed.</div>
+                <div class="bug-description">There seems to be a problem with the VLT on MacOS (at least some systems) recognising an installed and working python distribution. Usually, when the VLT does not recognise a working python environment (i.e. it cannot call a python script using the commands <code>python</code> or <code>python3</code>) it automatically closes and opens the python download webpage. This is intentional, as the VLT cannot work without python. Surprisingly, it seems this can even occur IF there is a working python distribution installed.
+                <br><br>
+                <b>Solution</b>: It seems that the installation of Xcode Command Line Tools helped for the Python command to work again. So if you hit this problem as well, try opening a terminal and install Xcode via <code>xcode-select --install</code>. I'm not quite sure about the technical details here, but at least it seems to have worked so far.
+            </div>
             </div>
         </div>
 
