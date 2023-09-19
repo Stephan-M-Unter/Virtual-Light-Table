@@ -362,8 +362,7 @@ function updateGUI() {
         $('#mask_control_panel_automatic').addClass('unrendered');
     }
 
-
-
+    checkActiveCanvases();
 
 }
 
@@ -849,7 +848,7 @@ $('#undo_polygon_node').click(undoPolygonNode);
 $('#clear_polygon').click(clearPolygonMask);
 $('#open-settings').click(openSettings);
 $('#upload_button').click(uploadData);
-$('#tpop-choose').click(requestTPOPAlternatives);
+$('.choose_tpop').click(requestTPOPAlternatives);
 $('#tpop-select').click(selectTPOPAlternative);
 $('#tpop-close').click(closeTPOPAlternatives);
 $('#model-download').click(downloadModel);
