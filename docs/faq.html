@@ -29,6 +29,39 @@
             </div>
         </div>
 
+        <h3>Machine Learning</h3>
+
+        <div class="faq-item">
+            <div class="question">
+                <h4>Can I Use Automatic Segmentation on my Ostraka/Reliefs/Stones?</h4>
+            </div>
+            <div class="answer collapsed">
+                <p class="issue">While designed in a papyrological project, the VLT is in general applicable to a whole range of (two-dimensional) fragmentary objects. Therefore, it would also be helpful if there were a method for automatic segmentation for other types of materials as well.</p>
+                <p class="explanation">Unfortunately, this is currently not possible. The machines trained for the VLT so far are all based on data annotations for ancient Egyptian papyri. However, in general it is no problem to train other machines for different types of material IF there is annotated training data available. If you want to contribute by creating your own training data, leading to a segmentation machine for your material, don't hesitate to <a href="./contact.html">contact me</a>.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="question">
+                <h4>Which Machine Learning Model Should I Use for my Segmentation?</h4>
+            </div>
+            <div class="answer collapsed">
+                <p class="explanation">There is no clear answer to that. In the course of my doctoral studies I have trained a couple of different machines to segment papyri and ink, also to analyse their capabilities. Machines that provide at least halfway reliable results are thus provided here as a source of potential support in your workflow. It might be worthwhile to test around with them a bit, though - sometimes different machines yield surprisingly different results.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="question">
+                <h4>The Segmentation Result is not Good at All! What Could be Done?</h4>
+            </div>
+            <div class="answer collapsed">
+                <p class="issue">Sometimes the segmentation results for papyri turn out quite bad - parts of the papyri are not recognised, instead other elements of the image have been misread as papyrus. Part of the ink has not been seen. Why is this the case? And how can this be mitigated?</p>
+                <p class="explanation">Training a machine learning model requires a large amount of manually annotated training data. For the course of my dissertation a colleague of mine and I have drawn masks for 24 different papyri which have been used to adapt the machine learning models to the papyrus setting. It is clear, however, that due to this rather scarce training material there are many configurations of papyri, writing, and backgrounds the machine has never seen before. Also, sometimes the machine has quite some problems with objects that very much look like papyrus, even though it's not - wooden frames are such an example. Therefore, the automatic segmentation may be a useful support tool, but there may be cases where even with minor corrections the result is not to your liking. In that case, you would have to fall back to a manual drawing with a digital image editing tool. In order to make the machines more robust and stable, the best way would be to have more training material available. If you are willing to provide such data, please don't hesitate to <a href="./contact.html">contact me</a>.</p>
+            </div>
+        </div>
+
+
+
         <h3>Development</h3>
 
         <div class="faq-item">
