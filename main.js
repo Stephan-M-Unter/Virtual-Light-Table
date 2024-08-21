@@ -500,6 +500,8 @@ function preprocess_loading_fragments(data) {
   let polygonPoints;
   let filename;
   let ppi;
+  let autoModelID;
+  let autoMaskPath;
   let mirror = false;
   
   // in the following, we first check if the first side has to be processed; if so,
