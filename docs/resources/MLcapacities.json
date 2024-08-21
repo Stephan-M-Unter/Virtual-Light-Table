@@ -6,6 +6,7 @@
             "runNumber": 8.2,
             "requestPaths": [
                 "https://huggingface.co/S-Unter/SEG_01/resolve/main/model.h5",
+                "https://huggingface.co/S-Unter/SEG_01/resolve/main/model.keras",
                 "https://huggingface.co/S-Unter/SEG_01/resolve/main/VLT.py"
             ],
             "outputLabels": ["background", "scale", "papyrus", "black ink", "red ink"],
